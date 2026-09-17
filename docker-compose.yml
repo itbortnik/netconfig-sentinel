@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      NETCONFIG_ENV: development
+      NETCONFIG_LOG_LEVEL: INFO
+    read_only: true
+    tmpfs:
+      - /tmp
