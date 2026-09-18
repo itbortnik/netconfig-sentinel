@@ -12,6 +12,7 @@ from app.policies import (
     MANAGEMENT_RULES,
     OBSERVABILITY_RULES,
     POLICY_RULES,
+    ROUTING_RULES,
 )
 
 DEVICE_ID = UUID("619e8467-a870-464d-890e-4b5209058c8a")
@@ -170,7 +171,7 @@ def test_each_observability_rule_has_positive_and_negative_case(
 def test_policy_catalog_has_unique_rule_ids() -> None:
     rule_ids = [rule.rule_id for rule in POLICY_RULES]
 
-    assert len(POLICY_RULES) == 11
+    assert len(POLICY_RULES) == 15
     assert len(rule_ids) == len(set(rule_ids))
 
 
@@ -243,6 +244,103 @@ def test_each_access_control_rule_has_positive_and_negative_case(
     evidence_lines: list[list[int]],
 ) -> None:
     rule = next(rule for rule in ACCESS_CONTROL_RULES if rule.rule_id == rule_id)
+    violating = parse_configuration(
+        violating_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+    compliant = parse_configuration(
+        compliant_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+
+    positive = evaluate_policies(violating, device_id=DEVICE_ID, rules=(rule,))
+    negative = evaluate_policies(compliant, device_id=DEVICE_ID, rules=(rule,))
+
+    assert len(positive) == 1
+    assert negative == []
+    assert positive[0].category == rule_id
+    assert positive[0].affected_lines == affected_lines
+    assert [
+        evidence.source_location.source_lines
+        for evidence in positive[0].evidence
+        if evidence.source_location is not None
+    ] == evidence_lines
+    assert positive[0].remediation == rule.remediation
+    assert positive[0].references == list(rule.references)
+
+
+@pytest.mark.parametrize(
+    (
+        "rule_id",
+        "violating_text",
+        "compliant_text",
+        "affected_lines",
+        "evidence_lines",
+    ),
+    (
+        (
+            "bgp.router_id_missing",
+            (
+                "hostname edge\nrouter bgp 65001\n"
+                " neighbor 192.0.2.2 remote-as 65002\n"
+            ),
+            (
+                "hostname edge\nrouter bgp 65001\n bgp router-id 192.0.2.1\n"
+                " neighbor 192.0.2.2 remote-as 65002\n"
+            ),
+            [2],
+            [[2]],
+        ),
+        (
+            "bgp.neighbor_is_local_address",
+            (
+                "hostname edge\ninterface GigabitEthernet0/0\n"
+                " ip address 192.0.2.1 255.255.255.0\n!\nrouter bgp 65001\n"
+                " bgp router-id 192.0.2.1\n"
+                " neighbor 192.0.2.1 remote-as 65002\n"
+            ),
+            (
+                "hostname edge\ninterface GigabitEthernet0/0\n"
+                " ip address 192.0.2.1 255.255.255.0\n!\nrouter bgp 65001\n"
+                " bgp router-id 192.0.2.1\n"
+                " neighbor 192.0.2.2 remote-as 65002\n"
+            ),
+            [3, 7],
+            [[3], [7]],
+        ),
+        (
+            "ospf.router_id_missing",
+            (
+                "set system host-name edge\n"
+                "set protocols ospf area 0 interface ge-0/0/0.0\n"
+            ),
+            (
+                "set system host-name edge\n"
+                "set routing-options router-id 192.0.2.1\n"
+                "set protocols ospf area 0 interface ge-0/0/0.0\n"
+            ),
+            [2],
+            [[2]],
+        ),
+        (
+            "routing.default_route_discarded",
+            "hostname edge\nip route 0.0.0.0 0.0.0.0 Null0\n",
+            "hostname edge\nip route 198.51.100.0 255.255.255.0 Null0\n",
+            [2],
+            [[2]],
+        ),
+    ),
+)
+def test_each_routing_rule_has_positive_and_negative_case(
+    rule_id: str,
+    violating_text: str,
+    compliant_text: str,
+    affected_lines: list[int],
+    evidence_lines: list[list[int]],
+) -> None:
+    rule = next(rule for rule in ROUTING_RULES if rule.rule_id == rule_id)
     violating = parse_configuration(
         violating_text,
         filename="device.cfg",

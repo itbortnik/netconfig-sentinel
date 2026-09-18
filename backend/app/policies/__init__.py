@@ -6,6 +6,7 @@ from app.policies.catalog import (
     OBSERVABILITY_RULES,
     POLICY_CATALOG_VERSION,
     POLICY_RULES,
+    ROUTING_RULES,
 )
 from app.policies.models import (
     AclField,
@@ -13,6 +14,7 @@ from app.policies.models import (
     PolicyOperator,
     PolicyPlatform,
     PolicyRule,
+    RoutingField,
 )
 
 __all__ = [
@@ -21,9 +23,11 @@ __all__ = [
     "OBSERVABILITY_RULES",
     "POLICY_CATALOG_VERSION",
     "POLICY_RULES",
+    "ROUTING_RULES",
     "AclField",
     "ManagementField",
     "PolicyOperator",
     "PolicyPlatform",
     "PolicyRule",
+    "RoutingField",
 ]

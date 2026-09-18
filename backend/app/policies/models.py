@@ -36,6 +36,15 @@ class AclField(StrEnum):
     MANAGEMENT_ACCESS_FROM_ANY = "acl.management_access_from_any"
 
 
+class RoutingField(StrEnum):
+    """Derived routing facts supported by deterministic evaluators."""
+
+    BGP_ROUTER_ID_MISSING = "bgp.router_id_missing"
+    BGP_NEIGHBOR_IS_LOCAL = "bgp.neighbor_is_local_address"
+    OSPF_ROUTER_ID_MISSING = "ospf.router_id_missing"
+    DEFAULT_ROUTE_DISCARDED = "routing.default_route_discarded"
+
+
 class PolicyOperator(StrEnum):
     """Small explicit operator set understood by the deterministic engine."""
 
@@ -66,7 +75,7 @@ class PolicyRule(BaseModel):
     title: str = Field(min_length=1)
     severity: Severity
     platforms: tuple[PolicyPlatform, ...] = Field(min_length=1)
-    field: ManagementField | AclField
+    field: ManagementField | AclField | RoutingField
     operator: PolicyOperator = PolicyOperator.EQUALS
     violation_value: bool | tuple[str, ...] | None = None
     expected_value: bool | str
@@ -99,6 +108,8 @@ class PolicyRule(BaseModel):
             ):
                 raise ValueError("contains_any requires a collection field and values")
         elif self.operator is PolicyOperator.MATCHES:
-            if not isinstance(self.field, AclField) or self.violation_value is not None:
-                raise ValueError("matches requires an ACL field and no value")
+            if not isinstance(self.field, (AclField, RoutingField)) or (
+                self.violation_value is not None
+            ):
+                raise ValueError("matches requires a derived field and no value")
         return self

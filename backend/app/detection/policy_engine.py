@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from ipaddress import ip_interface, ip_network
 from uuid import UUID, uuid5
 
 from app.domain import (
@@ -22,6 +23,7 @@ from app.policies import (
     PolicyOperator,
     PolicyPlatform,
     PolicyRule,
+    RoutingField,
 )
 
 POLICY_FINDING_NAMESPACE = UUID("79c10c39-c6bd-43f5-9d24-37d7fa2c9e69")
@@ -132,6 +134,8 @@ def _management_value(
 def _evaluate_rule(config: CanonicalConfig, rule: PolicyRule) -> list[_RuleMatch]:
     if isinstance(rule.field, AclField):
         return _acl_matches(config, rule.field)
+    if isinstance(rule.field, RoutingField):
+        return _routing_matches(config, rule.field)
     actual = _management_value(config, rule.field)
     if not _is_violation(actual, rule):
         return []
@@ -243,10 +247,95 @@ def _acl_rule_locations(rule: AclRule) -> tuple[SourceLocation, ...]:
     whole_rule = rule.provenance.get("rule")
     if whole_rule is not None:
         return (whole_rule,)
+    return _unique_locations(list(rule.provenance.values()))
+
+
+def _routing_matches(
+    config: CanonicalConfig, field: RoutingField
+) -> list[_RuleMatch]:
+    if field is RoutingField.BGP_ROUTER_ID_MISSING:
+        if config.bgp is None or config.bgp.router_id is not None:
+            return []
+        location = config.bgp.provenance.get("local_as")
+        return [
+            _RuleMatch(
+                observed={"local_as": config.bgp.local_as, "router_id": None},
+                locations=() if location is None else (location,),
+                limitations=(
+                    "The missing router ID is inferred from supported configuration syntax.",
+                ),
+            )
+        ]
+    if field is RoutingField.BGP_NEIGHBOR_IS_LOCAL:
+        return _local_bgp_neighbor_matches(config)
+    if field is RoutingField.OSPF_ROUTER_ID_MISSING:
+        matches: list[_RuleMatch] = []
+        for process in config.ospf:
+            if process.router_id is not None:
+                continue
+            location = process.provenance.get("process_id")
+            matches.append(
+                _RuleMatch(
+                    observed={"process_id": process.process_id, "router_id": None},
+                    locations=() if location is None else (location,),
+                    limitations=(
+                        "The missing router ID is inferred from supported configuration syntax.",
+                    ),
+                )
+            )
+        return matches
+    if field is RoutingField.DEFAULT_ROUTE_DISCARDED:
+        return [
+            _RuleMatch(
+                observed={
+                    "family": route.family,
+                    "destination": route.destination,
+                    "discard": route.discard,
+                },
+                locations=_unique_locations(list(route.provenance.values())),
+            )
+            for route in config.static_routes
+            if route.discard and ip_network(route.destination).prefixlen == 0
+        ]
+    return []
+
+
+def _local_bgp_neighbor_matches(config: CanonicalConfig) -> list[_RuleMatch]:
+    if config.bgp is None:
+        return []
+    local_addresses: dict[str, list[SourceLocation]] = {}
+    for interface in config.interfaces:
+        for address in interface.addresses:
+            host = str(ip_interface(address.address).ip)
+            local_addresses.setdefault(host, []).append(address.provenance)
+    matches: list[_RuleMatch] = []
+    for neighbor in config.bgp.neighbors:
+        interface_locations = local_addresses.get(neighbor.address)
+        if interface_locations is None:
+            continue
+        locations = list(interface_locations)
+        neighbor_location = neighbor.provenance.get("address")
+        if neighbor_location is not None:
+            locations.append(neighbor_location)
+        matches.append(
+            _RuleMatch(
+                observed={
+                    "neighbor": neighbor.address,
+                    "local_interface_address": neighbor.address,
+                },
+                locations=_unique_locations(locations),
+            )
+        )
+    return matches
+
+
+def _unique_locations(
+    candidates: list[SourceLocation],
+) -> tuple[SourceLocation, ...]:
     locations: list[SourceLocation] = []
     seen: set[tuple[tuple[int, ...], str]] = set()
     for location in sorted(
-        rule.provenance.values(), key=lambda item: item.source_lines[0]
+        candidates, key=lambda item: item.source_lines[0]
     ):
         key = (tuple(location.source_lines), location.raw_text_hash)
         if key not in seen:

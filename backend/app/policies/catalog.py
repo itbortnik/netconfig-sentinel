@@ -7,9 +7,10 @@ from app.policies.models import (
     PolicyOperator,
     PolicyPlatform,
     PolicyRule,
+    RoutingField,
 )
 
-POLICY_CATALOG_VERSION = "policy-rules-0.3.0"
+POLICY_CATALOG_VERSION = "policy-rules-0.4.0"
 
 SUPPORTED_PLATFORMS = (
     PolicyPlatform.CISCO_IOS,
@@ -160,4 +161,57 @@ ACCESS_CONTROL_RULES = (
     ),
 )
 
-POLICY_RULES = MANAGEMENT_RULES + OBSERVABILITY_RULES + ACCESS_CONTROL_RULES
+ROUTING_RULES = (
+    PolicyRule(
+        rule_id="bgp.router_id_missing",
+        title="BGP router ID is not explicitly configured",
+        severity=Severity.MEDIUM,
+        platforms=SUPPORTED_PLATFORMS,
+        field=RoutingField.BGP_ROUTER_ID_MISSING,
+        operator=PolicyOperator.MATCHES,
+        expected_value="An explicit stable IPv4 BGP router ID",
+        evidence_message="The BGP process has no explicit router ID in supported syntax.",
+        remediation="Configure a stable BGP router ID according to the addressing plan.",
+        references=("docs/policies/routing.md#bgp-router-id-must-be-explicit",),
+    ),
+    PolicyRule(
+        rule_id="bgp.neighbor_is_local_address",
+        title="BGP neighbor uses a local interface address",
+        severity=Severity.CRITICAL,
+        platforms=SUPPORTED_PLATFORMS,
+        field=RoutingField.BGP_NEIGHBOR_IS_LOCAL,
+        operator=PolicyOperator.MATCHES,
+        expected_value="A remote peer address not assigned to this device",
+        evidence_message="The BGP neighbor address is also assigned to a local interface.",
+        remediation="Correct the neighbor address and verify the intended peer endpoint.",
+        references=("docs/policies/routing.md#bgp-neighbors-must-be-remote",),
+    ),
+    PolicyRule(
+        rule_id="ospf.router_id_missing",
+        title="OSPF router ID is not explicitly configured",
+        severity=Severity.MEDIUM,
+        platforms=SUPPORTED_PLATFORMS,
+        field=RoutingField.OSPF_ROUTER_ID_MISSING,
+        operator=PolicyOperator.MATCHES,
+        expected_value="An explicit stable IPv4 OSPF router ID",
+        evidence_message="The OSPF process has no explicit router ID in supported syntax.",
+        remediation="Configure a stable OSPF router ID according to the addressing plan.",
+        references=("docs/policies/routing.md#ospf-router-id-must-be-explicit",),
+    ),
+    PolicyRule(
+        rule_id="routing.default_route_discarded",
+        title="Default static route is discarded",
+        severity=Severity.CRITICAL,
+        platforms=SUPPORTED_PLATFORMS,
+        field=RoutingField.DEFAULT_ROUTE_DISCARDED,
+        operator=PolicyOperator.MATCHES,
+        expected_value="A forwarding next hop for default routes",
+        evidence_message="The IPv4 or IPv6 default route points to a discard action.",
+        remediation="Remove the discard default or replace it with the intended forwarding path.",
+        references=("docs/policies/routing.md#default-routes-must-not-be-discarded",),
+    ),
+)
+
+POLICY_RULES = (
+    MANAGEMENT_RULES + OBSERVABILITY_RULES + ACCESS_CONTROL_RULES + ROUTING_RULES
+)
