@@ -47,6 +47,9 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - неперезаписываемые каталоги обезличенных датасетов с каноническим JSON,
   полным реестром файлов и проверкой SHA-256 при загрузке;
 - provenance для нормализованных значений;
+- сегментация Cisco IOS и JunOS на смысловые блоки с сохранением всех строк;
+- локальный BPE-токенизатор: обучение только на train, версионированный словарь,
+  окна до 1024 токенов и привязка токенов к исходным строкам;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
 Неподдержанные строки не игнорируются: они попадают в `unparsed_fragments` и
@@ -141,3 +144,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/dataset-artifacts.md`](docs/dataset-artifacts.md).
 Контракт и границы генератора синтетических аномалий описаны в
 [`docs/mutation-engine.md`](docs/mutation-engine.md).
+Подготовка блоков и токенизатора для Config Transformer описана в
+[`docs/config-tokenization.md`](docs/config-tokenization.md).

@@ -101,3 +101,9 @@ the exact reversible `MutationOperation` values. Each operation retains its
 precondition, expected effect, original lines, replacement lines, and line
 coordinates. Parser and optional formal-validation results are separate, so a
 partial syntax check cannot be presented as external network validation.
+
+`ConfigurationBlock` retains an exact contiguous source slice, category,
+inclusive line range, and content-bound ID. `TokenizerArtifact` holds the BPE
+model JSON with its checksum, training fingerprint, versions, and policy.
+`TokenWindow` carries fixed-length token IDs, attention and special-token
+masks, the content-token interval, and original source lines for every token.

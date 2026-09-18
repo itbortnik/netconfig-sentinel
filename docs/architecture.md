@@ -100,3 +100,9 @@ the precondition and expected semantic effect, and validates the complete
 result with the canonical vendor parser. Linked samples contain at most five
 unique mutation types. Their labels always remain synthetic and cannot be
 counted as confirmed real anomalies.
+
+Transformer input preparation segments sanitized records into lossless source
+blocks, trains a byte-level BPE vocabulary only on train representatives, and
+encodes blocks into bounded windows with source-line alignment. The vocabulary
+bundle records its dependency version, training fingerprint, policy and hash.
+Validation/test records are encoded with the fixed trained vocabulary.
