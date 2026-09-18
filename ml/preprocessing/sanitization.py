@@ -43,7 +43,8 @@ _JUNOS_BLOCK_COMMUNITY = re.compile(
 _SECRET = re.compile(
     r"(?P<prefix>\b(?:"
     r"enable\s+(?:secret|password)|"
-    r"password|secret|encrypted-password|key-string|shared-secret|"
+    r"password(?!\s+(?:minimum-length|minimum-changes|change-type|format|policy)\b)|"
+    r"secret|encrypted-password|key-string|shared-secret|"
     r"authentication-key|tacacs-server\s+key|radius-server\s+key|"
     r"pre-shared-key(?:\s+ascii-text)?|ssh-(?:rsa|dss|ed25519)"
     r")\s+(?:\d+\s+)?)"

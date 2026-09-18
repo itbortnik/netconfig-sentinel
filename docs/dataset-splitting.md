@@ -92,3 +92,8 @@ test_records = partitions[DatasetSplit.TEST]
 including removed duplicates, so lineage and leakage checks remain auditable.
 No ratios or counts produced from fixtures are presented as production dataset
 metrics.
+
+The split result is not persisted directly. It first enters the quality gate
+described in [`dataset-quality.md`](dataset-quality.md); only a report without
+blocking issues may be written as the sanitized artifact described in
+[`dataset-artifacts.md`](dataset-artifacts.md).

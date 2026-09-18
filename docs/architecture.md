@@ -59,6 +59,8 @@ reviewed source manifest + local files
   -> representatives + duplicate evidence + template groups
   -> entity closure + chronological allocation
   -> isolated train / validation / test partitions
+  -> quality, provenance, privacy, balance, and scale report
+  -> non-overwriting sanitized artifact directory
 ```
 
 Only sources with an approved license or authorization and the requested use
@@ -77,3 +79,16 @@ site, and device identities plus duplicate-cluster links. Allocation never
 breaks those groups. Groups are ordered by their latest capture time and
 assigned to contiguous train, validation, and test regions; any remaining time
 range overlap caused by a long-lived group is explicit in the split audit.
+
+The quality boundary binds the exact sanitized inputs, deduplication policy,
+split policy, and assignments into one pipeline fingerprint. Blocking source,
+integrity, privacy, or leakage findings prevent persistence. Distribution and
+time-range limitations remain warnings because they require review without
+silently changing entity-isolated partitions. Scale targets are reported as
+actual-versus-required values and never converted into dataset claims.
+
+The artifact writer persists only sanitized representatives and audit data. It
+creates a new directory, marks it incomplete while writing, uses exclusive file
+creation, and refuses an existing target. A manifest binds every content file
+to its byte count and SHA-256; loading checks the complete inventory and rejects
+symbolic links, incomplete output, extra files, and changed content.

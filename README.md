@@ -40,6 +40,10 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   SHA-256 с проверяемым MinHash-поиском близких копий и группами шаблонов;
 - детерминированное train/validation/test-разбиение с изоляцией сетей,
   площадок, устройств и duplicate-кластеров и явным аудитом времени;
+- воспроизводимый отчёт качества с проверкой provenance, остаточных секретов,
+  распределений, утечек между выборками и фактической готовности к PoC;
+- неперезаписываемые каталоги обезличенных датасетов с каноническим JSON,
+  полным реестром файлов и проверкой SHA-256 при загрузке;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -103,7 +107,7 @@ backend/app/
   patching/            будущие предложения патчей
   audit/               будущий аудит
 ml/
-  datasets/            manifest, безопасный импорт и дедупликация
+  datasets/            импорт, дедупликация, разбиение, качество и артефакты
   preprocessing/       детерминированное обезличивание конфигураций
 ```
 
@@ -128,3 +132,7 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/dataset-deduplication.md`](docs/dataset-deduplication.md).
 Правила формирования изолированных обучающих выборок описаны в
 [`docs/dataset-splitting.md`](docs/dataset-splitting.md).
+Проверки качества и честный учёт готовности к PoC описаны в
+[`docs/dataset-quality.md`](docs/dataset-quality.md), а формат сохраняемого
+обезличенного набора — в
+[`docs/dataset-artifacts.md`](docs/dataset-artifacts.md).

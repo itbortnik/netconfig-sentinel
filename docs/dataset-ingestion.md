@@ -109,5 +109,7 @@ vendor syntax contains no identifying data. New vendors and syntax require
 dedicated fixtures and reviewer sampling before operational ingestion. The
 next boundary applies the exact and near-duplicate handling described in
 [`dataset-deduplication.md`](dataset-deduplication.md), followed by the isolated
-partitioning described in [`dataset-splitting.md`](dataset-splitting.md).
-Quality reports and immutable sanitized storage remain later stages.
+partitioning described in [`dataset-splitting.md`](dataset-splitting.md). The
+result then crosses the quality gate in
+[`dataset-quality.md`](dataset-quality.md) before it can be written in the
+format described by [`dataset-artifacts.md`](dataset-artifacts.md).

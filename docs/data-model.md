@@ -81,3 +81,16 @@ contain only deduplicated representatives for training, while assignments keep
 the complete audit trail. `TemporalSplitAudit` reports whether observed time
 ranges are strictly ordered, and `TemplateSplitAudit` exposes broad templates
 that span partitions without treating them as identity.
+
+`DatasetQualityReport` binds one exact sanitize/deduplicate/split run through a
+pipeline fingerprint. It carries source license audits, observed counts,
+vendor and role distributions, explicit issues, and an actual-versus-target
+assessment for every PoC scale metric. `technically_valid` means no blocking
+quality issue was found; `poc_scale_ready` independently means every stated
+scale minimum was measured as met.
+
+`DatasetArtifactManifest` is the integrity index of a finalized sanitized
+dataset directory. It records the intended use, source IDs, pipeline versions,
+input and unique counts, and the SHA-256 and byte count of each content file.
+Its content-derived artifact ID is reproducible. It is not a digital signature
+and does not establish publisher identity or authenticity.

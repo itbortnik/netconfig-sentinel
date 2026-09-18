@@ -180,3 +180,16 @@ def test_identifier_aliases_are_stable_and_scope_separated() -> None:
     assert first.startswith("device-")
     assert "edge-prod-01" not in first
     assert first != other_scope
+
+
+def test_password_policy_is_not_mistaken_for_a_credential() -> None:
+    source = "set system login password minimum-length 14;\n"
+
+    result = sanitize_configuration(
+        source,
+        topology_id="source-a/network-a",
+        pseudonymization_key=PSEUDONYMIZATION_KEY,
+    )
+
+    assert result.text == source
+    assert result.replacements == {}
