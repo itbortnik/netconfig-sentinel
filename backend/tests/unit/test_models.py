@@ -3,7 +3,7 @@
 from uuid import uuid4
 
 import pytest
-from app.domain import Finding, InterfaceAddress, Severity, SourceLocation
+from app.domain import Finding, InterfaceAddress, Severity, SourceLocation, VlanSet
 from app.domain.models import ConfigSource
 from pydantic import ValidationError
 
@@ -66,3 +66,17 @@ def test_interface_address_is_canonicalized_and_family_checked() -> None:
             family="ipv6",
             provenance=address.provenance,
         )
+
+
+def test_vlan_set_requires_sorted_unique_valid_identifiers() -> None:
+    provenance = SourceLocation(
+        source_lines=[12],
+        raw_text_hash=VALID_HASH,
+        parser_confidence=1.0,
+    )
+
+    with pytest.raises(ValidationError, match="sorted and unique"):
+        VlanSet(vlan_ids=[20, 10, 10], provenance=provenance)
+
+    with pytest.raises(ValidationError, match="between 1 and 4094"):
+        VlanSet(vlan_ids=[4095], provenance=provenance)

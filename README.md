@@ -14,6 +14,7 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - JunOS в hierarchical и `set`-формате: hostname, AAA, SSH/Telnet, SNMP, NTP и Syslog;
 - типизированные интерфейсы, logical units, IPv4/IPv6 CIDR, описание и явно
   заданное административное состояние;
+- типизированные VLAN и access/trunk-параметры с разрешением JunOS VLAN-имён;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 

@@ -116,6 +116,47 @@ class InterfaceAddress(StrictModel):
         return self
 
 
+class VlanReference(StrictModel):
+    """A VLAN referenced by numeric identifier, vendor name, or both."""
+
+    vlan_id: int | None = Field(default=None, ge=1, le=4094)
+    name: str | None = Field(default=None, min_length=1)
+    provenance: SourceLocation
+
+    @model_validator(mode="after")
+    def require_identifier_or_name(self) -> VlanReference:
+        if self.vlan_id is None and self.name is None:
+            raise ValueError("a VLAN reference needs vlan_id, name, or both")
+        return self
+
+
+class VlanSet(StrictModel):
+    """Normalized explicit/all VLAN selection used by trunk-like interfaces."""
+
+    vlan_ids: list[int] = Field(default_factory=list)
+    vlan_names: list[str] = Field(default_factory=list)
+    all_vlans: bool = False
+    provenance: SourceLocation
+
+    @field_validator("vlan_ids")
+    @classmethod
+    def validate_vlan_ids(cls, value: list[int]) -> list[int]:
+        if any(vlan_id < 1 or vlan_id > 4094 for vlan_id in value):
+            raise ValueError("VLAN identifiers must be between 1 and 4094")
+        if value != sorted(set(value)):
+            raise ValueError("VLAN identifiers must be sorted and unique")
+        return value
+
+    @field_validator("vlan_names")
+    @classmethod
+    def validate_vlan_names(cls, value: list[str]) -> list[str]:
+        if any(not name for name in value):
+            raise ValueError("VLAN names must not be empty")
+        if value != list(dict.fromkeys(value)):
+            raise ValueError("VLAN names must be unique")
+        return value
+
+
 class InterfaceConfig(StrictModel):
     """Vendor-neutral physical interface or JunOS logical unit."""
 
@@ -124,7 +165,25 @@ class InterfaceConfig(StrictModel):
     description: str | None = None
     enabled: bool | None = None
     addresses: list[InterfaceAddress] = Field(default_factory=list)
+    switchport_mode: Literal["access", "trunk"] | None = None
+    access_vlan: VlanReference | None = None
+    native_vlan: VlanReference | None = None
+    allowed_vlans: VlanSet | None = None
     provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+
+class VlanConfig(StrictModel):
+    """Canonical VLAN definition."""
+
+    vlan_id: int | None = Field(default=None, ge=1, le=4094)
+    name: str | None = Field(default=None, min_length=1)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_identifier_or_name(self) -> VlanConfig:
+        if self.vlan_id is None and self.name is None:
+            raise ValueError("a VLAN definition needs vlan_id, name, or both")
+        return self
 
 
 class UnparsedFragment(StrictModel):
@@ -142,7 +201,7 @@ class CanonicalConfig(StrictModel):
     device: DeviceInfo
     management: ManagementConfig = Field(default_factory=ManagementConfig)
     interfaces: list[InterfaceConfig] = Field(default_factory=list)
-    vlans: list[dict[str, Any]] = Field(default_factory=list)
+    vlans: list[VlanConfig] = Field(default_factory=list)
     acls: list[dict[str, Any]] = Field(default_factory=list)
     prefix_lists: list[dict[str, Any]] = Field(default_factory=list)
     static_routes: list[dict[str, Any]] = Field(default_factory=list)

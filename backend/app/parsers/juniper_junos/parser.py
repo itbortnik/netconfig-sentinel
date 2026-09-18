@@ -18,6 +18,9 @@ from app.domain import (
     ManagementConfig,
     UnparsedFragment,
     Vendor,
+    VlanConfig,
+    VlanReference,
+    VlanSet,
 )
 from app.parsers.base import VendorParser, config_source, source_location
 from app.parsers.cisco_ios.parser import _overall_confidence
@@ -45,13 +48,29 @@ class _JunosInterface:
     description: str | None = None
     enabled: bool | None = None
     addresses: list[InterfaceAddress] = field(default_factory=list)
+    switchport_mode: Literal["access", "trunk"] | None = None
+    vlan_members: list[str] = field(default_factory=list)
+    vlan_member_sources: list[tuple[int, str]] = field(default_factory=list)
+    all_vlans: bool = False
+    native_vlan_id: int | None = None
+    native_vlan_source: tuple[int, str] | None = None
     facts: dict[str, list[tuple[int, str]]] = field(
         default_factory=lambda: defaultdict(list)
     )
 
-    def build(self, base: _JunosInterface | None = None) -> InterfaceConfig:
+    def build(
+        self,
+        base: _JunosInterface | None = None,
+        vlan_ids_by_name: dict[str, int] | None = None,
+    ) -> InterfaceConfig:
         description = self.description
         enabled = self.enabled
+        switchport_mode = self.switchport_mode
+        vlan_members = self.vlan_members
+        vlan_member_sources = self.vlan_member_sources
+        all_vlans = self.all_vlans
+        native_vlan_id = self.native_vlan_id
+        native_vlan_source = self.native_vlan_source
         facts = dict(self.facts)
         if base is not None:
             if description is None:
@@ -62,13 +81,83 @@ class _JunosInterface:
                 enabled = base.enabled
                 if "enabled" in base.facts:
                     facts["enabled"] = base.facts["enabled"]
+            if switchport_mode is None:
+                switchport_mode = base.switchport_mode
+                if "switchport_mode" in base.facts:
+                    facts["switchport_mode"] = base.facts["switchport_mode"]
+            if not vlan_members and not all_vlans:
+                vlan_members = base.vlan_members
+                vlan_member_sources = base.vlan_member_sources
+                all_vlans = base.all_vlans
+            if native_vlan_id is None:
+                native_vlan_id = base.native_vlan_id
+                native_vlan_source = base.native_vlan_source
+
+        vlan_ids_by_name = vlan_ids_by_name or {}
+        vlan_ids: set[int] = set()
+        vlan_names: list[str] = []
+        for member in vlan_members:
+            if member.isdigit() and _valid_vlan_id(int(member)):
+                vlan_ids.add(int(member))
+            else:
+                vlan_names.append(member)
+                if member in vlan_ids_by_name:
+                    vlan_ids.add(vlan_ids_by_name[member])
+
+        access_vlan: VlanReference | None = None
+        allowed_vlans: VlanSet | None = None
+        if vlan_member_sources and switchport_mode == "access" and len(vlan_members) == 1:
+            member = vlan_members[0]
+            access_vlan = VlanReference(
+                vlan_id=(
+                    int(member)
+                    if member.isdigit() and _valid_vlan_id(int(member))
+                    else vlan_ids_by_name.get(member)
+                ),
+                name=None if member.isdigit() else member,
+                provenance=source_location(vlan_member_sources),
+            )
+        elif vlan_member_sources:
+            allowed_vlans = VlanSet(
+                vlan_ids=sorted(vlan_ids),
+                vlan_names=list(dict.fromkeys(vlan_names)),
+                all_vlans=all_vlans,
+                provenance=source_location(vlan_member_sources),
+            )
+
+        native_vlan = None
+        if native_vlan_id is not None and native_vlan_source is not None:
+            native_vlan = VlanReference(
+                vlan_id=native_vlan_id,
+                provenance=source_location([native_vlan_source]),
+            )
         return InterfaceConfig(
             name=self.name,
             unit=self.unit,
             description=description,
             enabled=enabled,
             addresses=self.addresses,
+            switchport_mode=switchport_mode,
+            access_vlan=access_vlan,
+            native_vlan=native_vlan,
+            allowed_vlans=allowed_vlans,
             provenance={key: source_location(value) for key, value in facts.items()},
+        )
+
+
+@dataclass
+class _JunosVlan:
+    name: str
+    vlan_id: int | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> VlanConfig:
+        return VlanConfig(
+            vlan_id=self.vlan_id,
+            name=self.name,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
         )
 
 
@@ -131,6 +220,7 @@ class _JunosState:
         self.syslog_servers: list[str] = []
         self.facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         self.interfaces: dict[tuple[str, str | None], _JunosInterface] = {}
+        self.vlans: dict[str, _JunosVlan] = {}
         self.unparsed: list[UnparsedFragment] = []
         self.warnings: list[str] = []
         self.significant_count = 0
@@ -184,8 +274,24 @@ class _JunosState:
             self.remember("snmp_versions", number, raw_line)
         elif lowered[:2] == ["set", "interfaces"]:
             return self.consume_set_interface(tokens, number, raw_line)
+        elif lowered[:2] == ["set", "vlans"]:
+            return self.consume_set_vlan(tokens, number, raw_line)
         else:
             return False
+        return True
+
+    def consume_set_vlan(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        if len(tokens) != 5 or tokens[3].lower() != "vlan-id":
+            return False
+        vlan_id = _parse_vlan_id(tokens[4])
+        if vlan_id is None:
+            self.warnings.append(f"invalid VLAN identifier at line {number}")
+            return False
+        vlan = self.ensure_vlan(tokens[2], number, raw_line)
+        vlan.vlan_id = vlan_id
+        vlan.facts["vlan_id"].append((number, raw_line))
         return True
 
     def consume_set_interface(
@@ -231,6 +337,35 @@ class _JunosState:
             return self.add_interface_address(
                 interface, tokens[8], family, number, raw_line
             )
+        if (
+            len(unit_remainder) == 4
+            and unit_remainder[:2] == ["family", "ethernet-switching"]
+            and unit_remainder[2] in {"interface-mode", "port-mode"}
+            and unit_remainder[3] in {"access", "trunk"}
+        ):
+            interface.switchport_mode = (
+                "access" if unit_remainder[3] == "access" else "trunk"
+            )
+            interface.facts["switchport_mode"].append((number, raw_line))
+            return True
+        if (
+            len(unit_remainder) == 4
+            and unit_remainder[:3]
+            == ["family", "ethernet-switching", "native-vlan-id"]
+        ):
+            vlan_id = _parse_vlan_id(tokens[8])
+            if vlan_id is None:
+                self.warnings.append(f"invalid native VLAN at line {number}")
+                return False
+            interface.native_vlan_id = vlan_id
+            interface.native_vlan_source = (number, raw_line)
+            return True
+        if (
+            len(unit_remainder) >= 5
+            and unit_remainder[:4]
+            == ["family", "ethernet-switching", "vlan", "members"]
+        ):
+            return self.add_vlan_members(interface, tokens[9:], number, raw_line)
         return False
 
     def consume_block(
@@ -242,6 +377,10 @@ class _JunosState:
             return True
         if "interfaces" in context_names:
             return self.consume_interface_block(context, block, number, raw_line)
+        if name == "vlans" and not context:
+            return True
+        if "vlans" in context_names:
+            return self.consume_vlan_block(context, block, number, raw_line)
         if name not in _SAFE_BLOCKS:
             return False
         if name in {"radius-server", "tacplus-server"} and "system" in context_names:
@@ -273,9 +412,11 @@ class _JunosState:
             self.ensure_interface(interface_name, parts[1], number, raw_line)
             return True
         if name == "family" and interface_name is not None and len(parts) >= 2:
-            return _junos_family(parts[1]) is not None
+            return _junos_family(parts[1]) is not None or parts[1].lower() == "ethernet-switching"
         if name in {"inet", "inet6"} and interface_name is not None:
             return True
+        if name == "vlan" and interface_name is not None:
+            return _interface_family_name(context) == "ethernet-switching"
         if name == "address" and interface_name is not None and len(parts) >= 2:
             family = _family_from_context(context)
             if family is None:
@@ -284,6 +425,14 @@ class _JunosState:
             return self.add_interface_address(
                 interface, parts[1], family, number, raw_line
             )
+        return False
+
+    def consume_vlan_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        if context and context[-1].split()[0].lower() == "vlans":
+            self.ensure_vlan(block, number, raw_line)
+            return True
         return False
 
     def consume_leaf(
@@ -297,6 +446,8 @@ class _JunosState:
 
         if "interfaces" in context_names:
             return self.consume_interface_leaf(context, leaf, number, raw_line)
+        if "vlans" in context_names:
+            return self.consume_vlan_leaf(context, leaf, number, raw_line)
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -321,10 +472,27 @@ class _JunosState:
             return False
         return True
 
+    def consume_vlan_leaf(
+        self, context: list[str], leaf: str, number: int, raw_line: str
+    ) -> bool:
+        vlan_name = _vlan_context(context)
+        tokens = leaf.split()
+        if vlan_name is None or len(tokens) != 2 or tokens[0].lower() != "vlan-id":
+            return False
+        vlan_id = _parse_vlan_id(tokens[1])
+        if vlan_id is None:
+            self.warnings.append(f"invalid VLAN identifier at line {number}")
+            return False
+        vlan = self.ensure_vlan(vlan_name, number, raw_line)
+        vlan.vlan_id = vlan_id
+        vlan.facts["vlan_id"].append((number, raw_line))
+        return True
+
     def consume_interface_leaf(
         self, context: list[str], leaf: str, number: int, raw_line: str
     ) -> bool:
         interface_name, unit, family = _interface_context(context)
+        family_name = _interface_family_name(context)
         if interface_name is None:
             return False
         interface = self.ensure_interface(interface_name, unit, number, raw_line)
@@ -345,6 +513,37 @@ class _JunosState:
             return self.add_interface_address(
                 interface, value, family, number, raw_line
             )
+        tokens = leaf.split()
+        lowered_tokens = [token.lower() for token in tokens]
+        if (
+            family_name == "ethernet-switching"
+            and len(lowered_tokens) == 2
+            and lowered_tokens[0] in {"interface-mode", "port-mode"}
+            and lowered_tokens[1] in {"access", "trunk"}
+        ):
+            interface.switchport_mode = (
+                "access" if lowered_tokens[1] == "access" else "trunk"
+            )
+            interface.facts["switchport_mode"].append((number, raw_line))
+            return True
+        if (
+            family_name == "ethernet-switching"
+            and len(lowered_tokens) == 2
+            and lowered_tokens[0] == "native-vlan-id"
+        ):
+            vlan_id = _parse_vlan_id(tokens[1])
+            if vlan_id is None:
+                self.warnings.append(f"invalid native VLAN at line {number}")
+                return False
+            interface.native_vlan_id = vlan_id
+            interface.native_vlan_source = (number, raw_line)
+            return True
+        if (
+            family_name == "ethernet-switching"
+            and lowered_tokens
+            and lowered_tokens[0] == "members"
+        ):
+            return self.add_vlan_members(interface, tokens[1:], number, raw_line)
         return False
 
     def ensure_interface(
@@ -356,6 +555,43 @@ class _JunosState:
             interface.facts["name"].append((number, raw_line))
             self.interfaces[key] = interface
         return self.interfaces[key]
+
+    def ensure_vlan(self, name: str, number: int, raw_line: str) -> _JunosVlan:
+        if name not in self.vlans:
+            vlan = _JunosVlan(name=name)
+            vlan.facts["name"].append((number, raw_line))
+            self.vlans[name] = vlan
+        return self.vlans[name]
+
+    def add_vlan_members(
+        self,
+        interface: _JunosInterface,
+        raw_members: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        members = [
+            token.strip("[],")
+            for token in raw_members
+            if token.strip("[],")
+        ]
+        if not members:
+            return False
+        if "all" in [member.lower() for member in members]:
+            if len(members) != 1:
+                return False
+            interface.all_vlans = True
+            interface.vlan_member_sources.append((number, raw_line))
+            return True
+        for member in members:
+            if member.isdigit() and not _valid_vlan_id(int(member)):
+                self.warnings.append(f"invalid VLAN member at line {number}")
+                return False
+        for member in members:
+            if member not in interface.vlan_members:
+                interface.vlan_members.append(member)
+        interface.vlan_member_sources.append((number, raw_line))
+        return True
 
     def add_interface_address(
         self,
@@ -385,6 +621,11 @@ class _JunosState:
 
     def build_interfaces(self) -> list[InterfaceConfig]:
         result: list[InterfaceConfig] = []
+        vlan_ids_by_name = {
+            name: vlan.vlan_id
+            for name, vlan in self.vlans.items()
+            if vlan.vlan_id is not None
+        }
         names_with_units = {
             name for name, unit in self.interfaces if unit is not None
         }
@@ -392,7 +633,12 @@ class _JunosState:
             base = self.interfaces.get((name, None))
             if unit is None and name in names_with_units and not interface.addresses:
                 continue
-            result.append(interface.build(base if unit is not None else None))
+            result.append(
+                interface.build(
+                    base if unit is not None else None,
+                    vlan_ids_by_name=vlan_ids_by_name,
+                )
+            )
         return result
 
     def build(
@@ -427,6 +673,7 @@ class _JunosState:
                 provenance=management_provenance,
             ),
             interfaces=self.build_interfaces(),
+            vlans=[vlan.build() for vlan in self.vlans.values()],
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
@@ -463,6 +710,41 @@ def _family_from_context(
     context: list[str],
 ) -> Literal["ipv4", "ipv6"] | None:
     return _interface_context(context)[2]
+
+
+def _interface_family_name(context: list[str]) -> str | None:
+    names = [item.split()[0].lower() for item in context]
+    if "interfaces" not in names:
+        return None
+    index = names.index("interfaces")
+    for item in context[index + 2 :]:
+        parts = item.split()
+        if parts and parts[0].lower() == "family" and len(parts) >= 2:
+            return parts[1].lower()
+        if parts and parts[0].lower() in {"inet", "inet6", "ethernet-switching"}:
+            return parts[0].lower()
+    return None
+
+
+def _vlan_context(context: list[str]) -> str | None:
+    names = [item.split()[0].lower() for item in context]
+    if "vlans" not in names:
+        return None
+    index = names.index("vlans")
+    if len(context) <= index + 1:
+        return None
+    return context[index + 1]
+
+
+def _valid_vlan_id(value: int) -> bool:
+    return 1 <= value <= 4094
+
+
+def _parse_vlan_id(value: str) -> int | None:
+    if not value.isdigit():
+        return None
+    vlan_id = int(value)
+    return vlan_id if _valid_vlan_id(vlan_id) else None
 
 
 def _junos_family(value: str) -> Literal["ipv4", "ipv6"] | None:

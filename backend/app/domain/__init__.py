@@ -13,6 +13,9 @@ from app.domain.models import (
     SourceLocation,
     UnparsedFragment,
     Vendor,
+    VlanConfig,
+    VlanReference,
+    VlanSet,
 )
 
 __all__ = [
@@ -28,4 +31,7 @@ __all__ = [
     "SourceLocation",
     "UnparsedFragment",
     "Vendor",
+    "VlanConfig",
+    "VlanReference",
+    "VlanSet",
 ]

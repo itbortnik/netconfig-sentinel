@@ -15,6 +15,11 @@ Supported in the current parser slice:
 - `logging host`.
 - interface blocks with `description`, `shutdown`/`no shutdown`, IPv4
   `ip address`, and CIDR-form IPv6 `ipv6 address`;
+- single-ID `vlan` definitions with `name`;
+- `switchport mode access|trunk`, `switchport access vlan`, trunk native VLAN,
+  and explicit/all/none trunk allowed VLAN selections;
+- numeric trunk ranges such as `10,20-30` are expanded into a sorted canonical
+  VLAN set.
 
 ## Juniper JunOS
 
@@ -29,13 +34,18 @@ Both hierarchical and `set` syntax are supported for:
 - Syslog hosts.
 - physical interfaces and logical units with descriptions, `disable`, and
   `family inet|inet6 address` in hierarchical and `set` syntax.
+- named `vlans` with `vlan-id` in hierarchical and `set` syntax;
+- `family ethernet-switching` with access/trunk mode, native VLAN, and named or
+  numeric VLAN members; known VLAN names are also resolved to numeric IDs.
 
 ## Current limitations
 
 - interface switching mode, VLAN membership, VRF/routing-instance assignment,
-  aggregation, tunnel parameters, and operational state remain unparsed;
-- VLANs, ACLs, prefix lists, routing, and nested policy statements remain
-  unparsed;
+  aggregation, tunnel parameters, and operational state beyond the commands
+  listed above remain unparsed;
+- VTP, private VLANs, Q-in-Q, JunOS `vlan-id-list`, and incremental IOS trunk
+  operations (`add`, `remove`, `except`) remain unsupported;
+- ACLs, prefix lists, routing, and nested policy statements remain unparsed;
 - IOS platform refinement (IOS versus IOS-XE) is not inferred yet;
 - SNMP community syntax cannot prove whether v1, v2c, or both are reachable, so
   the canonical result reports both;

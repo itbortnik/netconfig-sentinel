@@ -17,6 +17,9 @@ from app.domain import (
     ManagementConfig,
     UnparsedFragment,
     Vendor,
+    VlanConfig,
+    VlanReference,
+    VlanSet,
 )
 from app.parsers.base import VendorParser, config_source, source_location
 
@@ -26,6 +29,7 @@ _TRANSPORT_INPUT = re.compile(r"^transport\s+input\s+(?P<value>.+)$", re.IGNOREC
 _NTP_SERVER = re.compile(r"^ntp\s+server\s+(?P<value>\S+)", re.IGNORECASE)
 _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
 _INTERFACE = re.compile(r"^interface\s+(?P<value>\S+)$", re.IGNORECASE)
+_VLAN = re.compile(r"^vlan\s+(?P<value>\d+)$", re.IGNORECASE)
 _IPV4_ADDRESS = re.compile(
     r"^ip\s+address\s+(?P<address>\S+)\s+(?P<mask>\S+)(?:\s+secondary)?$",
     re.IGNORECASE,
@@ -41,6 +45,10 @@ class _CiscoInterface:
     description: str | None = None
     enabled: bool | None = None
     addresses: list[InterfaceAddress] = field(default_factory=list)
+    switchport_mode: Literal["access", "trunk"] | None = None
+    access_vlan: VlanReference | None = None
+    native_vlan: VlanReference | None = None
+    allowed_vlans: VlanSet | None = None
     facts: dict[str, list[tuple[int, str]]] = field(
         default_factory=lambda: defaultdict(list)
     )
@@ -51,6 +59,26 @@ class _CiscoInterface:
             description=self.description,
             enabled=self.enabled,
             addresses=self.addresses,
+            switchport_mode=self.switchport_mode,
+            access_vlan=self.access_vlan,
+            native_vlan=self.native_vlan,
+            allowed_vlans=self.allowed_vlans,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
+@dataclass
+class _CiscoVlan:
+    vlan_id: int
+    name: str | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> VlanConfig:
+        return VlanConfig(
+            vlan_id=self.vlan_id,
+            name=self.name,
             provenance={key: source_location(value) for key, value in self.facts.items()},
         )
 
@@ -78,6 +106,8 @@ class CiscoIOSParser(VendorParser):
         syslog_servers: list[str] = []
         interfaces: list[_CiscoInterface] = []
         current_interface: _CiscoInterface | None = None
+        vlans: dict[int, _CiscoVlan] = {}
+        current_vlan: _CiscoVlan | None = None
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
         warnings: list[str] = []
@@ -89,14 +119,39 @@ class CiscoIOSParser(VendorParser):
                 continue
             if command.startswith("!"):
                 current_interface = None
+                current_vlan = None
                 continue
             significant_count += 1
             lowered = command.lower()
 
             if match := _INTERFACE.fullmatch(command):
                 current_interface = _CiscoInterface(name=match.group("value"))
+                current_vlan = None
                 current_interface.facts["name"].append((number, raw_line))
                 interfaces.append(current_interface)
+                continue
+
+            if match := _VLAN.fullmatch(command):
+                vlan_id = int(match.group("value"))
+                current_interface = None
+                if not _valid_vlan_id(vlan_id):
+                    warnings.append(f"invalid VLAN identifier at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
+                    current_vlan = None
+                    continue
+                if vlan_id not in vlans:
+                    current_vlan = _CiscoVlan(vlan_id=vlan_id)
+                    current_vlan.facts["vlan_id"].append((number, raw_line))
+                    vlans[vlan_id] = current_vlan
+                else:
+                    current_vlan = vlans[vlan_id]
                 continue
 
             if current_interface is not None and raw_line[:1].isspace():
@@ -115,7 +170,24 @@ class CiscoIOSParser(VendorParser):
                 )
                 continue
 
+            if current_vlan is not None and raw_line[:1].isspace():
+                if lowered == "exit":
+                    current_vlan = None
+                    continue
+                if lowered.startswith("name "):
+                    current_vlan.name = command.split(maxsplit=1)[1]
+                    current_vlan.facts["name"].append((number, raw_line))
+                    continue
+                unparsed.append(
+                    UnparsedFragment(
+                        raw_text=raw_line,
+                        location=source_location([(number, raw_line)], parser_confidence=0.0),
+                    )
+                )
+                continue
+
             current_interface = None
+            current_vlan = None
             if lowered in {"end", "exit", "configure terminal"} or lowered.startswith(
                 "line vty "
             ):
@@ -199,6 +271,7 @@ class CiscoIOSParser(VendorParser):
                 provenance=management_provenance,
             ),
             interfaces=[interface.build() for interface in interfaces],
+            vlans=[vlan.build() for vlan in vlans.values()],
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
@@ -226,6 +299,39 @@ def _consume_interface_command(
         interface.facts["enabled"].append((number, raw_line))
         return True
     if lowered == "no ip address":
+        return True
+    if lowered in {"switchport mode access", "switchport mode trunk"}:
+        interface.switchport_mode = "access" if lowered.endswith("access") else "trunk"
+        interface.facts["switchport_mode"].append((number, raw_line))
+        return True
+    if lowered.startswith("switchport access vlan "):
+        vlan_id = _parse_single_vlan_id(command.rsplit(maxsplit=1)[1])
+        if vlan_id is None:
+            warnings.append(f"invalid access VLAN at line {number}")
+            return False
+        interface.access_vlan = VlanReference(
+            vlan_id=vlan_id,
+            provenance=source_location([(number, raw_line)]),
+        )
+        return True
+    if lowered.startswith("switchport trunk native vlan "):
+        vlan_id = _parse_single_vlan_id(command.rsplit(maxsplit=1)[1])
+        if vlan_id is None:
+            warnings.append(f"invalid native VLAN at line {number}")
+            return False
+        interface.native_vlan = VlanReference(
+            vlan_id=vlan_id,
+            provenance=source_location([(number, raw_line)]),
+        )
+        return True
+    allowed_prefix = "switchport trunk allowed vlan "
+    if lowered.startswith(allowed_prefix):
+        selection = command[len(allowed_prefix) :]
+        parsed_selection = _parse_vlan_selection(selection, number, raw_line)
+        if parsed_selection is None:
+            warnings.append(f"unsupported allowed VLAN selection at line {number}")
+            return False
+        interface.allowed_vlans = parsed_selection
         return True
     if match := _IPV4_ADDRESS.fullmatch(command):
         value = f"{match.group('address')}/{match.group('mask')}"
@@ -264,6 +370,50 @@ def _add_interface_address(
         )
     )
     return True
+
+
+def _valid_vlan_id(value: int) -> bool:
+    return 1 <= value <= 4094
+
+
+def _parse_single_vlan_id(value: str) -> int | None:
+    if not value.isdigit():
+        return None
+    vlan_id = int(value)
+    return vlan_id if _valid_vlan_id(vlan_id) else None
+
+
+def _parse_vlan_selection(
+    value: str, number: int, raw_line: str
+) -> VlanSet | None:
+    lowered = value.lower().strip()
+    provenance = source_location([(number, raw_line)])
+    if lowered == "all":
+        return VlanSet(all_vlans=True, provenance=provenance)
+    if lowered == "none":
+        return VlanSet(provenance=provenance)
+    if lowered.startswith(("add ", "remove ", "except ")):
+        return None
+
+    vlan_ids: set[int] = set()
+    for item in lowered.split(","):
+        part = item.strip()
+        if not part:
+            return None
+        if "-" in part:
+            bounds = part.split("-", maxsplit=1)
+            if len(bounds) != 2 or not all(bound.isdigit() for bound in bounds):
+                return None
+            start, end = (int(bound) for bound in bounds)
+            if not _valid_vlan_id(start) or not _valid_vlan_id(end) or start > end:
+                return None
+            vlan_ids.update(range(start, end + 1))
+        else:
+            vlan_id = _parse_single_vlan_id(part)
+            if vlan_id is None:
+                return None
+            vlan_ids.add(vlan_id)
+    return VlanSet(vlan_ids=sorted(vlan_ids), provenance=provenance)
 
 
 def _overall_confidence(significant_count: int, unparsed_count: int) -> float:
