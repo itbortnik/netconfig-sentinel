@@ -9,6 +9,7 @@ from app.domain import Severity
 from app.parsers import parse_configuration
 from app.policies import (
     ACCESS_CONTROL_RULES,
+    LAYER2_RULES,
     MANAGEMENT_RULES,
     OBSERVABILITY_RULES,
     POLICY_RULES,
@@ -171,7 +172,7 @@ def test_each_observability_rule_has_positive_and_negative_case(
 def test_policy_catalog_has_unique_rule_ids() -> None:
     rule_ids = [rule.rule_id for rule in POLICY_RULES]
 
-    assert len(POLICY_RULES) == 15
+    assert len(POLICY_RULES) == 18
     assert len(rule_ids) == len(set(rule_ids))
 
 
@@ -366,3 +367,108 @@ def test_each_routing_rule_has_positive_and_negative_case(
     ] == evidence_lines
     assert positive[0].remediation == rule.remediation
     assert positive[0].references == list(rule.references)
+
+
+@pytest.mark.parametrize(
+    (
+        "rule_id",
+        "violating_text",
+        "compliant_text",
+        "affected_lines",
+        "evidence_lines",
+    ),
+    (
+        (
+            "interface.access_vlan_missing",
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode access\n"
+            ),
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode access\n switchport access vlan 10\n"
+            ),
+            [3],
+            [[3]],
+        ),
+        (
+            "interface.trunk_vlans_unrestricted",
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode trunk\n switchport trunk allowed vlan all\n"
+            ),
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode trunk\n switchport trunk allowed vlan 10,20\n"
+            ),
+            [3, 4],
+            [[3], [4]],
+        ),
+        (
+            "interface.switchport_mode_conflict",
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode trunk\n switchport access vlan 10\n"
+            ),
+            (
+                "hostname edge\ninterface GigabitEthernet0/1\n"
+                " switchport mode trunk\n switchport trunk allowed vlan 10\n"
+            ),
+            [3, 4],
+            [[3], [4]],
+        ),
+    ),
+)
+def test_each_layer2_rule_has_positive_and_negative_case(
+    rule_id: str,
+    violating_text: str,
+    compliant_text: str,
+    affected_lines: list[int],
+    evidence_lines: list[list[int]],
+) -> None:
+    rule = next(rule for rule in LAYER2_RULES if rule.rule_id == rule_id)
+    violating = parse_configuration(
+        violating_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+    compliant = parse_configuration(
+        compliant_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+
+    positive = evaluate_policies(violating, device_id=DEVICE_ID, rules=(rule,))
+    negative = evaluate_policies(compliant, device_id=DEVICE_ID, rules=(rule,))
+
+    assert len(positive) == 1
+    assert negative == []
+    assert positive[0].category == rule_id
+    assert positive[0].affected_lines == affected_lines
+    assert [
+        evidence.source_location.source_lines
+        for evidence in positive[0].evidence
+        if evidence.source_location is not None
+    ] == evidence_lines
+    assert positive[0].remediation == rule.remediation
+    assert positive[0].references == list(rule.references)
+
+
+def test_trunk_without_allowed_list_is_reported_as_absence_based() -> None:
+    config = parse_configuration(
+        "hostname edge\ninterface GigabitEthernet0/1\n switchport mode trunk\n",
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+    rule = next(
+        rule
+        for rule in LAYER2_RULES
+        if rule.rule_id == "interface.trunk_vlans_unrestricted"
+    )
+
+    finding = evaluate_policies(config, device_id=DEVICE_ID, rules=(rule,))[0]
+
+    assert finding.affected_lines == [3]
+    assert finding.limitations == [
+        "The unrestricted VLAN set is inferred from the absence of supported restriction syntax."
+    ]

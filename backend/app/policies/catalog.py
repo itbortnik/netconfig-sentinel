@@ -3,6 +3,7 @@
 from app.domain import Severity
 from app.policies.models import (
     AclField,
+    Layer2Field,
     ManagementField,
     PolicyOperator,
     PolicyPlatform,
@@ -10,7 +11,7 @@ from app.policies.models import (
     RoutingField,
 )
 
-POLICY_CATALOG_VERSION = "policy-rules-0.4.0"
+POLICY_CATALOG_VERSION = "policy-rules-0.5.0"
 
 SUPPORTED_PLATFORMS = (
     PolicyPlatform.CISCO_IOS,
@@ -212,6 +213,49 @@ ROUTING_RULES = (
     ),
 )
 
+LAYER2_RULES = (
+    PolicyRule(
+        rule_id="interface.access_vlan_missing",
+        title="Access interface has no explicit VLAN",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=Layer2Field.ACCESS_VLAN_MISSING,
+        operator=PolicyOperator.MATCHES,
+        expected_value="An explicit access VLAN on every access interface",
+        evidence_message="The interface is in access mode without an explicit access VLAN.",
+        remediation="Assign the intended access VLAN explicitly.",
+        references=("docs/policies/layer2.md#access-vlans-must-be-explicit",),
+    ),
+    PolicyRule(
+        rule_id="interface.trunk_vlans_unrestricted",
+        title="Trunk interface permits an unrestricted VLAN set",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=Layer2Field.TRUNK_VLANS_UNRESTRICTED,
+        operator=PolicyOperator.MATCHES,
+        expected_value="An explicit least-privilege allowed VLAN set",
+        evidence_message="The trunk has no explicit VLAN restriction or permits all VLANs.",
+        remediation="Configure only the VLANs required on this trunk.",
+        references=("docs/policies/layer2.md#trunk-vlans-must-be-restricted",),
+    ),
+    PolicyRule(
+        rule_id="interface.switchport_mode_conflict",
+        title="Interface contains conflicting switchport parameters",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=Layer2Field.SWITCHPORT_MODE_CONFLICT,
+        operator=PolicyOperator.MATCHES,
+        expected_value="Switchport parameters consistent with the configured mode",
+        evidence_message="The interface mixes access and trunk-only parameters.",
+        remediation="Remove stale parameters and configure one intended switchport mode.",
+        references=("docs/policies/layer2.md#switchport-mode-must-be-consistent",),
+    ),
+)
+
 POLICY_RULES = (
-    MANAGEMENT_RULES + OBSERVABILITY_RULES + ACCESS_CONTROL_RULES + ROUTING_RULES
+    MANAGEMENT_RULES
+    + OBSERVABILITY_RULES
+    + ACCESS_CONTROL_RULES
+    + ROUTING_RULES
+    + LAYER2_RULES
 )

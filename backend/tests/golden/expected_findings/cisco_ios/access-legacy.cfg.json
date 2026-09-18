@@ -35,7 +35,7 @@
       "docs/policies/management-plane.md#telnet-must-be-disabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   },
   {
     "finding_id": "219476ef-e31f-5fee-af91-8dfcca2806b2",
@@ -67,7 +67,7 @@
     "limitations": [
       "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   },
   {
     "finding_id": "917697fa-f1f0-5c44-8808-7a0281bae22b",
@@ -105,7 +105,7 @@
       "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   },
   {
     "finding_id": "1adf73d5-cace-5e73-bb5a-71970e9d13a9",
@@ -146,7 +146,7 @@
       "docs/policies/observability.md#legacy-snmp-must-be-disabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   },
   {
     "finding_id": "84d04a99-93ed-5ee3-827e-a41a8ab2cce4",
@@ -178,7 +178,7 @@
     "limitations": [
       "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   },
   {
     "finding_id": "2a7bcbfb-023e-562d-a98f-cada9b39a4c1",
@@ -210,6 +210,6 @@
     "limitations": [
       "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.4.0"
+    "model_version": "policy-rules-0.5.0"
   }
 ]

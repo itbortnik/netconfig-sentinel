@@ -45,6 +45,14 @@ class RoutingField(StrEnum):
     DEFAULT_ROUTE_DISCARDED = "routing.default_route_discarded"
 
 
+class Layer2Field(StrEnum):
+    """Derived interface and VLAN facts supported by deterministic evaluators."""
+
+    ACCESS_VLAN_MISSING = "interface.access_vlan_missing"
+    TRUNK_VLANS_UNRESTRICTED = "interface.trunk_vlans_unrestricted"
+    SWITCHPORT_MODE_CONFLICT = "interface.switchport_mode_conflict"
+
+
 class PolicyOperator(StrEnum):
     """Small explicit operator set understood by the deterministic engine."""
 
@@ -75,7 +83,7 @@ class PolicyRule(BaseModel):
     title: str = Field(min_length=1)
     severity: Severity
     platforms: tuple[PolicyPlatform, ...] = Field(min_length=1)
-    field: ManagementField | AclField | RoutingField
+    field: ManagementField | AclField | RoutingField | Layer2Field
     operator: PolicyOperator = PolicyOperator.EQUALS
     violation_value: bool | tuple[str, ...] | None = None
     expected_value: bool | str
@@ -108,7 +116,7 @@ class PolicyRule(BaseModel):
             ):
                 raise ValueError("contains_any requires a collection field and values")
         elif self.operator is PolicyOperator.MATCHES:
-            if not isinstance(self.field, (AclField, RoutingField)) or (
+            if not isinstance(self.field, (AclField, RoutingField, Layer2Field)) or (
                 self.violation_value is not None
             ):
                 raise ValueError("matches requires a derived field and no value")

@@ -24,7 +24,7 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - типизированный OSPFv2 с router ID, нормализованными area ID, Cisco network
   statements и JunOS interface membership, passive state и metric;
 - детерминированный policy engine с воспроизводимыми ID находок;
-- пятнадцать политик для management plane, наблюдаемости, ACL и маршрутизации;
+- восемнадцать политик для management plane, наблюдаемости, ACL, маршрутизации и L2;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -97,3 +97,4 @@ backend/app/
 [`docs/policies/observability.md`](docs/policies/observability.md), а проверки
 ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Маршрутные проверки описаны в [`docs/policies/routing.md`](docs/policies/routing.md).
+Проверки VLAN и switchport описаны в [`docs/policies/layer2.md`](docs/policies/layer2.md).

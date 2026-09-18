@@ -12,6 +12,7 @@ from app.domain import (
     CanonicalConfig,
     Evidence,
     Finding,
+    InterfaceConfig,
     SourceLocation,
     Vendor,
 )
@@ -19,6 +20,7 @@ from app.policies import (
     POLICY_CATALOG_VERSION,
     POLICY_RULES,
     AclField,
+    Layer2Field,
     ManagementField,
     PolicyOperator,
     PolicyPlatform,
@@ -136,6 +138,8 @@ def _evaluate_rule(config: CanonicalConfig, rule: PolicyRule) -> list[_RuleMatch
         return _acl_matches(config, rule.field)
     if isinstance(rule.field, RoutingField):
         return _routing_matches(config, rule.field)
+    if isinstance(rule.field, Layer2Field):
+        return _layer2_matches(config, rule.field)
     actual = _management_value(config, rule.field)
     if not _is_violation(actual, rule):
         return []
@@ -342,6 +346,129 @@ def _unique_locations(
             locations.append(location)
             seen.add(key)
     return tuple(locations)
+
+
+def _layer2_matches(config: CanonicalConfig, field: Layer2Field) -> list[_RuleMatch]:
+    matches: list[_RuleMatch] = []
+    for interface in config.interfaces:
+        if field is Layer2Field.ACCESS_VLAN_MISSING:
+            if (
+                interface.switchport_mode == "access"
+                and interface.access_vlan is None
+                and interface.native_vlan is None
+                and interface.allowed_vlans is None
+            ):
+                matches.append(
+                    _RuleMatch(
+                        observed=_interface_observed(interface),
+                        locations=_interface_locations(interface, "switchport_mode"),
+                        limitations=(
+                            "The missing access VLAN is inferred from supported "
+                            "configuration syntax.",
+                        ),
+                    )
+                )
+        elif field is Layer2Field.TRUNK_VLANS_UNRESTRICTED:
+            if (
+                interface.switchport_mode == "trunk"
+                and interface.access_vlan is None
+                and (
+                    interface.allowed_vlans is None
+                    or interface.allowed_vlans.all_vlans
+                )
+            ):
+                locations = _interface_locations(interface, "switchport_mode")
+                limitations: tuple[str, ...] = ()
+                if interface.allowed_vlans is None:
+                    limitations = (
+                        "The unrestricted VLAN set is inferred from the absence of "
+                        "supported restriction syntax.",
+                    )
+                else:
+                    locations = _unique_locations(
+                        [*locations, interface.allowed_vlans.provenance]
+                    )
+                matches.append(
+                    _RuleMatch(
+                        observed=_interface_observed(interface),
+                        locations=locations,
+                        limitations=limitations,
+                    )
+                )
+        elif field is Layer2Field.SWITCHPORT_MODE_CONFLICT and (
+            (
+                interface.switchport_mode == "access"
+                and (
+                    interface.native_vlan is not None
+                    or interface.allowed_vlans is not None
+                )
+            )
+            or (
+                interface.switchport_mode == "trunk"
+                and interface.access_vlan is not None
+            )
+        ):
+            matches.append(
+                _RuleMatch(
+                    observed=_interface_observed(interface),
+                    locations=_conflicting_interface_locations(interface),
+                )
+            )
+    return matches
+
+
+def _interface_observed(interface: InterfaceConfig) -> dict[str, object]:
+    return {
+        "name": interface.name,
+        "unit": interface.unit,
+        "switchport_mode": interface.switchport_mode,
+        "access_vlan": (
+            None
+            if interface.access_vlan is None
+            else {
+                "vlan_id": interface.access_vlan.vlan_id,
+                "name": interface.access_vlan.name,
+            }
+        ),
+        "native_vlan": (
+            None
+            if interface.native_vlan is None
+            else {
+                "vlan_id": interface.native_vlan.vlan_id,
+                "name": interface.native_vlan.name,
+            }
+        ),
+        "allowed_vlans": (
+            None
+            if interface.allowed_vlans is None
+            else {
+                "vlan_ids": interface.allowed_vlans.vlan_ids,
+                "vlan_names": interface.allowed_vlans.vlan_names,
+                "all_vlans": interface.allowed_vlans.all_vlans,
+            }
+        ),
+    }
+
+
+def _interface_locations(
+    interface: InterfaceConfig, *keys: str
+) -> tuple[SourceLocation, ...]:
+    return _unique_locations(
+        [interface.provenance[key] for key in keys if key in interface.provenance]
+    )
+
+
+def _conflicting_interface_locations(
+    interface: InterfaceConfig,
+) -> tuple[SourceLocation, ...]:
+    locations = list(_interface_locations(interface, "switchport_mode"))
+    if interface.access_vlan is not None:
+        locations.append(interface.access_vlan.provenance)
+    if interface.native_vlan is not None:
+        locations.append(interface.native_vlan.provenance)
+    if interface.allowed_vlans is not None:
+        locations.append(interface.allowed_vlans.provenance)
+    return _unique_locations(locations)
 
 
 def _finding_id(device_id: UUID, rule_id: str, affected_lines: list[int]) -> UUID:
