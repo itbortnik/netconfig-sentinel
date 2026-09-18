@@ -2,13 +2,14 @@
 
 from app.domain import Severity
 from app.policies.models import (
+    AclField,
     ManagementField,
     PolicyOperator,
     PolicyPlatform,
     PolicyRule,
 )
 
-POLICY_CATALOG_VERSION = "policy-rules-0.2.0"
+POLICY_CATALOG_VERSION = "policy-rules-0.3.0"
 
 SUPPORTED_PLATFORMS = (
     PolicyPlatform.CISCO_IOS,
@@ -106,4 +107,57 @@ OBSERVABILITY_RULES = (
     ),
 )
 
-POLICY_RULES = MANAGEMENT_RULES + OBSERVABILITY_RULES
+ACCESS_CONTROL_RULES = (
+    PolicyRule(
+        rule_id="acl.empty",
+        title="ACL has no effective rules",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=AclField.EMPTY,
+        operator=PolicyOperator.MATCHES,
+        expected_value="At least one explicit ACL rule",
+        evidence_message="The ACL contains no rule with a supported action.",
+        remediation="Add the intended restrictive rules or remove the unused ACL.",
+        references=("docs/policies/access-control.md#acls-must-not-be-empty",),
+    ),
+    PolicyRule(
+        rule_id="acl.unrestricted_permit",
+        title="ACL contains an unrestricted permit",
+        severity=Severity.CRITICAL,
+        platforms=SUPPORTED_PLATFORMS,
+        field=AclField.UNRESTRICTED_PERMIT,
+        operator=PolicyOperator.MATCHES,
+        expected_value="Permit rules constrained by source, destination, or port",
+        evidence_message="The rule permits a protocol without address or port constraints.",
+        remediation=(
+            "Replace the rule with least-privilege source, destination, and service matches."
+        ),
+        references=("docs/policies/access-control.md#unrestricted-permits-are-forbidden",),
+    ),
+    PolicyRule(
+        rule_id="acl.telnet_permitted",
+        title="ACL explicitly permits Telnet",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=AclField.TELNET_PERMITTED,
+        operator=PolicyOperator.MATCHES,
+        expected_value="No permit rule matching TCP port 23",
+        evidence_message="The rule explicitly permits Telnet traffic.",
+        remediation="Remove the Telnet permit and allow SSH from approved sources instead.",
+        references=("docs/policies/access-control.md#telnet-must-not-be-permitted",),
+    ),
+    PolicyRule(
+        rule_id="acl.management_access_from_any",
+        title="ACL permits management access from any source",
+        severity=Severity.CRITICAL,
+        platforms=SUPPORTED_PLATFORMS,
+        field=AclField.MANAGEMENT_ACCESS_FROM_ANY,
+        operator=PolicyOperator.MATCHES,
+        expected_value="SSH and SNMP permits restricted to approved source networks",
+        evidence_message="The rule permits SSH or SNMP from an unrestricted source.",
+        remediation="Restrict management services to approved management networks.",
+        references=("docs/policies/access-control.md#management-sources-must-be-restricted",),
+    ),
+)
+
+POLICY_RULES = MANAGEMENT_RULES + OBSERVABILITY_RULES + ACCESS_CONTROL_RULES

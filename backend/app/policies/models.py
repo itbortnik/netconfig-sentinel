@@ -27,12 +27,22 @@ class ManagementField(StrEnum):
     SYSLOG_SERVERS = "management.syslog_servers"
 
 
+class AclField(StrEnum):
+    """Derived ACL facts supported by deterministic evaluators."""
+
+    EMPTY = "acl.empty"
+    UNRESTRICTED_PERMIT = "acl.unrestricted_permit"
+    TELNET_PERMITTED = "acl.telnet_permitted"
+    MANAGEMENT_ACCESS_FROM_ANY = "acl.management_access_from_any"
+
+
 class PolicyOperator(StrEnum):
     """Small explicit operator set understood by the deterministic engine."""
 
     EQUALS = "equals"
     IS_EMPTY = "is_empty"
     CONTAINS_ANY = "contains_any"
+    MATCHES = "matches"
 
 
 _BOOLEAN_FIELDS = {
@@ -48,7 +58,7 @@ _COLLECTION_FIELDS = {
 
 
 class PolicyRule(BaseModel):
-    """One dependency-free, declarative boolean policy definition."""
+    """One dependency-free declarative policy definition."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -56,7 +66,7 @@ class PolicyRule(BaseModel):
     title: str = Field(min_length=1)
     severity: Severity
     platforms: tuple[PolicyPlatform, ...] = Field(min_length=1)
-    field: ManagementField
+    field: ManagementField | AclField
     operator: PolicyOperator = PolicyOperator.EQUALS
     violation_value: bool | tuple[str, ...] | None = None
     expected_value: bool | str
@@ -88,4 +98,7 @@ class PolicyRule(BaseModel):
                 isinstance(self.violation_value, tuple) and self.violation_value
             ):
                 raise ValueError("contains_any requires a collection field and values")
+        elif self.operator is PolicyOperator.MATCHES:
+            if not isinstance(self.field, AclField) or self.violation_value is not None:
+                raise ValueError("matches requires an ACL field and no value")
         return self

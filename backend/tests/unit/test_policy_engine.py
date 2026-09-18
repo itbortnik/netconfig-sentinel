@@ -7,7 +7,12 @@ import pytest
 from app.detection import evaluate_policies
 from app.domain import Severity
 from app.parsers import parse_configuration
-from app.policies import MANAGEMENT_RULES, OBSERVABILITY_RULES, POLICY_RULES
+from app.policies import (
+    ACCESS_CONTROL_RULES,
+    MANAGEMENT_RULES,
+    OBSERVABILITY_RULES,
+    POLICY_RULES,
+)
 
 DEVICE_ID = UUID("619e8467-a870-464d-890e-4b5209058c8a")
 COLLECTED_AT = datetime(2026, 1, 1, tzinfo=UTC)
@@ -165,5 +170,101 @@ def test_each_observability_rule_has_positive_and_negative_case(
 def test_policy_catalog_has_unique_rule_ids() -> None:
     rule_ids = [rule.rule_id for rule in POLICY_RULES]
 
-    assert len(POLICY_RULES) == 7
+    assert len(POLICY_RULES) == 11
     assert len(rule_ids) == len(set(rule_ids))
+
+
+@pytest.mark.parametrize(
+    (
+        "rule_id",
+        "violating_text",
+        "compliant_text",
+        "affected_lines",
+        "evidence_lines",
+    ),
+    (
+        (
+            "acl.empty",
+            "hostname edge\nip access-list extended EMPTY\n!\n",
+            "hostname edge\nip access-list extended FILTER\n 10 deny ip any any\n",
+            [2],
+            [[2]],
+        ),
+        (
+            "acl.unrestricted_permit",
+            "hostname edge\nip access-list extended OPEN\n 10 permit ip any any\n",
+            (
+                "hostname edge\nip access-list extended FILTER\n"
+                " 10 permit tcp host 192.0.2.10 host 192.0.2.1 eq ssh\n"
+            ),
+            [3],
+            [[3]],
+        ),
+        (
+            "acl.telnet_permitted",
+            (
+                "hostname edge\nip access-list extended MGMT\n"
+                " 10 permit tcp host 192.0.2.10 host 192.0.2.1 eq telnet\n"
+            ),
+            (
+                "hostname edge\nip access-list extended MGMT\n"
+                " 10 permit tcp host 192.0.2.10 host 192.0.2.1 eq ssh\n"
+            ),
+            [3],
+            [[3]],
+        ),
+        (
+            "acl.management_access_from_any",
+            (
+                "set system host-name edge\n"
+                "set firewall family inet filter MGMT term SSH from source-address any\n"
+                "set firewall family inet filter MGMT term SSH from protocol tcp\n"
+                "set firewall family inet filter MGMT term SSH from destination-port ssh\n"
+                "set firewall family inet filter MGMT term SSH then accept\n"
+            ),
+            (
+                "set system host-name edge\n"
+                "set firewall family inet filter MGMT term SSH from source-address "
+                "192.0.2.0/24\n"
+                "set firewall family inet filter MGMT term SSH from protocol tcp\n"
+                "set firewall family inet filter MGMT term SSH from destination-port ssh\n"
+                "set firewall family inet filter MGMT term SSH then accept\n"
+            ),
+            [2, 3, 4, 5],
+            [[2], [3], [4], [5]],
+        ),
+    ),
+)
+def test_each_access_control_rule_has_positive_and_negative_case(
+    rule_id: str,
+    violating_text: str,
+    compliant_text: str,
+    affected_lines: list[int],
+    evidence_lines: list[list[int]],
+) -> None:
+    rule = next(rule for rule in ACCESS_CONTROL_RULES if rule.rule_id == rule_id)
+    violating = parse_configuration(
+        violating_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+    compliant = parse_configuration(
+        compliant_text,
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+
+    positive = evaluate_policies(violating, device_id=DEVICE_ID, rules=(rule,))
+    negative = evaluate_policies(compliant, device_id=DEVICE_ID, rules=(rule,))
+
+    assert len(positive) == 1
+    assert negative == []
+    assert positive[0].category == rule_id
+    assert positive[0].affected_lines == affected_lines
+    assert [
+        evidence.source_location.source_lines
+        for evidence in positive[0].evidence
+        if evidence.source_location is not None
+    ] == evidence_lines
+    assert positive[0].remediation == rule.remediation
+    assert positive[0].references == list(rule.references)
