@@ -24,7 +24,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - типизированный OSPFv2 с router ID, нормализованными area ID, Cisco network
   statements и JunOS interface membership, passive state и metric;
 - детерминированный policy engine с воспроизводимыми ID находок;
-- восемнадцать политик для management plane, наблюдаемости, ACL, маршрутизации и L2;
+- двадцать политик для management plane, наблюдаемости, ACL, маршрутизации и
+  L2;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 

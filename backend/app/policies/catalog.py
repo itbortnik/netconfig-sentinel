@@ -3,6 +3,7 @@
 from app.domain import Severity
 from app.policies.models import (
     AclField,
+    DeviceField,
     Layer2Field,
     ManagementField,
     PolicyOperator,
@@ -11,7 +12,7 @@ from app.policies.models import (
     RoutingField,
 )
 
-POLICY_CATALOG_VERSION = "policy-rules-0.5.0"
+POLICY_CATALOG_VERSION = "policy-rules-0.6.0"
 
 SUPPORTED_PLATFORMS = (
     PolicyPlatform.CISCO_IOS,
@@ -54,6 +55,30 @@ MANAGEMENT_RULES = (
         evidence_message="No supported centralized AAA enablement statement was found.",
         remediation="Enable centralized AAA with an explicitly tested local fallback.",
         references=("docs/policies/management-plane.md#centralized-aaa-must-be-enabled",),
+    ),
+    PolicyRule(
+        rule_id="management.hostname_missing",
+        title="Device hostname is not configured",
+        severity=Severity.MEDIUM,
+        platforms=SUPPORTED_PLATFORMS,
+        field=DeviceField.HOSTNAME_MISSING,
+        operator=PolicyOperator.MATCHES,
+        expected_value="An explicit unique hostname",
+        evidence_message="No supported hostname statement was found.",
+        remediation="Configure a unique hostname that follows the inventory naming standard.",
+        references=("docs/policies/management-plane.md#hostname-must-be-explicit",),
+    ),
+    PolicyRule(
+        rule_id="management.ssh_version_1",
+        title="SSHv1 is explicitly configured",
+        severity=Severity.HIGH,
+        platforms=SUPPORTED_PLATFORMS,
+        field=ManagementField.SSH_VERSION,
+        violation_value="1",
+        expected_value="2",
+        evidence_message="The management service explicitly selects SSH protocol version 1.",
+        remediation="Require SSH protocol version 2 and remove SSHv1 compatibility.",
+        references=("docs/policies/management-plane.md#ssh-version-1-must-be-disabled",),
     ),
 )
 

@@ -11,6 +11,7 @@ from app.policies.catalog import (
 )
 from app.policies.models import (
     AclField,
+    DeviceField,
     Layer2Field,
     ManagementField,
     PolicyOperator,
@@ -28,6 +29,7 @@ __all__ = [
     "POLICY_RULES",
     "ROUTING_RULES",
     "AclField",
+    "DeviceField",
     "Layer2Field",
     "ManagementField",
     "PolicyOperator",

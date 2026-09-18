@@ -20,6 +20,7 @@ class ManagementField(StrEnum):
     """Management and observability facts exposed to declarative rules."""
 
     SSH_ENABLED = "management.ssh_enabled"
+    SSH_VERSION = "management.ssh_version"
     TELNET_ENABLED = "management.telnet_enabled"
     AAA_ENABLED = "management.aaa_enabled"
     SNMP_VERSIONS = "management.snmp_versions"
@@ -53,6 +54,12 @@ class Layer2Field(StrEnum):
     SWITCHPORT_MODE_CONFLICT = "interface.switchport_mode_conflict"
 
 
+class DeviceField(StrEnum):
+    """Derived device identity facts supported by deterministic evaluators."""
+
+    HOSTNAME_MISSING = "device.hostname_missing"
+
+
 class PolicyOperator(StrEnum):
     """Small explicit operator set understood by the deterministic engine."""
 
@@ -72,6 +79,7 @@ _COLLECTION_FIELDS = {
     ManagementField.NTP_SERVERS,
     ManagementField.SYSLOG_SERVERS,
 }
+_STRING_FIELDS = {ManagementField.SSH_VERSION}
 
 
 class PolicyRule(BaseModel):
@@ -83,9 +91,9 @@ class PolicyRule(BaseModel):
     title: str = Field(min_length=1)
     severity: Severity
     platforms: tuple[PolicyPlatform, ...] = Field(min_length=1)
-    field: ManagementField | AclField | RoutingField | Layer2Field
+    field: ManagementField | AclField | RoutingField | Layer2Field | DeviceField
     operator: PolicyOperator = PolicyOperator.EQUALS
-    violation_value: bool | tuple[str, ...] | None = None
+    violation_value: bool | str | tuple[str, ...] | None = None
     expected_value: bool | str
     evidence_message: str = Field(min_length=1)
     remediation: str = Field(min_length=1)
@@ -101,12 +109,18 @@ class PolicyRule(BaseModel):
     @model_validator(mode="after")
     def condition_must_match_operator_and_field(self) -> PolicyRule:
         if self.operator is PolicyOperator.EQUALS:
-            if self.field not in _BOOLEAN_FIELDS or not isinstance(
-                self.violation_value, bool
-            ):
-                raise ValueError("equals requires a boolean field and violation value")
-            if not isinstance(self.expected_value, bool):
-                raise ValueError("equals requires a boolean expected value")
+            if self.field in _BOOLEAN_FIELDS:
+                if not isinstance(self.violation_value, bool) or not isinstance(
+                    self.expected_value, bool
+                ):
+                    raise ValueError("equals requires boolean values for this field")
+            elif self.field in _STRING_FIELDS:
+                if not isinstance(self.violation_value, str) or not isinstance(
+                    self.expected_value, str
+                ):
+                    raise ValueError("equals requires string values for this field")
+            else:
+                raise ValueError("equals requires a scalar field")
         elif self.operator is PolicyOperator.IS_EMPTY:
             if self.field not in _COLLECTION_FIELDS or self.violation_value is not None:
                 raise ValueError("is_empty requires a collection field and no value")
@@ -116,8 +130,8 @@ class PolicyRule(BaseModel):
             ):
                 raise ValueError("contains_any requires a collection field and values")
         elif self.operator is PolicyOperator.MATCHES:
-            if not isinstance(self.field, (AclField, RoutingField, Layer2Field)) or (
-                self.violation_value is not None
-            ):
+            if not isinstance(
+                self.field, (AclField, RoutingField, Layer2Field, DeviceField)
+            ) or (self.violation_value is not None):
                 raise ValueError("matches requires a derived field and no value")
         return self

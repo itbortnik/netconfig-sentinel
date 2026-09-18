@@ -35,6 +35,7 @@ from app.parsers.base import VendorParser, config_source, source_location
 
 _HOSTNAME = re.compile(r"^hostname\s+(?P<value>\S+)$", re.IGNORECASE)
 _VERSION = re.compile(r"^version\s+(?P<value>\S+)", re.IGNORECASE)
+_SSH_VERSION = re.compile(r"^ip\s+ssh\s+version\s+(?P<value>[12])$", re.IGNORECASE)
 _TRANSPORT_INPUT = re.compile(r"^transport\s+input\s+(?P<value>.+)$", re.IGNORECASE)
 _NTP_SERVER = re.compile(r"^ntp\s+server\s+(?P<value>\S+)", re.IGNORECASE)
 _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
@@ -284,6 +285,7 @@ class CiscoIOSParser(VendorParser):
         os_version: str | None = None
         aaa_enabled = False
         ssh_enabled = False
+        ssh_version: Literal["1", "2"] | None = None
         telnet_enabled = False
         snmp_versions: set[str] = set()
         ntp_servers: list[str] = []
@@ -546,6 +548,11 @@ class CiscoIOSParser(VendorParser):
             elif lowered == "no aaa new-model":
                 aaa_enabled = False
                 facts["aaa_enabled"].append((number, raw_line))
+            elif match := _SSH_VERSION.fullmatch(command):
+                ssh_enabled = True
+                ssh_version = "1" if match.group("value") == "1" else "2"
+                facts["ssh_enabled"].append((number, raw_line))
+                facts["ssh_version"].append((number, raw_line))
             elif lowered.startswith("ip ssh "):
                 ssh_enabled = True
                 facts["ssh_enabled"].append((number, raw_line))
@@ -628,6 +635,7 @@ class CiscoIOSParser(VendorParser):
             ),
             management=ManagementConfig(
                 ssh_enabled=ssh_enabled,
+                ssh_version=ssh_version,
                 telnet_enabled=telnet_enabled,
                 aaa_enabled=aaa_enabled,
                 snmp_versions=[

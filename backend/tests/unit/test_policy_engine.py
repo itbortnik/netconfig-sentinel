@@ -111,6 +111,57 @@ def test_absence_based_finding_declares_its_limitation() -> None:
     ]
 
 
+def test_missing_hostname_rule_has_positive_and_negative_case() -> None:
+    rule = next(
+        rule
+        for rule in MANAGEMENT_RULES
+        if rule.rule_id == "management.hostname_missing"
+    )
+    violating = parse_configuration(
+        "version 17.9\n", filename="device.cfg", collected_at=COLLECTED_AT
+    )
+    compliant = parse_configuration(
+        "hostname edge\n", filename="device.cfg", collected_at=COLLECTED_AT
+    )
+
+    positive = evaluate_policies(violating, device_id=DEVICE_ID, rules=(rule,))
+    negative = evaluate_policies(compliant, device_id=DEVICE_ID, rules=(rule,))
+
+    assert len(positive) == 1
+    assert negative == []
+    assert positive[0].severity is Severity.MEDIUM
+    assert positive[0].affected_lines == []
+    assert positive[0].limitations == [
+        "The violation is inferred from the absence of supported hostname syntax."
+    ]
+
+
+def test_ssh_version_1_rule_has_positive_and_negative_case() -> None:
+    rule = next(
+        rule
+        for rule in MANAGEMENT_RULES
+        if rule.rule_id == "management.ssh_version_1"
+    )
+    violating = parse_configuration(
+        "hostname edge\nip ssh version 1\n",
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+    compliant = parse_configuration(
+        "hostname edge\nip ssh version 2\n",
+        filename="device.cfg",
+        collected_at=COLLECTED_AT,
+    )
+
+    positive = evaluate_policies(violating, device_id=DEVICE_ID, rules=(rule,))
+    negative = evaluate_policies(compliant, device_id=DEVICE_ID, rules=(rule,))
+
+    assert len(positive) == 1
+    assert negative == []
+    assert positive[0].affected_lines == [2]
+    assert positive[0].observed == {"management.ssh_version": "1"}
+
+
 @pytest.mark.parametrize(
     ("rule_id", "violating_text", "compliant_text", "affected_lines"),
     (
@@ -172,7 +223,7 @@ def test_each_observability_rule_has_positive_and_negative_case(
 def test_policy_catalog_has_unique_rule_ids() -> None:
     rule_ids = [rule.rule_id for rule in POLICY_RULES]
 
-    assert len(POLICY_RULES) == 18
+    assert len(POLICY_RULES) == 20
     assert len(rule_ids) == len(set(rule_ids))
 
 

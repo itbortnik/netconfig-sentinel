@@ -7,7 +7,7 @@ Supported in the current parser slice:
 - `hostname`;
 - `version`;
 - `aaa new-model` and `no aaa new-model`;
-- `ip ssh ...`;
+- `ip ssh ...`, including explicit protocol version 1 or 2;
 - `line vty` with `transport input ssh`, `telnet`, or `all`;
 - `snmp-server group ... v3`;
 - `snmp-server community ...` (reported conservatively as v1/v2c-capable);
@@ -38,7 +38,7 @@ Supported in the current parser slice:
 Both hierarchical and `set` syntax are supported for:
 
 - `system host-name`;
-- `system services ssh|telnet`;
+- `system services ssh|telnet`, including explicit SSH protocol version 1 or 2;
 - external AAA indicators in `authentication-order`, `radius-server`, and
   `tacplus-server`;
 - SNMP v3 and community configuration;

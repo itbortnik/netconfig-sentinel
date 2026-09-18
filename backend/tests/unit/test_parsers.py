@@ -23,11 +23,13 @@ def test_cisco_management_and_provenance(collected_at: datetime) -> None:
     assert config.device.vendor is Vendor.CISCO
     assert config.device.hostname == "cisco-edge-01"
     assert config.management.ssh_enabled is True
+    assert config.management.ssh_version == "2"
     assert config.management.telnet_enabled is False
     assert config.management.aaa_enabled is True
     assert config.management.snmp_versions == ["v3"]
     assert config.management.ntp_servers == ["192.0.2.10"]
     assert config.management.provenance["ssh_enabled"].source_lines == [4, 31]
+    assert config.management.provenance["ssh_version"].source_lines == [4]
     assert len(config.interfaces) == 2
     interface = config.interfaces[0]
     assert interface.name == "GigabitEthernet0/0"
@@ -259,6 +261,38 @@ def test_junos_set_style_and_unknown_command(collected_at: datetime) -> None:
         ("lo0.0", "0.0.0.10", True, None),
     ]
     assert config.parser_confidence < 1.0
+
+
+def test_junos_ssh_version_is_normalized_in_both_styles(
+    collected_at: datetime,
+) -> None:
+    set_style = parse_configuration(
+        "set system host-name edge-set\n"
+        "set system services ssh protocol-version v1\n",
+        filename="edge-set.conf",
+        collected_at=collected_at,
+    )
+    hierarchical = parse_configuration(
+        "system {\n"
+        "    host-name edge-hierarchical;\n"
+        "    services {\n"
+        "        ssh {\n"
+        "            protocol-version v2;\n"
+        "        }\n"
+        "    }\n"
+        "}\n",
+        filename="edge-hierarchical.conf",
+        collected_at=collected_at,
+    )
+
+    assert set_style.management.ssh_enabled is True
+    assert set_style.management.ssh_version == "1"
+    assert set_style.management.provenance["ssh_version"].source_lines == [2]
+    assert set_style.unparsed_fragments == []
+    assert hierarchical.management.ssh_enabled is True
+    assert hierarchical.management.ssh_version == "2"
+    assert hierarchical.management.provenance["ssh_version"].source_lines == [5]
+    assert hierarchical.unparsed_fragments == []
 
 
 def test_cisco_address_family_mismatch_is_preserved(collected_at: datetime) -> None:

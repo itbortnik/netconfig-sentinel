@@ -4,6 +4,16 @@ These controls apply to Cisco IOS and Juniper JunOS configuration snapshots.
 They are evaluated from normalized facts, while evidence points back to the
 original configuration whenever the triggering statement is explicit.
 
+## Hostname must be explicit
+
+Policy ID: `management.hostname_missing`
+
+Severity: medium
+
+Every device must have an explicit unique hostname so findings, logs, and
+inventory records can be correlated reliably. A missing supported hostname
+statement is reported as an absence-based finding.
+
 ## Telnet must be disabled
 
 Policy ID: `management.telnet_enabled`
@@ -22,6 +32,16 @@ Severity: high
 SSH must be explicitly enabled for remote administration. A missing supported
 enablement statement is reported as an absence-based finding with the parser's
 overall confidence and an explicit limitation.
+
+## SSH version 1 must be disabled
+
+Policy ID: `management.ssh_version_1`
+
+Severity: high
+
+An explicitly configured SSH protocol version 1 is reported because it uses
+obsolete cryptography and protocol design. The rule remains silent when the
+version is not explicit; it does not infer a platform default.
 
 ## Centralized AAA must be enabled
 

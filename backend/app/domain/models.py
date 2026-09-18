@@ -84,6 +84,7 @@ class ManagementConfig(StrictModel):
     """Normalized management-plane features supported by the MVP parser."""
 
     ssh_enabled: bool = False
+    ssh_version: Literal["1", "2"] | None = None
     telnet_enabled: bool = False
     aaa_enabled: bool = False
     snmp_versions: list[Literal["v1", "v2c", "v3"]] = Field(default_factory=list)

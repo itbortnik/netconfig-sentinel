@@ -37,6 +37,7 @@ from app.parsers.cisco_ios.parser import _overall_confidence
 _SAFE_BLOCKS = {
     "system",
     "services",
+    "ssh",
     "ntp",
     "syslog",
     "snmp",
@@ -367,6 +368,7 @@ class _JunosState:
         self.hostname: str | None = None
         self.aaa_enabled = False
         self.ssh_enabled = False
+        self.ssh_version: Literal["1", "2"] | None = None
         self.telnet_enabled = False
         self.snmp_versions: set[str] = set()
         self.ntp_servers: list[str] = []
@@ -413,6 +415,11 @@ class _JunosState:
         elif lowered[:4] == ["set", "system", "services", "ssh"]:
             self.ssh_enabled = True
             self.remember("ssh_enabled", number, raw_line)
+            if len(tokens) == 6 and lowered[4] == "protocol-version":
+                self.ssh_version = _normalize_ssh_version(tokens[5])
+                if self.ssh_version is None:
+                    return False
+                self.remember("ssh_version", number, raw_line)
         elif lowered[:4] == ["set", "system", "services", "telnet"]:
             self.telnet_enabled = True
             self.remember("telnet_enabled", number, raw_line)
@@ -706,7 +713,10 @@ class _JunosState:
             return self.consume_vlan_block(context, block, number, raw_line)
         if name not in _SAFE_BLOCKS:
             return False
-        if name in {"radius-server", "tacplus-server"} and "system" in context_names:
+        if name == "ssh" and "services" in context_names:
+            self.ssh_enabled = True
+            self.remember("ssh_enabled", number, raw_line)
+        elif name in {"radius-server", "tacplus-server"} and "system" in context_names:
             self.aaa_enabled = True
             self.remember("aaa_enabled", number, raw_line)
         elif name == "host" and "syslog" in context_names:
@@ -893,7 +903,16 @@ class _JunosState:
         if "ospf" in context_names:
             return self.consume_ospf_leaf(context, tokens, number, raw_line)
 
-        if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
+        if (
+            lowered[0] == "protocol-version"
+            and "ssh" in context_names
+            and len(tokens) == 2
+        ):
+            self.ssh_version = _normalize_ssh_version(tokens[1])
+            if self.ssh_version is None:
+                return False
+            self.remember("ssh_version", number, raw_line)
+        elif lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
             self.remember("hostname", number, raw_line)
         elif lowered == ["ssh"] and "services" in context_names:
@@ -1734,6 +1753,7 @@ class _JunosState:
             ),
             management=ManagementConfig(
                 ssh_enabled=self.ssh_enabled,
+                ssh_version=self.ssh_version,
                 telnet_enabled=self.telnet_enabled,
                 aaa_enabled=self.aaa_enabled,
                 snmp_versions=[
@@ -1893,6 +1913,15 @@ def _normalize_ospf_area_id(value: str) -> str | None:
     except ValueError:
         return None
     return str(parsed) if parsed.version == 4 else None
+
+
+def _normalize_ssh_version(value: str) -> Literal["1", "2"] | None:
+    normalized = value.lower().removeprefix("v")
+    if normalized == "1":
+        return "1"
+    if normalized == "2":
+        return "2"
+    return None
 
 
 def _parse_asn(value: str) -> int | None:

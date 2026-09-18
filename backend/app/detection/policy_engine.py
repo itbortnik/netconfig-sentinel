@@ -20,6 +20,7 @@ from app.policies import (
     POLICY_CATALOG_VERSION,
     POLICY_RULES,
     AclField,
+    DeviceField,
     Layer2Field,
     ManagementField,
     PolicyOperator,
@@ -117,9 +118,11 @@ def _platform_for(config: CanonicalConfig) -> PolicyPlatform:
 
 def _management_value(
     config: CanonicalConfig, field: ManagementField
-) -> bool | list[str]:
+) -> bool | str | list[str] | None:
     if field is ManagementField.SSH_ENABLED:
         return config.management.ssh_enabled
+    if field is ManagementField.SSH_VERSION:
+        return config.management.ssh_version
     if field is ManagementField.TELNET_ENABLED:
         return config.management.telnet_enabled
     if field is ManagementField.AAA_ENABLED:
@@ -140,6 +143,8 @@ def _evaluate_rule(config: CanonicalConfig, rule: PolicyRule) -> list[_RuleMatch
         return _routing_matches(config, rule.field)
     if isinstance(rule.field, Layer2Field):
         return _layer2_matches(config, rule.field)
+    if isinstance(rule.field, DeviceField):
+        return _device_matches(config, rule.field)
     actual = _management_value(config, rule.field)
     if not _is_violation(actual, rule):
         return []
@@ -156,7 +161,9 @@ def _evaluate_rule(config: CanonicalConfig, rule: PolicyRule) -> list[_RuleMatch
     ]
 
 
-def _is_violation(actual: bool | list[str], rule: PolicyRule) -> bool:
+def _is_violation(
+    actual: bool | str | list[str] | None, rule: PolicyRule
+) -> bool:
     if rule.operator is PolicyOperator.EQUALS:
         return actual == rule.violation_value
     if not isinstance(actual, list):
@@ -175,6 +182,19 @@ def _management_location(
     config: CanonicalConfig, field: ManagementField
 ) -> SourceLocation | None:
     return config.management.provenance.get(field.value.removeprefix("management."))
+
+
+def _device_matches(config: CanonicalConfig, field: DeviceField) -> list[_RuleMatch]:
+    if field is DeviceField.HOSTNAME_MISSING and config.device.hostname is None:
+        return [
+            _RuleMatch(
+                observed={"hostname": None},
+                limitations=(
+                    "The violation is inferred from the absence of supported hostname syntax.",
+                ),
+            )
+        ]
+    return []
 
 
 def _acl_matches(config: CanonicalConfig, field: AclField) -> list[_RuleMatch]:
