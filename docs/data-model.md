@@ -46,3 +46,8 @@ passive overrides retain their own provenance.
 threshold, supported exact-value features, and the peer-derived unsupported
 syntax limit. Each `ConsensusFeature` records its support count so detector
 confidence and evidence remain auditable.
+
+`StructuredFeatureVector` binds every numeric vector to a fixed ordered schema
+and diagnostic provenance. `IsolationForestMetadata` records the peer group,
+training parameters, dependency version, feature medians/scales, and training
+score range separately from the in-memory estimator.

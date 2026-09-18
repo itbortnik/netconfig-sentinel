@@ -28,6 +28,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   L2;
 - детерминированный peer-group baseline с явным ключом группы, порогом
   консенсуса и проверяемыми отклонениями;
+- воспроизводимый Isolation Forest на версионированной схеме из 33
+  структурированных признаков;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -103,3 +105,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Проверки VLAN и switchport описаны в [`docs/policies/layer2.md`](docs/policies/layer2.md).
 Модель сравнения сопоставимых устройств описана в
 [`docs/baseline.md`](docs/baseline.md).
+Статистическая контрольная модель описана в
+[`docs/statistical-baseline.md`](docs/statistical-baseline.md).

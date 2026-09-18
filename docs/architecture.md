@@ -26,3 +26,13 @@ The profile depends only on canonical contracts and never on vendor parser
 internals. Group membership requires vendor, platform, device role, site class,
 and service profile. Policy findings and baseline findings remain independent
 so common misconfiguration cannot be treated as compliant.
+
+The statistical control path reuses the same group identity:
+
+```text
+CanonicalConfig -> versioned numeric features -> Isolation Forest -> Finding[]
+```
+
+Training metadata keeps the feature schema, library version, deterministic
+seed, sample count, and score range. The fitted estimator remains in memory in
+this iteration; persistence will use the later model registry boundary.
