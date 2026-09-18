@@ -107,3 +107,9 @@ inclusive line range, and content-bound ID. `TokenizerArtifact` holds the BPE
 model JSON with its checksum, training fingerprint, versions, and policy.
 `TokenWindow` carries fixed-length token IDs, attention and special-token
 masks, the content-token interval, and original source lines for every token.
+
+`MaskedWindow` retains attention masks and original target IDs only at selected
+positions. `EncoderPolicy` and `TrainingPolicy` bound the local training job.
+`TrainingReport` records corpus fingerprints, tokenizer identity, configuration,
+selected-token-weighted epoch losses and the selected epoch. `TrainingResult`
+combines this report with the trained model and tokenizer.

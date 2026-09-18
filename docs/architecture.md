@@ -106,3 +106,9 @@ blocks, trains a byte-level BPE vocabulary only on train representatives, and
 encodes blocks into bounded windows with source-line alignment. The vocabulary
 bundle records its dependency version, training fingerprint, policy and hash.
 Validation/test records are encoded with the fixed trained vocabulary.
+
+The first Transformer training boundary consumes train and validation windows
+for masked-token reconstruction. Training masks vary by epoch; validation masks
+remain fixed. A compact CPU encoder is optimized on train and its best epoch
+is selected by validation loss. Test remains untouched. Model checkpoints bind
+weights, tokenizer, and training report through a checksum manifest.

@@ -50,6 +50,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - сегментация Cisco IOS и JunOS на смысловые блоки с сохранением всех строк;
 - локальный BPE-токенизатор: обучение только на train, версионированный словарь,
   окна до 1024 токенов и привязка токенов к исходным строкам;
+- воспроизводимое CPU-обучение небольшого Transformer на задаче восстановления
+  маскированных токенов, выбор эпохи по validation и проверяемые checkpoint;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
 Неподдержанные строки не игнорируются: они попадают в `unparsed_fragments` и
@@ -114,6 +116,7 @@ backend/app/
 ml/
   datasets/            импорт, дедупликация, разбиение, качество и артефакты
   mutation/            обратимые синтетические аномалии и разметка
+  training/            маскирование, encoder, CPU-обучение и checkpoint
   preprocessing/       детерминированное обезличивание конфигураций
 ```
 
@@ -146,3 +149,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/mutation-engine.md`](docs/mutation-engine.md).
 Подготовка блоков и токенизатора для Config Transformer описана в
 [`docs/config-tokenization.md`](docs/config-tokenization.md).
+Первый тренировочный цикл и команда демонстрационного запуска описаны в
+[`docs/mlm-training.md`](docs/mlm-training.md).
