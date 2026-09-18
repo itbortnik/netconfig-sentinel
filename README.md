@@ -151,3 +151,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/config-tokenization.md`](docs/config-tokenization.md).
 Первый тренировочный цикл и команда демонстрационного запуска описаны в
 [`docs/mlm-training.md`](docs/mlm-training.md).
+Классификатор синтетических мутаций поверх замороженного encoder описан в
+[`docs/mutation-classification.md`](docs/mutation-classification.md).

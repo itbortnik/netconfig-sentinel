@@ -115,11 +115,15 @@ class ConfigEncoderMLM(nn.Module):
         self.head = nn.Linear(policy.hidden_size, vocab_size)
 
     def forward(self, input_ids: Tensor, attention_mask: Tensor) -> Tensor:
+        return cast(Tensor, self.head(self.encode(input_ids, attention_mask)))
+
+    def encode(self, input_ids: Tensor, attention_mask: Tensor) -> Tensor:
+        """Return contextual token embeddings before the reconstruction head."""
         positions = torch.arange(input_ids.shape[1], device=input_ids.device)
         hidden = self.tokens(input_ids) + self.positions(positions)
         for layer in self.layers:
             hidden = layer(hidden, src_key_padding_mask=~attention_mask.bool())
-        return cast(Tensor, self.head(self.norm(hidden)))
+        return cast(Tensor, self.norm(hidden))
 
 
 @dataclass

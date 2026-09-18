@@ -112,3 +112,9 @@ for masked-token reconstruction. Training masks vary by epoch; validation masks
 remain fixed. A compact CPU encoder is optimized on train and its best epoch
 is selected by validation loss. Test remains untouched. Model checkpoints bind
 weights, tokenizer, and training report through a checksum manifest.
+
+A supervised linear probe consumes token-mean embeddings from a frozen copy
+of that encoder. Single-mutation examples are generated only after splitting;
+their parent partition is preserved. The probe predicts mutation types or an
+unmodified reference, not guaranteed healthy status. Validation selects the
+head epoch; test remains unevaluated. It does not feed production risk fusion.

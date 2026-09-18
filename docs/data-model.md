@@ -113,3 +113,9 @@ positions. `EncoderPolicy` and `TrainingPolicy` bound the local training job.
 `TrainingReport` records corpus fingerprints, tokenizer identity, configuration,
 selected-token-weighted epoch losses and the selected epoch. `TrainingResult`
 combines this report with the trained model and tokenizer.
+
+`ProbeExample` associates a parent hash and optional mutation ID with a derived
+record and single-class target. `ProbePolicy` bounds supervised training.
+`ProbeReport` stores class order, encoder binding, derived-corpus fingerprints,
+losses and synthetic-only validation metrics. `ProbeResult` joins the frozen
+encoder bundle and linear head; softmax probabilities remain uncalibrated.
