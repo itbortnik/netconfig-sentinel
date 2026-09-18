@@ -516,6 +516,8 @@ class Finding(StrictModel):
     evidence: list[Evidence] = Field(default_factory=list)
     observed: dict[str, Any] = Field(default_factory=dict)
     expected: dict[str, Any] = Field(default_factory=dict)
+    remediation: str | None = None
+    references: list[str] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     model_version: str
 

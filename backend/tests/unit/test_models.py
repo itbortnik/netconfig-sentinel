@@ -55,12 +55,15 @@ def test_finding_keeps_severity_confidence_and_anomaly_score_separate() -> None:
         confidence=1.0,
         anomaly_score=0.0,
         affected_lines=[6],
+        remediation="Disable Telnet.",
+        references=["docs/policies/management-plane.md#telnet-must-be-disabled"],
         model_version="rules-0.1.0",
     )
 
     assert finding.severity is Severity.HIGH
     assert finding.confidence == 1.0
     assert finding.anomaly_score == 0.0
+    assert finding.remediation == "Disable Telnet."
 
 
 def test_interface_address_is_canonicalized_and_family_checked() -> None:

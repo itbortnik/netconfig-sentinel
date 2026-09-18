@@ -1,0 +1,110 @@
+[
+  {
+    "finding_id": "ee0af869-366c-5258-91cd-a41015a70c6f",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.telnet_enabled",
+    "title": "Telnet is enabled on the management plane",
+    "severity": "high",
+    "confidence": 1.0,
+    "anomaly_score": 0.0,
+    "affected_lines": [
+      16
+    ],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "Telnet permits unencrypted remote management sessions.",
+        "source_location": {
+          "source_lines": [
+            16
+          ],
+          "raw_text_hash": "a63b22d2491958991eaae58bfb243083137da4322a5b61b829ee63ae9e16a529",
+          "parser_confidence": 1.0
+        }
+      }
+    ],
+    "observed": {
+      "management.telnet_enabled": true
+    },
+    "expected": {
+      "management.telnet_enabled": false
+    },
+    "remediation": "Disable Telnet and permit SSH for remote administrative access.",
+    "references": [
+      "docs/policies/management-plane.md#telnet-must-be-disabled"
+    ],
+    "limitations": [],
+    "model_version": "policy-rules-0.1.0"
+  },
+  {
+    "finding_id": "219476ef-e31f-5fee-af91-8dfcca2806b2",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.ssh_disabled",
+    "title": "SSH is not enabled on the management plane",
+    "severity": "high",
+    "confidence": 0.9793,
+    "anomaly_score": 0.0,
+    "affected_lines": [],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "No supported SSH enablement statement was found.",
+        "source_location": null
+      }
+    ],
+    "observed": {
+      "management.ssh_enabled": false
+    },
+    "expected": {
+      "management.ssh_enabled": true
+    },
+    "remediation": "Enable SSH and restrict it to approved management sources.",
+    "references": [
+      "docs/policies/management-plane.md#ssh-must-be-enabled"
+    ],
+    "limitations": [
+      "The violation is inferred from the absence of supported enablement syntax."
+    ],
+    "model_version": "policy-rules-0.1.0"
+  },
+  {
+    "finding_id": "917697fa-f1f0-5c44-8808-7a0281bae22b",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.aaa_disabled",
+    "title": "Centralized AAA is not enabled",
+    "severity": "high",
+    "confidence": 1.0,
+    "anomaly_score": 0.0,
+    "affected_lines": [
+      3
+    ],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "No supported centralized AAA enablement statement was found.",
+        "source_location": {
+          "source_lines": [
+            3
+          ],
+          "raw_text_hash": "b737ace86a250278b7f093c78bd09d5c7d7df720c14917a1c11dbca8909c49f3",
+          "parser_confidence": 1.0
+        }
+      }
+    ],
+    "observed": {
+      "management.aaa_enabled": false
+    },
+    "expected": {
+      "management.aaa_enabled": true
+    },
+    "remediation": "Enable centralized AAA with an explicitly tested local fallback.",
+    "references": [
+      "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+    ],
+    "limitations": [],
+    "model_version": "policy-rules-0.1.0"
+  }
+]

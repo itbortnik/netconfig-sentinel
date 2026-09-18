@@ -23,6 +23,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   iBGP/eBGP, группами, update source и административным состоянием;
 - типизированный OSPFv2 с router ID, нормализованными area ID, Cisco network
   statements и JunOS interface membership, passive state и metric;
+- детерминированный policy engine с воспроизводимыми ID находок;
+- первые management-plane политики: Telnet, SSH и централизованный AAA;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -79,8 +81,8 @@ backend/app/
   parsers/             определение вендора и независимые адаптеры
   ingestion/           будущий безопасный приём конфигураций
   normalization/       будущая нормализация расширенных объектов
-  policies/            будущие декларативные политики
-  detection/           будущие детекторы и risk fusion
+  policies/            декларативный версионированный каталог политик
+  detection/           policy engine, будущие детекторы и risk fusion
   verification/        будущая формальная проверка
   explanation/         будущие объяснения и RAG
   patching/            будущие предложения патчей
@@ -89,3 +91,6 @@ backend/app/
 
 Поддерживаемая синтаксическая область и ограничения перечислены в
 [`docs/supported-features.md`](docs/supported-features.md).
+
+Реализованные требования безопасности описаны в
+[`docs/policies/management-plane.md`](docs/policies/management-plane.md).
