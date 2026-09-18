@@ -89,6 +89,20 @@ def test_cisco_management_and_provenance(collected_at: datetime) -> None:
     assert config.bgp.neighbors[0].provenance["remote_as"].source_lines == [43]
     assert config.bgp.neighbors[1].family == "ipv6"
     assert config.bgp.neighbors[1].enabled is False
+    assert len(config.ospf) == 1
+    ospf = config.ospf[0]
+    assert (ospf.process_id, ospf.router_id, ospf.passive_default) == (
+        "10",
+        "192.0.2.1",
+        True,
+    )
+    assert [(network.prefix, network.area_id) for network in ospf.networks] == [
+        ("192.0.2.0/30", "0.0.0.0"),
+        ("10.10.0.0/16", "0.0.0.10"),
+    ]
+    assert ospf.networks[0].provenance.source_lines == [53]
+    assert ospf.interfaces[0].name == "GigabitEthernet0/0"
+    assert ospf.interfaces[0].passive is False
     assert config.unparsed_fragments == []
 
 
@@ -118,6 +132,9 @@ def test_unknown_cisco_command_is_preserved_and_reduces_confidence(
     assert config.bgp.local_as == 65010
     assert config.bgp.neighbors[0].session_type == "internal"
     assert config.bgp.neighbors[0].enabled is False
+    assert config.ospf[0].process_id == "20"
+    assert config.ospf[0].networks[0].area_id == "0.0.0.0"
+    assert config.ospf[0].interfaces[0].passive is True
 
 
 def test_junos_hierarchical_management(collected_at: datetime) -> None:
@@ -190,6 +207,12 @@ def test_junos_hierarchical_management(collected_at: datetime) -> None:
     assert config.bgp.neighbors[1].family == "ipv6"
     assert config.bgp.neighbors[1].update_source == "2001:db8:2::1"
     assert config.bgp.neighbors[1].enabled is False
+    ospf = config.ospf[0]
+    assert (ospf.process_id, ospf.router_id) == ("default", "192.0.2.5")
+    assert [(item.name, item.area_id, item.passive, item.cost) for item in ospf.interfaces] == [
+        ("ge-0/0/0.0", "0.0.0.0", None, 10),
+        ("lo0.0", "0.0.0.10", True, 20),
+    ]
     assert config.unparsed_fragments == []
 
 
@@ -227,6 +250,14 @@ def test_junos_set_style_and_unknown_command(collected_at: datetime) -> None:
     assert config.bgp.neighbors[0].session_type == "internal"
     assert config.bgp.neighbors[0].group == "INTERNAL"
     assert config.bgp.neighbors[0].description == "Core peer"
+    ospf_interfaces = [
+        (item.name, item.area_id, item.passive, item.cost)
+        for item in config.ospf[0].interfaces
+    ]
+    assert ospf_interfaces == [
+        ("ge-0/0/1.0", "0.0.0.0", None, 10),
+        ("lo0.0", "0.0.0.10", True, None),
+    ]
     assert config.parser_confidence < 1.0
 
 
@@ -475,4 +506,49 @@ def test_duplicate_junos_bgp_neighbor_is_preserved(collected_at: datetime) -> No
     ]
     assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
         text.splitlines()[5]
+    ]
+
+
+def test_invalid_cisco_ospf_wildcard_is_preserved(collected_at: datetime) -> None:
+    text = "\n".join(
+        [
+            "hostname bad-ospf",
+            "router ospf 10",
+            " network 10.0.0.0 0.0.5.255 area 0",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="bad-ospf.cfg", collected_at=collected_at
+    )
+
+    assert config.ospf[0].networks == []
+    assert config.parse_warnings == ["invalid OSPF network statement at line 3"]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[2]
+    ]
+
+
+def test_duplicate_junos_ospf_interface_area_is_preserved(
+    collected_at: datetime,
+) -> None:
+    text = "\n".join(
+        [
+            "set system host-name duplicate-area",
+            "set protocols ospf area 0 interface ge-0/0/0.0",
+            "set protocols ospf area 1 interface ge-0/0/0.0",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="duplicate-area.conf", collected_at=collected_at
+    )
+
+    assert len(config.ospf[0].interfaces) == 1
+    assert config.ospf[0].interfaces[0].area_id == "0.0.0.0"
+    assert config.parse_warnings == [
+        "OSPF interface ge-0/0/0.0 is configured in multiple areas"
+    ]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[2]
     ]

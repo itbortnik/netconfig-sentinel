@@ -27,6 +27,11 @@ use the 32-bit ASPLAIN range, and the model keeps the session family/type,
 group, update source, description, administrative state, and per-field
 provenance. JunOS group values are resolved into each neighbor explicitly.
 
+`OspfProcessConfig` models OSPFv2 router identity, passive-default state,
+network-to-area statements, and interface-to-area membership. Decimal and
+dotted area IDs normalize to the same dotted 32-bit value; interface cost and
+passive overrides retain their own provenance.
+
 `Finding` separates three concepts which must not be conflated:
 
 - `severity`: potential impact;

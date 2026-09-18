@@ -381,6 +381,92 @@ class BgpConfig(StrictModel):
         return self
 
 
+def _canonicalize_ospf_area_id(value: str) -> str:
+    try:
+        if value.isdigit():
+            numeric = int(value)
+            if numeric > 0xFFFFFFFF:
+                raise ValueError
+            return str(ip_address(numeric))
+        parsed = ip_address(value)
+    except ValueError as error:
+        raise ValueError("OSPF area must be a 32-bit decimal or dotted ID") from error
+    if parsed.version != 4:
+        raise ValueError("OSPF area must be a 32-bit decimal or dotted ID")
+    return str(parsed)
+
+
+class OspfNetworkConfig(StrictModel):
+    """IPv4 network statement assigned to an OSPF area."""
+
+    prefix: str
+    area_id: str
+    provenance: SourceLocation
+
+    @field_validator("prefix")
+    @classmethod
+    def canonicalize_prefix(cls, value: str) -> str:
+        try:
+            network = ip_network(value, strict=False)
+        except ValueError as error:
+            raise ValueError("OSPF network must be a valid IPv4 prefix") from error
+        if network.version != 4:
+            raise ValueError("OSPF network must be a valid IPv4 prefix")
+        return str(network)
+
+    @field_validator("area_id")
+    @classmethod
+    def canonicalize_area_id(cls, value: str) -> str:
+        return _canonicalize_ospf_area_id(value)
+
+
+class OspfInterfaceConfig(StrictModel):
+    """Interface-level OSPF membership or passive-state override."""
+
+    name: str = Field(min_length=1)
+    area_id: str | None = None
+    passive: bool | None = None
+    cost: int | None = Field(default=None, ge=1, le=65_535)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("area_id")
+    @classmethod
+    def canonicalize_area_id(cls, value: str | None) -> str | None:
+        return None if value is None else _canonicalize_ospf_area_id(value)
+
+
+class OspfProcessConfig(StrictModel):
+    """Canonical OSPFv2 process with network and interface area assignments."""
+
+    process_id: str = Field(min_length=1)
+    version: Literal["ospfv2"] = "ospfv2"
+    router_id: str | None = None
+    passive_default: bool = False
+    networks: list[OspfNetworkConfig] = Field(default_factory=list)
+    interfaces: list[OspfInterfaceConfig] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("router_id")
+    @classmethod
+    def validate_router_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        try:
+            parsed = ip_address(value)
+        except ValueError as error:
+            raise ValueError("OSPF router ID must be a valid IPv4 address") from error
+        if parsed.version != 4:
+            raise ValueError("OSPF router ID must be a valid IPv4 address")
+        return str(parsed)
+
+    @model_validator(mode="after")
+    def interface_names_must_be_unique(self) -> OspfProcessConfig:
+        names = [interface.name for interface in self.interfaces]
+        if len(names) != len(set(names)):
+            raise ValueError("OSPF interface names must be unique within a process")
+        return self
+
+
 class UnparsedFragment(StrictModel):
     """A non-empty command that this parser version did not interpret."""
 
@@ -401,7 +487,7 @@ class CanonicalConfig(StrictModel):
     prefix_lists: list[PrefixListConfig] = Field(default_factory=list)
     static_routes: list[StaticRouteConfig] = Field(default_factory=list)
     bgp: BgpConfig | None = None
-    ospf: list[dict[str, Any]] = Field(default_factory=list)
+    ospf: list[OspfProcessConfig] = Field(default_factory=list)
     unparsed_fragments: list[UnparsedFragment] = Field(default_factory=list)
     parse_warnings: list[str] = Field(default_factory=list)
     parser_confidence: float = Field(ge=0.0, le=1.0)

@@ -21,6 +21,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   preference/administrative distance и discard-маршрутами;
 - типизированный BGP-процесс и IPv4/IPv6-соседи с local/remote AS, router ID,
   iBGP/eBGP, группами, update source и административным состоянием;
+- типизированный OSPFv2 с router ID, нормализованными area ID, Cisco network
+  statements и JunOS interface membership, passive state и metric;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 

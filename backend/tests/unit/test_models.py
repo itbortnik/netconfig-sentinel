@@ -10,6 +10,9 @@ from app.domain import (
     BgpNeighborConfig,
     Finding,
     InterfaceAddress,
+    OspfInterfaceConfig,
+    OspfNetworkConfig,
+    OspfProcessConfig,
     PrefixListConfig,
     PrefixListRule,
     Severity,
@@ -187,3 +190,27 @@ def test_bgp_contract_validates_neighbor_family_and_uniqueness() -> None:
 
     with pytest.raises(ValidationError, match="must be unique"):
         BgpConfig(local_as=65001, neighbors=[neighbor, neighbor])
+
+
+def test_ospf_contract_canonicalizes_area_and_rejects_duplicate_interfaces() -> None:
+    provenance = SourceLocation(
+        source_lines=[30],
+        raw_text_hash=VALID_HASH,
+        parser_confidence=1.0,
+    )
+    network = OspfNetworkConfig(
+        prefix="192.0.2.7/24",
+        area_id="10",
+        provenance=provenance,
+    )
+    interface = OspfInterfaceConfig(name="ge-0/0/0.0", area_id="0")
+
+    assert network.prefix == "192.0.2.0/24"
+    assert network.area_id == "0.0.0.10"
+    assert interface.area_id == "0.0.0.0"
+
+    with pytest.raises(ValidationError, match="must be unique"):
+        OspfProcessConfig(
+            process_id="default",
+            interfaces=[interface, interface],
+        )

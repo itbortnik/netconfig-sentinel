@@ -20,6 +20,8 @@ from app.domain import (
     InterfaceAddress,
     InterfaceConfig,
     ManagementConfig,
+    OspfInterfaceConfig,
+    OspfProcessConfig,
     PrefixListConfig,
     PrefixListRule,
     StaticRouteConfig,
@@ -292,6 +294,26 @@ class _JunosBgpGroup:
         return self.neighbors[address]
 
 
+@dataclass
+class _JunosOspfInterface:
+    name: str
+    area_id: str
+    passive: bool | None = None
+    cost: int | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> OspfInterfaceConfig:
+        return OspfInterfaceConfig(
+            name=self.name,
+            area_id=self.area_id,
+            passive=self.passive,
+            cost=self.cost,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class JuniperJunosParser(VendorParser):
     """Parse a deliberately small, tested subset of JunOS syntax."""
 
@@ -361,6 +383,9 @@ class _JunosState:
         self.bgp_facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         self.bgp_source_lines: list[tuple[int, str]] = []
         self.bgp_seen = False
+        self.ospf_seen = False
+        self.ospf_interfaces: dict[str, _JunosOspfInterface] = {}
+        self.ospf_facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         self.unparsed: list[UnparsedFragment] = []
         self.warnings: list[str] = []
         self.significant_count = 0
@@ -426,6 +451,8 @@ class _JunosState:
             return self.consume_set_routing_options(tokens, number, raw_line)
         elif lowered[:3] == ["set", "protocols", "bgp"]:
             return self.consume_set_bgp(tokens, number, raw_line)
+        elif lowered[:3] == ["set", "protocols", "ospf"]:
+            return self.consume_set_ospf(tokens, number, raw_line)
         else:
             return False
         return True
@@ -526,6 +553,28 @@ class _JunosState:
                 neighbor, remainder[2:], number, raw_line
             )
         return self.apply_bgp_group_tokens(group, remainder, number, raw_line)
+
+    def consume_set_ospf(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if (
+            len(tokens) < 7
+            or lowered[3] != "area"
+            or lowered[5] != "interface"
+        ):
+            return False
+        self.remember_ospf(number, raw_line)
+        interface = self.ensure_ospf_interface(
+            tokens[6], tokens[4], number, raw_line
+        )
+        if interface is None:
+            return False
+        if len(tokens) == 7:
+            return True
+        return self.apply_ospf_interface_tokens(
+            interface, tokens[7:], number, raw_line
+        )
 
     def consume_set_vlan(
         self, tokens: list[str], number: int, raw_line: str
@@ -641,6 +690,11 @@ class _JunosState:
                 return True
             if "bgp" in context_names:
                 return self.consume_bgp_block(context, block, number, raw_line)
+            if name == "ospf" and context[-1].split()[0].lower() == "protocols":
+                self.remember_ospf(number, raw_line)
+                return True
+            if "ospf" in context_names:
+                return self.consume_ospf_block(context, block, number, raw_line)
             return False
         if name == "interfaces" and not context:
             return True
@@ -748,6 +802,32 @@ class _JunosState:
             return True
         return False
 
+    def consume_ospf_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        parts = block.split()
+        area_id, interface_name = _ospf_context(context)
+        if len(parts) == 2 and parts[0].lower() == "area" and area_id is None:
+            if _normalize_ospf_area_id(parts[1]) is None:
+                self.warnings.append(f"invalid OSPF area at line {number}")
+                return False
+            self.remember_ospf(number, raw_line)
+            return True
+        if (
+            len(parts) == 2
+            and parts[0].lower() == "interface"
+            and area_id is not None
+            and interface_name is None
+        ):
+            interface = self.ensure_ospf_interface(
+                parts[1], area_id, number, raw_line
+            )
+            if interface is None:
+                return False
+            self.remember_ospf(number, raw_line)
+            return True
+        return False
+
     def consume_interface_block(
         self, context: list[str], block: str, number: int, raw_line: str
     ) -> bool:
@@ -810,6 +890,8 @@ class _JunosState:
             return self.consume_routing_options_leaf(context, tokens, number, raw_line)
         if "bgp" in context_names:
             return self.consume_bgp_leaf(context, tokens, number, raw_line)
+        if "ospf" in context_names:
+            return self.consume_ospf_leaf(context, tokens, number, raw_line)
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -1209,6 +1291,91 @@ class _JunosState:
             return True
         return False
 
+    def remember_ospf(self, number: int, raw_line: str) -> None:
+        if not self.ospf_seen:
+            self.ospf_facts["process_id"].append((number, raw_line))
+        self.ospf_seen = True
+
+    def ensure_ospf_interface(
+        self,
+        name: str,
+        area_value: str,
+        number: int,
+        raw_line: str,
+    ) -> _JunosOspfInterface | None:
+        area_id = _normalize_ospf_area_id(area_value)
+        if area_id is None:
+            self.warnings.append(f"invalid OSPF area at line {number}")
+            return None
+        if name in self.ospf_interfaces:
+            interface = self.ospf_interfaces[name]
+            if interface.area_id != area_id:
+                self.warnings.append(
+                    f"OSPF interface {name} is configured in multiple areas"
+                )
+                return None
+            return interface
+        interface = _JunosOspfInterface(name=name, area_id=area_id)
+        interface.facts["name"].append((number, raw_line))
+        interface.facts["area_id"].append((number, raw_line))
+        self.ospf_interfaces[name] = interface
+        return interface
+
+    def apply_ospf_interface_tokens(
+        self,
+        interface: _JunosOspfInterface,
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if lowered == ["passive"]:
+            interface.passive = True
+            interface.facts["passive"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["metric"] and len(tokens) == 2:
+            if not tokens[1].isdigit() or not 1 <= int(tokens[1]) <= 65_535:
+                self.warnings.append(f"invalid OSPF metric at line {number}")
+                return False
+            interface.cost = int(tokens[1])
+            interface.facts["cost"].append((number, raw_line))
+            return True
+        return False
+
+    def consume_ospf_leaf(
+        self,
+        context: list[str],
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        area_id, interface_name = _ospf_context(context)
+        if area_id is None:
+            return False
+        if interface_name is not None:
+            interface = self.ensure_ospf_interface(
+                interface_name, area_id, number, raw_line
+            )
+            if interface is None:
+                return False
+            consumed = self.apply_ospf_interface_tokens(
+                interface, tokens, number, raw_line
+            )
+        elif len(tokens) >= 2 and tokens[0].lower() == "interface":
+            interface = self.ensure_ospf_interface(
+                tokens[1], area_id, number, raw_line
+            )
+            if interface is None:
+                return False
+            consumed = len(tokens) == 2 or self.apply_ospf_interface_tokens(
+                interface, tokens[2:], number, raw_line
+            )
+        else:
+            return False
+        if consumed:
+            self.remember_ospf(number, raw_line)
+        return consumed
+
     def consume_static_route_leaf(
         self,
         context: list[str],
@@ -1522,12 +1689,32 @@ class _JunosState:
             },
         )
 
+    def build_ospf(self) -> list[OspfProcessConfig]:
+        if not self.ospf_seen:
+            return []
+        facts = dict(self.ospf_facts)
+        if "router_id" in self.bgp_facts:
+            facts["router_id"] = self.bgp_facts["router_id"]
+        return [
+            OspfProcessConfig(
+                process_id="default",
+                router_id=self.bgp_router_id,
+                interfaces=[
+                    interface.build() for interface in self.ospf_interfaces.values()
+                ],
+                provenance={
+                    key: source_location(value) for key, value in facts.items()
+                },
+            )
+        ]
+
     def build(
         self, *, text: str, filename: str, collected_at: datetime | None
     ) -> CanonicalConfig:
         acls = self.build_acls()
         static_routes = self.build_static_routes()
         bgp = self.build_bgp()
+        ospf = self.build_ospf()
         warnings = list(self.warnings)
         if self.hostname is None:
             warnings.append("hostname was not found")
@@ -1564,6 +1751,7 @@ class _JunosState:
             ],
             static_routes=static_routes,
             bgp=bgp,
+            ospf=ospf,
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
@@ -1678,6 +1866,33 @@ def _bgp_context(context: list[str]) -> tuple[str | None, str | None]:
         elif parts[0].lower() == "neighbor":
             neighbor_address = parts[1]
     return group_name, neighbor_address
+
+
+def _ospf_context(context: list[str]) -> tuple[str | None, str | None]:
+    area_id: str | None = None
+    interface_name: str | None = None
+    for item in context:
+        parts = item.split()
+        if len(parts) != 2:
+            continue
+        if parts[0].lower() == "area":
+            area_id = parts[1]
+        elif parts[0].lower() == "interface":
+            interface_name = parts[1]
+    return area_id, interface_name
+
+
+def _normalize_ospf_area_id(value: str) -> str | None:
+    try:
+        if value.isdigit():
+            numeric = int(value)
+            if numeric > 0xFFFFFFFF:
+                return None
+            return str(ip_address(numeric))
+        parsed = ip_address(value)
+    except ValueError:
+        return None
+    return str(parsed) if parsed.version == 4 else None
 
 
 def _parse_asn(value: str) -> int | None:

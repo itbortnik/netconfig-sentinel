@@ -29,6 +29,9 @@ Supported in the current parser slice:
 - one global `router bgp` process with ASPLAIN local AS, IPv4 router ID, IPv4
   or IPv6 neighbors, remote AS, description, update source, and shutdown state;
   iBGP/eBGP session type is derived from local and remote AS values.
+- `router ospf` OSPFv2 processes with IPv4 router ID, contiguous-wildcard
+  network statements, decimal/dotted area IDs, passive-interface default, and
+  per-interface passive overrides.
 
 ## Juniper JunOS
 
@@ -55,6 +58,9 @@ Both hierarchical and `set` syntax are supported for:
 - a global AS and router ID from `routing-options` plus `protocols bgp group`
   in hierarchical and `set` syntax; group type, peer AS, local address, and
   shutdown state are inherited by IPv4/IPv6 neighbors.
+- `protocols ospf area interface` in hierarchical and `set` syntax with the
+  global routing-options router ID, normalized area ID, passive state, and
+  interface metric.
 
 ## Current limitations
 
@@ -65,11 +71,14 @@ Both hierarchical and `set` syntax are supported for:
 - numbered IOS ACLs, object/object-group operands, time ranges, dynamic ACLs,
   reflexive ACLs, and advanced protocol-specific ACL options remain unparsed;
 - JunOS firewall actions and match conditions beyond the explicitly listed
-  subset, prefix-list filters, route filters, OSPF, and nested policy
+  subset, prefix-list filters, route filters, and nested policy
   statements remain unparsed;
 - BGP address-family activation, advertised networks, authentication, BFD,
   multihop, route policies/maps, confederations, VRF instances, and dynamic or
   non-IP peers remain unsupported;
+- OSPFv3, authentication, redistribution, virtual links, stub/NSSA options,
+  interface network types, VRF processes, timers, and adjacency state remain
+  unsupported;
 - VRF-qualified IOS routes, route names/tags/tracking, JunOS qualified next
   hops/next-table, and ECMP static routes remain unsupported;
 - IOS platform refinement (IOS versus IOS-XE) is not inferred yet;

@@ -19,6 +19,9 @@ from app.domain import (
     InterfaceAddress,
     InterfaceConfig,
     ManagementConfig,
+    OspfInterfaceConfig,
+    OspfNetworkConfig,
+    OspfProcessConfig,
     PrefixListConfig,
     PrefixListRule,
     StaticRouteConfig,
@@ -38,6 +41,7 @@ _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
 _INTERFACE = re.compile(r"^interface\s+(?P<value>\S+)$", re.IGNORECASE)
 _VLAN = re.compile(r"^vlan\s+(?P<value>\d+)$", re.IGNORECASE)
 _BGP = re.compile(r"^router\s+bgp\s+(?P<value>\S+)$", re.IGNORECASE)
+_OSPF = re.compile(r"^router\s+ospf\s+(?P<value>\S+)$", re.IGNORECASE)
 _ACL = re.compile(
     r"^(?P<family>ip|ipv6)\s+access-list\s+"
     r"(?:(?P<kind>standard|extended)\s+)?(?P<name>\S+)$",
@@ -216,6 +220,53 @@ class _CiscoBgp:
         )
 
 
+@dataclass
+class _CiscoOspfInterface:
+    name: str
+    passive: bool | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> OspfInterfaceConfig:
+        return OspfInterfaceConfig(
+            name=self.name,
+            passive=self.passive,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
+@dataclass
+class _CiscoOspf:
+    process_id: str
+    router_id: str | None = None
+    passive_default: bool = False
+    networks: list[OspfNetworkConfig] = field(default_factory=list)
+    interfaces: dict[str, _CiscoOspfInterface] = field(default_factory=dict)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def ensure_interface(
+        self, name: str, number: int, raw_line: str
+    ) -> _CiscoOspfInterface:
+        if name not in self.interfaces:
+            interface = _CiscoOspfInterface(name=name)
+            interface.facts["name"].append((number, raw_line))
+            self.interfaces[name] = interface
+        return self.interfaces[name]
+
+    def build(self) -> OspfProcessConfig:
+        return OspfProcessConfig(
+            process_id=self.process_id,
+            router_id=self.router_id,
+            passive_default=self.passive_default,
+            networks=self.networks,
+            interfaces=[interface.build() for interface in self.interfaces.values()],
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class CiscoIOSParser(VendorParser):
     """Parse identity and management features without pretending full IOS coverage."""
 
@@ -247,6 +298,8 @@ class CiscoIOSParser(VendorParser):
         static_routes: list[StaticRouteConfig] = []
         bgp: _CiscoBgp | None = None
         current_bgp: _CiscoBgp | None = None
+        ospf_processes: dict[str, _CiscoOspf] = {}
+        current_ospf: _CiscoOspf | None = None
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
         warnings: list[str] = []
@@ -261,6 +314,7 @@ class CiscoIOSParser(VendorParser):
                 current_vlan = None
                 current_acl = None
                 current_bgp = None
+                current_ospf = None
                 continue
             significant_count += 1
             lowered = command.lower()
@@ -270,6 +324,7 @@ class CiscoIOSParser(VendorParser):
                 current_vlan = None
                 current_acl = None
                 current_bgp = None
+                current_ospf = None
                 current_interface.facts["name"].append((number, raw_line))
                 interfaces.append(current_interface)
                 continue
@@ -279,6 +334,7 @@ class CiscoIOSParser(VendorParser):
                 current_interface = None
                 current_acl = None
                 current_bgp = None
+                current_ospf = None
                 if not _valid_vlan_id(vlan_id):
                     warnings.append(f"invalid VLAN identifier at line {number}")
                     unparsed.append(
@@ -311,6 +367,8 @@ class CiscoIOSParser(VendorParser):
                 )
                 current_interface = None
                 current_vlan = None
+                current_bgp = None
+                current_ospf = None
                 current_acl = _CiscoAcl(
                     name=match.group("name"), family=family, kind=kind
                 )
@@ -323,6 +381,7 @@ class CiscoIOSParser(VendorParser):
                 current_interface = None
                 current_vlan = None
                 current_acl = None
+                current_ospf = None
                 if local_as is None:
                     warnings.append(f"invalid BGP local AS at line {number}")
                     unparsed.append(
@@ -351,6 +410,31 @@ class CiscoIOSParser(VendorParser):
                     bgp = _CiscoBgp(local_as=local_as)
                     bgp.facts["local_as"].append((number, raw_line))
                 current_bgp = bgp
+                continue
+
+            if match := _OSPF.fullmatch(command):
+                process_id = match.group("value")
+                current_interface = None
+                current_vlan = None
+                current_acl = None
+                current_bgp = None
+                if not process_id.isdigit() or not 1 <= int(process_id) <= 65_535:
+                    warnings.append(f"invalid OSPF process ID at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
+                    current_ospf = None
+                    continue
+                if process_id not in ospf_processes:
+                    ospf = _CiscoOspf(process_id=process_id)
+                    ospf.facts["process_id"].append((number, raw_line))
+                    ospf_processes[process_id] = ospf
+                current_ospf = ospf_processes[process_id]
                 continue
 
             if current_interface is not None and raw_line[:1].isspace():
@@ -422,10 +506,29 @@ class CiscoIOSParser(VendorParser):
                 )
                 continue
 
+            if current_ospf is not None and raw_line[:1].isspace():
+                if lowered == "exit":
+                    current_ospf = None
+                    continue
+                if _consume_ospf_command(
+                    current_ospf, command, number, raw_line, warnings
+                ):
+                    continue
+                unparsed.append(
+                    UnparsedFragment(
+                        raw_text=raw_line,
+                        location=source_location(
+                            [(number, raw_line)], parser_confidence=0.0
+                        ),
+                    )
+                )
+                continue
+
             current_interface = None
             current_vlan = None
             current_acl = None
             current_bgp = None
+            current_ospf = None
             if lowered in {"end", "exit", "configure terminal"} or lowered.startswith(
                 "line vty "
             ):
@@ -540,6 +643,7 @@ class CiscoIOSParser(VendorParser):
             prefix_lists=[prefix_list.build() for prefix_list in prefix_lists.values()],
             static_routes=static_routes,
             bgp=bgp_config,
+            ospf=[process.build() for process in ospf_processes.values()],
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
@@ -792,6 +896,69 @@ def _parse_asn(value: str) -> int | None:
         return None
     parsed = int(value)
     return parsed if 1 <= parsed <= 4_294_967_295 else None
+
+
+def _consume_ospf_command(
+    ospf: _CiscoOspf,
+    command: str,
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> bool:
+    tokens = command.split()
+    lowered = [token.lower() for token in tokens]
+    if lowered[:1] == ["router-id"] and len(tokens) == 2:
+        try:
+            router_id = ip_address(tokens[1])
+        except ValueError:
+            warnings.append(f"invalid OSPF router ID at line {number}")
+            return False
+        if router_id.version != 4:
+            warnings.append(f"invalid OSPF router ID at line {number}")
+            return False
+        ospf.router_id = str(router_id)
+        ospf.facts["router_id"].append((number, raw_line))
+        return True
+    if len(tokens) == 5 and lowered[0] == "network" and lowered[3] == "area":
+        try:
+            wildcard = IPv4Address(tokens[2])
+            netmask = IPv4Address((~int(wildcard)) & 0xFFFFFFFF)
+            network = ip_network(f"{tokens[1]}/{netmask}", strict=False)
+            ospf.networks.append(
+                OspfNetworkConfig(
+                    prefix=str(network),
+                    area_id=tokens[4],
+                    provenance=source_location([(number, raw_line)]),
+                )
+            )
+        except ValueError:
+            warnings.append(f"invalid OSPF network statement at line {number}")
+            return False
+        return True
+    if lowered == ["passive-interface", "default"]:
+        ospf.passive_default = True
+        ospf.facts["passive_default"].append((number, raw_line))
+        return True
+    if lowered == ["no", "passive-interface", "default"]:
+        ospf.passive_default = False
+        ospf.facts["passive_default"].append((number, raw_line))
+        return True
+    passive: bool | None = None
+    if len(tokens) == 2 and lowered[0] == "passive-interface":
+        interface_name = tokens[1]
+        passive = True
+    elif (
+        len(tokens) == 3
+        and lowered[:2] == ["no", "passive-interface"]
+    ):
+        interface_name = tokens[2]
+        passive = False
+    else:
+        return False
+    interface = ospf.ensure_interface(interface_name, number, raw_line)
+    interface.passive = passive
+    interface.facts["passive"].append((number, raw_line))
+    return True
 
 
 def _parse_static_route(
