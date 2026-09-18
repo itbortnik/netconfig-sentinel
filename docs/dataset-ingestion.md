@@ -107,5 +107,6 @@ IPv4 masks or wildcards, remain unchanged.
 Sanitization is a defense-in-depth preprocessing step, not proof that arbitrary
 vendor syntax contains no identifying data. New vendors and syntax require
 dedicated fixtures and reviewer sampling before operational ingestion. The
-next dataset stages add exact and near-duplicate handling, split isolation,
-quality reports, and immutable sanitized storage.
+next boundary applies the exact and near-duplicate handling described in
+[`dataset-deduplication.md`](dataset-deduplication.md). Split isolation,
+quality reports, and immutable sanitized storage remain later stages.

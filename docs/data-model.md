@@ -67,3 +67,10 @@ time, optional vendor and role hints, and an optional expected SHA-256.
 pseudonymous grouping identifiers, sanitized text, integrity hashes, byte and
 replacement counts, and the sanitization version. It intentionally has no raw
 text, source path, origin URL, or reversible identity mapping.
+
+`DatasetDeduplicationResult` contains one deterministic representative per
+duplicate component and keeps all decisions auditable. A `DeduplicationFingerprint`
+records raw, sanitized, normalized, and literal-abstracted template hashes.
+Every `DuplicateCluster` retains all source/record references plus the exact or
+similarity-verified links that form its spanning tree. `TemplateGroup` is a
+diversity signal and is deliberately separate from duplicate removal.

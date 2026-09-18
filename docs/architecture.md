@@ -54,6 +54,9 @@ reviewed source manifest + local files
   -> bounded validation
   -> in-memory sanitization
   -> pseudonymous ImportedDatasetRecord[]
+  -> exact and normalized hashes
+  -> MinHash/LSH candidates + exact similarity verification
+  -> representatives + duplicate evidence + template groups
 ```
 
 Only sources with an approved license or authorization and the requested use
@@ -61,3 +64,8 @@ may cross this boundary. Raw configuration text and source paths are never
 members of the imported record. Stable aliases are scoped by source and
 topology so relationships within one topology survive without linking two
 unrelated sources.
+
+Deduplication never accepts an LSH collision as evidence by itself. Candidate
+pairs must pass exact Jaccard comparison over normalized command-line and
+adjacent-line tokens. Template equality is reported separately and only helps
+candidate discovery; it cannot remove a record on its own.
