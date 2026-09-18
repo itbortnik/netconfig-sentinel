@@ -35,7 +35,7 @@
       "docs/policies/management-plane.md#telnet-must-be-disabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
   },
   {
     "finding_id": "219476ef-e31f-5fee-af91-8dfcca2806b2",
@@ -65,9 +65,9 @@
       "docs/policies/management-plane.md#ssh-must-be-enabled"
     ],
     "limitations": [
-      "The violation is inferred from the absence of supported enablement syntax."
+      "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
   },
   {
     "finding_id": "5b7544d7-5614-5502-ba27-160914a1a7e6",
@@ -97,8 +97,49 @@
       "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
     ],
     "limitations": [
-      "The violation is inferred from the absence of supported enablement syntax."
+      "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
+  },
+  {
+    "finding_id": "ab97b41b-7259-5136-9743-20ef90f0da7f",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.snmp_legacy_enabled",
+    "title": "Legacy SNMP is enabled",
+    "severity": "high",
+    "confidence": 1.0,
+    "anomaly_score": 0.0,
+    "affected_lines": [
+      5
+    ],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "SNMPv1 or SNMPv2c is configured without modern protection.",
+        "source_location": {
+          "source_lines": [
+            5
+          ],
+          "raw_text_hash": "08b6e08e5d3ee3f5519e895f4d567e43cb82d34bab6379832b6a3b5a4b5accf6",
+          "parser_confidence": 1.0
+        }
+      }
+    ],
+    "observed": {
+      "management.snmp_versions": [
+        "v1",
+        "v2c"
+      ]
+    },
+    "expected": {
+      "management.snmp_versions": "SNMPv3 only, or SNMP disabled"
+    },
+    "remediation": "Migrate monitoring to SNMPv3 and remove legacy communities.",
+    "references": [
+      "docs/policies/observability.md#legacy-snmp-must-be-disabled"
+    ],
+    "limitations": [],
+    "model_version": "policy-rules-0.2.0"
   }
 ]

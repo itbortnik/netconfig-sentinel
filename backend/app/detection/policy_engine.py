@@ -9,6 +9,7 @@ from app.policies import (
     POLICY_CATALOG_VERSION,
     POLICY_RULES,
     ManagementField,
+    PolicyOperator,
     PolicyPlatform,
     PolicyRule,
 )
@@ -30,14 +31,14 @@ def evaluate_policies(
         if platform not in rule.platforms:
             continue
         actual = _management_value(config, rule.field)
-        if actual != rule.violation_value:
+        if not _is_violation(actual, rule):
             continue
         location = _management_location(config, rule.field)
         affected_lines = location.source_lines if location is not None else []
         limitations = []
         if location is None:
             limitations.append(
-                "The violation is inferred from the absence of supported enablement syntax."
+                "The violation is inferred from the absence of supported configuration syntax."
             )
         findings.append(
             Finding(
@@ -82,14 +83,37 @@ def _platform_for(config: CanonicalConfig) -> PolicyPlatform:
     )
 
 
-def _management_value(config: CanonicalConfig, field: ManagementField) -> bool:
+def _management_value(
+    config: CanonicalConfig, field: ManagementField
+) -> bool | list[str]:
     if field is ManagementField.SSH_ENABLED:
         return config.management.ssh_enabled
     if field is ManagementField.TELNET_ENABLED:
         return config.management.telnet_enabled
     if field is ManagementField.AAA_ENABLED:
         return config.management.aaa_enabled
+    if field is ManagementField.SNMP_VERSIONS:
+        return list(config.management.snmp_versions)
+    if field is ManagementField.NTP_SERVERS:
+        return list(config.management.ntp_servers)
+    if field is ManagementField.SYSLOG_SERVERS:
+        return list(config.management.syslog_servers)
     raise ValueError(f"unsupported management field: {field}")
+
+
+def _is_violation(actual: bool | list[str], rule: PolicyRule) -> bool:
+    if rule.operator is PolicyOperator.EQUALS:
+        return actual == rule.violation_value
+    if not isinstance(actual, list):
+        raise ValueError(f"{rule.operator.value} requires a collection field")
+    if rule.operator is PolicyOperator.IS_EMPTY:
+        return not actual
+    if rule.operator is PolicyOperator.CONTAINS_ANY:
+        forbidden = rule.violation_value
+        if not isinstance(forbidden, tuple):
+            raise ValueError("contains_any requires configured values")
+        return bool(set(actual).intersection(forbidden))
+    raise ValueError(f"unsupported policy operator: {rule.operator}")
 
 
 def _management_location(

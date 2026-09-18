@@ -35,7 +35,7 @@
       "docs/policies/management-plane.md#telnet-must-be-disabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
   },
   {
     "finding_id": "219476ef-e31f-5fee-af91-8dfcca2806b2",
@@ -65,9 +65,9 @@
       "docs/policies/management-plane.md#ssh-must-be-enabled"
     ],
     "limitations": [
-      "The violation is inferred from the absence of supported enablement syntax."
+      "The violation is inferred from the absence of supported configuration syntax."
     ],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
   },
   {
     "finding_id": "917697fa-f1f0-5c44-8808-7a0281bae22b",
@@ -105,6 +105,111 @@
       "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
     ],
     "limitations": [],
-    "model_version": "policy-rules-0.1.0"
+    "model_version": "policy-rules-0.2.0"
+  },
+  {
+    "finding_id": "1adf73d5-cace-5e73-bb5a-71970e9d13a9",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.snmp_legacy_enabled",
+    "title": "Legacy SNMP is enabled",
+    "severity": "high",
+    "confidence": 1.0,
+    "anomaly_score": 0.0,
+    "affected_lines": [
+      4
+    ],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "SNMPv1 or SNMPv2c is configured without modern protection.",
+        "source_location": {
+          "source_lines": [
+            4
+          ],
+          "raw_text_hash": "629b35e21729861ddb3cad84fea41a919ac04c50dab52f0dbb0cf0542aef9863",
+          "parser_confidence": 1.0
+        }
+      }
+    ],
+    "observed": {
+      "management.snmp_versions": [
+        "v1",
+        "v2c"
+      ]
+    },
+    "expected": {
+      "management.snmp_versions": "SNMPv3 only, or SNMP disabled"
+    },
+    "remediation": "Migrate monitoring to SNMPv3 and remove legacy communities.",
+    "references": [
+      "docs/policies/observability.md#legacy-snmp-must-be-disabled"
+    ],
+    "limitations": [],
+    "model_version": "policy-rules-0.2.0"
+  },
+  {
+    "finding_id": "84d04a99-93ed-5ee3-827e-a41a8ab2cce4",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.ntp_not_configured",
+    "title": "NTP is not configured",
+    "severity": "medium",
+    "confidence": 0.9793,
+    "anomaly_score": 0.0,
+    "affected_lines": [],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "No supported NTP server statement was found.",
+        "source_location": null
+      }
+    ],
+    "observed": {
+      "management.ntp_servers": []
+    },
+    "expected": {
+      "management.ntp_servers": "At least one approved NTP server"
+    },
+    "remediation": "Configure approved redundant NTP servers.",
+    "references": [
+      "docs/policies/observability.md#time-synchronization-is-required"
+    ],
+    "limitations": [
+      "The violation is inferred from the absence of supported configuration syntax."
+    ],
+    "model_version": "policy-rules-0.2.0"
+  },
+  {
+    "finding_id": "2a7bcbfb-023e-562d-a98f-cada9b39a4c1",
+    "device_id": "619e8467-a870-464d-890e-4b5209058c8a",
+    "detector": "policy_engine",
+    "category": "management.syslog_not_configured",
+    "title": "Remote Syslog is not configured",
+    "severity": "high",
+    "confidence": 0.9793,
+    "anomaly_score": 0.0,
+    "affected_lines": [],
+    "evidence": [
+      {
+        "kind": "policy_violation",
+        "message": "No supported remote Syslog destination was found.",
+        "source_location": null
+      }
+    ],
+    "observed": {
+      "management.syslog_servers": []
+    },
+    "expected": {
+      "management.syslog_servers": "At least one approved remote Syslog server"
+    },
+    "remediation": "Send security and operational events to approved remote collectors.",
+    "references": [
+      "docs/policies/observability.md#remote-audit-logging-is-required"
+    ],
+    "limitations": [
+      "The violation is inferred from the absence of supported configuration syntax."
+    ],
+    "model_version": "policy-rules-0.2.0"
   }
 ]
