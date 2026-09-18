@@ -3,7 +3,7 @@
 from uuid import uuid4
 
 import pytest
-from app.domain import Finding, Severity, SourceLocation
+from app.domain import Finding, InterfaceAddress, Severity, SourceLocation
 from app.domain.models import ConfigSource
 from pydantic import ValidationError
 
@@ -45,3 +45,24 @@ def test_finding_keeps_severity_confidence_and_anomaly_score_separate() -> None:
     assert finding.severity is Severity.HIGH
     assert finding.confidence == 1.0
     assert finding.anomaly_score == 0.0
+
+
+def test_interface_address_is_canonicalized_and_family_checked() -> None:
+    address = InterfaceAddress(
+        address="192.0.2.1/255.255.255.252",
+        family="ipv4",
+        provenance=SourceLocation(
+            source_lines=[10],
+            raw_text_hash=VALID_HASH,
+            parser_confidence=1.0,
+        ),
+    )
+
+    assert address.address == "192.0.2.1/30"
+
+    with pytest.raises(ValidationError, match="family must be ipv4"):
+        InterfaceAddress(
+            address="192.0.2.1/30",
+            family="ipv6",
+            provenance=address.provenance,
+        )

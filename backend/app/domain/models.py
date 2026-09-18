@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from ipaddress import ip_interface
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
 
@@ -91,6 +92,41 @@ class ManagementConfig(StrictModel):
     provenance: dict[str, SourceLocation] = Field(default_factory=dict)
 
 
+class InterfaceAddress(StrictModel):
+    """Canonical host address with prefix length and exact source provenance."""
+
+    address: str
+    family: Literal["ipv4", "ipv6"]
+    provenance: SourceLocation
+
+    @field_validator("address")
+    @classmethod
+    def canonicalize_address(cls, value: str) -> str:
+        try:
+            return str(ip_interface(value))
+        except ValueError as error:
+            raise ValueError("address must be a valid IPv4 or IPv6 interface") from error
+
+    @model_validator(mode="after")
+    def family_must_match_address(self) -> InterfaceAddress:
+        parsed = ip_interface(self.address)
+        expected_family = "ipv4" if parsed.version == 4 else "ipv6"
+        if self.family != expected_family:
+            raise ValueError(f"family must be {expected_family} for {self.address}")
+        return self
+
+
+class InterfaceConfig(StrictModel):
+    """Vendor-neutral physical interface or JunOS logical unit."""
+
+    name: str = Field(min_length=1)
+    unit: str | None = None
+    description: str | None = None
+    enabled: bool | None = None
+    addresses: list[InterfaceAddress] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+
 class UnparsedFragment(StrictModel):
     """A non-empty command that this parser version did not interpret."""
 
@@ -105,7 +141,7 @@ class CanonicalConfig(StrictModel):
     source: ConfigSource
     device: DeviceInfo
     management: ManagementConfig = Field(default_factory=ManagementConfig)
-    interfaces: list[dict[str, Any]] = Field(default_factory=list)
+    interfaces: list[InterfaceConfig] = Field(default_factory=list)
     vlans: list[dict[str, Any]] = Field(default_factory=list)
     acls: list[dict[str, Any]] = Field(default_factory=list)
     prefix_lists: list[dict[str, Any]] = Field(default_factory=list)

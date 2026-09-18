@@ -13,6 +13,8 @@ Supported in the current parser slice:
 - `snmp-server community ...` (reported conservatively as v1/v2c-capable);
 - `ntp server`;
 - `logging host`.
+- interface blocks with `description`, `shutdown`/`no shutdown`, IPv4
+  `ip address`, and CIDR-form IPv6 `ipv6 address`;
 
 ## Juniper JunOS
 
@@ -25,11 +27,15 @@ Both hierarchical and `set` syntax are supported for:
 - SNMP v3 and community configuration;
 - NTP servers;
 - Syslog hosts.
+- physical interfaces and logical units with descriptions, `disable`, and
+  `family inet|inet6 address` in hierarchical and `set` syntax.
 
 ## Current limitations
 
-- interfaces, VLANs, ACLs, prefix lists, routing, and nested policy statements
-  remain unparsed;
+- interface switching mode, VLAN membership, VRF/routing-instance assignment,
+  aggregation, tunnel parameters, and operational state remain unparsed;
+- VLANs, ACLs, prefix lists, routing, and nested policy statements remain
+  unparsed;
 - IOS platform refinement (IOS versus IOS-XE) is not inferred yet;
 - SNMP community syntax cannot prove whether v1, v2c, or both are reachable, so
   the canonical result reports both;

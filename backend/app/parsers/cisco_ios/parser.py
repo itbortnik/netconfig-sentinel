@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
+from ipaddress import ip_interface
+from typing import Literal
 
 from app.domain import (
     CanonicalConfig,
     DeviceInfo,
+    InterfaceAddress,
+    InterfaceConfig,
     ManagementConfig,
     UnparsedFragment,
     Vendor,
@@ -20,6 +25,34 @@ _VERSION = re.compile(r"^version\s+(?P<value>\S+)", re.IGNORECASE)
 _TRANSPORT_INPUT = re.compile(r"^transport\s+input\s+(?P<value>.+)$", re.IGNORECASE)
 _NTP_SERVER = re.compile(r"^ntp\s+server\s+(?P<value>\S+)", re.IGNORECASE)
 _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
+_INTERFACE = re.compile(r"^interface\s+(?P<value>\S+)$", re.IGNORECASE)
+_IPV4_ADDRESS = re.compile(
+    r"^ip\s+address\s+(?P<address>\S+)\s+(?P<mask>\S+)(?:\s+secondary)?$",
+    re.IGNORECASE,
+)
+_IPV6_ADDRESS = re.compile(
+    r"^ipv6\s+address\s+(?P<address>\S+)(?:\s+eui-64)?$", re.IGNORECASE
+)
+
+
+@dataclass
+class _CiscoInterface:
+    name: str
+    description: str | None = None
+    enabled: bool | None = None
+    addresses: list[InterfaceAddress] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> InterfaceConfig:
+        return InterfaceConfig(
+            name=self.name,
+            description=self.description,
+            enabled=self.enabled,
+            addresses=self.addresses,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
 
 
 class CiscoIOSParser(VendorParser):
@@ -43,18 +76,49 @@ class CiscoIOSParser(VendorParser):
         snmp_versions: set[str] = set()
         ntp_servers: list[str] = []
         syslog_servers: list[str] = []
+        interfaces: list[_CiscoInterface] = []
+        current_interface: _CiscoInterface | None = None
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
+        warnings: list[str] = []
         significant_count = 0
 
         for number, raw_line in enumerate(text.splitlines(), start=1):
             command = raw_line.strip()
-            if not command or command.startswith("!"):
+            if not command:
+                continue
+            if command.startswith("!"):
+                current_interface = None
                 continue
             significant_count += 1
             lowered = command.lower()
 
-            if lowered in {"end", "exit", "configure terminal"} or lowered.startswith("line vty "):
+            if match := _INTERFACE.fullmatch(command):
+                current_interface = _CiscoInterface(name=match.group("value"))
+                current_interface.facts["name"].append((number, raw_line))
+                interfaces.append(current_interface)
+                continue
+
+            if current_interface is not None and raw_line[:1].isspace():
+                if lowered == "exit":
+                    current_interface = None
+                    continue
+                if _consume_interface_command(
+                    current_interface, command, number, raw_line, warnings
+                ):
+                    continue
+                unparsed.append(
+                    UnparsedFragment(
+                        raw_text=raw_line,
+                        location=source_location([(number, raw_line)], parser_confidence=0.0),
+                    )
+                )
+                continue
+
+            current_interface = None
+            if lowered in {"end", "exit", "configure terminal"} or lowered.startswith(
+                "line vty "
+            ):
                 continue
 
             if match := _HOSTNAME.fullmatch(command):
@@ -100,7 +164,6 @@ class CiscoIOSParser(VendorParser):
                     )
                 )
 
-        warnings: list[str] = []
         if hostname is None:
             warnings.append("hostname was not found")
 
@@ -135,10 +198,72 @@ class CiscoIOSParser(VendorParser):
                 syslog_servers=list(dict.fromkeys(syslog_servers)),
                 provenance=management_provenance,
             ),
+            interfaces=[interface.build() for interface in interfaces],
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
         )
+
+
+def _consume_interface_command(
+    interface: _CiscoInterface,
+    command: str,
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> bool:
+    lowered = command.lower()
+    if lowered.startswith("description "):
+        interface.description = command.split(maxsplit=1)[1]
+        interface.facts["description"].append((number, raw_line))
+        return True
+    if lowered == "shutdown":
+        interface.enabled = False
+        interface.facts["enabled"].append((number, raw_line))
+        return True
+    if lowered == "no shutdown":
+        interface.enabled = True
+        interface.facts["enabled"].append((number, raw_line))
+        return True
+    if lowered == "no ip address":
+        return True
+    if match := _IPV4_ADDRESS.fullmatch(command):
+        value = f"{match.group('address')}/{match.group('mask')}"
+        return _add_interface_address(
+            interface, value, "ipv4", number, raw_line, warnings
+        )
+    if match := _IPV6_ADDRESS.fullmatch(command):
+        return _add_interface_address(
+            interface, match.group("address"), "ipv6", number, raw_line, warnings
+        )
+    return False
+
+
+def _add_interface_address(
+    interface: _CiscoInterface,
+    value: str,
+    family: Literal["ipv4", "ipv6"],
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> bool:
+    try:
+        parsed = ip_interface(value)
+    except ValueError:
+        warnings.append(f"invalid {family} interface address at line {number}")
+        return False
+    expected_version = 4 if family == "ipv4" else 6
+    if parsed.version != expected_version:
+        warnings.append(f"invalid {family} interface address at line {number}")
+        return False
+    interface.addresses.append(
+        InterfaceAddress(
+            address=str(parsed),
+            family=family,
+            provenance=source_location([(number, raw_line)]),
+        )
+    )
+    return True
 
 
 def _overall_confidence(significant_count: int, unparsed_count: int) -> float:

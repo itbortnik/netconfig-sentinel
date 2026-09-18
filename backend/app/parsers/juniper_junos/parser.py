@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 import re
+import shlex
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
+from ipaddress import ip_interface
+from typing import Literal
 
 from app.domain import (
     CanonicalConfig,
     DeviceInfo,
+    InterfaceAddress,
+    InterfaceConfig,
     ManagementConfig,
     UnparsedFragment,
     Vendor,
@@ -30,6 +36,40 @@ _SAFE_BLOCKS = {
     "radius-server",
     "tacplus-server",
 }
+
+
+@dataclass
+class _JunosInterface:
+    name: str
+    unit: str | None
+    description: str | None = None
+    enabled: bool | None = None
+    addresses: list[InterfaceAddress] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self, base: _JunosInterface | None = None) -> InterfaceConfig:
+        description = self.description
+        enabled = self.enabled
+        facts = dict(self.facts)
+        if base is not None:
+            if description is None:
+                description = base.description
+                if "description" in base.facts:
+                    facts["description"] = base.facts["description"]
+            if enabled is None:
+                enabled = base.enabled
+                if "enabled" in base.facts:
+                    facts["enabled"] = base.facts["enabled"]
+        return InterfaceConfig(
+            name=self.name,
+            unit=self.unit,
+            description=description,
+            enabled=enabled,
+            addresses=self.addresses,
+            provenance={key: source_location(value) for key, value in facts.items()},
+        )
 
 
 class JuniperJunosParser(VendorParser):
@@ -90,7 +130,9 @@ class _JunosState:
         self.ntp_servers: list[str] = []
         self.syslog_servers: list[str] = []
         self.facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        self.interfaces: dict[tuple[str, str | None], _JunosInterface] = {}
         self.unparsed: list[UnparsedFragment] = []
+        self.warnings: list[str] = []
         self.significant_count = 0
 
     def remember(self, fact: str, number: int, raw_line: str) -> None:
@@ -105,7 +147,10 @@ class _JunosState:
         )
 
     def consume_set(self, command: str, number: int, raw_line: str) -> bool:
-        tokens = command.split()
+        try:
+            tokens = shlex.split(command)
+        except ValueError:
+            return False
         lowered = [token.lower() for token in tokens]
         if lowered[:3] == ["set", "system", "host-name"] and len(tokens) >= 4:
             self.hostname = tokens[3]
@@ -137,15 +182,66 @@ class _JunosState:
         elif lowered[:3] == ["set", "snmp", "community"]:
             self.snmp_versions.update({"v1", "v2c"})
             self.remember("snmp_versions", number, raw_line)
+        elif lowered[:2] == ["set", "interfaces"]:
+            return self.consume_set_interface(tokens, number, raw_line)
         else:
             return False
         return True
+
+    def consume_set_interface(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        if len(tokens) < 4:
+            return False
+        name = tokens[2]
+        lowered = [token.lower() for token in tokens]
+        remainder = lowered[3:]
+        if remainder[0] == "description" and len(tokens) >= 5:
+            interface = self.ensure_interface(name, None, number, raw_line)
+            interface.description = " ".join(tokens[4:])
+            interface.facts["description"].append((number, raw_line))
+            return True
+        if remainder == ["disable"]:
+            interface = self.ensure_interface(name, None, number, raw_line)
+            interface.enabled = False
+            interface.facts["enabled"].append((number, raw_line))
+            return True
+        if len(remainder) < 3 or remainder[0] != "unit":
+            return False
+
+        unit = tokens[4]
+        unit_remainder = lowered[5:]
+        interface = self.ensure_interface(name, unit, number, raw_line)
+        if unit_remainder and unit_remainder[0] == "description" and len(tokens) >= 7:
+            interface.description = " ".join(tokens[6:])
+            interface.facts["description"].append((number, raw_line))
+            return True
+        if unit_remainder == ["disable"]:
+            interface.enabled = False
+            interface.facts["enabled"].append((number, raw_line))
+            return True
+        if (
+            len(unit_remainder) == 4
+            and unit_remainder[0] == "family"
+            and unit_remainder[2] == "address"
+        ):
+            family = _junos_family(unit_remainder[1])
+            if family is None:
+                return False
+            return self.add_interface_address(
+                interface, tokens[8], family, number, raw_line
+            )
+        return False
 
     def consume_block(
         self, context: list[str], block: str, number: int, raw_line: str
     ) -> bool:
         name = block.split()[0].lower()
         context_names = [item.split()[0].lower() for item in context]
+        if name == "interfaces" and not context:
+            return True
+        if "interfaces" in context_names:
+            return self.consume_interface_block(context, block, number, raw_line)
         if name not in _SAFE_BLOCKS:
             return False
         if name in {"radius-server", "tacplus-server"} and "system" in context_names:
@@ -164,6 +260,32 @@ class _JunosState:
             self.remember("snmp_versions", number, raw_line)
         return True
 
+    def consume_interface_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        interface_name, unit, _ = _interface_context(context)
+        parts = block.split()
+        name = parts[0].lower()
+        if context and context[-1].split()[0].lower() == "interfaces":
+            self.ensure_interface(block, None, number, raw_line)
+            return True
+        if name == "unit" and interface_name is not None and len(parts) >= 2:
+            self.ensure_interface(interface_name, parts[1], number, raw_line)
+            return True
+        if name == "family" and interface_name is not None and len(parts) >= 2:
+            return _junos_family(parts[1]) is not None
+        if name in {"inet", "inet6"} and interface_name is not None:
+            return True
+        if name == "address" and interface_name is not None and len(parts) >= 2:
+            family = _family_from_context(context)
+            if family is None:
+                return False
+            interface = self.ensure_interface(interface_name, unit, number, raw_line)
+            return self.add_interface_address(
+                interface, parts[1], family, number, raw_line
+            )
+        return False
+
     def consume_leaf(
         self, context: list[str], leaf: str, number: int, raw_line: str
     ) -> bool:
@@ -172,6 +294,9 @@ class _JunosState:
         if not tokens:
             return True
         lowered = [token.lower() for token in tokens]
+
+        if "interfaces" in context_names:
+            return self.consume_interface_leaf(context, leaf, number, raw_line)
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -196,10 +321,86 @@ class _JunosState:
             return False
         return True
 
+    def consume_interface_leaf(
+        self, context: list[str], leaf: str, number: int, raw_line: str
+    ) -> bool:
+        interface_name, unit, family = _interface_context(context)
+        if interface_name is None:
+            return False
+        interface = self.ensure_interface(interface_name, unit, number, raw_line)
+        lowered = leaf.lower()
+        if lowered.startswith("description "):
+            interface.description = _unquote(leaf.split(maxsplit=1)[1])
+            interface.facts["description"].append((number, raw_line))
+            return True
+        if lowered == "disable":
+            interface.enabled = False
+            interface.facts["enabled"].append((number, raw_line))
+            return True
+        if lowered.startswith("address ") and family is not None:
+            address_tokens = leaf.split()
+            if len(address_tokens) != 2:
+                return False
+            value = address_tokens[1]
+            return self.add_interface_address(
+                interface, value, family, number, raw_line
+            )
+        return False
+
+    def ensure_interface(
+        self, name: str, unit: str | None, number: int, raw_line: str
+    ) -> _JunosInterface:
+        key = (name, unit)
+        if key not in self.interfaces:
+            interface = _JunosInterface(name=name, unit=unit)
+            interface.facts["name"].append((number, raw_line))
+            self.interfaces[key] = interface
+        return self.interfaces[key]
+
+    def add_interface_address(
+        self,
+        interface: _JunosInterface,
+        value: str,
+        family: Literal["ipv4", "ipv6"],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        try:
+            parsed = ip_interface(value)
+        except ValueError:
+            self.warnings.append(f"invalid {family} interface address at line {number}")
+            return False
+        expected_version = 4 if family == "ipv4" else 6
+        if parsed.version != expected_version:
+            self.warnings.append(f"invalid {family} interface address at line {number}")
+            return False
+        interface.addresses.append(
+            InterfaceAddress(
+                address=str(parsed),
+                family=family,
+                provenance=source_location([(number, raw_line)]),
+            )
+        )
+        return True
+
+    def build_interfaces(self) -> list[InterfaceConfig]:
+        result: list[InterfaceConfig] = []
+        names_with_units = {
+            name for name, unit in self.interfaces if unit is not None
+        }
+        for (name, unit), interface in self.interfaces.items():
+            base = self.interfaces.get((name, None))
+            if unit is None and name in names_with_units and not interface.addresses:
+                continue
+            result.append(interface.build(base if unit is not None else None))
+        return result
+
     def build(
         self, *, text: str, filename: str, collected_at: datetime | None
     ) -> CanonicalConfig:
-        warnings = [] if self.hostname is not None else ["hostname was not found"]
+        warnings = list(self.warnings)
+        if self.hostname is None:
+            warnings.append("hostname was not found")
         device_provenance = {
             key: source_location(value) for key, value in self.facts.items() if key == "hostname"
         }
@@ -225,12 +426,58 @@ class _JunosState:
                 syslog_servers=list(dict.fromkeys(self.syslog_servers)),
                 provenance=management_provenance,
             ),
+            interfaces=self.build_interfaces(),
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
                 self.significant_count, len(self.unparsed)
             ),
         )
+
+
+def _interface_context(
+    context: list[str],
+) -> tuple[str | None, str | None, Literal["ipv4", "ipv6"] | None]:
+    names = [item.split()[0].lower() for item in context]
+    if "interfaces" not in names:
+        return None, None, None
+    index = names.index("interfaces")
+    if len(context) <= index + 1:
+        return None, None, None
+    interface_name = context[index + 1]
+    unit: str | None = None
+    family: Literal["ipv4", "ipv6"] | None = None
+    for item in context[index + 2 :]:
+        parts = item.split()
+        lowered = [part.lower() for part in parts]
+        if lowered and lowered[0] == "unit" and len(parts) >= 2:
+            unit = parts[1]
+        elif lowered and lowered[0] == "family" and len(parts) >= 2:
+            family = _junos_family(parts[1])
+        elif lowered and lowered[0] in {"inet", "inet6"}:
+            family = _junos_family(parts[0])
+    return interface_name, unit, family
+
+
+def _family_from_context(
+    context: list[str],
+) -> Literal["ipv4", "ipv6"] | None:
+    return _interface_context(context)[2]
+
+
+def _junos_family(value: str) -> Literal["ipv4", "ipv6"] | None:
+    lowered = value.lower()
+    if lowered == "inet":
+        return "ipv4"
+    if lowered == "inet6":
+        return "ipv6"
+    return None
+
+
+def _unquote(value: str) -> str:
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
 
 
 def _strip_comment(line: str) -> str:
