@@ -26,6 +26,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - детерминированный policy engine с воспроизводимыми ID находок;
 - двадцать политик для management plane, наблюдаемости, ACL, маршрутизации и
   L2;
+- детерминированный peer-group baseline с явным ключом группы, порогом
+  консенсуса и проверяемыми отклонениями;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -99,3 +101,5 @@ backend/app/
 ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Маршрутные проверки описаны в [`docs/policies/routing.md`](docs/policies/routing.md).
 Проверки VLAN и switchport описаны в [`docs/policies/layer2.md`](docs/policies/layer2.md).
+Модель сравнения сопоставимых устройств описана в
+[`docs/baseline.md`](docs/baseline.md).

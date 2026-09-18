@@ -15,3 +15,14 @@ No parser may silently drop a non-empty unsupported command. Unknown fragments
 carry their original text, one-based line numbers, a hash, and zero parsing
 confidence. The aggregate confidence is reduced according to the unsupported
 line ratio.
+
+Peer comparison is a separate deterministic detector:
+
+```text
+explicit peer inventory -> consensus profile -> target comparison -> Finding[]
+```
+
+The profile depends only on canonical contracts and never on vendor parser
+internals. Group membership requires vendor, platform, device role, site class,
+and service profile. Policy findings and baseline findings remain independent
+so common misconfiguration cannot be treated as compliant.

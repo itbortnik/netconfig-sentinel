@@ -8,6 +8,10 @@ Provenance is stored per normalized field through `SourceLocation`. The location
 contains one-based source lines, a SHA-256 of the exact contributing text, and
 the parser confidence for that fact.
 
+`DeviceInfo` carries optional inventory metadata (`role`, `site`, `site_class`,
+and `service_profile`). Peer analysis requires role, site class, and service
+profile explicitly; vendor parsers do not infer them from hostname conventions.
+
 Network policy is represented by typed `AclConfig`/`AclRule` and
 `PrefixListConfig`/`PrefixListRule` objects. IP networks are canonicalized,
 address families and prefix-length bounds are validated, and every normalized
@@ -37,3 +41,8 @@ passive overrides retain their own provenance.
 - `severity`: potential impact;
 - `confidence`: detector certainty;
 - `anomaly_score`: statistical deviation.
+
+`PeerBaseline` stores a complete peer-group key, sample count, consensus
+threshold, supported exact-value features, and the peer-derived unsupported
+syntax limit. Each `ConsensusFeature` records its support count so detector
+confidence and evidence remain auditable.

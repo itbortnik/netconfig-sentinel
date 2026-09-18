@@ -1,24 +1,23 @@
-"""Detector and risk-fusion boundary."""
+"""Peer-group baseline construction and evaluation."""
 
-from app.detection.baseline import (
-    PEER_BASELINE_NAMESPACE,
+from app.detection.baseline.models import (
     ConsensusFeature,
     PeerBaseline,
     PeerFeature,
     PeerGroupKey,
+)
+from app.detection.baseline.peer import (
+    PEER_BASELINE_NAMESPACE,
     build_peer_baseline,
     evaluate_peer_baseline,
 )
-from app.detection.policy_engine import POLICY_FINDING_NAMESPACE, evaluate_policies
 
 __all__ = [
     "PEER_BASELINE_NAMESPACE",
-    "POLICY_FINDING_NAMESPACE",
     "ConsensusFeature",
     "PeerBaseline",
     "PeerFeature",
     "PeerGroupKey",
     "build_peer_baseline",
     "evaluate_peer_baseline",
-    "evaluate_policies",
 ]

@@ -77,6 +77,8 @@ class DeviceInfo(StrictModel):
     os_version: str | None = None
     role: str | None = None
     site: str | None = None
+    site_class: str | None = None
+    service_profile: str | None = None
     provenance: dict[str, SourceLocation] = Field(default_factory=dict)
 
 
