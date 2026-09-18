@@ -30,6 +30,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   консенсуса и проверяемыми отклонениями;
 - воспроизводимый Isolation Forest на версионированной схеме из 33
   структурированных признаков;
+- прозрачный risk fusion v1 с явными весами, статусами доступности и
+  ограничителями для критических формальных результатов;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -107,3 +109,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/baseline.md`](docs/baseline.md).
 Статистическая контрольная модель описана в
 [`docs/statistical-baseline.md`](docs/statistical-baseline.md).
+Формула объединения риска описана в
+[`docs/risk-fusion.md`](docs/risk-fusion.md).

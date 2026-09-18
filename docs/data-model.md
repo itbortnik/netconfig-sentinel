@@ -51,3 +51,8 @@ confidence and evidence remain auditable.
 and diagnostic provenance. `IsolationForestMetadata` records the peer group,
 training parameters, dependency version, feature medians/scales, and training
 score range separately from the in-memory estimator.
+
+`RiskAssessment` separates the fused score and risk band from its
+`RiskComponent` inputs. Every component records availability, raw score,
+configured weight, normalized effective weight, and contributing finding IDs;
+guardrails and missing-signal limitations remain explicit.

@@ -36,3 +36,13 @@ CanonicalConfig -> versioned numeric features -> Isolation Forest -> Finding[]
 Training metadata keeps the feature schema, library version, deterministic
 seed, sample count, and score range. The fitted estimator remains in memory in
 this iteration; persistence will use the later model registry boundary.
+
+Completed detector results converge through a transparent fusion boundary:
+
+```text
+policy + peer + statistical + future transformer + verification -> RiskAssessment
+```
+
+Unavailable signals are explicit and their weights are redistributed. Critical
+policy violations and verified loss of reachability have minimum-score
+guardrails that the weighted formula cannot reduce.
