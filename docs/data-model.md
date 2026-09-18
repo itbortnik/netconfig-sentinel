@@ -74,3 +74,10 @@ records raw, sanitized, normalized, and literal-abstracted template hashes.
 Every `DuplicateCluster` retains all source/record references plus the exact or
 similarity-verified links that form its spanning tree. `TemplateGroup` is a
 diversity signal and is deliberately separate from duplicate removal.
+
+`DatasetSplitResult` maps every original sanitized record to an indivisible
+`AtomicSplitGroup` and one `DatasetSplit`. Its three `DatasetPartition` values
+contain only deduplicated representatives for training, while assignments keep
+the complete audit trail. `TemporalSplitAudit` reports whether observed time
+ranges are strictly ordered, and `TemplateSplitAudit` exposes broad templates
+that span partitions without treating them as identity.

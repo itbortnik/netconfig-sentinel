@@ -95,6 +95,9 @@ test assignment. If a workflow deliberately retains multiple versions, it
 must group by cluster, network, site, device, and capture time so closely
 related configurations cannot leak across splits.
 
+The implemented splitter and its temporal audit are described in
+[`dataset-splitting.md`](dataset-splitting.md).
+
 The default threshold and LSH recall require evaluation on representative
 corpora. Raising the candidate bound may improve recall at additional compute
 cost. Threshold changes are explicit policy changes and must be recorded with

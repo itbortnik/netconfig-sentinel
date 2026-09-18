@@ -38,6 +38,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   обезличивание секретов, идентификаторов и IP-адресов до передачи дальше;
 - многоуровневая дедупликация по исходному, обезличенному и нормализованному
   SHA-256 с проверяемым MinHash-поиском близких копий и группами шаблонов;
+- детерминированное train/validation/test-разбиение с изоляцией сетей,
+  площадок, устройств и duplicate-кластеров и явным аудитом времени;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -124,3 +126,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/dataset-ingestion.md`](docs/dataset-ingestion.md).
 Алгоритм дедупликации и правила подсчёта уникальных конфигураций описаны в
 [`docs/dataset-deduplication.md`](docs/dataset-deduplication.md).
+Правила формирования изолированных обучающих выборок описаны в
+[`docs/dataset-splitting.md`](docs/dataset-splitting.md).

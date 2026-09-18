@@ -108,5 +108,6 @@ Sanitization is a defense-in-depth preprocessing step, not proof that arbitrary
 vendor syntax contains no identifying data. New vendors and syntax require
 dedicated fixtures and reviewer sampling before operational ingestion. The
 next boundary applies the exact and near-duplicate handling described in
-[`dataset-deduplication.md`](dataset-deduplication.md). Split isolation,
-quality reports, and immutable sanitized storage remain later stages.
+[`dataset-deduplication.md`](dataset-deduplication.md), followed by the isolated
+partitioning described in [`dataset-splitting.md`](dataset-splitting.md).
+Quality reports and immutable sanitized storage remain later stages.

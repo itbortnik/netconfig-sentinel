@@ -57,6 +57,8 @@ reviewed source manifest + local files
   -> exact and normalized hashes
   -> MinHash/LSH candidates + exact similarity verification
   -> representatives + duplicate evidence + template groups
+  -> entity closure + chronological allocation
+  -> isolated train / validation / test partitions
 ```
 
 Only sources with an approved license or authorization and the requested use
@@ -69,3 +71,9 @@ Deduplication never accepts an LSH collision as evidence by itself. Candidate
 pairs must pass exact Jaccard comparison over normalized command-line and
 adjacent-line tokens. Template equality is reported separately and only helps
 candidate discovery; it cannot remove a record on its own.
+
+Dataset splitting computes connected atomic groups over source-scoped network,
+site, and device identities plus duplicate-cluster links. Allocation never
+breaks those groups. Groups are ordered by their latest capture time and
+assigned to contiguous train, validation, and test regions; any remaining time
+range overlap caused by a long-lived group is explicit in the split audit.
