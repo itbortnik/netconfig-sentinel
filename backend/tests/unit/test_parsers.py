@@ -76,6 +76,19 @@ def test_cisco_management_and_provenance(collected_at: datetime) -> None:
     assert config.static_routes[0].provenance["destination"].source_lines == [38]
     assert config.static_routes[1].outgoing_interface == "Null0"
     assert config.static_routes[1].discard is True
+    assert config.bgp is not None
+    assert (config.bgp.local_as, config.bgp.router_id) == (65001, "192.0.2.1")
+    assert [neighbor.address for neighbor in config.bgp.neighbors] == [
+        "192.0.2.2",
+        "2001:db8:1::2",
+    ]
+    assert config.bgp.neighbors[0].remote_as == 65002
+    assert config.bgp.neighbors[0].session_type == "external"
+    assert config.bgp.neighbors[0].update_source == "Loopback0"
+    assert config.bgp.neighbors[0].description == "Transit A"
+    assert config.bgp.neighbors[0].provenance["remote_as"].source_lines == [43]
+    assert config.bgp.neighbors[1].family == "ipv6"
+    assert config.bgp.neighbors[1].enabled is False
     assert config.unparsed_fragments == []
 
 
@@ -101,6 +114,10 @@ def test_unknown_cisco_command_is_preserved_and_reduces_confidence(
     assert config.prefix_lists[0].rules[0].prefix == "198.51.100.0/24"
     assert config.static_routes[0].destination == "203.0.113.0/24"
     assert config.static_routes[0].preference == 20
+    assert config.bgp is not None
+    assert config.bgp.local_as == 65010
+    assert config.bgp.neighbors[0].session_type == "internal"
+    assert config.bgp.neighbors[0].enabled is False
 
 
 def test_junos_hierarchical_management(collected_at: datetime) -> None:
@@ -161,6 +178,18 @@ def test_junos_hierarchical_management(collected_at: datetime) -> None:
     assert config.static_routes[0].next_hop == "192.0.2.6"
     assert config.static_routes[0].preference == 10
     assert config.static_routes[1].discard is True
+    assert config.bgp is not None
+    assert (config.bgp.local_as, config.bgp.router_id) == (65001, "192.0.2.5")
+    assert [neighbor.group for neighbor in config.bgp.neighbors] == [
+        "TRANSIT-V4",
+        "TRANSIT-V6",
+    ]
+    assert config.bgp.neighbors[0].remote_as == 65002
+    assert config.bgp.neighbors[0].update_source == "192.0.2.5"
+    assert config.bgp.neighbors[0].provenance["remote_as"].source_lines == [95]
+    assert config.bgp.neighbors[1].family == "ipv6"
+    assert config.bgp.neighbors[1].update_source == "2001:db8:2::1"
+    assert config.bgp.neighbors[1].enabled is False
     assert config.unparsed_fragments == []
 
 
@@ -192,6 +221,12 @@ def test_junos_set_style_and_unknown_command(collected_at: datetime) -> None:
     assert config.static_routes[0].next_hop == "192.0.2.10"
     assert config.static_routes[0].preference == 15
     assert config.static_routes[1].discard is True
+    assert config.bgp is not None
+    assert config.bgp.local_as == 65010
+    assert config.bgp.neighbors[0].remote_as == 65010
+    assert config.bgp.neighbors[0].session_type == "internal"
+    assert config.bgp.neighbors[0].group == "INTERNAL"
+    assert config.bgp.neighbors[0].description == "Core peer"
     assert config.parser_confidence < 1.0
 
 
@@ -368,3 +403,76 @@ def test_junos_static_route_with_interface(collected_at: datetime) -> None:
     route = config.static_routes[0]
     assert route.outgoing_interface == "ge-0/0/0.0"
     assert route.next_hop is None
+
+
+def test_cisco_bgp_neighbor_without_remote_as_is_preserved(
+    collected_at: datetime,
+) -> None:
+    text = "\n".join(
+        [
+            "hostname incomplete-bgp",
+            "router bgp 65001",
+            " neighbor 192.0.2.2 description Missing remote AS",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="incomplete-bgp.cfg", collected_at=collected_at
+    )
+
+    assert config.bgp is not None
+    assert config.bgp.neighbors == []
+    assert config.parse_warnings == [
+        "BGP neighbor 192.0.2.2 has no valid remote AS"
+    ]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[2]
+    ]
+
+
+def test_junos_bgp_without_local_as_is_preserved(collected_at: datetime) -> None:
+    text = "\n".join(
+        [
+            "set system host-name incomplete-bgp",
+            "set protocols bgp group TRANSIT peer-as 65002",
+            "set protocols bgp group TRANSIT neighbor 192.0.2.2",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="incomplete-bgp.conf", collected_at=collected_at
+    )
+
+    assert config.bgp is None
+    assert config.parse_warnings == ["BGP is configured without a valid local AS"]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[1],
+        text.splitlines()[2],
+    ]
+
+
+def test_duplicate_junos_bgp_neighbor_is_preserved(collected_at: datetime) -> None:
+    text = "\n".join(
+        [
+            "set system host-name duplicate-peer",
+            "set routing-options autonomous-system 65001",
+            "set protocols bgp group FIRST peer-as 65002",
+            "set protocols bgp group FIRST neighbor 192.0.2.2",
+            "set protocols bgp group SECOND peer-as 65003",
+            "set protocols bgp group SECOND neighbor 192.0.2.2",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="duplicate-peer.conf", collected_at=collected_at
+    )
+
+    assert config.bgp is not None
+    assert len(config.bgp.neighbors) == 1
+    assert config.bgp.neighbors[0].group == "FIRST"
+    assert config.parse_warnings == [
+        "BGP neighbor 192.0.2.2 is configured in multiple groups"
+    ]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[5]
+    ]

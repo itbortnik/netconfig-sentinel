@@ -12,6 +12,8 @@ from typing import Literal
 from app.domain import (
     AclConfig,
     AclRule,
+    BgpConfig,
+    BgpNeighborConfig,
     CanonicalConfig,
     DeviceInfo,
     InterfaceAddress,
@@ -35,6 +37,7 @@ _NTP_SERVER = re.compile(r"^ntp\s+server\s+(?P<value>\S+)", re.IGNORECASE)
 _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
 _INTERFACE = re.compile(r"^interface\s+(?P<value>\S+)$", re.IGNORECASE)
 _VLAN = re.compile(r"^vlan\s+(?P<value>\d+)$", re.IGNORECASE)
+_BGP = re.compile(r"^router\s+bgp\s+(?P<value>\S+)$", re.IGNORECASE)
 _ACL = re.compile(
     r"^(?P<family>ip|ipv6)\s+access-list\s+"
     r"(?:(?P<kind>standard|extended)\s+)?(?P<name>\S+)$",
@@ -131,6 +134,88 @@ class _CiscoPrefixList:
         )
 
 
+@dataclass
+class _CiscoBgpNeighbor:
+    address: str
+    remote_as: int | None = None
+    description: str | None = None
+    update_source: str | None = None
+    enabled: bool | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    source_lines: list[tuple[int, str]] = field(default_factory=list)
+
+    def build(self, local_as: int) -> BgpNeighborConfig | None:
+        if self.remote_as is None:
+            return None
+        family: Literal["ipv4", "ipv6"] = (
+            "ipv4" if ip_address(self.address).version == 4 else "ipv6"
+        )
+        return BgpNeighborConfig(
+            address=self.address,
+            family=family,
+            remote_as=self.remote_as,
+            description=self.description,
+            session_type="internal" if self.remote_as == local_as else "external",
+            update_source=self.update_source,
+            enabled=self.enabled,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
+@dataclass
+class _CiscoBgp:
+    local_as: int
+    router_id: str | None = None
+    neighbors: dict[str, _CiscoBgpNeighbor] = field(default_factory=dict)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def ensure_neighbor(
+        self, address: str, number: int, raw_line: str
+    ) -> _CiscoBgpNeighbor:
+        if address not in self.neighbors:
+            neighbor = _CiscoBgpNeighbor(address=address)
+            neighbor.facts["address"].append((number, raw_line))
+            self.neighbors[address] = neighbor
+        return self.neighbors[address]
+
+    def build(
+        self,
+        warnings: list[str],
+        unparsed: list[UnparsedFragment],
+    ) -> BgpConfig:
+        neighbors: list[BgpNeighborConfig] = []
+        known_unparsed_lines = {
+            fragment.location.source_lines[0] for fragment in unparsed
+        }
+        for neighbor in self.neighbors.values():
+            built = neighbor.build(self.local_as)
+            if built is not None:
+                neighbors.append(built)
+                continue
+            warnings.append(f"BGP neighbor {neighbor.address} has no valid remote AS")
+            for number, raw_line in neighbor.source_lines:
+                if number not in known_unparsed_lines:
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
+                    known_unparsed_lines.add(number)
+        return BgpConfig(
+            local_as=self.local_as,
+            router_id=self.router_id,
+            neighbors=neighbors,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class CiscoIOSParser(VendorParser):
     """Parse identity and management features without pretending full IOS coverage."""
 
@@ -160,6 +245,8 @@ class CiscoIOSParser(VendorParser):
         current_acl: _CiscoAcl | None = None
         prefix_lists: dict[tuple[str, str], _CiscoPrefixList] = {}
         static_routes: list[StaticRouteConfig] = []
+        bgp: _CiscoBgp | None = None
+        current_bgp: _CiscoBgp | None = None
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
         warnings: list[str] = []
@@ -173,6 +260,7 @@ class CiscoIOSParser(VendorParser):
                 current_interface = None
                 current_vlan = None
                 current_acl = None
+                current_bgp = None
                 continue
             significant_count += 1
             lowered = command.lower()
@@ -181,6 +269,7 @@ class CiscoIOSParser(VendorParser):
                 current_interface = _CiscoInterface(name=match.group("value"))
                 current_vlan = None
                 current_acl = None
+                current_bgp = None
                 current_interface.facts["name"].append((number, raw_line))
                 interfaces.append(current_interface)
                 continue
@@ -189,6 +278,7 @@ class CiscoIOSParser(VendorParser):
                 vlan_id = int(match.group("value"))
                 current_interface = None
                 current_acl = None
+                current_bgp = None
                 if not _valid_vlan_id(vlan_id):
                     warnings.append(f"invalid VLAN identifier at line {number}")
                     unparsed.append(
@@ -226,6 +316,41 @@ class CiscoIOSParser(VendorParser):
                 )
                 current_acl.facts["name"].append((number, raw_line))
                 acls.append(current_acl)
+                continue
+
+            if match := _BGP.fullmatch(command):
+                local_as = _parse_asn(match.group("value"))
+                current_interface = None
+                current_vlan = None
+                current_acl = None
+                if local_as is None:
+                    warnings.append(f"invalid BGP local AS at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
+                    current_bgp = None
+                    continue
+                if bgp is not None and bgp.local_as != local_as:
+                    warnings.append(f"multiple BGP processes at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
+                    current_bgp = None
+                    continue
+                if bgp is None:
+                    bgp = _CiscoBgp(local_as=local_as)
+                    bgp.facts["local_as"].append((number, raw_line))
+                current_bgp = bgp
                 continue
 
             if current_interface is not None and raw_line[:1].isspace():
@@ -277,9 +402,30 @@ class CiscoIOSParser(VendorParser):
                 )
                 continue
 
+            if current_bgp is not None and raw_line[:1].isspace():
+                if lowered == "exit":
+                    current_bgp = None
+                    continue
+                if lowered == "exit-address-family":
+                    continue
+                if _consume_bgp_command(
+                    current_bgp, command, number, raw_line, warnings
+                ):
+                    continue
+                unparsed.append(
+                    UnparsedFragment(
+                        raw_text=raw_line,
+                        location=source_location(
+                            [(number, raw_line)], parser_confidence=0.0
+                        ),
+                    )
+                )
+                continue
+
             current_interface = None
             current_vlan = None
             current_acl = None
+            current_bgp = None
             if lowered in {"end", "exit", "configure terminal"} or lowered.startswith(
                 "line vty "
             ):
@@ -356,6 +502,7 @@ class CiscoIOSParser(VendorParser):
         if hostname is None:
             warnings.append("hostname was not found")
 
+        bgp_config = bgp.build(warnings, unparsed) if bgp is not None else None
         confidence = _overall_confidence(significant_count, len(unparsed))
         device_provenance = {
             key: source_location(value)
@@ -392,6 +539,7 @@ class CiscoIOSParser(VendorParser):
             acls=[acl.build() for acl in acls],
             prefix_lists=[prefix_list.build() for prefix_list in prefix_lists.values()],
             static_routes=static_routes,
+            bgp=bgp_config,
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
@@ -568,6 +716,82 @@ def _consume_prefix_list(
         prefix_lists[list_key] = prefix_list
     prefix_lists[list_key].rules.append(rule)
     return True
+
+
+def _consume_bgp_command(
+    bgp: _CiscoBgp,
+    command: str,
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> bool:
+    tokens = command.split()
+    lowered = [token.lower() for token in tokens]
+    if lowered[:2] == ["bgp", "router-id"] and len(tokens) == 3:
+        try:
+            router_id = ip_address(tokens[2])
+        except ValueError:
+            warnings.append(f"invalid BGP router ID at line {number}")
+            return False
+        if router_id.version != 4:
+            warnings.append(f"invalid BGP router ID at line {number}")
+            return False
+        bgp.router_id = str(router_id)
+        bgp.facts["router_id"].append((number, raw_line))
+        return True
+
+    enabled: bool | None = None
+    if lowered[:1] == ["no"]:
+        if len(tokens) != 4 or lowered[1] != "neighbor" or lowered[3] != "shutdown":
+            return False
+        address_token = tokens[2]
+        enabled = True
+    else:
+        if len(tokens) < 3 or lowered[0] != "neighbor":
+            return False
+        address_token = tokens[1]
+
+    try:
+        address = str(ip_address(address_token))
+    except ValueError:
+        warnings.append(f"invalid BGP neighbor address at line {number}")
+        return False
+    neighbor = bgp.ensure_neighbor(address, number, raw_line)
+    neighbor.source_lines.append((number, raw_line))
+    if enabled is True:
+        neighbor.enabled = True
+        neighbor.facts["enabled"].append((number, raw_line))
+        return True
+
+    attribute = lowered[2]
+    if attribute == "remote-as" and len(tokens) == 4:
+        remote_as = _parse_asn(tokens[3])
+        if remote_as is None:
+            warnings.append(f"invalid BGP remote AS at line {number}")
+            return False
+        neighbor.remote_as = remote_as
+        neighbor.facts["remote_as"].append((number, raw_line))
+        return True
+    if attribute == "description" and len(tokens) >= 4:
+        neighbor.description = " ".join(tokens[3:])
+        neighbor.facts["description"].append((number, raw_line))
+        return True
+    if attribute == "update-source" and len(tokens) == 4:
+        neighbor.update_source = tokens[3]
+        neighbor.facts["update_source"].append((number, raw_line))
+        return True
+    if attribute == "shutdown" and len(tokens) == 3:
+        neighbor.enabled = False
+        neighbor.facts["enabled"].append((number, raw_line))
+        return True
+    return False
+
+
+def _parse_asn(value: str) -> int | None:
+    if not value.isdigit():
+        return None
+    parsed = int(value)
+    return parsed if 1 <= parsed <= 4_294_967_295 else None
 
 
 def _parse_static_route(

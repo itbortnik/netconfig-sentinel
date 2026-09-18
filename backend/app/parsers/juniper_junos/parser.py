@@ -13,6 +13,8 @@ from typing import Literal
 from app.domain import (
     AclConfig,
     AclRule,
+    BgpConfig,
+    BgpNeighborConfig,
     CanonicalConfig,
     DeviceInfo,
     InterfaceAddress,
@@ -255,6 +257,41 @@ class _JunosStaticRoute:
         )
 
 
+@dataclass
+class _JunosBgpNeighbor:
+    address: str
+    remote_as: int | None = None
+    description: str | None = None
+    update_source: str | None = None
+    enabled: bool | None = None
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    source_lines: list[tuple[int, str]] = field(default_factory=list)
+
+
+@dataclass
+class _JunosBgpGroup:
+    name: str
+    peer_as: int | None = None
+    session_type: Literal["internal", "external"] | None = None
+    local_address: str | None = None
+    enabled: bool | None = None
+    neighbors: dict[str, _JunosBgpNeighbor] = field(default_factory=dict)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def ensure_neighbor(
+        self, address: str, number: int, raw_line: str
+    ) -> _JunosBgpNeighbor:
+        if address not in self.neighbors:
+            neighbor = _JunosBgpNeighbor(address=address)
+            neighbor.facts["address"].append((number, raw_line))
+            self.neighbors[address] = neighbor
+        return self.neighbors[address]
+
+
 class JuniperJunosParser(VendorParser):
     """Parse a deliberately small, tested subset of JunOS syntax."""
 
@@ -318,6 +355,12 @@ class _JunosState:
         self.acls: dict[tuple[str, str], _JunosAcl] = {}
         self.prefix_lists: dict[tuple[str, str], _JunosPrefixList] = {}
         self.static_routes: dict[tuple[str, str], _JunosStaticRoute] = {}
+        self.bgp_local_as: int | None = None
+        self.bgp_router_id: str | None = None
+        self.bgp_groups: dict[str, _JunosBgpGroup] = {}
+        self.bgp_facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        self.bgp_source_lines: list[tuple[int, str]] = []
+        self.bgp_seen = False
         self.unparsed: list[UnparsedFragment] = []
         self.warnings: list[str] = []
         self.significant_count = 0
@@ -379,6 +422,10 @@ class _JunosState:
             return self.consume_set_prefix_list(tokens, number, raw_line)
         elif lowered[:4] == ["set", "routing-options", "static", "route"]:
             return self.consume_set_static_route(tokens, number, raw_line)
+        elif lowered[:2] == ["set", "routing-options"]:
+            return self.consume_set_routing_options(tokens, number, raw_line)
+        elif lowered[:3] == ["set", "protocols", "bgp"]:
+            return self.consume_set_bgp(tokens, number, raw_line)
         else:
             return False
         return True
@@ -429,6 +476,56 @@ class _JunosState:
         if route is None:
             return False
         return self.apply_static_route_tokens(route, tokens[5:], number, raw_line)
+
+    def consume_set_routing_options(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if len(tokens) != 4:
+            return False
+        if lowered[2] == "autonomous-system":
+            local_as = _parse_asn(tokens[3])
+            if local_as is None:
+                self.warnings.append(f"invalid BGP local AS at line {number}")
+                return False
+            self.bgp_local_as = local_as
+            self.bgp_facts["local_as"].append((number, raw_line))
+            return True
+        if lowered[2] == "router-id":
+            router_id = _parse_router_id(tokens[3])
+            if router_id is None:
+                self.warnings.append(f"invalid BGP router ID at line {number}")
+                return False
+            self.bgp_router_id = router_id
+            self.bgp_facts["router_id"].append((number, raw_line))
+            return True
+        return False
+
+    def consume_set_bgp(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if len(tokens) < 6 or lowered[3] != "group":
+            return False
+        self.bgp_seen = True
+        self.bgp_source_lines.append((number, raw_line))
+        group = self.ensure_bgp_group(tokens[4], number, raw_line)
+        remainder = tokens[5:]
+        if remainder[0].lower() == "neighbor":
+            if len(remainder) < 2:
+                return False
+            neighbor = self.ensure_bgp_neighbor(
+                group, remainder[1], number, raw_line
+            )
+            if neighbor is None:
+                return False
+            neighbor.source_lines.append((number, raw_line))
+            if len(remainder) == 2:
+                return True
+            return self.apply_bgp_neighbor_tokens(
+                neighbor, remainder[2:], number, raw_line
+            )
+        return self.apply_bgp_group_tokens(group, remainder, number, raw_line)
 
     def consume_set_vlan(
         self, tokens: list[str], number: int, raw_line: str
@@ -535,6 +632,16 @@ class _JunosState:
             return True
         if "routing-options" in context_names:
             return self.consume_routing_block(context, block, number, raw_line)
+        if name == "protocols" and not context:
+            return True
+        if "protocols" in context_names:
+            if name == "bgp" and context[-1].split()[0].lower() == "protocols":
+                self.bgp_seen = True
+                self.bgp_source_lines.append((number, raw_line))
+                return True
+            if "bgp" in context_names:
+                return self.consume_bgp_block(context, block, number, raw_line)
+            return False
         if name == "interfaces" and not context:
             return True
         if "interfaces" in context_names:
@@ -618,6 +725,29 @@ class _JunosState:
             return self.ensure_static_route(parts[1], number, raw_line) is not None
         return False
 
+    def consume_bgp_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        parts = block.split()
+        group_name, _ = _bgp_context(context)
+        if len(parts) == 2 and parts[0].lower() == "group" and group_name is None:
+            self.ensure_bgp_group(parts[1], number, raw_line)
+            self.bgp_source_lines.append((number, raw_line))
+            return True
+        if (
+            len(parts) == 2
+            and parts[0].lower() == "neighbor"
+            and group_name is not None
+        ):
+            group = self.ensure_bgp_group(group_name, number, raw_line)
+            neighbor = self.ensure_bgp_neighbor(group, parts[1], number, raw_line)
+            if neighbor is None:
+                return False
+            neighbor.source_lines.append((number, raw_line))
+            self.bgp_source_lines.append((number, raw_line))
+            return True
+        return False
+
     def consume_interface_block(
         self, context: list[str], block: str, number: int, raw_line: str
     ) -> bool:
@@ -677,7 +807,9 @@ class _JunosState:
                 prefix_list_name, leaf, number, raw_line
             )
         if "routing-options" in context_names:
-            return self.consume_static_route_leaf(context, tokens, number, raw_line)
+            return self.consume_routing_options_leaf(context, tokens, number, raw_line)
+        if "bgp" in context_names:
+            return self.consume_bgp_leaf(context, tokens, number, raw_line)
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -916,6 +1048,167 @@ class _JunosState:
         )
         return True
 
+    def consume_routing_options_leaf(
+        self,
+        context: list[str],
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        context_names = [item.split()[0].lower() for item in context]
+        if "static" in context_names:
+            return self.consume_static_route_leaf(context, tokens, number, raw_line)
+        lowered = [token.lower() for token in tokens]
+        if lowered[:1] == ["autonomous-system"] and len(tokens) == 2:
+            local_as = _parse_asn(tokens[1])
+            if local_as is None:
+                self.warnings.append(f"invalid BGP local AS at line {number}")
+                return False
+            self.bgp_local_as = local_as
+            self.bgp_facts["local_as"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["router-id"] and len(tokens) == 2:
+            router_id = _parse_router_id(tokens[1])
+            if router_id is None:
+                self.warnings.append(f"invalid BGP router ID at line {number}")
+                return False
+            self.bgp_router_id = router_id
+            self.bgp_facts["router_id"].append((number, raw_line))
+            return True
+        return False
+
+    def consume_bgp_leaf(
+        self,
+        context: list[str],
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        group_name, neighbor_address = _bgp_context(context)
+        if group_name is None:
+            return False
+        group = self.ensure_bgp_group(group_name, number, raw_line)
+        if neighbor_address is not None:
+            neighbor = self.ensure_bgp_neighbor(
+                group, neighbor_address, number, raw_line
+            )
+            if neighbor is None:
+                return False
+            neighbor.source_lines.append((number, raw_line))
+            consumed = self.apply_bgp_neighbor_tokens(
+                neighbor, tokens, number, raw_line
+            )
+        elif tokens[0].lower() == "neighbor" and len(tokens) >= 2:
+            neighbor = self.ensure_bgp_neighbor(group, tokens[1], number, raw_line)
+            if neighbor is None:
+                return False
+            neighbor.source_lines.append((number, raw_line))
+            consumed = len(tokens) == 2 or self.apply_bgp_neighbor_tokens(
+                neighbor, tokens[2:], number, raw_line
+            )
+        else:
+            consumed = self.apply_bgp_group_tokens(
+                group, tokens, number, raw_line
+            )
+        if consumed:
+            self.bgp_source_lines.append((number, raw_line))
+        return consumed
+
+    def ensure_bgp_group(
+        self, name: str, number: int, raw_line: str
+    ) -> _JunosBgpGroup:
+        if name not in self.bgp_groups:
+            group = _JunosBgpGroup(name=name)
+            group.facts["name"].append((number, raw_line))
+            self.bgp_groups[name] = group
+        return self.bgp_groups[name]
+
+    def ensure_bgp_neighbor(
+        self,
+        group: _JunosBgpGroup,
+        value: str,
+        number: int,
+        raw_line: str,
+    ) -> _JunosBgpNeighbor | None:
+        try:
+            address = str(ip_address(value))
+        except ValueError:
+            self.warnings.append(f"invalid BGP neighbor address at line {number}")
+            return None
+        return group.ensure_neighbor(address, number, raw_line)
+
+    def apply_bgp_group_tokens(
+        self,
+        group: _JunosBgpGroup,
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if lowered[:1] == ["type"] and len(tokens) == 2:
+            if lowered[1] not in {"internal", "external"}:
+                return False
+            group.session_type = (
+                "internal" if lowered[1] == "internal" else "external"
+            )
+            group.facts["session_type"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["peer-as"] and len(tokens) == 2:
+            peer_as = _parse_asn(tokens[1])
+            if peer_as is None:
+                self.warnings.append(f"invalid BGP peer AS at line {number}")
+                return False
+            group.peer_as = peer_as
+            group.facts["remote_as"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["local-address"] and len(tokens) == 2:
+            local_address = _parse_ip_address(tokens[1])
+            if local_address is None:
+                self.warnings.append(f"invalid BGP local address at line {number}")
+                return False
+            group.local_address = local_address
+            group.facts["update_source"].append((number, raw_line))
+            return True
+        if lowered == ["shutdown"]:
+            group.enabled = False
+            group.facts["enabled"].append((number, raw_line))
+            return True
+        return False
+
+    def apply_bgp_neighbor_tokens(
+        self,
+        neighbor: _JunosBgpNeighbor,
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if lowered[:1] == ["peer-as"] and len(tokens) == 2:
+            remote_as = _parse_asn(tokens[1])
+            if remote_as is None:
+                self.warnings.append(f"invalid BGP peer AS at line {number}")
+                return False
+            neighbor.remote_as = remote_as
+            neighbor.facts["remote_as"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["description"] and len(tokens) >= 2:
+            neighbor.description = _unquote(" ".join(tokens[1:]))
+            neighbor.facts["description"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["local-address"] and len(tokens) == 2:
+            local_address = _parse_ip_address(tokens[1])
+            if local_address is None:
+                self.warnings.append(f"invalid BGP local address at line {number}")
+                return False
+            neighbor.update_source = local_address
+            neighbor.facts["update_source"].append((number, raw_line))
+            return True
+        if lowered == ["shutdown"]:
+            neighbor.enabled = False
+            neighbor.facts["enabled"].append((number, raw_line))
+            return True
+        return False
+
     def consume_static_route_leaf(
         self,
         context: list[str],
@@ -1141,11 +1434,100 @@ class _JunosState:
                 )
         return result
 
+    def preserve_unparsed_lines(self, lines: list[tuple[int, str]]) -> None:
+        known_lines = {
+            fragment.location.source_lines[0] for fragment in self.unparsed
+        }
+        for number, raw_line in lines:
+            if number not in known_lines:
+                self.add_unparsed(number, raw_line)
+                known_lines.add(number)
+
+    def build_bgp(self) -> BgpConfig | None:
+        if not self.bgp_seen:
+            return None
+        if self.bgp_local_as is None:
+            self.warnings.append("BGP is configured without a valid local AS")
+            self.preserve_unparsed_lines(self.bgp_source_lines)
+            return None
+
+        neighbors: list[BgpNeighborConfig] = []
+        seen_addresses: set[str] = set()
+        for group in self.bgp_groups.values():
+            for neighbor in group.neighbors.values():
+                remote_as = neighbor.remote_as or group.peer_as
+                if remote_as is None and group.session_type == "internal":
+                    remote_as = self.bgp_local_as
+                if remote_as is None:
+                    self.warnings.append(
+                        f"BGP neighbor {neighbor.address} has no valid remote AS"
+                    )
+                    self.preserve_unparsed_lines(neighbor.source_lines)
+                    continue
+                if neighbor.address in seen_addresses:
+                    self.warnings.append(
+                        f"BGP neighbor {neighbor.address} is configured in multiple groups"
+                    )
+                    self.preserve_unparsed_lines(neighbor.source_lines)
+                    continue
+
+                facts = dict(neighbor.facts)
+                if "name" in group.facts:
+                    facts["group"] = group.facts["name"]
+                if "remote_as" not in facts and "remote_as" in group.facts:
+                    facts["remote_as"] = group.facts["remote_as"]
+                if "update_source" not in facts and "update_source" in group.facts:
+                    facts["update_source"] = group.facts["update_source"]
+                if "enabled" not in facts and "enabled" in group.facts:
+                    facts["enabled"] = group.facts["enabled"]
+                if "session_type" in group.facts:
+                    facts["session_type"] = group.facts["session_type"]
+
+                session_type = group.session_type
+                if session_type is None:
+                    session_type = (
+                        "internal"
+                        if remote_as == self.bgp_local_as
+                        else "external"
+                    )
+                family: Literal["ipv4", "ipv6"] = (
+                    "ipv4" if ip_address(neighbor.address).version == 4 else "ipv6"
+                )
+                neighbors.append(
+                    BgpNeighborConfig(
+                        address=neighbor.address,
+                        family=family,
+                        remote_as=remote_as,
+                        group=group.name,
+                        description=neighbor.description,
+                        session_type=session_type,
+                        update_source=neighbor.update_source or group.local_address,
+                        enabled=(
+                            neighbor.enabled
+                            if neighbor.enabled is not None
+                            else group.enabled
+                        ),
+                        provenance={
+                            key: source_location(value) for key, value in facts.items()
+                        },
+                    )
+                )
+                seen_addresses.add(neighbor.address)
+        return BgpConfig(
+            local_as=self.bgp_local_as,
+            router_id=self.bgp_router_id,
+            neighbors=neighbors,
+            provenance={
+                key: source_location(value) for key, value in self.bgp_facts.items()
+            },
+        )
+
     def build(
         self, *, text: str, filename: str, collected_at: datetime | None
     ) -> CanonicalConfig:
         acls = self.build_acls()
         static_routes = self.build_static_routes()
+        bgp = self.build_bgp()
         warnings = list(self.warnings)
         if self.hostname is None:
             warnings.append("hostname was not found")
@@ -1181,6 +1563,7 @@ class _JunosState:
                 prefix_list.build() for prefix_list in self.prefix_lists.values()
             ],
             static_routes=static_routes,
+            bgp=bgp,
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
@@ -1281,6 +1664,41 @@ def _static_route_context(context: list[str]) -> str | None:
         if len(parts) == 2 and parts[0].lower() == "route":
             return parts[1]
     return None
+
+
+def _bgp_context(context: list[str]) -> tuple[str | None, str | None]:
+    group_name: str | None = None
+    neighbor_address: str | None = None
+    for item in context:
+        parts = item.split()
+        if len(parts) != 2:
+            continue
+        if parts[0].lower() == "group":
+            group_name = parts[1]
+        elif parts[0].lower() == "neighbor":
+            neighbor_address = parts[1]
+    return group_name, neighbor_address
+
+
+def _parse_asn(value: str) -> int | None:
+    if not value.isdigit():
+        return None
+    parsed = int(value)
+    return parsed if 1 <= parsed <= 4_294_967_295 else None
+
+
+def _parse_ip_address(value: str) -> str | None:
+    try:
+        return str(ip_address(value))
+    except ValueError:
+        return None
+
+
+def _parse_router_id(value: str) -> str | None:
+    parsed = _parse_ip_address(value)
+    if parsed is None or ip_address(parsed).version != 4:
+        return None
+    return parsed
 
 
 def _junos_acl_action(value: str) -> Literal["permit", "deny"] | None:

@@ -19,6 +19,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   адресами, протоколами, портами, действиями и provenance;
 - типизированные IPv4/IPv6 static routes с next-hop, выходным интерфейсом,
   preference/administrative distance и discard-маршрутами;
+- типизированный BGP-процесс и IPv4/IPv6-соседи с local/remote AS, router ID,
+  iBGP/eBGP, группами, update source и административным состоянием;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 

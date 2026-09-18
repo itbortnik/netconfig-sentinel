@@ -323,6 +323,64 @@ class StaticRouteConfig(StrictModel):
         return self
 
 
+class BgpNeighborConfig(StrictModel):
+    """Canonical BGP neighbor with the session parameters used by detectors."""
+
+    address: str
+    family: Literal["ipv4", "ipv6"]
+    remote_as: int = Field(ge=1, le=4_294_967_295)
+    group: str | None = Field(default=None, min_length=1)
+    description: str | None = None
+    session_type: Literal["internal", "external"] | None = None
+    update_source: str | None = Field(default=None, min_length=1)
+    enabled: bool | None = None
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("address")
+    @classmethod
+    def canonicalize_address(cls, value: str) -> str:
+        try:
+            return str(ip_address(value))
+        except ValueError as error:
+            raise ValueError("BGP neighbor must be a valid IPv4 or IPv6 address") from error
+
+    @model_validator(mode="after")
+    def family_must_match_address(self) -> BgpNeighborConfig:
+        expected_family = "ipv4" if ip_address(self.address).version == 4 else "ipv6"
+        if self.family != expected_family:
+            raise ValueError(f"BGP neighbor family must be {expected_family}")
+        return self
+
+
+class BgpConfig(StrictModel):
+    """Canonical global BGP process and its directly configured neighbors."""
+
+    local_as: int = Field(ge=1, le=4_294_967_295)
+    router_id: str | None = None
+    neighbors: list[BgpNeighborConfig] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("router_id")
+    @classmethod
+    def validate_router_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        try:
+            parsed = ip_address(value)
+        except ValueError as error:
+            raise ValueError("BGP router ID must be a valid IPv4 address") from error
+        if parsed.version != 4:
+            raise ValueError("BGP router ID must be a valid IPv4 address")
+        return str(parsed)
+
+    @model_validator(mode="after")
+    def neighbor_addresses_must_be_unique(self) -> BgpConfig:
+        addresses = [neighbor.address for neighbor in self.neighbors]
+        if len(addresses) != len(set(addresses)):
+            raise ValueError("BGP neighbor addresses must be unique")
+        return self
+
+
 class UnparsedFragment(StrictModel):
     """A non-empty command that this parser version did not interpret."""
 
@@ -342,7 +400,7 @@ class CanonicalConfig(StrictModel):
     acls: list[AclConfig] = Field(default_factory=list)
     prefix_lists: list[PrefixListConfig] = Field(default_factory=list)
     static_routes: list[StaticRouteConfig] = Field(default_factory=list)
-    bgp: dict[str, Any] | None = None
+    bgp: BgpConfig | None = None
     ospf: list[dict[str, Any]] = Field(default_factory=list)
     unparsed_fragments: list[UnparsedFragment] = Field(default_factory=list)
     parse_warnings: list[str] = Field(default_factory=list)

@@ -3,6 +3,8 @@
 from app.domain.models import (
     AclConfig,
     AclRule,
+    BgpConfig,
+    BgpNeighborConfig,
     CanonicalConfig,
     ConfigSource,
     DeviceInfo,
@@ -26,6 +28,8 @@ from app.domain.models import (
 __all__ = [
     "AclConfig",
     "AclRule",
+    "BgpConfig",
+    "BgpNeighborConfig",
     "CanonicalConfig",
     "ConfigSource",
     "DeviceInfo",

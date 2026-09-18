@@ -21,6 +21,12 @@ address-family consistency, canonicalizes networks and addresses, and keeps
 the configured preference or administrative distance without inventing vendor
 defaults.
 
+`BgpConfig` contains one global local AS, optional IPv4 router ID, and typed
+`BgpNeighborConfig` entries. Neighbor addresses are canonicalized, AS numbers
+use the 32-bit ASPLAIN range, and the model keeps the session family/type,
+group, update source, description, administrative state, and per-field
+provenance. JunOS group values are resolved into each neighbor explicitly.
+
 `Finding` separates three concepts which must not be conflated:
 
 - `severity`: potential impact;

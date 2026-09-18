@@ -6,6 +6,8 @@ import pytest
 from app.domain import (
     AclConfig,
     AclRule,
+    BgpConfig,
+    BgpNeighborConfig,
     Finding,
     InterfaceAddress,
     PrefixListConfig,
@@ -165,3 +167,23 @@ def test_static_route_canonicalizes_and_requires_matching_target() -> None:
             destination="2001:db8::/32",
             next_hop="192.0.2.1",
         )
+
+
+def test_bgp_contract_validates_neighbor_family_and_uniqueness() -> None:
+    neighbor = BgpNeighborConfig(
+        address="2001:0db8::1",
+        family="ipv6",
+        remote_as=65002,
+    )
+
+    assert neighbor.address == "2001:db8::1"
+
+    with pytest.raises(ValidationError, match="family must be ipv6"):
+        BgpNeighborConfig(
+            address="2001:db8::1",
+            family="ipv4",
+            remote_as=65002,
+        )
+
+    with pytest.raises(ValidationError, match="must be unique"):
+        BgpConfig(local_as=65001, neighbors=[neighbor, neighbor])
