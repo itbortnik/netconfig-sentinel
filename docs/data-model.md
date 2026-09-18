@@ -56,3 +56,14 @@ score range separately from the in-memory estimator.
 `RiskComponent` inputs. Every component records availability, raw score,
 configured weight, normalized effective weight, and contributing finding IDs;
 guardrails and missing-signal limitations remain explicit.
+
+`DatasetManifest` binds every candidate file to a reviewed `DatasetSource`.
+The source records origin, source class, license identifier, review status,
+allowed uses, collection time, and authorization reference when real data is
+used. `DatasetRecord` adds a safe relative path, grouping identifiers, capture
+time, optional vendor and role hints, and an optional expected SHA-256.
+
+`ImportedDatasetRecord` is the post-sanitization boundary. It contains only
+pseudonymous grouping identifiers, sanitized text, integrity hashes, byte and
+replacement counts, and the sanitization version. It intentionally has no raw
+text, source path, origin URL, or reversible identity mapping.

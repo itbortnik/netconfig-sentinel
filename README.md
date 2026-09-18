@@ -32,6 +32,10 @@ Juniper JunOS по содержимому, нормализует hostname и ч
   структурированных признаков;
 - прозрачный risk fusion v1 с явными весами, статусами доступности и
   ограничителями для критических формальных результатов;
+- строгий manifest происхождения, лицензии и разрешённых способов использования
+  для локальных источников датасета;
+- ограниченный безопасный импорт UTF-8 конфигураций и детерминированное
+  обезличивание секретов, идентификаторов и IP-адресов до передачи дальше;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 
@@ -66,8 +70,8 @@ source .venv/bin/activate
 
 ```powershell
 ruff check .
-mypy backend/app
-pytest --cov=app --cov-report=term-missing
+mypy backend/app ml
+pytest --cov=app --cov=ml --cov-report=term-missing
 ```
 
 ## Docker Compose
@@ -94,6 +98,9 @@ backend/app/
   explanation/         будущие объяснения и RAG
   patching/            будущие предложения патчей
   audit/               будущий аудит
+ml/
+  datasets/            manifest источника и безопасный локальный импорт
+  preprocessing/       детерминированное обезличивание конфигураций
 ```
 
 Поддерживаемая синтаксическая область и ограничения перечислены в
@@ -111,3 +118,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/statistical-baseline.md`](docs/statistical-baseline.md).
 Формула объединения риска описана в
 [`docs/risk-fusion.md`](docs/risk-fusion.md).
+Контракт источников данных и граница обезличивания описаны в
+[`docs/dataset-ingestion.md`](docs/dataset-ingestion.md).

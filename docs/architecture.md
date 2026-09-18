@@ -46,3 +46,18 @@ policy + peer + statistical + future transformer + verification -> RiskAssessmen
 Unavailable signals are explicit and their weights are redistributed. Critical
 policy violations and verified loss of reachability have minimum-score
 guardrails that the weighted formula cannot reduce.
+
+Dataset preparation has a separate trust boundary before parsing or training:
+
+```text
+reviewed source manifest + local files
+  -> bounded validation
+  -> in-memory sanitization
+  -> pseudonymous ImportedDatasetRecord[]
+```
+
+Only sources with an approved license or authorization and the requested use
+may cross this boundary. Raw configuration text and source paths are never
+members of the imported record. Stable aliases are scoped by source and
+topology so relationships within one topology survive without linking two
+unrelated sources.

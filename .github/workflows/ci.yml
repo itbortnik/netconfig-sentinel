@@ -18,5 +18,5 @@ jobs:
           cache: pip
       - run: python -m pip install -e ".[dev]"
       - run: ruff check .
-      - run: mypy backend/app
-      - run: pytest --cov=app --cov-report=term-missing
+      - run: mypy backend/app ml
+      - run: pytest --cov=app --cov=ml --cov-report=term-missing
