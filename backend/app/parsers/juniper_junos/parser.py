@@ -7,7 +7,7 @@ import shlex
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_address, ip_interface, ip_network
 from typing import Literal
 
 from app.domain import (
@@ -20,6 +20,7 @@ from app.domain import (
     ManagementConfig,
     PrefixListConfig,
     PrefixListRule,
+    StaticRouteConfig,
     UnparsedFragment,
     Vendor,
     VlanConfig,
@@ -230,6 +231,30 @@ class _JunosPrefixList:
         )
 
 
+@dataclass
+class _JunosStaticRoute:
+    family: Literal["ipv4", "ipv6"]
+    destination: str
+    next_hop: str | None = None
+    outgoing_interface: str | None = None
+    preference: int | None = None
+    discard: bool = False
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> StaticRouteConfig:
+        return StaticRouteConfig(
+            family=self.family,
+            destination=self.destination,
+            next_hop=self.next_hop,
+            outgoing_interface=self.outgoing_interface,
+            preference=self.preference,
+            discard=self.discard,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class JuniperJunosParser(VendorParser):
     """Parse a deliberately small, tested subset of JunOS syntax."""
 
@@ -292,6 +317,7 @@ class _JunosState:
         self.vlans: dict[str, _JunosVlan] = {}
         self.acls: dict[tuple[str, str], _JunosAcl] = {}
         self.prefix_lists: dict[tuple[str, str], _JunosPrefixList] = {}
+        self.static_routes: dict[tuple[str, str], _JunosStaticRoute] = {}
         self.unparsed: list[UnparsedFragment] = []
         self.warnings: list[str] = []
         self.significant_count = 0
@@ -351,6 +377,8 @@ class _JunosState:
             return self.consume_set_firewall(tokens, number, raw_line)
         elif lowered[:3] == ["set", "policy-options", "prefix-list"]:
             return self.consume_set_prefix_list(tokens, number, raw_line)
+        elif lowered[:4] == ["set", "routing-options", "static", "route"]:
+            return self.consume_set_static_route(tokens, number, raw_line)
         else:
             return False
         return True
@@ -391,6 +419,16 @@ class _JunosState:
         if len(tokens) != 5:
             return False
         return self.add_prefix_list_entry(tokens[3], tokens[4], number, raw_line)
+
+    def consume_set_static_route(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        if len(tokens) < 6:
+            return False
+        route = self.ensure_static_route(tokens[4], number, raw_line)
+        if route is None:
+            return False
+        return self.apply_static_route_tokens(route, tokens[5:], number, raw_line)
 
     def consume_set_vlan(
         self, tokens: list[str], number: int, raw_line: str
@@ -493,6 +531,10 @@ class _JunosState:
             return True
         if "policy-options" in context_names:
             return self.consume_policy_block(context, block)
+        if name == "routing-options" and not context:
+            return True
+        if "routing-options" in context_names:
+            return self.consume_routing_block(context, block, number, raw_line)
         if name == "interfaces" and not context:
             return True
         if "interfaces" in context_names:
@@ -558,6 +600,24 @@ class _JunosState:
             and context[-1].split()[0].lower() == "policy-options"
         )
 
+    def consume_routing_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        parts = block.split()
+        if (
+            len(parts) == 1
+            and parts[0].lower() == "static"
+            and context[-1].split()[0].lower() == "routing-options"
+        ):
+            return True
+        if (
+            len(parts) == 2
+            and parts[0].lower() == "route"
+            and "static" in [item.split()[0].lower() for item in context]
+        ):
+            return self.ensure_static_route(parts[1], number, raw_line) is not None
+        return False
+
     def consume_interface_block(
         self, context: list[str], block: str, number: int, raw_line: str
     ) -> bool:
@@ -616,6 +676,8 @@ class _JunosState:
             return self.add_prefix_list_entry(
                 prefix_list_name, leaf, number, raw_line
             )
+        if "routing-options" in context_names:
+            return self.consume_static_route_leaf(context, tokens, number, raw_line)
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -854,6 +916,94 @@ class _JunosState:
         )
         return True
 
+    def consume_static_route_leaf(
+        self,
+        context: list[str],
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        destination = _static_route_context(context)
+        if destination is not None:
+            route = self.ensure_static_route(destination, number, raw_line)
+            if route is None:
+                return False
+            return self.apply_static_route_tokens(route, tokens, number, raw_line)
+        context_names = [item.split()[0].lower() for item in context]
+        if "static" not in context_names or len(tokens) < 3 or tokens[0].lower() != "route":
+            return False
+        route = self.ensure_static_route(tokens[1], number, raw_line)
+        if route is None:
+            return False
+        return self.apply_static_route_tokens(route, tokens[2:], number, raw_line)
+
+    def ensure_static_route(
+        self, destination: str, number: int, raw_line: str
+    ) -> _JunosStaticRoute | None:
+        try:
+            network = ip_network(destination, strict=False)
+        except ValueError:
+            self.warnings.append(f"invalid static route at line {number}")
+            return None
+        family: Literal["ipv4", "ipv6"] = "ipv4" if network.version == 4 else "ipv6"
+        key = (family, str(network))
+        if key not in self.static_routes:
+            route = _JunosStaticRoute(family=family, destination=str(network))
+            route.facts["destination"].append((number, raw_line))
+            self.static_routes[key] = route
+        return self.static_routes[key]
+
+    def apply_static_route_tokens(
+        self,
+        route: _JunosStaticRoute,
+        tokens: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if lowered[:1] == ["next-hop"] and len(tokens) == 2:
+            if route.discard:
+                return False
+            value = tokens[1]
+            try:
+                parsed = ip_address(value)
+            except ValueError:
+                if value[:1].isdigit():
+                    self.warnings.append(f"invalid static route next hop at line {number}")
+                    return False
+                if route.next_hop is not None:
+                    return False
+                if route.outgoing_interface not in {None, value}:
+                    return False
+                route.outgoing_interface = value
+                route.facts["outgoing_interface"].append((number, raw_line))
+                return True
+            if parsed.version != (4 if route.family == "ipv4" else 6):
+                self.warnings.append(f"static route family mismatch at line {number}")
+                return False
+            normalized = str(parsed)
+            if route.outgoing_interface is not None:
+                return False
+            if route.next_hop not in {None, normalized}:
+                return False
+            route.next_hop = normalized
+            route.facts["next_hop"].append((number, raw_line))
+            return True
+        if lowered in (["discard"], ["reject"]):
+            if route.next_hop is not None or route.outgoing_interface is not None:
+                return False
+            route.discard = True
+            route.facts["discard"].append((number, raw_line))
+            return True
+        if lowered[:1] == ["preference"] and len(tokens) == 2:
+            if not tokens[1].isdigit() or int(tokens[1]) > 255:
+                self.warnings.append(f"invalid static route preference at line {number}")
+                return False
+            route.preference = int(tokens[1])
+            route.facts["preference"].append((number, raw_line))
+            return True
+        return False
+
     def ensure_interface(
         self, name: str, unit: str | None, number: int, raw_line: str
     ) -> _JunosInterface:
@@ -980,10 +1130,22 @@ class _JunosState:
             )
         return result
 
+    def build_static_routes(self) -> list[StaticRouteConfig]:
+        result: list[StaticRouteConfig] = []
+        for route in self.static_routes.values():
+            try:
+                result.append(route.build())
+            except ValueError:
+                self.warnings.append(
+                    f"static route {route.destination} has no supported forwarding target"
+                )
+        return result
+
     def build(
         self, *, text: str, filename: str, collected_at: datetime | None
     ) -> CanonicalConfig:
         acls = self.build_acls()
+        static_routes = self.build_static_routes()
         warnings = list(self.warnings)
         if self.hostname is None:
             warnings.append("hostname was not found")
@@ -1018,6 +1180,7 @@ class _JunosState:
             prefix_lists=[
                 prefix_list.build() for prefix_list in self.prefix_lists.values()
             ],
+            static_routes=static_routes,
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
@@ -1108,6 +1271,14 @@ def _prefix_list_context(context: list[str]) -> str | None:
     for item in context:
         parts = item.split()
         if len(parts) == 2 and parts[0].lower() == "prefix-list":
+            return parts[1]
+    return None
+
+
+def _static_route_context(context: list[str]) -> str | None:
+    for item in context:
+        parts = item.split()
+        if len(parts) == 2 and parts[0].lower() == "route":
             return parts[1]
     return None
 

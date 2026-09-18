@@ -12,6 +12,7 @@ from app.domain import (
     PrefixListRule,
     Severity,
     SourceLocation,
+    StaticRouteConfig,
     VlanSet,
 )
 from app.domain.models import ConfigSource
@@ -143,4 +144,24 @@ def test_acl_and_prefix_list_reject_mixed_address_families() -> None:
             name="MIXED",
             family="ipv6",
             rules=[PrefixListRule(prefix="192.0.2.0/24", provenance=provenance)],
+        )
+
+
+def test_static_route_canonicalizes_and_requires_matching_target() -> None:
+    route = StaticRouteConfig(
+        family="ipv4",
+        destination="192.0.2.7/24",
+        next_hop="198.51.100.1",
+    )
+
+    assert route.destination == "192.0.2.0/24"
+
+    with pytest.raises(ValidationError, match="requires a next hop"):
+        StaticRouteConfig(family="ipv4", destination="192.0.2.0/24")
+
+    with pytest.raises(ValidationError, match="next-hop family must be ipv6"):
+        StaticRouteConfig(
+            family="ipv6",
+            destination="2001:db8::/32",
+            next_hop="192.0.2.1",
         )

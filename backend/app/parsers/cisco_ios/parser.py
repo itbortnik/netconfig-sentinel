@@ -6,7 +6,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from ipaddress import IPv4Address, ip_interface, ip_network
+from ipaddress import IPv4Address, ip_address, ip_interface, ip_network
 from typing import Literal
 
 from app.domain import (
@@ -19,6 +19,7 @@ from app.domain import (
     ManagementConfig,
     PrefixListConfig,
     PrefixListRule,
+    StaticRouteConfig,
     UnparsedFragment,
     Vendor,
     VlanConfig,
@@ -158,6 +159,7 @@ class CiscoIOSParser(VendorParser):
         acls: list[_CiscoAcl] = []
         current_acl: _CiscoAcl | None = None
         prefix_lists: dict[tuple[str, str], _CiscoPrefixList] = {}
+        static_routes: list[StaticRouteConfig] = []
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
         warnings: list[str] = []
@@ -330,6 +332,19 @@ class CiscoIOSParser(VendorParser):
                             ),
                         )
                     )
+            elif lowered.startswith(("ip route ", "ipv6 route ")):
+                route = _parse_static_route(command, number, raw_line, warnings)
+                if route is not None:
+                    static_routes.append(route)
+                else:
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
             else:
                 unparsed.append(
                     UnparsedFragment(
@@ -376,6 +391,7 @@ class CiscoIOSParser(VendorParser):
             vlans=[vlan.build() for vlan in vlans.values()],
             acls=[acl.build() for acl in acls],
             prefix_lists=[prefix_list.build() for prefix_list in prefix_lists.values()],
+            static_routes=static_routes,
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
@@ -552,6 +568,108 @@ def _consume_prefix_list(
         prefix_lists[list_key] = prefix_list
     prefix_lists[list_key].rules.append(rule)
     return True
+
+
+def _parse_static_route(
+    command: str,
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> StaticRouteConfig | None:
+    tokens = command.split()
+    family: Literal["ipv4", "ipv6"]
+    destination_value: str
+    index: int
+    if tokens[:2] == ["ip", "route"]:
+        family = "ipv4"
+        if len(tokens) < 5 or tokens[2].lower() == "vrf":
+            return None
+        destination_value = f"{tokens[2]}/{tokens[3]}"
+        index = 4
+    elif tokens[:2] == ["ipv6", "route"]:
+        family = "ipv6"
+        if len(tokens) < 4 or tokens[2].lower() == "vrf":
+            return None
+        destination_value = tokens[2]
+        index = 3
+    else:
+        return None
+
+    try:
+        destination = ip_network(destination_value, strict=False)
+    except ValueError:
+        warnings.append(f"invalid static route at line {number}")
+        return None
+    expected_version = 4 if family == "ipv4" else 6
+    if destination.version != expected_version or index >= len(tokens):
+        warnings.append(f"invalid static route at line {number}")
+        return None
+
+    next_hop: str | None = None
+    outgoing_interface: str | None = None
+    discard = False
+    target = tokens[index]
+    index += 1
+    if target.lower() == "null0":
+        outgoing_interface = target
+        discard = True
+    else:
+        parsed_target = _parse_route_next_hop(target, family)
+        if parsed_target is not None:
+            next_hop = parsed_target
+        elif target[:1].isdigit():
+            warnings.append(f"invalid static route next hop at line {number}")
+            return None
+        else:
+            outgoing_interface = target
+            if index < len(tokens):
+                parsed_target = _parse_route_next_hop(tokens[index], family)
+                if parsed_target is not None:
+                    next_hop = parsed_target
+                    index += 1
+
+    preference: int | None = None
+    if index < len(tokens) and tokens[index].isdigit():
+        preference = int(tokens[index])
+        index += 1
+    if index != len(tokens):
+        return None
+
+    location = source_location([(number, raw_line)])
+    provenance = {"destination": location}
+    if next_hop is not None:
+        provenance["next_hop"] = location
+    if outgoing_interface is not None:
+        provenance["outgoing_interface"] = location
+    if preference is not None:
+        provenance["preference"] = location
+    if discard:
+        provenance["discard"] = location
+    try:
+        return StaticRouteConfig(
+            family=family,
+            destination=str(destination),
+            next_hop=next_hop,
+            outgoing_interface=outgoing_interface,
+            preference=preference,
+            discard=discard,
+            provenance=provenance,
+        )
+    except ValueError:
+        warnings.append(f"invalid static route at line {number}")
+        return None
+
+
+def _parse_route_next_hop(
+    value: str, family: Literal["ipv4", "ipv6"]
+) -> str | None:
+    try:
+        parsed = ip_address(value)
+    except ValueError:
+        return None
+    if parsed.version != (4 if family == "ipv4" else 6):
+        return None
+    return str(parsed)
 
 
 def _consume_interface_command(

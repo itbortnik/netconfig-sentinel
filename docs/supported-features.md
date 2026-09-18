@@ -24,6 +24,8 @@ Supported in the current parser slice:
   sequence, permit/deny, protocol, `any`, host, IPv4 wildcard/CIDR operands,
   common port operators, and trailing options;
 - IPv4 and IPv6 prefix lists with optional sequence, `ge`, and `le` bounds.
+- global IPv4 and IPv6 static routes with a next hop, optional outgoing
+  interface, administrative distance, and `Null0` discard routes.
 
 ## Juniper JunOS
 
@@ -45,6 +47,8 @@ Both hierarchical and `set` syntax are supported for:
   including source/destination addresses and ports, protocol, selected match
   options, and accept/discard/reject actions;
 - `policy-options prefix-list` membership in hierarchical and `set` syntax.
+- `routing-options static route` in hierarchical and `set` syntax with an IP
+  next hop or outgoing interface, preference, and discard/reject routes.
 
 ## Current limitations
 
@@ -55,8 +59,10 @@ Both hierarchical and `set` syntax are supported for:
 - numbered IOS ACLs, object/object-group operands, time ranges, dynamic ACLs,
   reflexive ACLs, and advanced protocol-specific ACL options remain unparsed;
 - JunOS firewall actions and match conditions beyond the explicitly listed
-  subset, prefix-list filters, route filters, routing, and nested policy
+  subset, prefix-list filters, route filters, BGP/OSPF, and nested policy
   statements remain unparsed;
+- VRF-qualified IOS routes, route names/tags/tracking, JunOS qualified next
+  hops/next-table, and ECMP static routes remain unsupported;
 - IOS platform refinement (IOS versus IOS-XE) is not inferred yet;
 - SNMP community syntax cannot prove whether v1, v2c, or both are reachable, so
   the canonical result reports both;

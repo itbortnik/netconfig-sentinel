@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_address, ip_interface, ip_network
 from typing import Any, Literal
 from uuid import UUID
 
@@ -282,6 +282,47 @@ class PrefixListConfig(StrictModel):
         return self
 
 
+class StaticRouteConfig(StrictModel):
+    """Canonical static route with one forwarding target."""
+
+    family: Literal["ipv4", "ipv6"]
+    destination: str
+    next_hop: str | None = None
+    outgoing_interface: str | None = Field(default=None, min_length=1)
+    preference: int | None = Field(default=None, ge=0, le=255)
+    discard: bool = False
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("destination")
+    @classmethod
+    def canonicalize_destination(cls, value: str) -> str:
+        try:
+            return str(ip_network(value, strict=False))
+        except ValueError as error:
+            raise ValueError("destination must be a valid IPv4 or IPv6 network") from error
+
+    @field_validator("next_hop")
+    @classmethod
+    def canonicalize_next_hop(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        try:
+            return str(ip_address(value))
+        except ValueError as error:
+            raise ValueError("next_hop must be a valid IPv4 or IPv6 address") from error
+
+    @model_validator(mode="after")
+    def validate_family_and_target(self) -> StaticRouteConfig:
+        expected_version = 4 if self.family == "ipv4" else 6
+        if ip_network(self.destination).version != expected_version:
+            raise ValueError(f"static route destination family must be {self.family}")
+        if self.next_hop is not None and ip_address(self.next_hop).version != expected_version:
+            raise ValueError(f"static route next-hop family must be {self.family}")
+        if self.next_hop is None and self.outgoing_interface is None and not self.discard:
+            raise ValueError("static route requires a next hop, interface, or discard action")
+        return self
+
+
 class UnparsedFragment(StrictModel):
     """A non-empty command that this parser version did not interpret."""
 
@@ -300,7 +341,7 @@ class CanonicalConfig(StrictModel):
     vlans: list[VlanConfig] = Field(default_factory=list)
     acls: list[AclConfig] = Field(default_factory=list)
     prefix_lists: list[PrefixListConfig] = Field(default_factory=list)
-    static_routes: list[dict[str, Any]] = Field(default_factory=list)
+    static_routes: list[StaticRouteConfig] = Field(default_factory=list)
     bgp: dict[str, Any] | None = None
     ospf: list[dict[str, Any]] = Field(default_factory=list)
     unparsed_fragments: list[UnparsedFragment] = Field(default_factory=list)

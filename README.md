@@ -17,6 +17,8 @@ Juniper JunOS по содержимому, нормализует hostname и ч
 - типизированные VLAN и access/trunk-параметры с разрешением JunOS VLAN-имён;
 - типизированные Cisco ACL/prefix-list и JunOS firewall filter/prefix-list с
   адресами, протоколами, портами, действиями и provenance;
+- типизированные IPv4/IPv6 static routes с next-hop, выходным интерфейсом,
+  preference/administrative distance и discard-маршрутами;
 - provenance для нормализованных значений;
 - unit-тесты и полные golden JSON snapshots для четырёх безопасных конфигураций.
 

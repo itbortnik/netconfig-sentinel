@@ -15,6 +15,12 @@ rule retains source provenance. JunOS prefix-list membership intentionally has
 no permit/deny action because the action belongs to the policy that consumes
 the list.
 
+`StaticRouteConfig` stores one IPv4 or IPv6 destination and one forwarding
+target: next-hop address, outgoing interface, or discard action. It validates
+address-family consistency, canonicalizes networks and addresses, and keeps
+the configured preference or administrative distance without inventing vendor
+defaults.
+
 `Finding` separates three concepts which must not be conflated:
 
 - `severity`: potential impact;

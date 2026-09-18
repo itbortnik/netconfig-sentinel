@@ -66,6 +66,16 @@ def test_cisco_management_and_provenance(collected_at: datetime) -> None:
     ]
     assert config.prefix_lists[0].rules[0].sequence == 10
     assert config.prefix_lists[0].rules[0].le == 32
+    assert [route.destination for route in config.static_routes] == [
+        "0.0.0.0/0",
+        "198.51.100.0/24",
+        "2001:db8:ffff::/48",
+    ]
+    assert config.static_routes[0].next_hop == "192.0.2.2"
+    assert config.static_routes[0].preference == 10
+    assert config.static_routes[0].provenance["destination"].source_lines == [38]
+    assert config.static_routes[1].outgoing_interface == "Null0"
+    assert config.static_routes[1].discard is True
     assert config.unparsed_fragments == []
 
 
@@ -89,6 +99,8 @@ def test_unknown_cisco_command_is_preserved_and_reduces_confidence(
     assert config.acls[0].kind == "standard"
     assert config.acls[0].rules[0].source_addresses == ["192.0.2.10/32"]
     assert config.prefix_lists[0].rules[0].prefix == "198.51.100.0/24"
+    assert config.static_routes[0].destination == "203.0.113.0/24"
+    assert config.static_routes[0].preference == 20
 
 
 def test_junos_hierarchical_management(collected_at: datetime) -> None:
@@ -141,6 +153,14 @@ def test_junos_hierarchical_management(collected_at: datetime) -> None:
         "192.0.2.0/24",
         "198.51.100.0/24",
     ]
+    assert [route.destination for route in config.static_routes] == [
+        "0.0.0.0/0",
+        "198.51.100.0/24",
+        "2001:db8:ffff::/48",
+    ]
+    assert config.static_routes[0].next_hop == "192.0.2.6"
+    assert config.static_routes[0].preference == 10
+    assert config.static_routes[1].discard is True
     assert config.unparsed_fragments == []
 
 
@@ -169,6 +189,9 @@ def test_junos_set_style_and_unknown_command(collected_at: datetime) -> None:
     assert [rule.action for rule in config.acls[0].rules] == ["permit", "deny"]
     assert config.acls[0].rules[0].destination_ports == ["ssh"]
     assert config.prefix_lists[0].rules[0].prefix == "192.0.2.0/24"
+    assert config.static_routes[0].next_hop == "192.0.2.10"
+    assert config.static_routes[0].preference == 15
+    assert config.static_routes[1].discard is True
     assert config.parser_confidence < 1.0
 
 
@@ -273,3 +296,75 @@ def test_incomplete_junos_firewall_term_is_preserved(collected_at: datetime) -> 
     assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
         text.splitlines()[1]
     ]
+
+
+def test_invalid_cisco_static_route_is_preserved(collected_at: datetime) -> None:
+    text = "hostname bad-route\nip route 192.0.2.0 255.255.255.0 999.1.1.1"
+
+    config = parse_configuration(
+        text, filename="bad-route.cfg", collected_at=collected_at
+    )
+
+    assert config.static_routes == []
+    assert config.parse_warnings == ["invalid static route next hop at line 2"]
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[1]
+    ]
+
+
+def test_junos_static_route_family_mismatch_is_preserved(
+    collected_at: datetime,
+) -> None:
+    text = "\n".join(
+        [
+            "set system host-name bad-route",
+            "set routing-options static route 2001:db8::/32 next-hop 192.0.2.1",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="bad-route.conf", collected_at=collected_at
+    )
+
+    assert config.static_routes == []
+    assert "static route family mismatch at line 2" in config.parse_warnings
+    assert [fragment.raw_text for fragment in config.unparsed_fragments] == [
+        text.splitlines()[1]
+    ]
+
+
+def test_cisco_static_route_with_interface_and_next_hop(
+    collected_at: datetime,
+) -> None:
+    text = "\n".join(
+        [
+            "hostname interface-route",
+            "ip route 10.0.0.0 255.255.255.0 GigabitEthernet0/0 192.0.2.1 5",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="interface-route.cfg", collected_at=collected_at
+    )
+
+    route = config.static_routes[0]
+    assert route.outgoing_interface == "GigabitEthernet0/0"
+    assert route.next_hop == "192.0.2.1"
+    assert route.preference == 5
+
+
+def test_junos_static_route_with_interface(collected_at: datetime) -> None:
+    text = "\n".join(
+        [
+            "set system host-name interface-route",
+            "set routing-options static route 10.0.0.0/24 next-hop ge-0/0/0.0",
+        ]
+    )
+
+    config = parse_configuration(
+        text, filename="interface-route.conf", collected_at=collected_at
+    )
+
+    route = config.static_routes[0]
+    assert route.outgoing_interface == "ge-0/0/0.0"
+    assert route.next_hop is None
