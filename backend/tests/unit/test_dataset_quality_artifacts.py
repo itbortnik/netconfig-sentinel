@@ -87,6 +87,7 @@ def test_quality_report_uses_actual_counts_and_separates_scale_readiness() -> No
         split_result,
         sources=[_source()],
         intended_use=DatasetUse.TRAINING,
+        synthetic_anomaly_count=3,
         confirmed_anomaly_count=2,
     )
 
@@ -96,6 +97,7 @@ def test_quality_report_uses_actual_counts_and_separates_scale_readiness() -> No
     assert report.metrics.candidate_configuration_count == 6
     assert report.metrics.unique_configuration_count == 6
     assert report.metrics.independent_network_count == 6
+    assert report.metrics.synthetic_anomaly_count == 3
     assert report.metrics.confirmed_anomaly_count == 2
     assert report.metrics.unseen_test_network_fraction == 1.0
     assert report.metrics.unseen_test_site_fraction == 1.0

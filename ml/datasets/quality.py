@@ -25,7 +25,7 @@ from ml.datasets.models import (
 from ml.datasets.splitting import DatasetSplit, DatasetSplitResult
 from ml.preprocessing import SANITIZATION_VERSION
 
-QUALITY_REPORT_VERSION = "dataset-quality-0.1.0"
+QUALITY_REPORT_VERSION = "dataset-quality-0.2.0"
 _TOKEN = re.compile(r"<[^>]+>|[A-Za-z0-9_./:@-]+|[{};]")
 _HOST_ALIAS = re.compile(r"^host-[0-9a-f]{12}[;]?$", re.I)
 _USER_ALIAS = re.compile(r"^user-[0-9a-f]{12}[;]?$", re.I)
@@ -59,6 +59,7 @@ class DatasetScaleMetric(StrEnum):
     INDEPENDENT_NETWORKS = "independent_networks"
     CONFIGURATION_BLOCKS = "configuration_blocks"
     TOKENS = "tokens"
+    SYNTHETIC_LABELED_ANOMALIES = "synthetic_labeled_anomalies"
     CONFIRMED_ANOMALIES = "confirmed_anomalies"
     ISOLATED_TEST_NETWORKS = "isolated_test_networks"
 
@@ -161,6 +162,7 @@ class DatasetQualityMetrics(BaseModel):
     device_count: int = Field(ge=1)
     configuration_block_count: int = Field(ge=0)
     token_count: int = Field(ge=0)
+    synthetic_anomaly_count: int = Field(ge=0)
     confirmed_anomaly_count: int = Field(ge=0)
     isolated_test_network_count: int = Field(ge=1)
     unseen_test_network_fraction: float = Field(ge=0.0, le=1.0)
@@ -175,7 +177,7 @@ class DatasetQualityReport(BaseModel):
 
     report_version: str = Field(
         default=QUALITY_REPORT_VERSION,
-        pattern=r"^dataset-quality-0\.1\.0$",
+        pattern=r"^dataset-quality-0\.2\.0$",
     )
     policy: DatasetQualityPolicy
     intended_use: DatasetUse
@@ -228,13 +230,14 @@ def build_dataset_quality_report(
     *,
     sources: tuple[DatasetSource, ...] | list[DatasetSource],
     intended_use: DatasetUse,
+    synthetic_anomaly_count: int = 0,
     confirmed_anomaly_count: int = 0,
     policy: DatasetQualityPolicy | None = None,
 ) -> DatasetQualityReport:
     """Measure actual corpus quality without converting targets into claims."""
 
-    if confirmed_anomaly_count < 0:
-        raise ValueError("confirmed_anomaly_count must not be negative")
+    if synthetic_anomaly_count < 0 or confirmed_anomaly_count < 0:
+        raise ValueError("anomaly counts must not be negative")
     effective_policy = policy or DatasetQualityPolicy()
     record_by_reference = _validate_pipeline_inputs(
         records,
@@ -296,6 +299,7 @@ def build_dataset_quality_report(
         unique_records,
         deduplication,
         split_result,
+        synthetic_anomaly_count,
         confirmed_anomaly_count,
     )
     if (
@@ -587,6 +591,7 @@ def _build_metrics(
     unique_records: tuple[ImportedDatasetRecord, ...],
     deduplication: DatasetDeduplicationResult,
     split_result: DatasetSplitResult,
+    synthetic_anomaly_count: int,
     confirmed_anomaly_count: int,
 ) -> DatasetQualityMetrics:
     assignments_by_split = {
@@ -632,6 +637,7 @@ def _build_metrics(
             count_configuration_tokens(record.sanitized_text)
             for record in unique_records
         ),
+        synthetic_anomaly_count=synthetic_anomaly_count,
         confirmed_anomaly_count=confirmed_anomaly_count,
         isolated_test_network_count=len(unseen_test_networks),
         unseen_test_network_fraction=len(unseen_test_networks) / len(test_networks),
@@ -654,6 +660,10 @@ def count_configuration_blocks(text: str) -> int:
             active_key = None
             continue
         lowered = stripped.casefold()
+        if stripped.startswith("}"):
+            if raw_line == raw_line.lstrip():
+                active_key = None
+            continue
         if lowered.startswith("set "):
             parts = lowered.split()
             key = " ".join(parts[: min(3, len(parts))])
@@ -692,6 +702,9 @@ def _scale_targets(metrics: DatasetQualityMetrics) -> tuple[ScaleTargetAssessmen
         DatasetScaleMetric.INDEPENDENT_NETWORKS: metrics.independent_network_count,
         DatasetScaleMetric.CONFIGURATION_BLOCKS: metrics.configuration_block_count,
         DatasetScaleMetric.TOKENS: metrics.token_count,
+        DatasetScaleMetric.SYNTHETIC_LABELED_ANOMALIES: (
+            metrics.synthetic_anomaly_count
+        ),
         DatasetScaleMetric.CONFIRMED_ANOMALIES: metrics.confirmed_anomaly_count,
         DatasetScaleMetric.ISOLATED_TEST_NETWORKS: metrics.isolated_test_network_count,
     }
@@ -701,6 +714,7 @@ def _scale_targets(metrics: DatasetQualityMetrics) -> tuple[ScaleTargetAssessmen
         DatasetScaleMetric.INDEPENDENT_NETWORKS: 10,
         DatasetScaleMetric.CONFIGURATION_BLOCKS: 10_000,
         DatasetScaleMetric.TOKENS: 10_000_000,
+        DatasetScaleMetric.SYNTHETIC_LABELED_ANOMALIES: 10_000,
         DatasetScaleMetric.CONFIRMED_ANOMALIES: 50,
         DatasetScaleMetric.ISOLATED_TEST_NETWORKS: 5,
     }

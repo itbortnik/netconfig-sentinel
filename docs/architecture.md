@@ -59,6 +59,7 @@ reviewed source manifest + local files
   -> representatives + duplicate evidence + template groups
   -> entity closure + chronological allocation
   -> isolated train / validation / test partitions
+  -> reversible synthetic mutations + synthetic-only labels
   -> quality, provenance, privacy, balance, and scale report
   -> non-overwriting sanitized artifact directory
 ```
@@ -92,3 +93,10 @@ creates a new directory, marks it incomplete while writing, uses exclusive file
 creation, and refuses an existing target. A manifest binds every content file
 to its byte count and SHA-256; loading checks the complete inventory and rejects
 symbolic links, incomplete output, extra files, and changed content.
+
+Synthetic mutation is a separate post-sanitization path. A versioned recipe
+selects an applicable existing construct, performs an exact line edit, records
+the precondition and expected semantic effect, and validates the complete
+result with the canonical vendor parser. Linked samples contain at most five
+unique mutation types. Their labels always remain synthetic and cannot be
+counted as confirmed real anomalies.

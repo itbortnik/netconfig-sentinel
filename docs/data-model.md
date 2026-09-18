@@ -94,3 +94,10 @@ dataset directory. It records the intended use, source IDs, pipeline versions,
 input and unique counts, and the SHA-256 and byte count of each content file.
 Its content-derived artifact ID is reproducible. It is not a digital signature
 and does not establish publisher identity or authenticity.
+
+`SyntheticMutationSample` binds a sanitized source record to a deterministic
+mutation ID, changed text hash, one or more `SyntheticAnomalyLabel` values, and
+the exact reversible `MutationOperation` values. Each operation retains its
+precondition, expected effect, original lines, replacement lines, and line
+coordinates. Parser and optional formal-validation results are separate, so a
+partial syntax check cannot be presented as external network validation.
