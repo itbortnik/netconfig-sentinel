@@ -6,15 +6,19 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from ipaddress import ip_interface
+from ipaddress import IPv4Address, ip_interface, ip_network
 from typing import Literal
 
 from app.domain import (
+    AclConfig,
+    AclRule,
     CanonicalConfig,
     DeviceInfo,
     InterfaceAddress,
     InterfaceConfig,
     ManagementConfig,
+    PrefixListConfig,
+    PrefixListRule,
     UnparsedFragment,
     Vendor,
     VlanConfig,
@@ -30,6 +34,11 @@ _NTP_SERVER = re.compile(r"^ntp\s+server\s+(?P<value>\S+)", re.IGNORECASE)
 _SYSLOG_SERVER = re.compile(r"^logging\s+host\s+(?P<value>\S+)", re.IGNORECASE)
 _INTERFACE = re.compile(r"^interface\s+(?P<value>\S+)$", re.IGNORECASE)
 _VLAN = re.compile(r"^vlan\s+(?P<value>\d+)$", re.IGNORECASE)
+_ACL = re.compile(
+    r"^(?P<family>ip|ipv6)\s+access-list\s+"
+    r"(?:(?P<kind>standard|extended)\s+)?(?P<name>\S+)$",
+    re.IGNORECASE,
+)
 _IPV4_ADDRESS = re.compile(
     r"^ip\s+address\s+(?P<address>\S+)\s+(?P<mask>\S+)(?:\s+secondary)?$",
     re.IGNORECASE,
@@ -83,6 +92,44 @@ class _CiscoVlan:
         )
 
 
+@dataclass
+class _CiscoAcl:
+    name: str
+    family: Literal["ipv4", "ipv6"]
+    kind: Literal["standard", "extended"]
+    rules: list[AclRule] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> AclConfig:
+        return AclConfig(
+            name=self.name,
+            family=self.family,
+            kind=self.kind,
+            rules=self.rules,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
+@dataclass
+class _CiscoPrefixList:
+    name: str
+    family: Literal["ipv4", "ipv6"]
+    rules: list[PrefixListRule] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> PrefixListConfig:
+        return PrefixListConfig(
+            name=self.name,
+            family=self.family,
+            rules=self.rules,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class CiscoIOSParser(VendorParser):
     """Parse identity and management features without pretending full IOS coverage."""
 
@@ -108,6 +155,9 @@ class CiscoIOSParser(VendorParser):
         current_interface: _CiscoInterface | None = None
         vlans: dict[int, _CiscoVlan] = {}
         current_vlan: _CiscoVlan | None = None
+        acls: list[_CiscoAcl] = []
+        current_acl: _CiscoAcl | None = None
+        prefix_lists: dict[tuple[str, str], _CiscoPrefixList] = {}
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         unparsed: list[UnparsedFragment] = []
         warnings: list[str] = []
@@ -120,6 +170,7 @@ class CiscoIOSParser(VendorParser):
             if command.startswith("!"):
                 current_interface = None
                 current_vlan = None
+                current_acl = None
                 continue
             significant_count += 1
             lowered = command.lower()
@@ -127,6 +178,7 @@ class CiscoIOSParser(VendorParser):
             if match := _INTERFACE.fullmatch(command):
                 current_interface = _CiscoInterface(name=match.group("value"))
                 current_vlan = None
+                current_acl = None
                 current_interface.facts["name"].append((number, raw_line))
                 interfaces.append(current_interface)
                 continue
@@ -134,6 +186,7 @@ class CiscoIOSParser(VendorParser):
             if match := _VLAN.fullmatch(command):
                 vlan_id = int(match.group("value"))
                 current_interface = None
+                current_acl = None
                 if not _valid_vlan_id(vlan_id):
                     warnings.append(f"invalid VLAN identifier at line {number}")
                     unparsed.append(
@@ -152,6 +205,25 @@ class CiscoIOSParser(VendorParser):
                     vlans[vlan_id] = current_vlan
                 else:
                     current_vlan = vlans[vlan_id]
+                continue
+
+            if match := _ACL.fullmatch(command):
+                family: Literal["ipv4", "ipv6"] = (
+                    "ipv4" if match.group("family").lower() == "ip" else "ipv6"
+                )
+                raw_kind = match.group("kind")
+                kind: Literal["standard", "extended"] = (
+                    "standard"
+                    if raw_kind is not None and raw_kind.lower() == "standard"
+                    else "extended"
+                )
+                current_interface = None
+                current_vlan = None
+                current_acl = _CiscoAcl(
+                    name=match.group("name"), family=family, kind=kind
+                )
+                current_acl.facts["name"].append((number, raw_line))
+                acls.append(current_acl)
                 continue
 
             if current_interface is not None and raw_line[:1].isspace():
@@ -186,8 +258,26 @@ class CiscoIOSParser(VendorParser):
                 )
                 continue
 
+            if current_acl is not None and raw_line[:1].isspace():
+                if lowered == "exit":
+                    current_acl = None
+                    continue
+                rule = _parse_acl_rule(current_acl, command, number, raw_line)
+                if rule is not None:
+                    current_acl.rules.append(rule)
+                    continue
+                warnings.append(f"unsupported ACL entry at line {number}")
+                unparsed.append(
+                    UnparsedFragment(
+                        raw_text=raw_line,
+                        location=source_location([(number, raw_line)], parser_confidence=0.0),
+                    )
+                )
+                continue
+
             current_interface = None
             current_vlan = None
+            current_acl = None
             if lowered in {"end", "exit", "configure terminal"} or lowered.startswith(
                 "line vty "
             ):
@@ -228,6 +318,18 @@ class CiscoIOSParser(VendorParser):
             elif match := _SYSLOG_SERVER.match(command):
                 syslog_servers.append(match.group("value"))
                 facts["syslog_servers"].append((number, raw_line))
+            elif lowered.startswith(("ip prefix-list ", "ipv6 prefix-list ")):
+                if not _consume_prefix_list(
+                    prefix_lists, command, number, raw_line, warnings
+                ):
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location(
+                                [(number, raw_line)], parser_confidence=0.0
+                            ),
+                        )
+                    )
             else:
                 unparsed.append(
                     UnparsedFragment(
@@ -272,10 +374,184 @@ class CiscoIOSParser(VendorParser):
             ),
             interfaces=[interface.build() for interface in interfaces],
             vlans=[vlan.build() for vlan in vlans.values()],
+            acls=[acl.build() for acl in acls],
+            prefix_lists=[prefix_list.build() for prefix_list in prefix_lists.values()],
             unparsed_fragments=unparsed,
             parse_warnings=warnings,
             parser_confidence=confidence,
         )
+
+
+def _parse_acl_rule(
+    acl: _CiscoAcl, command: str, number: int, raw_line: str
+) -> AclRule | None:
+    tokens = command.split()
+    if not tokens:
+        return None
+    sequence: int | None = None
+    if tokens[0].isdigit():
+        sequence = int(tokens.pop(0))
+    if not tokens or tokens[0].lower() not in {"permit", "deny"}:
+        return None
+    action: Literal["permit", "deny"] = (
+        "permit" if tokens.pop(0).lower() == "permit" else "deny"
+    )
+    location = source_location([(number, raw_line)])
+    provenance = {"rule": location}
+
+    if acl.kind == "standard":
+        parsed = _parse_acl_address(tokens, 0, acl.family)
+        if parsed is None:
+            return None
+        source_addresses, index = parsed
+        return AclRule(
+            sequence=sequence,
+            action=action,
+            source_addresses=source_addresses,
+            options=tokens[index:],
+            provenance=provenance,
+        )
+
+    if not tokens:
+        return None
+    protocol = tokens[0].lower()
+    parsed_source = _parse_acl_address(tokens, 1, acl.family)
+    if parsed_source is None:
+        return None
+    source_addresses, index = parsed_source
+    source_ports, index = _parse_acl_ports(tokens, index)
+    parsed_destination = _parse_acl_address(tokens, index, acl.family)
+    if parsed_destination is None:
+        return None
+    destination_addresses, index = parsed_destination
+    destination_ports, index = _parse_acl_ports(tokens, index)
+    return AclRule(
+        sequence=sequence,
+        action=action,
+        protocol=protocol,
+        source_addresses=source_addresses,
+        destination_addresses=destination_addresses,
+        source_ports=source_ports,
+        destination_ports=destination_ports,
+        options=tokens[index:],
+        provenance=provenance,
+    )
+
+
+def _parse_acl_address(
+    tokens: list[str], index: int, family: Literal["ipv4", "ipv6"]
+) -> tuple[list[str], int] | None:
+    if index >= len(tokens):
+        return None
+    token = tokens[index]
+    lowered = token.lower()
+    if lowered == "any":
+        return ["any"], index + 1
+    if lowered == "host" and index + 1 < len(tokens):
+        suffix = 32 if family == "ipv4" else 128
+        try:
+            network = ip_network(f"{tokens[index + 1]}/{suffix}", strict=False)
+        except ValueError:
+            return None
+        if network.version != (4 if family == "ipv4" else 6):
+            return None
+        return [str(network)], index + 2
+    if "/" in token:
+        try:
+            network = ip_network(token, strict=False)
+        except ValueError:
+            return None
+        if network.version != (4 if family == "ipv4" else 6):
+            return None
+        return [str(network)], index + 1
+    if family == "ipv4" and index + 1 < len(tokens):
+        try:
+            wildcard = IPv4Address(tokens[index + 1])
+            netmask = IPv4Address((~int(wildcard)) & 0xFFFFFFFF)
+            network = ip_network(f"{token}/{netmask}", strict=False)
+        except ValueError:
+            return None
+        return [str(network)], index + 2
+    return None
+
+
+def _parse_acl_ports(tokens: list[str], index: int) -> tuple[list[str], int]:
+    if index >= len(tokens):
+        return [], index
+    operator = tokens[index].lower()
+    operand_counts = {"eq": 1, "neq": 1, "lt": 1, "gt": 1, "range": 2}
+    count = operand_counts.get(operator)
+    if count is None or index + count >= len(tokens):
+        return [], index
+    operands = tokens[index + 1 : index + count + 1]
+    return [f"{operator}:{'-'.join(operands)}"], index + count + 1
+
+
+def _consume_prefix_list(
+    prefix_lists: dict[tuple[str, str], _CiscoPrefixList],
+    command: str,
+    number: int,
+    raw_line: str,
+    warnings: list[str],
+) -> bool:
+    tokens = command.split()
+    if len(tokens) < 5 or tokens[1].lower() != "prefix-list":
+        return False
+    family: Literal["ipv4", "ipv6"] = (
+        "ipv4" if tokens[0].lower() == "ip" else "ipv6"
+    )
+    name = tokens[2]
+    index = 3
+    sequence: int | None = None
+    if index < len(tokens) and tokens[index].lower() == "seq":
+        if index + 1 >= len(tokens) or not tokens[index + 1].isdigit():
+            warnings.append(f"invalid prefix-list sequence at line {number}")
+            return False
+        sequence = int(tokens[index + 1])
+        index += 2
+    if index + 1 >= len(tokens) or tokens[index].lower() not in {"permit", "deny"}:
+        return False
+    action: Literal["permit", "deny"] = (
+        "permit" if tokens[index].lower() == "permit" else "deny"
+    )
+    prefix = tokens[index + 1]
+    index += 2
+    ge: int | None = None
+    le: int | None = None
+    while index < len(tokens):
+        key = tokens[index].lower()
+        if key not in {"ge", "le"} or index + 1 >= len(tokens):
+            return False
+        if not tokens[index + 1].isdigit():
+            return False
+        if key == "ge":
+            ge = int(tokens[index + 1])
+        else:
+            le = int(tokens[index + 1])
+        index += 2
+    try:
+        network = ip_network(prefix, strict=False)
+        rule = PrefixListRule(
+            sequence=sequence,
+            action=action,
+            prefix=str(network),
+            ge=ge,
+            le=le,
+            provenance=source_location([(number, raw_line)]),
+        )
+    except ValueError:
+        warnings.append(f"invalid prefix-list entry at line {number}")
+        return False
+    if network.version != (4 if family == "ipv4" else 6):
+        warnings.append(f"prefix-list address family mismatch at line {number}")
+        return False
+    list_key = (family, name)
+    if list_key not in prefix_lists:
+        prefix_list = _CiscoPrefixList(name=name, family=family)
+        prefix_list.facts["name"].append((number, raw_line))
+        prefix_lists[list_key] = prefix_list
+    prefix_lists[list_key].rules.append(rule)
+    return True
 
 
 def _consume_interface_command(

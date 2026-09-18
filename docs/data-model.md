@@ -8,6 +8,13 @@ Provenance is stored per normalized field through `SourceLocation`. The location
 contains one-based source lines, a SHA-256 of the exact contributing text, and
 the parser confidence for that fact.
 
+Network policy is represented by typed `AclConfig`/`AclRule` and
+`PrefixListConfig`/`PrefixListRule` objects. IP networks are canonicalized,
+address families and prefix-length bounds are validated, and every normalized
+rule retains source provenance. JunOS prefix-list membership intentionally has
+no permit/deny action because the action belongs to the policy that consumes
+the list.
+
 `Finding` separates three concepts which must not be conflated:
 
 - `severity`: potential impact;

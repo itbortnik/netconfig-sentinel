@@ -1,6 +1,8 @@
 """Domain contracts shared by API, parsers, and detectors."""
 
 from app.domain.models import (
+    AclConfig,
+    AclRule,
     CanonicalConfig,
     ConfigSource,
     DeviceInfo,
@@ -9,6 +11,8 @@ from app.domain.models import (
     InterfaceAddress,
     InterfaceConfig,
     ManagementConfig,
+    PrefixListConfig,
+    PrefixListRule,
     Severity,
     SourceLocation,
     UnparsedFragment,
@@ -19,6 +23,8 @@ from app.domain.models import (
 )
 
 __all__ = [
+    "AclConfig",
+    "AclRule",
     "CanonicalConfig",
     "ConfigSource",
     "DeviceInfo",
@@ -27,6 +33,8 @@ __all__ = [
     "InterfaceAddress",
     "InterfaceConfig",
     "ManagementConfig",
+    "PrefixListConfig",
+    "PrefixListRule",
     "Severity",
     "SourceLocation",
     "UnparsedFragment",

@@ -3,7 +3,17 @@
 from uuid import uuid4
 
 import pytest
-from app.domain import Finding, InterfaceAddress, Severity, SourceLocation, VlanSet
+from app.domain import (
+    AclConfig,
+    AclRule,
+    Finding,
+    InterfaceAddress,
+    PrefixListConfig,
+    PrefixListRule,
+    Severity,
+    SourceLocation,
+    VlanSet,
+)
 from app.domain.models import ConfigSource
 from pydantic import ValidationError
 
@@ -80,3 +90,57 @@ def test_vlan_set_requires_sorted_unique_valid_identifiers() -> None:
 
     with pytest.raises(ValidationError, match="between 1 and 4094"):
         VlanSet(vlan_ids=[4095], provenance=provenance)
+
+
+def test_prefix_list_rule_canonicalizes_and_validates_length_range() -> None:
+    provenance = SourceLocation(
+        source_lines=[15],
+        raw_text_hash=VALID_HASH,
+        parser_confidence=1.0,
+    )
+    rule = PrefixListRule(
+        action="permit",
+        prefix="192.0.2.7/24",
+        ge=25,
+        le=32,
+        provenance=provenance,
+    )
+
+    assert rule.prefix == "192.0.2.0/24"
+
+    with pytest.raises(ValidationError, match="between 24 and 32"):
+        PrefixListRule(
+            action="permit",
+            prefix="192.0.2.0/24",
+            ge=16,
+            provenance=provenance,
+        )
+
+
+def test_acl_and_prefix_list_reject_mixed_address_families() -> None:
+    provenance = SourceLocation(
+        source_lines=[20],
+        raw_text_hash=VALID_HASH,
+        parser_confidence=1.0,
+    )
+
+    with pytest.raises(ValidationError, match="ACL address family must be ipv4"):
+        AclConfig(
+            name="MIXED",
+            family="ipv4",
+            kind="extended",
+            rules=[
+                AclRule(
+                    action="permit",
+                    source_addresses=["2001:db8::/32"],
+                    provenance={"rule": provenance},
+                )
+            ],
+        )
+
+    with pytest.raises(ValidationError, match="prefix-list family must be ipv6"):
+        PrefixListConfig(
+            name="MIXED",
+            family="ipv6",
+            rules=[PrefixListRule(prefix="192.0.2.0/24", provenance=provenance)],
+        )

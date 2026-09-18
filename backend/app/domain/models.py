@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from ipaddress import ip_interface
+from ipaddress import ip_interface, ip_network
 from typing import Any, Literal
 from uuid import UUID
 
@@ -186,6 +186,102 @@ class VlanConfig(StrictModel):
         return self
 
 
+class AclRule(StrictModel):
+    """Vendor-neutral ACL entry or JunOS firewall-filter term."""
+
+    sequence: int | None = Field(default=None, ge=0)
+    term: str | None = Field(default=None, min_length=1)
+    action: Literal["permit", "deny"]
+    protocol: str | None = None
+    source_addresses: list[str] = Field(default_factory=list)
+    destination_addresses: list[str] = Field(default_factory=list)
+    source_ports: list[str] = Field(default_factory=list)
+    destination_ports: list[str] = Field(default_factory=list)
+    options: list[str] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @field_validator("source_addresses", "destination_addresses")
+    @classmethod
+    def canonicalize_networks(cls, value: list[str]) -> list[str]:
+        result: list[str] = []
+        for network in value:
+            if network == "any":
+                result.append(network)
+                continue
+            try:
+                result.append(str(ip_network(network, strict=False)))
+            except ValueError as error:
+                raise ValueError(f"invalid ACL network: {network}") from error
+        return result
+
+
+class AclConfig(StrictModel):
+    """Canonical named access list or firewall filter."""
+
+    name: str = Field(min_length=1)
+    family: Literal["ipv4", "ipv6"]
+    kind: Literal["standard", "extended", "firewall_filter"]
+    rules: list[AclRule] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def addresses_must_match_family(self) -> AclConfig:
+        expected_version = 4 if self.family == "ipv4" else 6
+        for rule in self.rules:
+            for value in rule.source_addresses + rule.destination_addresses:
+                if value != "any" and ip_network(value).version != expected_version:
+                    raise ValueError(f"ACL address family must be {self.family}")
+        return self
+
+
+class PrefixListRule(StrictModel):
+    """One canonical prefix-list entry."""
+
+    sequence: int | None = Field(default=None, ge=0)
+    action: Literal["permit", "deny"] | None = None
+    prefix: str
+    ge: int | None = Field(default=None, ge=0, le=128)
+    le: int | None = Field(default=None, ge=0, le=128)
+    provenance: SourceLocation
+
+    @field_validator("prefix")
+    @classmethod
+    def canonicalize_prefix(cls, value: str) -> str:
+        try:
+            return str(ip_network(value, strict=False))
+        except ValueError as error:
+            raise ValueError("prefix must be a valid IPv4 or IPv6 network") from error
+
+    @model_validator(mode="after")
+    def validate_prefix_length_range(self) -> PrefixListRule:
+        network = ip_network(self.prefix)
+        for field_name, value in (("ge", self.ge), ("le", self.le)):
+            if value is not None and not network.prefixlen <= value <= network.max_prefixlen:
+                raise ValueError(
+                    f"{field_name} must be between {network.prefixlen} and "
+                    f"{network.max_prefixlen}"
+                )
+        if self.ge is not None and self.le is not None and self.ge > self.le:
+            raise ValueError("ge must not exceed le")
+        return self
+
+
+class PrefixListConfig(StrictModel):
+    """Canonical named prefix list."""
+
+    name: str = Field(min_length=1)
+    family: Literal["ipv4", "ipv6"]
+    rules: list[PrefixListRule] = Field(default_factory=list)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def prefixes_must_match_family(self) -> PrefixListConfig:
+        expected_version = 4 if self.family == "ipv4" else 6
+        if any(ip_network(rule.prefix).version != expected_version for rule in self.rules):
+            raise ValueError(f"prefix-list family must be {self.family}")
+        return self
+
+
 class UnparsedFragment(StrictModel):
     """A non-empty command that this parser version did not interpret."""
 
@@ -202,8 +298,8 @@ class CanonicalConfig(StrictModel):
     management: ManagementConfig = Field(default_factory=ManagementConfig)
     interfaces: list[InterfaceConfig] = Field(default_factory=list)
     vlans: list[VlanConfig] = Field(default_factory=list)
-    acls: list[dict[str, Any]] = Field(default_factory=list)
-    prefix_lists: list[dict[str, Any]] = Field(default_factory=list)
+    acls: list[AclConfig] = Field(default_factory=list)
+    prefix_lists: list[PrefixListConfig] = Field(default_factory=list)
     static_routes: list[dict[str, Any]] = Field(default_factory=list)
     bgp: dict[str, Any] | None = None
     ospf: list[dict[str, Any]] = Field(default_factory=list)

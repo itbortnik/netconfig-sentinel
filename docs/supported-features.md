@@ -20,6 +20,10 @@ Supported in the current parser slice:
   and explicit/all/none trunk allowed VLAN selections;
 - numeric trunk ranges such as `10,20-30` are expanded into a sorted canonical
   VLAN set.
+- named standard and extended IPv4 ACLs plus named IPv6 ACLs, including
+  sequence, permit/deny, protocol, `any`, host, IPv4 wildcard/CIDR operands,
+  common port operators, and trailing options;
+- IPv4 and IPv6 prefix lists with optional sequence, `ge`, and `le` bounds.
 
 ## Juniper JunOS
 
@@ -37,15 +41,22 @@ Both hierarchical and `set` syntax are supported for:
 - named `vlans` with `vlan-id` in hierarchical and `set` syntax;
 - `family ethernet-switching` with access/trunk mode, native VLAN, and named or
   numeric VLAN members; known VLAN names are also resolved to numeric IDs.
+- `firewall family inet|inet6 filter` terms in hierarchical and `set` syntax,
+  including source/destination addresses and ports, protocol, selected match
+  options, and accept/discard/reject actions;
+- `policy-options prefix-list` membership in hierarchical and `set` syntax.
 
 ## Current limitations
 
-- interface switching mode, VLAN membership, VRF/routing-instance assignment,
-  aggregation, tunnel parameters, and operational state beyond the commands
-  listed above remain unparsed;
+- VRF/routing-instance assignment, aggregation, tunnel parameters, and
+  operational state beyond the commands listed above remain unparsed;
 - VTP, private VLANs, Q-in-Q, JunOS `vlan-id-list`, and incremental IOS trunk
   operations (`add`, `remove`, `except`) remain unsupported;
-- ACLs, prefix lists, routing, and nested policy statements remain unparsed;
+- numbered IOS ACLs, object/object-group operands, time ranges, dynamic ACLs,
+  reflexive ACLs, and advanced protocol-specific ACL options remain unparsed;
+- JunOS firewall actions and match conditions beyond the explicitly listed
+  subset, prefix-list filters, route filters, routing, and nested policy
+  statements remain unparsed;
 - IOS platform refinement (IOS versus IOS-XE) is not inferred yet;
 - SNMP community syntax cannot prove whether v1, v2c, or both are reachable, so
   the canonical result reports both;

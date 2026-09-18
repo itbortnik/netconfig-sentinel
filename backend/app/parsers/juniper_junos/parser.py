@@ -7,15 +7,19 @@ import shlex
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from ipaddress import ip_interface
+from ipaddress import ip_interface, ip_network
 from typing import Literal
 
 from app.domain import (
+    AclConfig,
+    AclRule,
     CanonicalConfig,
     DeviceInfo,
     InterfaceAddress,
     InterfaceConfig,
     ManagementConfig,
+    PrefixListConfig,
+    PrefixListRule,
     UnparsedFragment,
     Vendor,
     VlanConfig,
@@ -161,6 +165,71 @@ class _JunosVlan:
         )
 
 
+@dataclass
+class _JunosAclRule:
+    term: str
+    action: Literal["permit", "deny"] | None = None
+    protocol: str | None = None
+    source_addresses: list[str] = field(default_factory=list)
+    destination_addresses: list[str] = field(default_factory=list)
+    source_ports: list[str] = field(default_factory=list)
+    destination_ports: list[str] = field(default_factory=list)
+    options: list[str] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    source_lines: list[tuple[int, str]] = field(default_factory=list)
+
+    def build(self) -> AclRule | None:
+        if self.action is None:
+            return None
+        return AclRule(
+            term=self.term,
+            action=self.action,
+            protocol=self.protocol,
+            source_addresses=self.source_addresses,
+            destination_addresses=self.destination_addresses,
+            source_ports=self.source_ports,
+            destination_ports=self.destination_ports,
+            options=self.options,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
+@dataclass
+class _JunosAcl:
+    name: str
+    family: Literal["ipv4", "ipv6"]
+    terms: dict[str, _JunosAclRule] = field(default_factory=dict)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def ensure_term(self, term: str, number: int, raw_line: str) -> _JunosAclRule:
+        if term not in self.terms:
+            self.terms[term] = _JunosAclRule(term=term)
+            self.terms[term].facts["term"].append((number, raw_line))
+        return self.terms[term]
+
+
+@dataclass
+class _JunosPrefixList:
+    name: str
+    family: Literal["ipv4", "ipv6"]
+    rules: list[PrefixListRule] = field(default_factory=list)
+    facts: dict[str, list[tuple[int, str]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+
+    def build(self) -> PrefixListConfig:
+        return PrefixListConfig(
+            name=self.name,
+            family=self.family,
+            rules=self.rules,
+            provenance={key: source_location(value) for key, value in self.facts.items()},
+        )
+
+
 class JuniperJunosParser(VendorParser):
     """Parse a deliberately small, tested subset of JunOS syntax."""
 
@@ -221,6 +290,8 @@ class _JunosState:
         self.facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         self.interfaces: dict[tuple[str, str | None], _JunosInterface] = {}
         self.vlans: dict[str, _JunosVlan] = {}
+        self.acls: dict[tuple[str, str], _JunosAcl] = {}
+        self.prefix_lists: dict[tuple[str, str], _JunosPrefixList] = {}
         self.unparsed: list[UnparsedFragment] = []
         self.warnings: list[str] = []
         self.significant_count = 0
@@ -276,9 +347,50 @@ class _JunosState:
             return self.consume_set_interface(tokens, number, raw_line)
         elif lowered[:2] == ["set", "vlans"]:
             return self.consume_set_vlan(tokens, number, raw_line)
+        elif lowered[:2] == ["set", "firewall"]:
+            return self.consume_set_firewall(tokens, number, raw_line)
+        elif lowered[:3] == ["set", "policy-options", "prefix-list"]:
+            return self.consume_set_prefix_list(tokens, number, raw_line)
         else:
             return False
         return True
+
+    def consume_set_firewall(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        lowered = [token.lower() for token in tokens]
+        if (
+            len(tokens) < 10
+            or lowered[2] != "family"
+            or lowered[4] != "filter"
+            or lowered[6] != "term"
+        ):
+            return False
+        family = _junos_family(tokens[3])
+        if family is None:
+            return False
+        acl = self.ensure_acl(tokens[5], family, number, raw_line)
+        term = acl.ensure_term(tokens[7], number, raw_line)
+        term.source_lines.append((number, raw_line))
+        if lowered[8] == "then" and len(tokens) == 10:
+            action = _junos_acl_action(tokens[9])
+            if action is None:
+                return False
+            term.action = action
+            term.facts["action"].append((number, raw_line))
+            return True
+        if lowered[8] != "from" or len(tokens) < 11:
+            return False
+        return self.add_firewall_match(
+            term, family, tokens[9], tokens[10:], number, raw_line
+        )
+
+    def consume_set_prefix_list(
+        self, tokens: list[str], number: int, raw_line: str
+    ) -> bool:
+        if len(tokens) != 5:
+            return False
+        return self.add_prefix_list_entry(tokens[3], tokens[4], number, raw_line)
 
     def consume_set_vlan(
         self, tokens: list[str], number: int, raw_line: str
@@ -373,6 +485,14 @@ class _JunosState:
     ) -> bool:
         name = block.split()[0].lower()
         context_names = [item.split()[0].lower() for item in context]
+        if name == "firewall" and not context:
+            return True
+        if "firewall" in context_names:
+            return self.consume_firewall_block(context, block, number, raw_line)
+        if name == "policy-options" and not context:
+            return True
+        if "policy-options" in context_names:
+            return self.consume_policy_block(context, block)
         if name == "interfaces" and not context:
             return True
         if "interfaces" in context_names:
@@ -398,6 +518,45 @@ class _JunosState:
             self.snmp_versions.update({"v1", "v2c"})
             self.remember("snmp_versions", number, raw_line)
         return True
+
+    def consume_firewall_block(
+        self, context: list[str], block: str, number: int, raw_line: str
+    ) -> bool:
+        parts = block.split()
+        name = parts[0].lower()
+        family, filter_name, term_name = _firewall_context(context)
+        if name == "family" and len(parts) == 2:
+            return _junos_family(parts[1]) is not None
+        if name == "filter" and len(parts) == 2 and family is not None:
+            self.ensure_acl(parts[1], family, number, raw_line)
+            return True
+        if (
+            name == "term"
+            and len(parts) == 2
+            and family is not None
+            and filter_name is not None
+        ):
+            acl = self.ensure_acl(filter_name, family, number, raw_line)
+            acl.ensure_term(parts[1], number, raw_line)
+            return True
+        if term_name is not None and name in {
+            "from",
+            "then",
+            "source-address",
+            "destination-address",
+            "source-port",
+            "destination-port",
+        }:
+            return True
+        return False
+
+    def consume_policy_block(self, context: list[str], block: str) -> bool:
+        parts = block.split()
+        return (
+            len(parts) == 2
+            and parts[0].lower() == "prefix-list"
+            and context[-1].split()[0].lower() == "policy-options"
+        )
 
     def consume_interface_block(
         self, context: list[str], block: str, number: int, raw_line: str
@@ -448,6 +607,15 @@ class _JunosState:
             return self.consume_interface_leaf(context, leaf, number, raw_line)
         if "vlans" in context_names:
             return self.consume_vlan_leaf(context, leaf, number, raw_line)
+        if "firewall" in context_names:
+            return self.consume_firewall_leaf(context, leaf, number, raw_line)
+        if "policy-options" in context_names:
+            prefix_list_name = _prefix_list_context(context)
+            if prefix_list_name is None:
+                return False
+            return self.add_prefix_list_entry(
+                prefix_list_name, leaf, number, raw_line
+            )
 
         if lowered[0] == "host-name" and "system" in context_names and len(tokens) >= 2:
             self.hostname = tokens[1]
@@ -546,6 +714,146 @@ class _JunosState:
             return self.add_vlan_members(interface, tokens[1:], number, raw_line)
         return False
 
+    def consume_firewall_leaf(
+        self, context: list[str], leaf: str, number: int, raw_line: str
+    ) -> bool:
+        family, filter_name, term_name = _firewall_context(context)
+        if family is None or filter_name is None or term_name is None:
+            return False
+        acl = self.ensure_acl(filter_name, family, number, raw_line)
+        term = acl.ensure_term(term_name, number, raw_line)
+        term.source_lines.append((number, raw_line))
+        tokens = leaf.split()
+        if not tokens:
+            return False
+        parent = context[-1].split()[0].lower()
+        if parent == "then":
+            action = _junos_acl_action(tokens[0])
+            if action is None or len(tokens) != 1:
+                return False
+            term.action = action
+            term.facts["action"].append((number, raw_line))
+            return True
+        if tokens[0].lower() == "then" and len(tokens) == 2:
+            action = _junos_acl_action(tokens[1])
+            if action is None:
+                return False
+            term.action = action
+            term.facts["action"].append((number, raw_line))
+            return True
+        if parent in {
+            "source-address",
+            "destination-address",
+            "source-port",
+            "destination-port",
+        }:
+            return self.add_firewall_match(
+                term, family, parent, tokens, number, raw_line
+            )
+        return self.add_firewall_match(
+            term, family, tokens[0], tokens[1:], number, raw_line
+        )
+
+    def ensure_acl(
+        self,
+        name: str,
+        family: Literal["ipv4", "ipv6"],
+        number: int,
+        raw_line: str,
+    ) -> _JunosAcl:
+        key = (family, name)
+        if key not in self.acls:
+            acl = _JunosAcl(name=name, family=family)
+            acl.facts["name"].append((number, raw_line))
+            self.acls[key] = acl
+        return self.acls[key]
+
+    def add_firewall_match(
+        self,
+        term: _JunosAclRule,
+        family: Literal["ipv4", "ipv6"],
+        field_name: str,
+        raw_values: list[str],
+        number: int,
+        raw_line: str,
+    ) -> bool:
+        name = field_name.lower()
+        values = [value.strip("[],") for value in raw_values if value.strip("[],")]
+        if name == "protocol" and len(values) == 1:
+            term.protocol = values[0].lower()
+            term.facts["protocol"].append((number, raw_line))
+            return True
+        if name in {"source-address", "destination-address"} and values:
+            networks: list[str] = []
+            for value in values:
+                if value.lower() == "any":
+                    networks.append("any")
+                    continue
+                try:
+                    network = ip_network(value, strict=False)
+                except ValueError:
+                    self.warnings.append(f"invalid firewall address at line {number}")
+                    return False
+                if network.version != (4 if family == "ipv4" else 6):
+                    self.warnings.append(
+                        f"firewall address family mismatch at line {number}"
+                    )
+                    return False
+                networks.append(str(network))
+            target = (
+                term.source_addresses
+                if name == "source-address"
+                else term.destination_addresses
+            )
+            for normalized_network in networks:
+                if normalized_network not in target:
+                    target.append(normalized_network)
+            term.facts[name.replace("-", "_")].append((number, raw_line))
+            return True
+        if name in {"source-port", "destination-port"} and values:
+            target_ports = (
+                term.source_ports if name == "source-port" else term.destination_ports
+            )
+            for value in values:
+                if value not in target_ports:
+                    target_ports.append(value)
+            term.facts[name.replace("-", "_")].append((number, raw_line))
+            return True
+        if name in {"tcp-established", "is-fragment", "first-fragment"} and not values:
+            term.options.append(name)
+            term.facts["options"].append((number, raw_line))
+            return True
+        if name == "icmp-type" and values:
+            term.options.extend(f"icmp-type:{value}" for value in values)
+            term.facts["options"].append((number, raw_line))
+            return True
+        return False
+
+    def add_prefix_list_entry(
+        self, name: str, value: str, number: int, raw_line: str
+    ) -> bool:
+        tokens = value.split()
+        if len(tokens) != 1:
+            return False
+        try:
+            network = ip_network(tokens[0], strict=False)
+        except ValueError:
+            self.warnings.append(f"invalid prefix-list entry at line {number}")
+            return False
+        family: Literal["ipv4", "ipv6"] = "ipv4" if network.version == 4 else "ipv6"
+        key = (family, name)
+        if key not in self.prefix_lists:
+            prefix_list = _JunosPrefixList(name=name, family=family)
+            prefix_list.facts["name"].append((number, raw_line))
+            self.prefix_lists[key] = prefix_list
+        self.prefix_lists[key].rules.append(
+            PrefixListRule(
+                prefix=str(network),
+                provenance=source_location([(number, raw_line)]),
+            )
+        )
+        return True
+
     def ensure_interface(
         self, name: str, unit: str | None, number: int, raw_line: str
     ) -> _JunosInterface:
@@ -641,9 +949,41 @@ class _JunosState:
             )
         return result
 
+    def build_acls(self) -> list[AclConfig]:
+        result: list[AclConfig] = []
+        for acl in self.acls.values():
+            rules: list[AclRule] = []
+            for term in acl.terms.values():
+                rule = term.build()
+                if rule is None:
+                    self.warnings.append(
+                        f"firewall term {acl.name}/{term.term} has no supported action"
+                    )
+                    known_lines = {
+                        fragment.location.source_lines[0] for fragment in self.unparsed
+                    }
+                    for number, raw_line in term.source_lines:
+                        if number not in known_lines:
+                            self.add_unparsed(number, raw_line)
+                    continue
+                rules.append(rule)
+            result.append(
+                AclConfig(
+                    name=acl.name,
+                    family=acl.family,
+                    kind="firewall_filter",
+                    rules=rules,
+                    provenance={
+                        key: source_location(value) for key, value in acl.facts.items()
+                    },
+                )
+            )
+        return result
+
     def build(
         self, *, text: str, filename: str, collected_at: datetime | None
     ) -> CanonicalConfig:
+        acls = self.build_acls()
         warnings = list(self.warnings)
         if self.hostname is None:
             warnings.append("hostname was not found")
@@ -674,6 +1014,10 @@ class _JunosState:
             ),
             interfaces=self.build_interfaces(),
             vlans=[vlan.build() for vlan in self.vlans.values()],
+            acls=acls,
+            prefix_lists=[
+                prefix_list.build() for prefix_list in self.prefix_lists.values()
+            ],
             unparsed_fragments=self.unparsed,
             parse_warnings=warnings,
             parser_confidence=_overall_confidence(
@@ -734,6 +1078,47 @@ def _vlan_context(context: list[str]) -> str | None:
     if len(context) <= index + 1:
         return None
     return context[index + 1]
+
+
+def _firewall_context(
+    context: list[str],
+) -> tuple[
+    Literal["ipv4", "ipv6"] | None,
+    str | None,
+    str | None,
+]:
+    family: Literal["ipv4", "ipv6"] | None = None
+    filter_name: str | None = None
+    term_name: str | None = None
+    for item in context:
+        parts = item.split()
+        if len(parts) < 2:
+            continue
+        name = parts[0].lower()
+        if name == "family":
+            family = _junos_family(parts[1])
+        elif name == "filter":
+            filter_name = parts[1]
+        elif name == "term":
+            term_name = parts[1]
+    return family, filter_name, term_name
+
+
+def _prefix_list_context(context: list[str]) -> str | None:
+    for item in context:
+        parts = item.split()
+        if len(parts) == 2 and parts[0].lower() == "prefix-list":
+            return parts[1]
+    return None
+
+
+def _junos_acl_action(value: str) -> Literal["permit", "deny"] | None:
+    lowered = value.lower()
+    if lowered == "accept":
+        return "permit"
+    if lowered in {"discard", "reject"}:
+        return "deny"
+    return None
 
 
 def _valid_vlan_id(value: int) -> bool:
