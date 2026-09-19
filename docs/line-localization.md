@@ -66,6 +66,11 @@ and negative lines. The lowest validation-loss epoch is restored. The fixed
 decision rule is score > 0.5; thresholds are not tuned here. Scores are
 uncalibrated, particularly because training reweights positive labels.
 
+Optional [reference-context augmentation](reference-context-experiment.md) adds
+only training references and keeps the class weight from the original training
+lines. It is disabled by default; its measured candidate lost recall and was
+not adopted. Reports distinguish original and effective training fingerprints.
+
 Limits cover examples, encoded windows and physical lines, independently per
 partition. Limits fail the job instead of silently truncating. Training runs
 offline on CPU with a fixed seed and restored RNG/thread/determinism state.

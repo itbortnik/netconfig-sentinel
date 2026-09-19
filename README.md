@@ -160,3 +160,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Экспериментальный порог по обучающим конфигурациям и измеренный компромисс между
 ложными срабатываниями и пропусками описаны в
 [`docs/line-operating-point.md`](docs/line-operating-point.md).
+Эксперимент с расширением обучающих контекстов и его ограничения описаны в
+[`docs/reference-context-experiment.md`](docs/reference-context-experiment.md).

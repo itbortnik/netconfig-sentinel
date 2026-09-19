@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Literal
 
 import torch
+from app.domain import Vendor
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from torch import Tensor, nn
 
@@ -35,6 +36,37 @@ from ml.training.transformer import TrainingResult
 class LinePolicy(ProbePolicy):
     max_lines: int = Field(default=50000, ge=1, le=500000)
     feature_version: Literal["raw-lines-0.1.0", "stable-lines-0.1.0"] = "raw-lines-0.1.0"
+    reference_augmentation: Literal["none", "management-comments-0.1.0"] = "none"
+
+
+def augment_reference_contexts(rows: list[ProbeExample], policy: LinePolicy) -> list[ProbeExample]:
+    """Add train-reference comment contexts without inventing healthy labels or networks."""
+    result = list(rows)
+    if policy.reference_augmentation == "none":
+        return result
+    contexts = (
+        ("Management review: SSH access only",),
+        ("Telnet is prohibited; use SSH", "AAA authentication must remain enabled"),
+        ("Audit reference: transport input ssh", "Audit reference: aaa new-model", "End of review"),
+    )
+    for row in rows:
+        if row.label:
+            continue
+        if row.record.vendor_hint not in {Vendor.CISCO, Vendor.JUNIPER}:
+            raise ValueError("reference augmentation requires a supported vendor")
+        marker = "!" if row.record.vendor_hint is Vendor.CISCO else "#"
+        for context in contexts:
+            text = "".join(f"{marker} {line}\n" for line in context) + row.record.sanitized_text
+            record = row.record.model_copy(
+                update={
+                    "sanitized_text": text,
+                    "sanitized_sha256": digest(text),
+                }
+            )
+            result.append(ProbeExample(record, 0, None, row.parent_sha256))
+            if len(result) > policy.max_examples:
+                raise ValueError("augmented reference example budget exceeded")
+    return result
 
 
 def stable_line_input(
@@ -92,11 +124,15 @@ class LineReport(BaseModel):
     encoder_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     train_fingerprint: str
     validation_fingerprint: str
+    effective_train_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    augmented_reference_examples: int = Field(default=0, ge=0)
     train_lines: int = Field(ge=1)
     validation_lines: int = Field(ge=1)
     train_positive_lines: int = Field(ge=1)
     validation_positive_lines: int = Field(ge=1)
     positive_weight: float = Field(gt=0)
+    weight_reference_lines: int | None = Field(default=None, ge=1)
+    weight_reference_positive_lines: int | None = Field(default=None, ge=1)
     excluded_deletion_only: dict[str, int]
     skipped_not_applicable: dict[str, int]
     losses: tuple[tuple[float, float], ...]
@@ -109,6 +145,12 @@ class LineReport(BaseModel):
 
     @model_validator(mode="after")
     def consistent_report(self) -> LineReport:
+        if self.policy.reference_augmentation == "none" and self.augmented_reference_examples:
+            raise ValueError("unrequested reference augmentation")
+        if self.policy.reference_augmentation != "none" and (
+            not self.augmented_reference_examples or not self.effective_train_fingerprint
+        ):
+            raise ValueError("augmented training requires provenance and counts")
         if not self.mutation_types or len(set(self.mutation_types)) != len(self.mutation_types):
             raise ValueError("mutation types must be nonempty and unique")
         if len(self.losses) != self.policy.epochs or any(
@@ -121,7 +163,13 @@ class LineReport(BaseModel):
             raise ValueError("training requires positive and negative lines")
         if not 0 < self.validation_positive_lines < self.validation_lines:
             raise ValueError("validation requires positive and negative lines")
-        expected_weight = (self.train_lines - self.train_positive_lines) / self.train_positive_lines
+        if (self.weight_reference_lines is None) != (self.weight_reference_positive_lines is None):
+            raise ValueError("weight reference counts must be supplied together")
+        weight_lines = self.weight_reference_lines or self.train_lines
+        weight_positive = self.weight_reference_positive_lines or self.train_positive_lines
+        if not 0 < weight_positive < weight_lines <= self.train_lines:
+            raise ValueError("invalid weight reference counts")
+        expected_weight = (weight_lines - weight_positive) / weight_positive
         if abs(self.positive_weight - expected_weight) > 1e-9:
             raise ValueError("class weight must come from training lines only")
         if tuple(item.label for item in self.validation_metrics) != ("unchanged", "changed"):
@@ -211,12 +259,17 @@ def _dataset_features(
     pretrained: TrainingResult,
     policy: LinePolicy,
 ) -> tuple[Tensor, Tensor, int]:
-    originals = {row.parent_sha256: row.record.sanitized_text for row in rows if row.label == 0}
+    originals = {
+        row.parent_sha256: row.record.sanitized_text
+        for row in rows
+        if row.label == 0 and row.record.sanitized_sha256 == row.parent_sha256
+    }
     vectors, labels = [], []
     excluded = 0
     budget = [0, 0]
     for row in rows:
-        targets = line_targets(originals[row.parent_sha256], row.record.sanitized_text)
+        original = originals[row.parent_sha256] if row.label else row.record.sanitized_text
+        targets = line_targets(original, row.record.sanitized_text)
         if row.label and not targets.changed_lines:
             excluded += 1
             continue
@@ -248,6 +301,15 @@ def train_line_localizer(
     )
     rows, skipped = prepare_examples(splits, mutation_types, policy)
     validate_pretrained_corpus(rows, pretrained)
+    train_rows = augment_reference_contexts(rows[DatasetSplit.TRAIN], policy)
+    heldout_hashes = {
+        record.sanitized_sha256
+        for partition in splits.partitions
+        if partition.split is not DatasetSplit.TRAIN
+        for record in partition.records
+    } | {row.record.sanitized_sha256 for row in rows[DatasetSplit.VALIDATION]}
+    if any(row.record.sanitized_sha256 in heldout_hashes for row in train_rows):
+        raise ValueError("augmented reference leaks across partitions")
     pretrained = TrainingResult(
         copy.deepcopy(pretrained.model), pretrained.tokenizer, pretrained.report
     )
@@ -260,11 +322,17 @@ def train_line_localizer(
         torch.use_deterministic_algorithms(True)
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(policy.seed)
-            x, y, train_excluded = _dataset_features(rows[DatasetSplit.TRAIN], pretrained, policy)
+            weight_lines, weight_positive = 0, 0
+            if policy.reference_augmentation != "none":
+                _, original_y, _ = _dataset_features(rows[DatasetSplit.TRAIN], pretrained, policy)
+                weight_lines, weight_positive = len(original_y), int(original_y.sum())
+            x, y, train_excluded = _dataset_features(train_rows, pretrained, policy)
             vx, vy, val_excluded = _dataset_features(
                 rows[DatasetSplit.VALIDATION], pretrained, policy
             )
-            weight = (len(y) - int(y.sum())) / int(y.sum())
+            if not weight_lines:
+                weight_lines, weight_positive = len(y), int(y.sum())
+            weight = (weight_lines - weight_positive) / weight_positive
             head = nn.Linear(x.shape[1], 1)
             optimizer = torch.optim.AdamW(head.parameters(), lr=policy.learning_rate)
             losses = []
@@ -310,11 +378,15 @@ def train_line_localizer(
         encoder_sha256=_encoder_hash(pretrained.model),
         train_fingerprint=_fingerprint(rows[DatasetSplit.TRAIN]),
         validation_fingerprint=_fingerprint(rows[DatasetSplit.VALIDATION]),
+        effective_train_fingerprint=_fingerprint(train_rows),
+        augmented_reference_examples=len(train_rows) - len(rows[DatasetSplit.TRAIN]),
         train_lines=len(y),
         validation_lines=len(vy),
         train_positive_lines=int(y.sum()),
         validation_positive_lines=int(vy.sum()),
         positive_weight=weight,
+        weight_reference_lines=weight_lines,
+        weight_reference_positive_lines=weight_positive,
         excluded_deletion_only={"train": train_excluded, "validation": val_excluded},
         skipped_not_applicable=skipped,
         losses=tuple(losses),
