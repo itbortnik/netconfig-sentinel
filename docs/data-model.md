@@ -119,3 +119,9 @@ record and single-class target. `ProbePolicy` bounds supervised training.
 `ProbeReport` stores class order, encoder binding, derived-corpus fingerprints,
 losses and synthetic-only validation metrics. `ProbeResult` joins the frozen
 encoder bundle and linear head; softmax probabilities remain uncalibrated.
+
+`LineTargets` distinguishes changed current lines from ignored deletion-gap
+neighbors. `LinePolicy` adds a physical-line budget. `LineReport` binds line
+counts, train-only class weight, validation metrics and selected epoch to the
+encoder and corpus. `LineScore` contains source hash, one-based line number,
+uncalibrated score and decision; unscorable lines use null values.

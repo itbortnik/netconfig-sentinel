@@ -153,3 +153,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/mlm-training.md`](docs/mlm-training.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
+Локализация добавленных и изменённых строк, включая ограничения для удалений,
+описана в [`docs/line-localization.md`](docs/line-localization.md).

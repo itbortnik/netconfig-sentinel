@@ -118,3 +118,9 @@ of that encoder. Single-mutation examples are generated only after splitting;
 their parent partition is preserved. The probe predicts mutation types or an
 unmodified reference, not guaranteed healthy status. Validation selects the
 head epoch; test remains unevaluated. It does not feed production risk fusion.
+
+A separate frozen-encoder line head pools source-aligned token vectors per
+current-file line. Synthetic insert/replace targets supervise a weighted binary
+objective. Deletion-only variants have no current-line target and are excluded,
+not mapped to innocent neighboring lines. Inference needs only the current
+configuration; scores remain uncalibrated and outside production risk fusion.

@@ -249,20 +249,15 @@ def _metrics(
     return tuple(result)
 
 
-def train_mutation_probe(
-    splits: DatasetSplitResult,
+def validate_pretrained_corpus(
+    rows: dict[DatasetSplit, list[ProbeExample]],
     pretrained: TrainingResult,
-    mutation_types: tuple[MutationType, ...],
-    *,
-    policy: ProbePolicy | None = None,
-) -> ProbeResult:
-    """Train only a linear head; validation selects epoch, no calibrated risk."""
-    policy = ProbePolicy.model_validate((policy or ProbePolicy()).model_dump())
+) -> None:
+    """Bind a supervised corpus to the original train/validation MLM inputs."""
     tokenizer = TokenizerArtifact.model_validate(pretrained.tokenizer.model_dump())
     pretraining_report = TrainingReport.model_validate(pretrained.report.model_dump())
     if tokenizer.tokenizer_sha256 != pretraining_report.tokenizer_sha256:
         raise ValueError("pretrained tokenizer does not match training report")
-    rows, skipped = prepare_examples(splits, mutation_types, policy)
     train_records = sorted(
         (row.record for row in rows[DatasetSplit.TRAIN] if row.label == 0),
         key=lambda item: (item.source_id, item.record_id),
@@ -286,6 +281,19 @@ def train_mutation_probe(
     )
     if validation_fingerprint != pretrained.report.validation_fingerprint:
         raise ValueError("pretrained encoder belongs to a different validation corpus")
+
+
+def train_mutation_probe(
+    splits: DatasetSplitResult,
+    pretrained: TrainingResult,
+    mutation_types: tuple[MutationType, ...],
+    *,
+    policy: ProbePolicy | None = None,
+) -> ProbeResult:
+    """Train only a linear head; validation selects epoch, no calibrated risk."""
+    policy = ProbePolicy.model_validate((policy or ProbePolicy()).model_dump())
+    rows, skipped = prepare_examples(splits, mutation_types, policy)
+    validate_pretrained_corpus(rows, pretrained)
     # Copy so training/eval state and gradients of the caller's model are untouched.
     pretrained = TrainingResult(
         copy.deepcopy(pretrained.model), pretrained.tokenizer, pretrained.report
