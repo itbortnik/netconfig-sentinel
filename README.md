@@ -155,3 +155,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,
 описана в [`docs/line-localization.md`](docs/line-localization.md).
+Диагностика ложных срабатываний и чувствительности к форматированию описана в
+[`docs/localization-diagnostics.md`](docs/localization-diagnostics.md).
