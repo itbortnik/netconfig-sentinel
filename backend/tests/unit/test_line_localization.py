@@ -1,5 +1,6 @@
 """Current-file line labels, frozen training, isolation, and safe persistence."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,7 @@ from ml.training.localization import (
     load_localizer,
     predict_lines,
     save_localizer,
+    stable_line_input,
     train_line_localizer,
 )
 from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_language_model
@@ -64,7 +66,7 @@ def test_training_frozen_repeatable_heldout_and_roundtrip(tmp_path: Path) -> Non
     )
     before = {key: value.clone() for key, value in pretrained.model.state_dict().items()}
     rng, threads = torch.get_rng_state().clone(), torch.get_num_threads()
-    policy = LinePolicy(epochs=4)
+    policy = LinePolicy(epochs=4, feature_version="stable-lines-0.1.0")
     first = train_line_localizer(splits, pretrained, TYPES, policy=policy)
     assert torch.equal(rng, torch.get_rng_state())
     assert torch.get_num_threads() == threads
@@ -125,6 +127,26 @@ def test_training_frozen_repeatable_heldout_and_roundtrip(tmp_path: Path) -> Non
         _dataset_features([original, deletion_only], first.pretrained, policy)
     row = next(row for row in rows[DatasetSplit.VALIDATION] if row.label)
     predictions = predict_lines(first, row.record)
+    for prefix, text in (
+        (2, "\n\n" + row.record.sanitized_text),
+        (0, row.record.sanitized_text.replace("\n", "\r\n")),
+        (2, "\r\n \t\r\n" + row.record.sanitized_text.replace("\n", "\r\n")),
+    ):
+        altered = row.record.model_copy(
+            update={"sanitized_text": text, "sanitized_sha256": digest(text)}
+        )
+        scores = predict_lines(first, altered)
+        assert all(
+            item.changed_score is None and item.predicted_changed is None
+            for item in scores[:prefix]
+        )
+        assert [item.changed_score for item in scores[prefix:]] == [
+            item.changed_score for item in predictions
+        ]
+        assert [item.line_number for item in scores[prefix:]] == [
+            item.line_number + prefix for item in predictions
+        ]
+        assert all(item.source_sha256 == digest(text) for item in scores)
     assert len(predictions) == len(row.record.sanitized_text.splitlines())
     assert [prediction.line_number for prediction in predictions] == list(
         range(1, len(predictions) + 1)
@@ -140,6 +162,16 @@ def test_training_frozen_repeatable_heldout_and_roundtrip(tmp_path: Path) -> Non
     restored = load_localizer(path)
     assert restored.report == first.report
     assert predict_lines(restored, row.record) == predictions
+    legacy_path = tmp_path / "legacy-localizer"
+    save_localizer(first, legacy_path)
+    payload = json.loads((legacy_path / "localizer.json").read_text(encoding="utf-8"))
+    del payload["report"]["policy"]["feature_version"]
+    legacy_text = json.dumps(payload)
+    (legacy_path / "localizer.json").write_text(legacy_text, encoding="utf-8")
+    (legacy_path / "localizer.sha256").write_text(digest(legacy_text), encoding="ascii")
+    legacy = load_localizer(legacy_path)
+    assert legacy.report.policy.feature_version == "raw-lines-0.1.0"
+    assert predict_lines(legacy, row.record) == predictions
     with pytest.raises(FileExistsError):
         save_localizer(first, path)
     for bounded_policy, error in (
@@ -155,3 +187,16 @@ def test_training_frozen_repeatable_heldout_and_roundtrip(tmp_path: Path) -> Non
     (path / "localizer.json").write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="checksum"):
         load_localizer(path)
+
+
+def test_stable_input_preserves_internal_whitespace_and_legacy_policy() -> None:
+    record = classification_fixtures().partitions[0].records[0]
+    text = "\r\n \t\r\nhostname host-000000000001\r\n\r\nbanner motd ^\r\n\r\n hello\r\n^"
+    source = record.model_copy(update={"sanitized_text": text, "sanitized_sha256": digest(text)})
+    normalized, mapping = stable_line_input(source)
+    assert normalized.sanitized_text == "hostname host-000000000001\n\nbanner motd ^\n\n hello\n^"
+    assert mapping == (3, 4, 5, 6, 7, 8)
+    assert source.sanitized_text == text
+    assert LinePolicy.model_validate({}).feature_version == "raw-lines-0.1.0"
+    with pytest.raises(ValueError, match="hash mismatch"):
+        stable_line_input(source.model_copy(update={"sanitized_sha256": "0" * 64}))

@@ -33,6 +33,29 @@ from ml.training.transformer import TrainingResult
 
 class LinePolicy(ProbePolicy):
     max_lines: int = Field(default=50000, ge=1, le=500000)
+    feature_version: Literal["raw-lines-0.1.0", "stable-lines-0.1.0"] = "raw-lines-0.1.0"
+
+
+def stable_line_input(
+    record: ImportedDatasetRecord,
+) -> tuple[ImportedDatasetRecord, tuple[int, ...]]:
+    """Normalize CRLF and leading blank lines only, retaining original coordinates."""
+    text = record.sanitized_text
+    if digest(text) != record.sanitized_sha256:
+        raise ValueError("sanitized input hash mismatch")
+    if len(text.encode("utf-8")) > 1024 * 1024:
+        raise ValueError("localization input exceeds 1 MiB")
+    lines = text.replace("\r\n", "\n").splitlines(keepends=True)
+    first = 0
+    while first < len(lines) and not lines[first].strip():
+        first += 1
+    normalized = "".join(lines[first:])
+    return record.model_copy(
+        update={
+            "sanitized_text": normalized,
+            "sanitized_sha256": digest(normalized),
+        }
+    ), tuple(range(first + 1, len(lines) + 1))
 
 
 @dataclass(frozen=True)
@@ -138,8 +161,13 @@ def _line_features(
         raise ValueError("localization line budget exceeded")
     sums = torch.zeros((line_count, pretrained.report.encoder_policy.hidden_size))
     counts = torch.zeros(line_count)
+    if policy.feature_version == "stable-lines-0.1.0":
+        input_record, source_lines = stable_line_input(record)
+    else:
+        input_record = record
+        source_lines = tuple(range(1, line_count + 1))
     with torch.no_grad():
-        for block in segment_configuration(record):
+        for block in segment_configuration(input_record):
             windows = encode_block(block, pretrained.tokenizer)
             budget[1] += len(windows)
             if budget[1] > policy.max_windows:
@@ -155,11 +183,12 @@ def _line_features(
                         if window.special_tokens_mask[token] or not window.attention_mask[token]:
                             continue
                         for line in lines:
-                            if not 1 <= line <= line_count:
+                            if not 1 <= line <= len(source_lines):
                                 raise ValueError("token source line is outside configuration")
+                            source_line = source_lines[line - 1]
                             weight = 1 / len(lines)
-                            sums[line - 1] += hidden[row, token] * weight
-                            counts[line - 1] += weight
+                            sums[source_line - 1] += hidden[row, token] * weight
+                            counts[source_line - 1] += weight
     return sums / counts.clamp_min(1e-12).unsqueeze(1), counts > 0
 
 
@@ -200,7 +229,9 @@ def train_line_localizer(
     *,
     policy: LinePolicy | None = None,
 ) -> LineResult:
-    policy = LinePolicy.model_validate((policy or LinePolicy()).model_dump())
+    policy = LinePolicy.model_validate(
+        (policy or LinePolicy(feature_version="stable-lines-0.1.0")).model_dump()
+    )
     rows, skipped = prepare_examples(splits, mutation_types, policy)
     validate_pretrained_corpus(rows, pretrained)
     pretrained = TrainingResult(

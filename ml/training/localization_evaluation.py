@@ -192,6 +192,7 @@ def evaluate_localization(result: LineResult, splits: DatasetSplitResult) -> Lin
     # Include head values as well as encoder identity, binding diagnostics to this exact model.
     checksum = hashlib.sha256(report.encoder_sha256.encode())
     checksum.update(result.pretrained.tokenizer.tokenizer_sha256.encode())
+    checksum.update(report.policy.feature_version.encode())
     for name, value in sorted(result.head.state_dict().items()):
         checksum.update(name.encode())
         checksum.update(str(tuple(value.shape)).encode())

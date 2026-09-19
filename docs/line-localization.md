@@ -37,6 +37,28 @@ never contribute. A line with no aligned tokens has no prediction (`null`), not
 a zero score; such lines are excluded from training. Missing alignment on a
 positive target is an error.
 
+### Versioned formatting normalization
+
+New training calls without an explicit policy use `stable-lines-0.1.0`: CRLF is
+normalized to LF and only leading blank/whitespace-only lines are removed from
+model input. Original hashes and line numbers remain in predictions, through an
+explicit normalized-to-source mapping. Removed leading lines return null scores,
+not a claim that the model classified them correctly. Input hashes and original
+size limits are checked before normalization. Internal blank lines, indentation,
+comments and command text are not stripped; this avoids rewriting banner bodies
+or other potentially meaningful layout. Lone CR is not specially normalized.
+
+Existing checkpoints without a `feature_version` retain `raw-lines-0.1.0`.
+When passing an explicit `LinePolicy`, select the new feature mode explicitly:
+
+```python
+policy = LinePolicy(epochs=20, feature_version="stable-lines-0.1.0")
+```
+
+The plain policy default remains raw for backward compatibility. Training and
+inference always use the mode saved in the report, and diagnostic identity
+includes this mode. Existing checkpoint files are not migrated or overwritten.
+
 A linear sigmoid head is trained with weighted binary cross entropy. The
 positive weight is negative/positive line count from **train only**, and that
 same weight is used in validation loss. Both partitions must contain positive

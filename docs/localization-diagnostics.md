@@ -75,3 +75,29 @@ Next work should address formatting robustness and unchanged-reference errors
 using training-only examples, then compare a frozen model on broader independent
 data. These diagnostic variants must not be relabeled as an untouched test set
 after influencing development decisions.
+
+## Stable-input comparison
+
+The `stable-lines-0.1.0` preprocessing mode was trained with the same fixture,
+seed and epoch count, then measured on the identical diagnostic cases:
+
+| Variant | Previous false-positive lines | Stable-input false-positive lines |
+|---|---:|---:|
+| Original | 3 | 3 |
+| Leading blank lines | 9 | 3 |
+| Comment context | 3 | 3 |
+| CRLF | 4 | 3 |
+
+Changed targets remain detected in all variants. Six inserted blank lines now
+have null scores because they are explicitly outside the normalized model input;
+they are counted as unscorable, not correct negative predictions. The extra CRLF
+error disappears. Remaining command-level errors are unchanged: every reference
+variant still triggers an alert. This fixes the tested formatting sensitivity,
+not general anomaly quality, and uses no independent test evidence.
+
+Use new artifact paths to preserve the previous baseline:
+
+```powershell
+python -m ml.training.localization_smoke --output artifacts/line-localizer-stable-v1
+python -m ml.training.localization_evaluation --model artifacts/line-localizer-stable-v1 --output artifacts/line-diagnostics-stable-v1.json
+```
