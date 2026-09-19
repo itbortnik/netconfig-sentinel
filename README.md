@@ -164,3 +164,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/reference-context-experiment.md`](docs/reference-context-experiment.md).
 Структурно разные лабораторные сценарии Cisco/JunOS, их происхождение и
 результаты проверки описаны в [`docs/laboratory-dataset.md`](docs/laboratory-dataset.md).
+Сравнение локализатора с простой TF-IDF-моделью описано в
+[`docs/lexical-line-baseline.md`](docs/lexical-line-baseline.md).
