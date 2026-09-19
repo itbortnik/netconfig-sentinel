@@ -166,3 +166,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 результаты проверки описаны в [`docs/laboratory-dataset.md`](docs/laboratory-dataset.md).
 Сравнение локализатора с простой TF-IDF-моделью описано в
 [`docs/lexical-line-baseline.md`](docs/lexical-line-baseline.md).
+Границы переноса на незнакомые типы изменений проверяются в
+[`docs/unseen-mutation-diagnostics.md`](docs/unseen-mutation-diagnostics.md).

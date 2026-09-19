@@ -250,6 +250,10 @@ def lexical_diagnostics(
             for key in sorted({case.vendor for case in cases})
         },
         "cases": [case.model_dump() for case in cases],
+        "by_mutation": {
+            key: summarize(tuple(case for case in cases if case.mutation == key)).model_dump()
+            for key in sorted({case.mutation for case in cases})
+        },
     }
 
 
