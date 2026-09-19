@@ -131,6 +131,8 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Проверки VLAN и switchport описаны в [`docs/policies/layer2.md`](docs/policies/layer2.md).
 Модель сравнения сопоставимых устройств описана в
 [`docs/baseline.md`](docs/baseline.md).
+Сравнение параметров с явно выбранным эталоном того же устройства описано в
+[`docs/expected-configuration.md`](docs/expected-configuration.md).
 Статистическая контрольная модель описана в
 [`docs/statistical-baseline.md`](docs/statistical-baseline.md).
 Формула объединения риска описана в
