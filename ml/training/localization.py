@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -138,6 +139,19 @@ class LineResult:
     pretrained: TrainingResult
     head: nn.Linear
     report: LineReport
+
+
+def localizer_identity(result: LineResult) -> str:
+    """Bind tokenizer, preprocessing and exact weights to a decision artifact."""
+    checksum = hashlib.sha256(_encoder_hash(result.pretrained.model).encode())
+    checksum.update(result.pretrained.tokenizer.tokenizer_sha256.encode())
+    checksum.update(result.report.policy.feature_version.encode())
+    for name, value in sorted(result.head.state_dict().items()):
+        checksum.update(name.encode())
+        checksum.update(str(tuple(value.shape)).encode())
+        checksum.update(str(value.dtype).encode())
+        checksum.update(value.detach().cpu().contiguous().numpy().tobytes())
+    return checksum.hexdigest()
 
 
 class LineScore(BaseModel):

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 from pathlib import Path
 from typing import Literal
 
@@ -14,11 +13,17 @@ from ml.datasets import DatasetSplit, DatasetSplitResult
 from ml.preprocessing.blocks import digest
 from ml.training.classification import _encoder_hash, _fingerprint, prepare_examples
 from ml.training.classification_smoke import classification_fixtures
+from ml.training.line_threshold import (
+    LineOperatingPoint,
+    load_operating_point,
+    verify_operating_point,
+)
 from ml.training.localization import (
     LineReport,
     LineResult,
     line_targets,
     load_localizer,
+    localizer_identity,
     predict_lines,
 )
 
@@ -71,6 +76,7 @@ class LineDiagnostics(BaseModel):
     model_sha256: str
     validation_fingerprint: str
     threshold: float
+    operating_point: LineOperatingPoint | None = None
     summary: LineSummary
     by_vendor: dict[str, LineSummary]
     by_mutation: dict[str, LineSummary]
@@ -117,9 +123,17 @@ def vary_text(text: str, vendor: Vendor | None, variant: Variant) -> str:
     raise ValueError("unknown diagnostic variant")
 
 
-def evaluate_localization(result: LineResult, splits: DatasetSplitResult) -> LineDiagnostics:
+def evaluate_localization(
+    result: LineResult,
+    splits: DatasetSplitResult,
+    *,
+    operating_point: LineOperatingPoint | None = None,
+) -> LineDiagnostics:
     """Inspect fixed-model errors on known validation and paired format variants."""
     report = LineReport.model_validate(result.report.model_dump())
+    if operating_point is not None:
+        verify_operating_point(operating_point, result)
+    threshold = operating_point.threshold if operating_point is not None else report.threshold
     if _encoder_hash(result.pretrained.model) != report.encoder_sha256:
         raise ValueError("encoder differs from localization report")
     rows, _ = prepare_examples(splits, report.mutation_types, report.policy)
@@ -159,11 +173,11 @@ def evaluate_localization(result: LineResult, splits: DatasetSplitResult) -> Lin
                 line = prediction.line_number
                 if line in ignored:
                     continue
-                if prediction.predicted_changed is None:
+                if prediction.changed_score is None:
                     if line in truth:
                         raise ValueError("positive diagnostic line is unscorable")
                     unscorable += 1
-                elif prediction.predicted_changed:
+                elif prediction.changed_score > threshold:
                     (tp if line in truth else fp).append(line)
                 elif line in truth:
                     fn.append(line)
@@ -189,20 +203,11 @@ def evaluate_localization(result: LineResult, splits: DatasetSplitResult) -> Lin
                     deletion_only=deletion_only,
                 )
             )
-    # Include head values as well as encoder identity, binding diagnostics to this exact model.
-    checksum = hashlib.sha256(report.encoder_sha256.encode())
-    checksum.update(result.pretrained.tokenizer.tokenizer_sha256.encode())
-    checksum.update(report.policy.feature_version.encode())
-    for name, value in sorted(result.head.state_dict().items()):
-        checksum.update(name.encode())
-        checksum.update(str(tuple(value.shape)).encode())
-        checksum.update(str(value.dtype).encode())
-        checksum.update(value.detach().cpu().contiguous().numpy().tobytes())
-    model_hash = checksum.hexdigest()
     return LineDiagnostics(
-        model_sha256=model_hash,
+        model_sha256=localizer_identity(result),
         validation_fingerprint=report.validation_fingerprint,
-        threshold=report.threshold,
+        threshold=threshold,
+        operating_point=operating_point,
         summary=summarize(tuple(cases)),
         by_vendor={
             key: summarize(tuple(case for case in cases if case.vendor == key))
@@ -223,11 +228,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--operating-point", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         parser.error("output already exists")
     result = load_localizer(args.model)
-    report = evaluate_localization(result, classification_fixtures())
+    point = load_operating_point(args.operating_point) if args.operating_point else None
+    report = evaluate_localization(result, classification_fixtures(), operating_point=point)
     with args.output.open("x", encoding="utf-8") as target:
         target.write(report.model_dump_json(indent=2) + "\n")
     print(report.summary.model_dump_json(indent=2))

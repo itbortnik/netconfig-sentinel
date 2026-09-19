@@ -101,3 +101,9 @@ Use new artifact paths to preserve the previous baseline:
 python -m ml.training.localization_smoke --output artifacts/line-localizer-stable-v1
 python -m ml.training.localization_evaluation --model artifacts/line-localizer-stable-v1 --output artifacts/line-diagnostics-stable-v1.json
 ```
+
+Diagnostics can optionally load a model-bound [training-reference operating
+point](line-operating-point.md). It is never selected from validation scores
+or applied implicitly. The zero-reference-alert experiment eliminated true
+positives too and is documented as unsuitable for activation, not a successful
+quality improvement.
