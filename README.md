@@ -162,3 +162,5 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/line-operating-point.md`](docs/line-operating-point.md).
 Эксперимент с расширением обучающих контекстов и его ограничения описаны в
 [`docs/reference-context-experiment.md`](docs/reference-context-experiment.md).
+Структурно разные лабораторные сценарии Cisco/JunOS, их происхождение и
+результаты проверки описаны в [`docs/laboratory-dataset.md`](docs/laboratory-dataset.md).
