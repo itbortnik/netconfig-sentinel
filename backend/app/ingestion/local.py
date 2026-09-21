@@ -6,6 +6,20 @@ MAX_INPUT_BYTES = 2 * 1024 * 1024
 MAX_INPUT_LINES = 10_000
 
 
+def validate_configuration_text(
+    text: str, *, max_bytes: int = MAX_INPUT_BYTES, max_lines: int = MAX_INPUT_LINES
+) -> None:
+    """Apply the same budgets to in-memory input as to local file input."""
+    if max_bytes < 1 or max_lines < 1:
+        raise ValueError("input limits must be positive")
+    if len(text.encode("utf-8")) > max_bytes:
+        raise ValueError("input too large")
+    if not text.strip() or any(ord(char) < 32 and char not in "\r\n\t" for char in text):
+        raise ValueError("invalid text")
+    if len(text.splitlines()) > max_lines:
+        raise ValueError("too many lines")
+
+
 def read_local_configuration(
     path: Path,
     *,
@@ -22,8 +36,5 @@ def read_local_configuration(
     if len(data) > max_bytes:
         raise ValueError("input too large")
     text = data.decode("utf-8-sig")
-    if not text.strip() or any(ord(char) < 32 and char not in "\r\n\t" for char in text):
-        raise ValueError("invalid text")
-    if len(text.splitlines()) > max_lines:
-        raise ValueError("too many lines")
+    validate_configuration_text(text, max_bytes=max_bytes, max_lines=max_lines)
     return text
