@@ -1,1 +1,1 @@
-"""Secure ingestion boundary (implemented in a later iteration)."""
+"""Bounded local configuration input; HTTP ingestion is not implemented yet."""

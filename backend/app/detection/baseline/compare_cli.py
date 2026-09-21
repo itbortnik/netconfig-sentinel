@@ -12,25 +12,12 @@ from app.detection.baseline.expected import (
     compare_expected_configuration,
     create_expected_configuration,
 )
+from app.ingestion.local import MAX_INPUT_BYTES, MAX_INPUT_LINES, read_local_configuration
 from app.parsers import parse_configuration
-
-MAX_INPUT_BYTES = 2 * 1024 * 1024
-MAX_INPUT_LINES = 10_000
 
 
 def _read_configuration(path: Path) -> str:
-    if path.suffix.lower() not in {".cfg", ".conf", ".txt"} or not path.is_file():
-        raise ValueError("unsupported input")
-    with path.open("rb") as stream:
-        data = stream.read(MAX_INPUT_BYTES + 1)
-    if len(data) > MAX_INPUT_BYTES:
-        raise ValueError("input too large")
-    text = data.decode("utf-8-sig")
-    if not text.strip() or any(ord(char) < 32 and char not in "\r\n\t" for char in text):
-        raise ValueError("invalid text")
-    if len(text.splitlines()) > MAX_INPUT_LINES:
-        raise ValueError("too many lines")
-    return text
+    return read_local_configuration(path, max_bytes=MAX_INPUT_BYTES, max_lines=MAX_INPUT_LINES)
 
 
 def main(argv: list[str] | None = None) -> int:
