@@ -23,7 +23,7 @@ def test_upload_disabled_and_sdk_missing(monkeypatch: pytest.MonkeyPatch) -> Non
     )
 
 
-@pytest.mark.parametrize("behavior", ["success", "timeout", "error", "malformed"])
+@pytest.mark.parametrize("behavior", ["success", "timeout", "error", "malformed", "null", "list"])
 def test_worker_is_bounded_and_temp_inputs_are_cleaned(
     monkeypatch: pytest.MonkeyPatch, behavior: str
 ) -> None:
@@ -50,6 +50,7 @@ def test_worker_is_bounded_and_temp_inputs_are_cleaned(
             if behavior == "malformed"
             else json.dumps(
                 {
+                    "engine_version": "test-double",
                     "status": "no_differences_in_scope",
                     "reason": "query_completed",
                     "difference_count": 0,
@@ -58,6 +59,8 @@ def test_worker_is_bounded_and_temp_inputs_are_cleaned(
                 }
             )
         )
+        if behavior in {"null", "list"}:
+            output = "null" if behavior == "null" else "[]"
         return subprocess.CompletedProcess(args[0], 0, output, "private-secret")
 
     monkeypatch.setattr(batfish.subprocess, "run", run)
@@ -72,6 +75,7 @@ def test_worker_is_bounded_and_temp_inputs_are_cleaned(
 def test_empty_scope_cannot_claim_success() -> None:
     with pytest.raises(ValueError):
         BatfishResult(
+            engine_version="test-double",
             before_sha256="a" * 64,
             after_sha256="b" * 64,
             scope=ReachabilityScope(start_node="edge", destination="192.0.2.0/24"),
@@ -81,3 +85,21 @@ def test_empty_scope_cannot_claim_success() -> None:
             before_reachable_count=0,
             after_reachable_count=0,
         )
+
+
+@pytest.mark.parametrize("field,value", [("difference_count", True), ("engine_version", None)])
+def test_query_results_require_real_counts_and_version(field: str, value: object) -> None:
+    payload = {
+        "before_sha256": "a" * 64,
+        "after_sha256": "b" * 64,
+        "scope": {"start_node": "edge", "destination": "192.0.2.0/24"},
+        "status": "differences_found",
+        "reason": "query_completed",
+        "engine_version": "test-double",
+        "difference_count": 1,
+        "before_reachable_count": 1,
+        "after_reachable_count": 1,
+    }
+    payload[field] = value
+    with pytest.raises(ValueError):
+        BatfishResult.model_validate(payload)

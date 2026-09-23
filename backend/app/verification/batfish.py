@@ -48,12 +48,12 @@ class BatfishResult(BaseModel):
         "empty_reachable_scope",
         "query_completed",
     ]
-    engine_version: str | None = None
+    engine_version: str | None = Field(default=None, min_length=1, max_length=2048)
     network_name: str | None = Field(default=None, pattern=r"^sentinel-[0-9a-f]{32}$")
     cleanup_complete: bool | None = None
-    difference_count: int | None = Field(default=None, ge=0)
-    before_reachable_count: int | None = Field(default=None, ge=0)
-    after_reachable_count: int | None = Field(default=None, ge=0)
+    difference_count: int | None = Field(default=None, ge=0, strict=True)
+    before_reachable_count: int | None = Field(default=None, ge=0, strict=True)
+    after_reachable_count: int | None = Field(default=None, ge=0, strict=True)
     requires_human_review: Literal[True] = True
     limitations: tuple[str, ...] = (
         "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
@@ -75,6 +75,8 @@ class BatfishResult(BaseModel):
         if self.reason not in reasons[self.status]:
             raise ValueError("reason does not match verification status")
         queried = self.status in {"inconclusive", "differences_found", "no_differences_in_scope"}
+        if queried and (self.engine_version is None or not self.engine_version.strip()):
+            raise ValueError("completed queries require engine version metadata")
         counts = (self.difference_count, self.before_reachable_count, self.after_reachable_count)
         if queried != all(value is not None for value in counts):
             raise ValueError("query counts conflict with result status")
@@ -150,7 +152,10 @@ def check_with_batfish(
             )
             if run.returncode != 0 or len(run.stdout) > 32_768:
                 return failure("error", "worker_failed")
-            result = BatfishResult.model_validate({**json.loads(run.stdout), **common})
+            response = json.loads(run.stdout)
+            if not isinstance(response, dict):
+                return failure("error", "worker_failed")
+            result = BatfishResult.model_validate({**response, **common})
         except subprocess.TimeoutExpired:
             return failure("error", "timeout")
         except (OSError, ValueError):

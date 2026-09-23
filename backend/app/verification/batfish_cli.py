@@ -11,6 +11,8 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.ingestion.local import read_local_configuration
+from app.patching.artifacts import load_patch_review
+from app.patching.network_review import review_patch_network
 from app.verification.batfish import ReachabilityScope, check_with_batfish
 from app.verification.snapshots import prepare_snapshot
 
@@ -51,6 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--allow-local-upload", action="store_true")
     parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument("--patch-review", type=Path)
     args = parser.parse_args(argv)
     try:
         with args.manifest.open("rb") as stream:
@@ -71,20 +74,33 @@ def main(argv: list[str] | None = None) -> int:
                 for item in manifest.devices
             }
         )
-        result = check_with_batfish(
-            before,
-            after,
-            manifest.scope,
-            allow_local_upload=args.allow_local_upload,
-            timeout_seconds=args.timeout,
-        )
+        if args.patch_review is not None:
+            combined = review_patch_network(
+                load_patch_review(args.patch_review),
+                before,
+                after,
+                manifest.scope,
+                allow_local_upload=args.allow_local_upload,
+                timeout_seconds=args.timeout,
+            )
+            result = combined.network_result
+            output = combined.model_dump_json(indent=2)
+        else:
+            result = check_with_batfish(
+                before,
+                after,
+                manifest.scope,
+                allow_local_upload=args.allow_local_upload,
+                timeout_seconds=args.timeout,
+            )
+            output = result.model_dump_json(indent=2)
     except (OSError, ValueError):
         print(
             "Network check refused: invalid manifest, bounded inputs or snapshot identity.",
             file=sys.stderr,
         )
         return 2
-    print(result.model_dump_json(indent=2))
+    print(output)
     return {"no_differences_in_scope": 0, "differences_found": 1, "error": 2}.get(result.status, 3)
 
 

@@ -36,3 +36,42 @@ def test_manifest_cli(tmp_path: Path, capsys: pytest.CaptureFixture[str], case: 
     else:
         assert code == 2 and not captured.out
         assert "secret.cfg" not in captured.err
+
+
+def test_manifest_cli_links_saved_draft(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    from uuid import UUID
+
+    from app.patching.artifacts import save_patch_review
+    from app.patching.proposal import create_patch_proposal
+    from app.patching.review import review_patch_proposal
+
+    device = UUID(int=1)
+    before, after = "hostname edge\naaa new-model\n", "hostname edge\nno aaa new-model\n"
+    (tmp_path / "before.cfg").write_text(before, encoding="utf-8", newline="")
+    (tmp_path / "after.cfg").write_text(after, encoding="utf-8", newline="")
+    draft = create_patch_proposal(before, after, device_id=device, reference_id="v1")
+    artifact = tmp_path / "review.json"
+    save_patch_review(review_patch_proposal(draft, before, after, device_id=device), artifact)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "version": "network-check-0.1.0",
+                "devices": [
+                    {
+                        "device_id": str(device),
+                        "before": "before.cfg",
+                        "after": "after.cfg",
+                    }
+                ],
+                "scope": {"start_node": "edge", "destination": "192.0.2.0/24"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    saved = artifact.read_bytes()
+    assert main(["--manifest", str(manifest), "--patch-review", str(artifact)]) == 3
+    report = json.loads(capsys.readouterr().out)
+    assert report["local_review"]["proposal"]["proposal_id"] == str(draft.proposal_id)
+    assert report["network_result"]["reason"] == "upload_not_authorized"
+    assert artifact.read_bytes() == saved
