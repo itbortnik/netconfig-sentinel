@@ -28,8 +28,9 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-SQLite покрыта интеграционными тестами; живой PostgreSQL здесь ещё не проверен.
-Для PostgreSQL добавлен отдельный CI job со свежим контейнером и smoke-тестом.
+SQLite покрыта интеграционными тестами. PostgreSQL 17 проверен отдельным
+[успешным CI job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/36924852321)
+со свежим контейнером: миграции, encrypted history, анализ и перезапуск приложения.
 Локально он включается переменной `NETCONFIG_TEST_DATABASE_URL`: только
 `postgresql+psycopg` и имя БД с суффиксом `_test`. Тест создаёт отдельную случайную
 схему и удаляет только её после проверки; не указывайте рабочую БД.
@@ -124,4 +125,5 @@ API от непривилегированного OS-пользователя. A
 Это dev-конфигурация: DB-role, созданная стандартным entrypoint, обладает
 superuser-правами. Для production нужны отдельные роли миграции и приложения,
 TLS, менеджер секретов, backup/restore-проверка, RBAC и лимиты запросов.
-Контейнерный PostgreSQL-путь подготовлен, но не подтверждён живым запуском.
+PostgreSQL smoke-тест выполняется в CI, но полный запуск Compose с backend
+container пока не проверен. Локально Docker отсутствует.
