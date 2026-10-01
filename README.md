@@ -8,7 +8,10 @@
 
 ## Реализовано
 
-- FastAPI с `GET /health` и `GET /ready`;
+- FastAPI с `GET /health`, `GET /ready` и защищённым API конфигураций и анализов;
+- загрузка → policy-анализ → сохранение → получение истории с пагинацией,
+  зашифрованными payload и транзакционными событиями аудита;
+- SQLAlchemy, явные миграции Alembic, локальная SQLite и конфигурация PostgreSQL;
 - строгие Pydantic-контракты `CanonicalConfig`, `SourceLocation` и `Finding`;
 - независимый интерфейс `VendorParser` и явный registry адаптеров;
 - Cisco IOS/IOS-XE: hostname, version, AAA, SSH/Telnet, SNMP, NTP и Syslog;
@@ -82,6 +85,8 @@
 [контракт и ограничения](docs/local-explanations.md) описаны отдельно.
 Подготовка сетевых снимков, ограничения и включение внешнего локального
 движка описаны в [Batfish-проверках](docs/batfish-verification.md).
+Для сквозного HTTP-сценария настройте токен, ключ шифрования и БД по
+[инструкции постоянного API](docs/persistent-api.md).
 
 ```powershell
 python -m venv .venv
@@ -103,6 +108,10 @@ source .venv/bin/activate
 - liveness: <http://127.0.0.1:8000/health>
 - readiness: <http://127.0.0.1:8000/ready>
 
+Без настроенного хранилища работают только публичные probes и документация;
+`/api/v1/*` возвращает 503. Readiness отдельно сообщает `persistent_api` и
+`database_schema`: готовность парсеров не означает готовность постоянного API.
+
 ## Проверки
 
 ```powershell
@@ -113,18 +122,24 @@ pytest --cov=app --cov=ml --cov-report=term-missing
 
 ## Docker Compose
 
+Подготовьте локальный `.env` с API-токеном, ключом шифрования и паролем БД
+по [инструкции](docs/persistent-api.md#docker-compose).
+
 ```powershell
 docker compose up --build
 ```
 
-API будет доступно на `http://127.0.0.1:8000`. На этом этапе контейнеры БД,
-Redis и Batfish не добавлены: текущему функциональному срезу они не нужны.
+Compose запускает PostgreSQL 17, выполняет миграцию и затем запускает API на
+`http://127.0.0.1:8000`. БД не публикует порт наружу. Это конфигурация разработки,
+не production-деплой; живой контейнерный запуск пока не подтверждён.
 
 ## Структура
 
 ```text
 backend/app/
   api/                 HTTP endpoints
+  core/                явные настройки доступа и хранения
+  db/                  SQLAlchemy, шифрование, миграции, история и аудит записей
   domain/              канонические публичные контракты
   parsers/             определение вендора и независимые адаптеры
   ingestion/           будущий безопасный приём конфигураций
@@ -149,6 +164,8 @@ ml/
 [`docs/policies/management-plane.md`](docs/policies/management-plane.md) и
 [`docs/policies/observability.md`](docs/policies/observability.md), а проверки
 ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
+Граница доверия API и оставшиеся ограничения защиты описаны в
+[`docs/threat-model.md`](docs/threat-model.md).
 Маршрутные проверки описаны в [`docs/policies/routing.md`](docs/policies/routing.md).
 Проверки VLAN и switchport описаны в [`docs/policies/layer2.md`](docs/policies/layer2.md).
 Модель сравнения сопоставимых устройств описана в

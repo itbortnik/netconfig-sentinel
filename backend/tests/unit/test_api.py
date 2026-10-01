@@ -25,5 +25,5 @@ def test_ready_reports_both_vendor_parsers() -> None:
     assert response.status_code == 200
     assert response.json() == {
         "status": "ready",
-        "checks": {"vendor_parsers": True},
+        "checks": {"vendor_parsers": True, "persistent_api": False, "database_schema": None},
     }

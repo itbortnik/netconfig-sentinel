@@ -1,13 +1,57 @@
 services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: sentinel
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: ${NETCONFIG_POSTGRES_PASSWORD:?Set NETCONFIG_POSTGRES_PASSWORD}
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sentinel", "-d", "sentinel"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  migrate:
+    image: netconfig-sentinel:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "app.db.migrate"]
+    environment:
+      NETCONFIG_DATABASE_URL: postgresql+psycopg://sentinel:${NETCONFIG_POSTGRES_PASSWORD:?Set NETCONFIG_POSTGRES_PASSWORD}@database:5432/sentinel
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+
   backend:
+    image: netconfig-sentinel:local
     build:
       context: .
       dockerfile: backend/Dockerfile
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       NETCONFIG_ENV: development
       NETCONFIG_LOG_LEVEL: INFO
+      NETCONFIG_DATABASE_URL: postgresql+psycopg://sentinel:${NETCONFIG_POSTGRES_PASSWORD:?Set NETCONFIG_POSTGRES_PASSWORD}@database:5432/sentinel
+      NETCONFIG_API_TOKEN: ${NETCONFIG_API_TOKEN:?Set NETCONFIG_API_TOKEN}
+      NETCONFIG_ENCRYPTION_KEY: ${NETCONFIG_ENCRYPTION_KEY:?Set NETCONFIG_ENCRYPTION_KEY}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  database_data:

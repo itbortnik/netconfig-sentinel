@@ -1,9 +1,26 @@
 # Architecture
 
 The first iteration is a modular monolith. `app.domain` owns stable contracts;
-`app.parsers` owns content detection and vendor adapters; `app.api` only exposes
-process probes. Future ingestion, detection, verification, and explanation code
+`app.parsers` owns content detection and vendor adapters; `app.api` exposes
+process probes and an authenticated persistent policy-analysis workflow.
+Ingestion, detection, verification, and explanation code
 must depend on the domain contracts rather than on vendor parser internals.
+
+The current persistent HTTP path is deliberately narrower than the offline tooling:
+
+```text
+Bearer token + bounded JSON upload + explicit device UUID
+  -> text validation -> vendor parser -> encrypted canonical snapshot + audit
+  -> deterministic policies -> local explanations -> policy-only risk
+  -> encrypted analysis + audit -> authenticated history/results
+```
+
+`app.db` owns short SQLAlchemy sessions and explicit Alembic migrations.
+Snapshots and analyses are append-only through the exposed API. Writes and
+their audit events commit together. Partial parsing keeps available findings
+but suppresses the aggregate risk; ML, peer baselines and formal verification
+remain unavailable in this HTTP path. See [API](persistent-api.md) and
+[trust boundary](threat-model.md).
 
 Parser selection is explicit and deterministic:
 
