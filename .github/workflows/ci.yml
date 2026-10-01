@@ -81,7 +81,10 @@ jobs:
       - run: npm run test:e2e
       - run: docker compose up --build -d
         working-directory: .
-      - run: curl --fail --retry 60 --retry-delay 2 --retry-connrefused http://127.0.0.1:8000/ready
+      - run: >-
+          curl --fail --connect-timeout 2 --max-time 5
+          --retry 60 --retry-delay 2 --retry-all-errors --retry-max-time 120
+          http://127.0.0.1:8000/ready
       - run: npm run test:e2e
         env:
           NETCONFIG_E2E_BASE_URL: http://127.0.0.1:8000
