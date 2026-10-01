@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -14,9 +15,10 @@ from app.api.health import router as health_router
 from app.api.service import AnalysisService
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
+from app.web import UI_CONTENT_SECURITY_POLICY, mount_frontend
 
 
-def create_app(settings: ApiSettings | None = None) -> FastAPI:
+def create_app(settings: ApiSettings | None = None, *, frontend_dir: Path | None = None) -> FastAPI:
     store = Store(settings) if settings is not None else None
 
     @asynccontextmanager
@@ -53,10 +55,15 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        if request.url.path == "/ui" or request.url.path.startswith("/ui/"):
+            response.headers["Content-Security-Policy"] = UI_CONTENT_SECURITY_POLICY
+            response.headers["X-Frame-Options"] = "DENY"
         return response
 
     application.include_router(health_router)
     application.include_router(configuration_router)
+    mount_frontend(application, frontend_dir)
     return application
 
 

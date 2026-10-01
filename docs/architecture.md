@@ -22,6 +22,13 @@ but suppresses the aggregate risk; ML, peer baselines and formal verification
 remain unavailable in this HTTP path. See [API](persistent-api.md) and
 [trust boundary](threat-model.md).
 
+The browser is a React/TypeScript client of that same API, not a parallel detector.
+It sends bearer credentials only to relative same-origin endpoints and validates
+versioned responses before rendering. UI code never computes replacement detector
+scores or verification statuses. Production assets are served under `/ui/` by
+the same FastAPI process; Vite is only a loopback development proxy.
+See [UI workflow and limits](web-interface.md).
+
 Parser selection is explicit and deterministic:
 
 ```text

@@ -11,3 +11,7 @@ dist
 .ruff_cache
 .coverage*
 htmlcov
+**/node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report

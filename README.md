@@ -12,6 +12,8 @@
 - загрузка → policy-анализ → сохранение → получение истории с пагинацией,
   зашифрованными payload и транзакционными событиями аудита;
 - SQLAlchemy, явные миграции Alembic, локальная SQLite и конфигурация PostgreSQL;
+- React + TypeScript интерфейс: загрузка, история, находки, доказательства,
+  объяснения и явные статусы неполного разбора/незапущенных проверок;
 - строгие Pydantic-контракты `CanonicalConfig`, `SourceLocation` и `Finding`;
 - независимый интерфейс `VendorParser` и явный registry адаптеров;
 - Cisco IOS/IOS-XE: hostname, version, AAA, SSH/Telnet, SNMP, NTP и Syslog;
@@ -87,6 +89,7 @@
 движка описаны в [Batfish-проверках](docs/batfish-verification.md).
 Для сквозного HTTP-сценария настройте токен, ключ шифрования и БД по
 [инструкции постоянного API](docs/persistent-api.md).
+Для работы в браузере соберите [веб-интерфейс](docs/web-interface.md).
 
 ```powershell
 python -m venv .venv
@@ -104,11 +107,12 @@ source .venv/bin/activate
 После запуска доступны:
 
 - API: <http://127.0.0.1:8000>
+- интерфейс после сборки: <http://127.0.0.1:8000/ui/>
 - OpenAPI: <http://127.0.0.1:8000/docs>
 - liveness: <http://127.0.0.1:8000/health>
 - readiness: <http://127.0.0.1:8000/ready>
 
-Без настроенного хранилища работают только публичные probes и документация;
+Без настроенного хранилища работают публичные probes, документация и UI-shell;
 `/api/v1/*` возвращает 503. Readiness отдельно сообщает `persistent_api` и
 `database_schema`: готовность парсеров не означает готовность постоянного API.
 
@@ -119,6 +123,9 @@ ruff check .
 mypy backend/app ml
 pytest --cov=app --cov=ml --cov-report=term-missing
 ```
+
+Проверки frontend и браузерного сценария описаны в
+[инструкции интерфейса](docs/web-interface.md#проверки).
 
 ## Docker Compose
 
@@ -132,7 +139,8 @@ docker compose up --build
 Compose запускает PostgreSQL 17, выполняет миграцию и затем запускает API на
 `http://127.0.0.1:8000`. БД не публикует порт наружу. Это конфигурация разработки,
 не production-деплой. API и миграции проверены с PostgreSQL 17 в GitHub CI;
-полный запуск Compose с контейнером backend пока не подтверждён.
+Полный сценарий Compose с собранным UI проверяется отдельным frontend CI job.
+Локально Docker не установлен; результат этого job следует проверять отдельно.
 
 ## Структура
 
@@ -156,6 +164,7 @@ ml/
   mutation/            обратимые синтетические аномалии и разметка
   training/            маскирование, encoder, CPU-обучение и checkpoint
   preprocessing/       детерминированное обезличивание конфигураций
+frontend/              React + TypeScript, контракты ответов и браузерные тесты
 ```
 
 Поддерживаемая синтаксическая область и ограничения перечислены в
