@@ -155,3 +155,11 @@ current-file line. Synthetic insert/replace targets supervise a weighted binary
 objective. Deletion-only variants have no current-line target and are excluded,
 not mapped to innocent neighboring lines. Inference needs only the current
 configuration; scores remain uncalibrated and outside production risk fusion.
+
+Finding assessments form a separate append-only boundary, never a mutation of
+analysis or automatic ground truth. Each encrypted record binds a client intent
+UUID to an analysis, finding content hash, snapshot, device and source hash.
+The insert and audit event are atomic; a racing identical intent is replayed,
+while a changed intent under the same UUID conflicts. The UI checks all bindings,
+keeps uncertain retry IDs only in memory and ignores stale responses. The shared
+service token does not identify an individual engineer or approve a patch.

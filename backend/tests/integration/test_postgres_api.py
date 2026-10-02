@@ -1,6 +1,7 @@
 """Opt-in real PostgreSQL smoke test; use only an explicitly selected *_test database."""
 
 import os
+from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID, uuid4
 
 import pytest
@@ -117,6 +118,25 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             assert analyzed.status_code == 201, analyzed.text
             statistical_result = analyzed.json()
             assert statistical_result["statistical"]["model"] == manifest
+            finding_id = statistical_result["findings"][0]["finding_id"]
+            feedback_path = f"/api/v1/findings/{finding_id}/feedback"
+            assessment = {
+                "feedback_id": str(uuid4()),
+                "analysis_id": statistical_result["analysis_id"],
+                "finding_sha256": statistical_result["explanations"][0]["finding_sha256"],
+                "verdict": "needs_investigation",
+                "comment": "Private PostgreSQL integration review.",
+            }
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                responses = list(
+                    executor.map(
+                        lambda _: client.post(feedback_path, headers=headers, json=assessment),
+                        range(4),
+                    )
+                )
+            assert sorted(item.status_code for item in responses) == [200, 200, 200, 201]
+            feedback = responses[0].json()
+            assert all(item.json() == feedback for item in responses)
         with TestClient(create_app(settings)) as restarted:
             assert (
                 restarted.get(f"/api/v1/models/{manifest['model_id']}", headers=headers).json()
@@ -128,9 +148,33 @@ def test_postgresql_encrypted_history_and_restart() -> None:
                 ).json()
                 == statistical_result
             )
+            replay = restarted.post(feedback_path, headers=headers, json=assessment)
+            assert replay.status_code == 200 and replay.json() == feedback
+            history = restarted.get(
+                feedback_path,
+                headers=headers,
+                params={"analysis_id": statistical_result["analysis_id"]},
+            )
+            assert history.status_code == 200 and history.json() == [feedback]
+            assert (
+                restarted.post(
+                    feedback_path, headers=headers, json=assessment | {"comment": "Changed intent"}
+                ).status_code
+                == 409
+            )
         with store.engine.connect() as connection:
             payload = connection.execute(text("SELECT payload FROM models")).scalar_one()
             assert "pg-forest" not in payload and "thresholds" not in payload
+            payload = connection.execute(text("SELECT payload FROM finding_feedback")).scalar_one()
+            assert "Private PostgreSQL" not in payload and "needs_investigation" not in payload
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT count(*) FROM audit_events WHERE action='finding.feedback_recorded'"
+                    )
+                ).scalar_one()
+                == 1
+            )
     finally:
         store.close()
         # The exact schema target derives only from the UUID generated above.

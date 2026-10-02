@@ -808,6 +808,22 @@ footer {
       border-color 0.12s;
   }
 }
+.feedback-panel {
+  border-top: 1px solid #e7ecf2;
+  margin-top: 24px;
+  padding-top: 12px;
+}
+.feedback-panel form {
+  display: grid;
+  gap: 10px;
+}
+.feedback-history {
+  padding-left: 20px;
+}
+.feedback-comment {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 @media (max-width: 900px) {
   .sidebar {
     height: auto;

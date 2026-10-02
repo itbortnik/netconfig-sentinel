@@ -29,6 +29,40 @@ const location = z.object({
   parser_confidence: score,
 });
 const jsonObject = z.record(z.string(), z.json());
+export const feedbackVerdictSchema = z.enum([
+  "confirmed_anomaly",
+  "false_positive",
+  "needs_investigation",
+]);
+const feedbackComment = z
+  .string()
+  .refine(
+    (value) =>
+      Array.from(value).length >= 1 &&
+      Array.from(value).length <= 2000 &&
+      value.trim() === value &&
+      !/[\p{C}\p{Zs}\p{Zl}\p{Zp}]/u.test(value.replace(/[ \r\n\t]/g, "")),
+  );
+export const feedbackSubmissionSchema = z.strictObject({
+  feedback_id: id,
+  analysis_id: id,
+  finding_sha256: hash,
+  verdict: feedbackVerdictSchema,
+  comment: feedbackComment,
+});
+export const feedbackSchema = z.strictObject({
+  ...feedbackSubmissionSchema.shape,
+  version: z.literal("finding-feedback-0.1.0"),
+  finding_id: id,
+  configuration_id: id,
+  device_id: id,
+  source_sha256: hash,
+  created_at: timestamp,
+  actor: z.literal("shared_service_token"),
+});
+export type FeedbackRecord = z.infer<typeof feedbackSchema>;
+export type FeedbackSubmission = z.infer<typeof feedbackSubmissionSchema>;
+export type FeedbackVerdict = z.infer<typeof feedbackVerdictSchema>;
 
 export const snapshotSchema = z.object({
   configuration_id: id,

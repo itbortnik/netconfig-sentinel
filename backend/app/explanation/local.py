@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-from hashlib import sha256
 from typing import Literal
 from uuid import UUID
 
@@ -21,6 +19,7 @@ from app.detection.statistical.isolation_forest import (
     evaluate_isolation_forest,
 )
 from app.domain import CanonicalConfig, Finding, Severity
+from app.domain.fingerprints import finding_fingerprint
 from app.policies import POLICY_CATALOG_VERSION, POLICY_RULES
 
 
@@ -146,15 +145,10 @@ def explain_finding(
         limitations.append(
             "Parsing is incomplete; unsupported configuration may change the conclusion."
         )
-    fingerprint = sha256(
-        json.dumps(finding.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode(
-            "utf-8"
-        )
-    ).hexdigest()
     return FindingExplanation(
         finding_id=finding.finding_id,
         device_id=finding.device_id,
-        finding_sha256=fingerprint,
+        finding_sha256=finding_fingerprint(finding),
         source_sha256=config.source.sha256,
         detector_version=finding.model_version,
         severity=finding.severity,

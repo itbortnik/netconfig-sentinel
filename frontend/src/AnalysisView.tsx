@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import type { AnalysisResult, Finding, Severity } from "./contracts";
+import type {
+  AnalysisResult,
+  FeedbackRecord,
+  FeedbackSubmission,
+  Finding,
+  Severity,
+} from "./contracts";
+import type { ApiClient } from "./api";
+import { FeedbackPanel } from "./FeedbackPanel";
 import {
   date,
   numericScore,
@@ -23,7 +31,22 @@ function JsonValues({
   ) : null;
 }
 
-export function AnalysisView({ result }: { result: AnalysisResult }) {
+export function AnalysisView({
+  result,
+  client,
+  busy,
+  onError,
+  onFeedback,
+}: {
+  result: AnalysisResult;
+  client: ApiClient;
+  busy: boolean;
+  onError: (problem: unknown) => void;
+  onFeedback: (
+    finding: string,
+    submission: FeedbackSubmission,
+  ) => Promise<FeedbackRecord | null>;
+}) {
   const [selected, setSelected] = useState(
     result.findings[0]?.finding_id ?? null,
   );
@@ -212,6 +235,7 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
               <button
                 key={item.finding_id}
                 className={`finding-button ${finding?.finding_id === item.finding_id ? "selected" : ""}`}
+                disabled={busy}
                 aria-pressed={finding?.finding_id === item.finding_id}
                 onClick={() => setSelected(item.finding_id)}
               >
@@ -324,6 +348,15 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
                 Никакие изменения не применяются. Рекомендация требует проверки
                 инженером.
               </p>
+              <FeedbackPanel
+                key={`${result.analysis_id}:${finding.finding_id}`}
+                analysis={result}
+                finding={finding}
+                client={client}
+                busy={busy}
+                onError={onError}
+                onSubmit={onFeedback}
+              />
             </>
           ) : (
             <p className="empty">

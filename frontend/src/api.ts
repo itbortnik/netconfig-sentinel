@@ -5,8 +5,14 @@ import {
   configurationSummarySchema,
   snapshotSchema,
   modelSchema,
+  feedbackSchema,
 } from "./contracts";
-import type { AnalysisOptions, TrainModel, Upload } from "./contracts";
+import type {
+  AnalysisOptions,
+  FeedbackSubmission,
+  TrainModel,
+  Upload,
+} from "./contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -21,7 +27,7 @@ const messages: Record<number, string> = {
   400: "Запрос не принят. Проверьте формат, выбранные снимки, модель и ограничения операции.",
   401: "Токен не принят. Подключитесь заново.",
   404: "Запись не найдена. Обновите историю.",
-  409: "Устройство уже существует с другим hostname, vendor или platform. Проверьте UUID.",
+  409: "Конфликт идентификатора или привязки записи. Проверьте UUID устройства либо выбранный анализ и историю обратной связи.",
   413: "Загрузка превышает допустимый размер.",
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
@@ -49,7 +55,7 @@ export class ApiClient {
   private async request<T>(
     path: string,
     schema: z.ZodType<T>,
-    body?: Upload | AnalysisOptions | TrainModel,
+    body?: Upload | AnalysisOptions | TrainModel | FeedbackSubmission,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -132,5 +138,23 @@ export class ApiClient {
   }
   trainModel(options: TrainModel) {
     return this.request("/models/isolation-forest", modelSchema, options);
+  }
+  feedback(finding: string, analysis: string, offset = 0) {
+    const query = new URLSearchParams({
+      analysis_id: analysis,
+      limit: "20",
+      offset: String(offset),
+    });
+    return this.request(
+      `/findings/${encodeURIComponent(finding)}/feedback?${query}`,
+      z.array(feedbackSchema),
+    );
+  }
+  submitFeedback(finding: string, submission: FeedbackSubmission) {
+    return this.request(
+      `/findings/${encodeURIComponent(finding)}/feedback`,
+      feedbackSchema,
+      submission,
+    );
   }
 }

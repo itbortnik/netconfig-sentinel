@@ -8,12 +8,15 @@ from uuid import UUID, uuid4
 
 from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy import Engine, create_engine, event, select, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.api.contracts import AnalysisResult, ConfigurationSnapshot, RegisteredModel
+from app.api.feedback_contracts import FeedbackRecord
 from app.core.settings import ApiSettings
 from app.db.migrate import SCHEMA_REVISION
-from app.db.tables import AnalysisRow, AuditRow, ConfigurationRow, DeviceRow, ModelRow
+from app.db.tables import AnalysisRow, AuditRow, ConfigurationRow, DeviceRow, FeedbackRow, ModelRow
+from app.domain.fingerprints import finding_fingerprint
 
 
 class DeviceIdentityConflict(ValueError):
@@ -22,6 +25,10 @@ class DeviceIdentityConflict(ValueError):
 
 class StorageIntegrityError(Exception):
     """Stored content could not be authenticated or validated; never expose its details."""
+
+
+class FeedbackConflict(ValueError):
+    """An assessment is stale or its idempotency identity is already bound differently."""
 
 
 def make_engine(database_url: str) -> Engine:
@@ -55,7 +62,14 @@ class Store:
                 )
                 if revisions != [SCHEMA_REVISION]:
                     return False
-                for table in ("devices", "configurations", "analyses", "audit_events", "models"):
+                for table in (
+                    "devices",
+                    "configurations",
+                    "analyses",
+                    "audit_events",
+                    "models",
+                    "finding_feedback",
+                ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True
         except Exception:
@@ -248,4 +262,113 @@ class Store:
         with self._sessions() as session:
             return [
                 self._analysis(row) for row in session.scalars(query.limit(limit).offset(offset))
+            ]
+
+    @staticmethod
+    def _check_feedback_binding(record: FeedbackRecord, analysis: AnalysisResult) -> None:
+        finding = next(
+            (item for item in analysis.findings if item.finding_id == record.finding_id), None
+        )
+        if finding is None or (
+            record.analysis_id != analysis.analysis_id
+            or record.configuration_id != analysis.configuration_id
+            or record.device_id != analysis.device_id
+            or record.source_sha256 != analysis.source_sha256
+            or record.finding_sha256 != finding_fingerprint(finding)
+        ):
+            raise StorageIntegrityError("Stored data is unavailable.")
+
+    def _feedback(self, row: FeedbackRow, analysis: AnalysisResult) -> FeedbackRecord:
+        try:
+            record = FeedbackRecord.model_validate_json(
+                self._decode(row.payload, kind="feedback", row_id=row.id)
+            )
+        except ValueError:
+            raise StorageIntegrityError("Stored data is unavailable.") from None
+        row_time = (
+            row.created_at
+            if row.created_at.tzinfo is not None
+            else row.created_at.replace(tzinfo=UTC)
+        )
+        if (
+            str(record.feedback_id),
+            str(record.analysis_id),
+            str(record.finding_id),
+            record.created_at,
+        ) != (
+            row.id,
+            row.analysis_id,
+            row.finding_id,
+            row_time,
+        ):
+            raise StorageIntegrityError("Stored data is unavailable.")
+        self._check_feedback_binding(record, analysis)
+        return record
+
+    def _feedback_replay(
+        self, session: Session, row: FeedbackRow, incoming: FeedbackRecord
+    ) -> FeedbackRecord:
+        parent = session.get(AnalysisRow, row.analysis_id)
+        if parent is None:
+            raise StorageIntegrityError("Stored data is unavailable.")
+        stored = self._feedback(row, self._analysis(parent))
+        if stored.model_dump(exclude={"created_at"}) != incoming.model_dump(exclude={"created_at"}):
+            raise FeedbackConflict("feedback identity is already bound")
+        return stored
+
+    def add_feedback(self, record: FeedbackRecord) -> tuple[FeedbackRecord, bool]:
+        record = FeedbackRecord.model_validate_json(record.model_dump_json())
+        feedback_id = str(record.feedback_id)
+        try:
+            with self._sessions.begin() as session:
+                existing = session.get(FeedbackRow, feedback_id)
+                if existing is not None:
+                    return self._feedback_replay(session, existing, record), False
+                parent = session.get(AnalysisRow, str(record.analysis_id))
+                if parent is None:
+                    raise StorageIntegrityError("Stored data is unavailable.")
+                self._check_feedback_binding(record, self._analysis(parent))
+                session.add(
+                    FeedbackRow(
+                        id=feedback_id,
+                        analysis_id=str(record.analysis_id),
+                        finding_id=str(record.finding_id),
+                        created_at=record.created_at,
+                        payload=self._encode(
+                            record.model_dump_json(), kind="feedback", row_id=feedback_id
+                        ),
+                    )
+                )
+                session.add(
+                    AuditRow(
+                        id=str(uuid4()),
+                        action="finding.feedback_recorded",
+                        resource_id=feedback_id,
+                        created_at=datetime.now(UTC),
+                    )
+                )
+            return record, True
+        except IntegrityError:
+            # A racing replay may lose the unique-ID insert; its transaction has rolled back.
+            with self._sessions() as session:
+                existing = session.get(FeedbackRow, feedback_id)
+                if existing is None:
+                    raise
+                return self._feedback_replay(session, existing, record), False
+
+    def list_feedback(
+        self, *, analysis: AnalysisResult, finding_id: UUID, limit: int, offset: int
+    ) -> list[FeedbackRecord]:
+        query = (
+            select(FeedbackRow)
+            .where(
+                FeedbackRow.analysis_id == str(analysis.analysis_id),
+                FeedbackRow.finding_id == str(finding_id),
+            )
+            .order_by(FeedbackRow.created_at.desc(), FeedbackRow.id.desc())
+        )
+        with self._sessions() as session:
+            return [
+                self._feedback(row, analysis)
+                for row in session.scalars(query.limit(limit).offset(offset))
             ]

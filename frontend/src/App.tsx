@@ -9,6 +9,8 @@ import type {
   ConfigurationSummary,
   Upload,
   ModelSummary,
+  FeedbackRecord,
+  FeedbackSubmission,
 } from "./contracts";
 import { date, percent, shortId } from "./format";
 import { SnapshotView } from "./SnapshotView";
@@ -354,6 +356,18 @@ export function App() {
     });
   }
 
+  async function submitFeedback(
+    finding: string,
+    submission: FeedbackSubmission,
+  ): Promise<FeedbackRecord | null> {
+    let record: FeedbackRecord | null = null;
+    await operation(async (client) => {
+      const saved = await client.submitFeedback(finding, submission);
+      if (active.current === client) record = saved;
+    });
+    return record;
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -636,7 +650,14 @@ export function App() {
               }
             />
             {result && (
-              <AnalysisView key={result.analysis_id} result={result} />
+              <AnalysisView
+                key={result.analysis_id}
+                result={result}
+                client={session}
+                busy={busy}
+                onError={failure}
+                onFeedback={submitFeedback}
+              />
             )}
           </>
         )}

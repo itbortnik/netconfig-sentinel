@@ -16,7 +16,8 @@ from app.api.contracts import (
     TrainModelOptions,
     UploadConfiguration,
 )
-from app.db.store import Store
+from app.api.feedback_contracts import FeedbackRecord, SubmitFeedback
+from app.db.store import FeedbackConflict, StorageIntegrityError, Store
 from app.detection.baseline import (
     PeerGroupKey,
     build_peer_baseline,
@@ -32,6 +33,8 @@ from app.detection.statistical.isolation_forest import (
     evaluate_isolation_forest,
     fit_isolation_forest,
 )
+from app.domain import Finding
+from app.domain.fingerprints import finding_fingerprint
 from app.explanation.local import explain_finding
 from app.ingestion.local import validate_configuration_text
 from app.parsers import parse_configuration
@@ -42,10 +45,43 @@ class ModelTrainingBusy(Exception):
     """Only one bounded training operation is allowed per application process."""
 
 
+class FeedbackTargetNotFound(Exception):
+    """The selected analysis/finding pair is unavailable."""
+
+
 class AnalysisService:
     def __init__(self, store: Store) -> None:
         self.store = store
         self._training_slot = BoundedSemaphore(1)
+
+    def feedback_target(
+        self, analysis_id: UUID, finding_id: UUID
+    ) -> tuple[AnalysisResult, Finding]:
+        analysis = self.store.get_analysis(analysis_id)
+        if analysis is None:
+            raise FeedbackTargetNotFound()
+        for finding, explanation in zip(analysis.findings, analysis.explanations, strict=True):
+            if finding.finding_id == finding_id:
+                if finding_fingerprint(finding) != explanation.finding_sha256:
+                    raise StorageIntegrityError("Stored data is unavailable.")
+                return analysis, finding
+        raise FeedbackTargetNotFound()
+
+    def submit_feedback(
+        self, finding_id: UUID, submission: SubmitFeedback
+    ) -> tuple[FeedbackRecord, bool]:
+        analysis, finding = self.feedback_target(submission.analysis_id, finding_id)
+        if submission.finding_sha256 != finding_fingerprint(finding):
+            raise FeedbackConflict("finding content differs from the selected analysis")
+        record = FeedbackRecord(
+            **submission.model_dump(),
+            finding_id=finding_id,
+            device_id=analysis.device_id,
+            configuration_id=analysis.configuration_id,
+            source_sha256=analysis.source_sha256,
+            created_at=datetime.now(UTC),
+        )
+        return self.store.add_feedback(record)
 
     def train_model(self, options: TrainModelOptions) -> ModelSummary:
         if not self._training_slot.acquire(blocking=False):

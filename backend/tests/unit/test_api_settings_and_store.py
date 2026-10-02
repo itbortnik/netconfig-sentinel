@@ -1,13 +1,14 @@
 """Explicit settings, idempotent migrations, foreign keys and atomic audit writes."""
 
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import app.db.migrate as migration_module
 import pytest
 from alembic import command
 from alembic.config import Config
-from app.api.contracts import UploadConfiguration
+from app.api.contracts import InventoryLabels, TrainModelOptions, UploadConfiguration
+from app.api.feedback_contracts import SubmitFeedback
 from app.api.service import AnalysisService
 from app.core.settings import ApiSettings
 from app.db.migrate import main, upgrade_database
@@ -86,6 +87,7 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "analyses",
             "audit_events",
             "models",
+            "finding_feedback",
         }
         with store.engine.begin() as connection, pytest.raises(IntegrityError):
             connection.execute(
@@ -137,6 +139,76 @@ def test_registry_migration_preserves_initial_schema_history(tmp_path: Path) -> 
         assert store.list_models(limit=20, offset=0) == []
         upgrade_database(store.engine)
         assert store.get_analysis(result.analysis_id) == result
+    finally:
+        store.close()
+
+
+def test_feedback_migration_preserves_models_and_analysis_from_registry_schema(
+    tmp_path: Path,
+) -> None:
+    store = Store(settings_for(tmp_path))
+    try:
+        migration = Config()
+        migration.set_main_option(
+            "script_location", str(Path(migration_module.__file__).parent / "migrations")
+        )
+        with store.engine.begin() as connection:
+            migration.attributes["connection"] = connection
+            command.upgrade(migration, "0002_model_registry")
+        assert not store.ready()
+        service = AnalysisService(store)
+        training = [
+            service.upload(
+                UploadConfiguration(
+                    device_id=uuid4(),
+                    filename="legacy-model.cfg",
+                    content=f"hostname legacy-model-{index}\nvlan {10 + index}\n name LAB\n!\n",
+                    inventory=InventoryLabels(
+                        device_role="edge", site_class="branch", service_profile="migration"
+                    ),
+                )
+            )
+            for index in range(8)
+        ]
+        model = service.train_model(
+            TrainModelOptions(configuration_ids=tuple(item.configuration_id for item in training))
+        )
+        persisted_model = store.get_model(model.model_id)
+        result = service.analyze(training[0].configuration_id)
+        assert result is not None
+        with store.engine.connect() as connection:
+            audit_count = connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one()
+        upgrade_database(store.engine)
+        assert store.ready()
+        assert store.get_model(model.model_id) == persisted_model
+        assert store.get_analysis(result.analysis_id) == result
+        assert store.get_configuration(training[0].configuration_id) == training[0]
+        assert (
+            store.list_feedback(
+                analysis=result, finding_id=result.findings[0].finding_id, limit=20, offset=0
+            )
+            == []
+        )
+        with store.engine.connect() as connection:
+            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == (
+                audit_count
+            )
+        record, created = service.submit_feedback(
+            result.findings[0].finding_id,
+            SubmitFeedback(
+                feedback_id=uuid4(),
+                analysis_id=result.analysis_id,
+                finding_sha256=result.explanations[0].finding_sha256,
+                verdict="needs_investigation",
+                comment="Review after the schema upgrade.",
+            ),
+        )
+        assert created
+        upgrade_database(store.engine)
+        assert store.list_feedback(
+            analysis=result, finding_id=result.findings[0].finding_id, limit=20, offset=0
+        ) == [record]
+        assert store.get_model(model.model_id) == persisted_model
     finally:
         store.close()
 
