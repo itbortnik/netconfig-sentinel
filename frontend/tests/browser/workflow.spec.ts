@@ -34,6 +34,33 @@ async function upload(page: Page, content: string, name = "browser.cfg") {
   ).toBeVisible();
 }
 
+async function expectNoOverflow(page: Page) {
+  const layout = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    scroll: document.documentElement.scrollWidth,
+    offenders: [...document.querySelectorAll("main *")]
+      .map((element) => ({
+        tag: element.tagName,
+        class: element.className,
+        right: element.getBoundingClientRect().right,
+        width: element.getBoundingClientRect().width,
+        wrap: getComputedStyle(element).overflowWrap,
+        overflow: getComputedStyle(element).overflowX,
+        contentWidth: element.scrollWidth,
+        innerWidth: element.clientWidth,
+      }))
+      .filter(
+        (item) =>
+          item.width > 0 &&
+          (item.right > window.innerWidth + 1 ||
+            (item.overflow === "visible" &&
+              item.contentWidth > item.innerWidth + 1)),
+      )
+      .slice(0, 12),
+  }));
+  expect(layout.scroll <= layout.viewport, JSON.stringify(layout)).toBe(true);
+}
+
 test("invalid authentication remains disconnected and no token persists", async ({
   page,
 }) => {
@@ -336,11 +363,14 @@ test("explicit reference and three peers survive analysis history, not the brows
   await expect(page.locator(".analysis-summary .json-view")).toContainText(
     '"sample_count": 3',
   );
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoOverflow(page);
+  if (test.info().project.name === "desktop") {
+    for (const width of [1150, 1024, 800]) {
+      await page.setViewportSize({ width, height: 720 });
+      await expectNoOverflow(page);
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+  }
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Подключить рабочую сессию" }),

@@ -577,6 +577,8 @@ pre {
   border: 1px solid var(--border);
   border-radius: 6px;
   width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .finding-button.selected {
   background: #f2f6fb;
@@ -592,6 +594,9 @@ pre {
   color: #62738a;
   font-weight: 500;
   padding-left: 6px;
+}
+.finding-detail {
+  overflow-wrap: anywhere;
 }
 .finding-detail h3 {
   font-size: 1.25rem;
