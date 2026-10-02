@@ -45,7 +45,10 @@ does not prove that an unsupported statement is unsafe.
 
 - Exact set comparison does not yet understand equivalent policy intent.
 - Inventory labels and the selected peer population can bias the result.
-- The profile is an in-memory contract in this iteration; persistence and
-  time-aware version selection belong to the API/database stage.
+- The standalone builder returns an in-memory profile. The opt-in
+  [persistent API](api-comparisons.md) stores the exact profile and selected
+  input IDs/hashes inside the encrypted analysis; it excludes the target device,
+  duplicate device versions and snapshots received after the target.
+  There is no automatic inventory inference, profile registry or refresh.
 - Peer agreement is not evidence of compliance and cannot reduce the severity
   of a deterministic policy finding.

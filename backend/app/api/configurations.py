@@ -9,9 +9,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from app.api.contracts import (
+    AnalysisOptions,
     AnalysisResult,
     AnalysisSummary,
     ConfigurationSnapshot,
@@ -53,6 +55,29 @@ Limit = Annotated[int, Query(ge=1, le=100)]
 Offset = Annotated[int, Query(ge=0, le=10_000)]
 
 
+def _request_schema(model: type[BaseModel]) -> dict[str, Any]:
+    """Inline local definitions because a manual request schema is nested in OpenAPI."""
+    schema = model.model_json_schema()
+    definitions = schema.pop("$defs", {})
+
+    def expand(value: Any) -> Any:
+        if isinstance(value, list):
+            return [expand(item) for item in value]
+        if isinstance(value, dict):
+            reference = value.get("$ref", "")
+            if isinstance(reference, str) and reference.startswith("#/$defs/"):
+                definition = definitions[reference.removeprefix("#/$defs/")]
+                return expand(
+                    definition | {key: item for key, item in value.items() if key != "$ref"}
+                )
+            return {key: expand(item) for key, item in value.items()}
+        return value
+
+    result = expand(schema)
+    assert isinstance(result, dict)
+    return result
+
+
 def _unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -62,11 +87,9 @@ def _unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
-async def _upload_body(request: Request) -> UploadConfiguration:
-    if (
-        request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
-        != "application/json"
-    ):
+async def _request_body(request: Request, *, maximum: int, empty_allowed: bool = False) -> bytes:
+    content_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if content_type != "application/json" and (content_type or not empty_allowed):
         raise HTTPException(status_code=415, detail="Use application/json.")
     if request.headers.get("content-encoding", "identity") != "identity":
         raise HTTPException(status_code=415, detail="Encoded request bodies are unsupported.")
@@ -77,18 +100,34 @@ async def _upload_body(request: Request) -> UploadConfiguration:
                 raise ValueError("negative request length")
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid request length.") from None
-        if length > MAX_REQUEST_BYTES:
+        if length > maximum:
             raise HTTPException(status_code=413, detail="Upload exceeds request size limit.")
     body = bytearray()
     async for chunk in request.stream():
-        if len(body) + len(chunk) > MAX_REQUEST_BYTES:
+        if len(body) + len(chunk) > maximum:
             raise HTTPException(status_code=413, detail="Upload exceeds request size limit.")
         body.extend(chunk)
+    if body and content_type != "application/json":
+        raise HTTPException(status_code=415, detail="Use application/json.")
+    return bytes(body)
+
+
+async def _upload_body(request: Request) -> UploadConfiguration:
+    body = await _request_body(request, maximum=MAX_REQUEST_BYTES)
     try:
         parsed = json.loads(body.decode("utf-8"), object_pairs_hook=_unique_keys)
         return UploadConfiguration.model_validate(parsed)
     except (ValueError, RecursionError):
         raise HTTPException(status_code=400, detail="Invalid configuration upload.") from None
+
+
+async def _analysis_body(request: Request) -> AnalysisOptions:
+    body = await _request_body(request, maximum=16 * 1024, empty_allowed=True)
+    try:
+        parsed = json.loads(body.decode("utf-8"), object_pairs_hook=_unique_keys) if body else {}
+        return AnalysisOptions.model_validate(parsed)
+    except (ValueError, RecursionError):
+        raise HTTPException(status_code=400, detail="Invalid analysis options.") from None
 
 
 @router.post(
@@ -98,7 +137,7 @@ async def _upload_body(request: Request) -> UploadConfiguration:
     openapi_extra={
         "requestBody": {
             "required": True,
-            "content": {"application/json": {"schema": UploadConfiguration.model_json_schema()}},
+            "content": {"application/json": {"schema": _request_schema(UploadConfiguration)}},
         }
     },
 )
@@ -149,10 +188,26 @@ def get_configuration(configuration_id: UUID, service: Service) -> Configuration
 
 
 @router.post(
-    "/configurations/{configuration_id}/analyze", response_model=AnalysisResult, status_code=201
+    "/configurations/{configuration_id}/analyze",
+    response_model=AnalysisResult,
+    status_code=201,
+    openapi_extra={
+        "requestBody": {
+            "required": False,
+            "content": {"application/json": {"schema": _request_schema(AnalysisOptions)}},
+        }
+    },
 )
-def analyze_configuration(configuration_id: UUID, service: Service) -> AnalysisResult:
-    result = service.analyze(configuration_id)
+async def analyze_configuration(
+    configuration_id: UUID, request: Request, service: Service
+) -> AnalysisResult:
+    options = await _analysis_body(request)
+    try:
+        result = await run_in_threadpool(service.analyze, configuration_id, options)
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="Selected comparisons are unavailable or incompatible."
+        ) from None
     if result is None:
         raise HTTPException(status_code=404, detail="Configuration not found.")
     return result

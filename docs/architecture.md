@@ -2,7 +2,7 @@
 
 The first iteration is a modular monolith. `app.domain` owns stable contracts;
 `app.parsers` owns content detection and vendor adapters; `app.api` exposes
-process probes and an authenticated persistent policy-analysis workflow.
+process probes and an authenticated persistent deterministic-analysis workflow.
 Ingestion, detection, verification, and explanation code
 must depend on the domain contracts rather than on vendor parser internals.
 
@@ -11,15 +11,19 @@ The current persistent HTTP path is deliberately narrower than the offline tooli
 ```text
 Bearer token + bounded JSON upload + explicit device UUID
   -> text validation -> vendor parser -> encrypted canonical snapshot + audit
-  -> deterministic policies -> local explanations -> policy-only risk
+  -> policies + explicitly selected reference/peer comparison -> local explanations
+  -> policy/peer risk (reference differences excluded)
   -> encrypted analysis + audit -> authenticated history/results
 ```
 
 `app.db` owns short SQLAlchemy sessions and explicit Alembic migrations.
 Snapshots and analyses are append-only through the exposed API. Writes and
 their audit events commit together. Partial parsing keeps available findings
-but suppresses the aggregate risk; ML, peer baselines and formal verification
-remain unavailable in this HTTP path. See [API](persistent-api.md) and
+but suppresses the aggregate risk; exact reference comparison requires complete parsing.
+Peer consensus is opt-in and persists the exact profile plus selected input fingerprints
+inside the encrypted analysis, without a separate profile registry.
+ML and formal verification remain unavailable in this HTTP path.
+See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 [trust boundary](threat-model.md).
 
 The browser is a React/TypeScript client of that same API, not a parallel detector.

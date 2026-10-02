@@ -9,7 +9,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.detection.baseline import ExpectedConfiguration, compare_expected_configuration
+from app.detection.baseline import (
+    ExpectedConfiguration,
+    PeerBaseline,
+    compare_expected_configuration,
+    evaluate_peer_baseline,
+)
 from app.detection.policy_engine import evaluate_policies
 from app.domain import CanonicalConfig, Finding, Severity
 from app.policies import POLICY_CATALOG_VERSION, POLICY_RULES
@@ -46,7 +51,11 @@ class FindingExplanation(BaseModel):
 
 
 def explain_finding(
-    finding: Finding, config: CanonicalConfig, *, reference: ExpectedConfiguration | None = None
+    finding: Finding,
+    config: CanonicalConfig,
+    *,
+    reference: ExpectedConfiguration | None = None,
+    peer_baseline: PeerBaseline | None = None,
 ) -> FindingExplanation:
     """Require a finding to match a fresh detector run before generating prose."""
     finding = Finding.model_validate(finding.model_dump())
@@ -72,6 +81,19 @@ def explain_finding(
         )
         recommendation = "Review the intended change against the selected device reference."
         citations = ("docs/expected-configuration.md",)
+    elif finding.detector == "peer_baseline":
+        if peer_baseline is None:
+            raise ValueError("peer findings require the selected consensus profile")
+        peer_baseline = PeerBaseline.model_validate(peer_baseline.model_dump())
+        candidates = evaluate_peer_baseline(config, peer_baseline, device_id=finding.device_id)
+        summary = "A supported value differs from the selected peer consensus."
+        technical = (
+            "The detector compared canonical values with an explicitly selected peer group. "
+            "Support counts and the expected value are retained in the finding. "
+            "Peer agreement is not proof of compliance or correct network behavior."
+        )
+        recommendation = "Review peer selection, inventory labels and intended configuration."
+        citations = ("docs/baseline.md",)
     else:
         raise ValueError("unsupported explanation detector")
     if finding not in candidates:

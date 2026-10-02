@@ -81,3 +81,128 @@ it("will not present a future ML detector as a current policy finding", () => {
     false,
   );
 });
+
+const guid = (number: number) =>
+  `00000000-0000-0000-0000-${String(number).padStart(12, "0")}`;
+const context = {
+  reference: null,
+  peers: [2, 3, 4].map((number) => ({
+    configuration_id: guid(number + 3),
+    device_id: guid(number),
+    source_sha256: String(number).repeat(64),
+    created_at: "2026-10-01T00:00:00Z",
+  })),
+  peer_baseline: {
+    model_version: "peer-baseline-0.1.0",
+    group: {
+      vendor: "cisco",
+      platform: "ios",
+      device_role: "edge",
+      site_class: "branch",
+      service_profile: "internal",
+    },
+    sample_count: 3,
+    consensus_threshold: 0.75,
+    features: [],
+    unsupported_ratio_median: 0,
+    unsupported_ratio_limit: 0.05,
+  },
+};
+const peerFinding = {
+  ...finding,
+  finding_id: guid(8),
+  detector: "peer_baseline",
+  model_version: "peer-baseline-0.1.0",
+};
+const peerExplanation = {
+  ...explanation,
+  finding_id: guid(8),
+  detector_version: "peer-baseline-0.1.0",
+};
+const hybrid = {
+  ...analysis,
+  version: "analysis-api-0.2.0",
+  status: "completed",
+  comparison: context,
+  findings: [finding, peerFinding],
+  explanations: [explanation, peerExplanation],
+  risk: {
+    assessment_id: guid(10),
+    device_id: device,
+    score: 0.8,
+    level: "critical",
+    model_version: "risk-fusion-0.1.0",
+    guardrails: [],
+    limitations: [],
+    components: [
+      "policy",
+      "peer_group",
+      "statistical",
+      "transformer",
+      "verification",
+    ].map((source, index) => ({
+      source,
+      status: index < 2 ? "completed" : "unavailable",
+      raw_score: index < 2 ? 0.8 : null,
+      configured_weight: [0.35, 0.15, 0.1, 0.1, 0.3][index],
+      effective_weight: [0.7, 0.3, 0, 0, 0][index],
+      finding_ids: index < 2 ? [index === 0 ? device : guid(8)] : [],
+    })),
+  },
+};
+it("accepts actual peer completion with normalized weights and immutable inputs", () => {
+  expect(analysisSchema.safeParse(hybrid).success).toBe(true);
+  expect(
+    analysisSchema.safeParse({ ...hybrid, status: "partial", risk: null })
+      .success,
+  ).toBe(true);
+});
+it.each([
+  { comparison: null },
+  { version: "analysis-api-0.1.0" },
+  { comparison: { ...context, peers: context.peers.slice(0, 2) } },
+  {
+    comparison: {
+      ...context,
+      peers: [context.peers[0], context.peers[0], context.peers[2]],
+    },
+  },
+  {
+    comparison: {
+      ...context,
+      peers: context.peers.map((peer) => ({ ...peer, device_id: device })),
+    },
+  },
+  {
+    risk: {
+      ...hybrid.risk,
+      components: hybrid.risk.components.map((part) => ({
+        ...part,
+        effective_weight: 0,
+      })),
+    },
+  },
+  {
+    risk: {
+      ...hybrid.risk,
+      components: hybrid.risk.components.map((part) => ({
+        ...part,
+        finding_ids: [],
+      })),
+    },
+  },
+  {
+    findings: [
+      finding,
+      {
+        ...peerFinding,
+        detector: "expected_configuration",
+        model_version: "expected-config-0.1.0",
+      },
+    ],
+  },
+])("rejects incompatible extended comparison results", (change) => {
+  expect(analysisSchema.safeParse({ ...hybrid, ...change }).success).toBe(
+    false,
+  );
+});

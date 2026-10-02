@@ -12,6 +12,9 @@ import type {
 import { date, percent, shortId } from "./format";
 import { SnapshotView } from "./SnapshotView";
 import { UploadForm } from "./UploadForm";
+import { ComparisonSelection } from "./ComparisonSelection";
+import { comparisonOptions, selectedSnapshot } from "./comparison";
+import type { SelectedSnapshot } from "./comparison";
 
 function Login({
   busy,
@@ -115,6 +118,8 @@ export function App() {
   const [refresh, setRefresh] = useState(0);
   const [snapshot, setSnapshot] = useState<ConfigurationSnapshot | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [reference, setReference] = useState<SelectedSnapshot | null>(null);
+  const [peers, setPeers] = useState<SelectedSnapshot[]>([]);
 
   const disconnect = useCallback(() => {
     active.current?.close();
@@ -128,6 +133,8 @@ export function App() {
     setAnalyses([]);
     setSnapshot(null);
     setResult(null);
+    setReference(null);
+    setPeers([]);
     setConfigOffset(0);
     setAnalysisOffset(0);
     setDeviceOnly(false);
@@ -282,7 +289,22 @@ export function App() {
     const selected = snapshot;
     setResult(null);
     void operation(async (client) => {
-      const analysis = await client.analyze(selected.configuration_id);
+      let options;
+      try {
+        options = comparisonOptions(
+          selectedSnapshot(selected),
+          reference,
+          peers,
+        );
+      } catch (problem) {
+        throw new ApiError(
+          400,
+          problem instanceof Error
+            ? problem.message
+            : "Неверный выбор сравнений.",
+        );
+      }
+      const analysis = await client.analyze(selected.configuration_id, options);
       bound(analysis, selected);
       if (active.current !== client) return;
       setResult(analysis);
@@ -317,7 +339,7 @@ export function App() {
         </nav>
         <div className="sidebar-bottom">
           <strong>Cisco IOS / JunOS</strong>
-          <p>Локальный анализ политиками</p>
+          <p>Политики и явные сравнения</p>
           <span className="sidebar-note">Изменения не применяются</span>
         </div>
       </aside>
@@ -477,7 +499,7 @@ export function App() {
                           >
                             {item.status === "partial"
                               ? "Частичный"
-                              : "Политики проверены"}
+                              : "Анализ завершён"}
                           </span>
                         </span>
                         <span>
@@ -529,8 +551,27 @@ export function App() {
                   setDevice(snapshot.device_id);
                   setTab("configurations");
                 }}
+                onReference={() => setReference(selectedSnapshot(snapshot))}
+                onPeer={() => {
+                  const selected = selectedSnapshot(snapshot);
+                  if (peers.some((peer) => peer.id === selected.id)) return;
+                  if (peers.length >= 20) {
+                    setError("Допускается максимум 20 peers.");
+                    return;
+                  }
+                  setPeers((items) => [...items, selected]);
+                }}
               />
             )}
+            <ComparisonSelection
+              reference={reference}
+              peers={peers}
+              busy={busy}
+              onClearReference={() => setReference(null)}
+              onRemovePeer={(id) =>
+                setPeers((items) => items.filter((peer) => peer.id !== id))
+              }
+            />
             {result && (
               <AnalysisView key={result.analysis_id} result={result} />
             )}

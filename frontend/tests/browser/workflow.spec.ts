@@ -269,3 +269,124 @@ test("working surface fits viewport and supports keyboard login", async ({
     "unsafe-inline",
   );
 });
+
+test("explicit reference and three peers survive analysis history, not the browser session", async ({
+  page,
+}) => {
+  await connect(page);
+  const suffix = `${test.info().project.name}-${Date.now()}`;
+  await page
+    .getByText("Метки группы сравнения (необязательно)", { exact: true })
+    .click();
+  await page.getByLabel("Роль устройства", { exact: true }).fill("edge");
+  await page.getByLabel("Класс площадки", { exact: true }).fill("branch");
+  await page
+    .getByLabel("Профиль сервиса", { exact: true })
+    .fill("browser-test");
+  const device = await page
+    .getByLabel("UUID устройства", { exact: true })
+    .inputValue();
+  const normal = (host: string) =>
+    `hostname ${host}\naaa new-model\nip ssh version 2\nline vty 0 4\n transport input ssh\n!\nntp server 192.0.2.1\nlogging host 192.0.2.2\ninterface Gi0/1\n switchport mode access\n switchport access vlan 10\n!\n`;
+  const host = `compare-${suffix}`;
+  await upload(page, normal(host), "reference.cfg");
+  await page
+    .getByRole("button", { name: "Выбрать как эталон", exact: true })
+    .click();
+  const selection = page.getByRole("region", { name: "Выбор сравнений" });
+  await expect(selection).toContainText(host);
+  for (let index = 0; index < 3; index += 1) {
+    await page.getByRole("button", { name: "Новое", exact: true }).click();
+    await upload(page, normal(`peer-${suffix}-${index}`), `peer-${index}.cfg`);
+    await page
+      .getByRole("button", { name: "Добавить в группу сравнения", exact: true })
+      .click();
+  }
+  await expect(selection).toContainText("Группа: 3 из максимум 20 устройств");
+  await page.getByLabel("UUID устройства", { exact: true }).fill(device);
+  await upload(
+    page,
+    normal(host)
+      .replace("input ssh\n", "input ssh telnet\n")
+      .replace("vlan 10", "vlan 20"),
+    "candidate.cfg",
+  );
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Находки и доказательства" }),
+  ).toBeVisible();
+  await page.getByLabel("Поиск по находкам").fill("Peer baseline");
+  await page.locator(".finding-button").first().click();
+  await expect(
+    page.getByRole("region", { name: "Детали находки" }),
+  ).toContainText("peer_baseline");
+  await expect(
+    page.getByRole("region", { name: "Детали находки" }),
+  ).toContainText("Строки 5");
+  await page.getByLabel("Поиск по находкам").fill("Reference deviation");
+  await page.locator(".finding-button").first().click();
+  await expect(
+    page.getByRole("region", { name: "Детали находки" }),
+  ).toContainText("expected_configuration");
+  await page
+    .getByText("Входы сравнения и профиль группы", { exact: true })
+    .click();
+  await expect(page.locator(".analysis-summary .json-view")).toContainText(
+    '"sample_count": 3',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Подключить рабочую сессию" }),
+  ).toBeVisible();
+  await page.getByLabel("API-токен", { exact: true }).fill(TOKEN);
+  await page.getByRole("button", { name: "Подключиться", exact: true }).click();
+  await expect(selection).toContainText("Эталон: Не выбран");
+  await expect(selection).toContainText("Группа: 0 из максимум 20 устройств");
+  await page.getByRole("button", { name: "Анализы", exact: true }).click();
+  await page.locator(".history-item").first().click();
+  await expect(
+    page.getByRole("heading", { name: "Находки и доказательства" }),
+  ).toBeVisible();
+  await page
+    .getByText("Входы сравнения и профиль группы", { exact: true })
+    .click();
+  await expect(page.locator(".analysis-summary .json-view")).toContainText(
+    '"sample_count": 3',
+  );
+});
+
+test("a current snapshot cannot silently become its own selected reference", async ({
+  page,
+}) => {
+  await connect(page);
+  await upload(page, `hostname selected-${Date.now()}\n`);
+  await page
+    .getByRole("button", { name: "Выбрать как эталон", exact: true })
+    .click();
+  let runs = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/analyze"))
+      runs += 1;
+  });
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("Эталон должен");
+  expect(runs).toBe(0);
+  await page
+    .getByRole("button", { name: "Убрать эталон", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Находки и доказательства" }),
+  ).toBeVisible();
+});

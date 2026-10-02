@@ -7,11 +7,15 @@ export function SnapshotView({
   busy,
   onAnalyze,
   onDevice,
+  onReference,
+  onPeer,
 }: {
   snapshot: ConfigurationSnapshot;
   busy: boolean;
   onAnalyze: () => void;
   onDevice: () => void;
+  onReference: () => void;
+  onPeer: () => void;
 }) {
   const config = snapshot.canonical;
   const heading = useRef<HTMLHeadingElement>(null);
@@ -80,6 +84,26 @@ export function SnapshotView({
         </button>
         <button className="button secondary" disabled={busy} onClick={onDevice}>
           Использовать UUID устройства
+        </button>
+        <button
+          className="button secondary"
+          disabled={busy || partial}
+          onClick={onReference}
+        >
+          Выбрать как эталон
+        </button>
+        <button
+          className="button secondary"
+          disabled={
+            busy ||
+            partial ||
+            !config.device.role ||
+            !config.device.site_class ||
+            !config.device.service_profile
+          }
+          onClick={onPeer}
+        >
+          Добавить в группу сравнения
         </button>
       </div>
       {config.parse_warnings.length > 0 && (

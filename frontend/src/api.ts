@@ -5,7 +5,7 @@ import {
   configurationSummarySchema,
   snapshotSchema,
 } from "./contracts";
-import type { Upload } from "./contracts";
+import type { AnalysisOptions, Upload } from "./contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -47,7 +47,7 @@ export class ApiClient {
   private async request<T>(
     path: string,
     schema: z.ZodType<T>,
-    body?: Upload,
+    body?: Upload | AnalysisOptions,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -115,10 +115,11 @@ export class ApiClient {
   upload(body: Upload) {
     return this.request("/configurations", snapshotSchema, body);
   }
-  analyze(id: string) {
+  analyze(id: string, options?: AnalysisOptions) {
     return this.request(
       `/configurations/${encodeURIComponent(id)}/analyze`,
       analysisSchema,
+      options,
     );
   }
 }

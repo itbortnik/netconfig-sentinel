@@ -14,6 +14,9 @@
 - SQLAlchemy, явные миграции Alembic, локальная SQLite и конфигурация PostgreSQL;
 - React + TypeScript интерфейс: загрузка, история, находки, доказательства,
   объяснения и явные статусы неполного разбора/незапущенных проверок;
+- opt-in сравнение с выбранным ранним снимком того же устройства и группой
+  из 3–20 явно размеченных peers через API/UI; профиль и fingerprints входов
+  сохраняются в зашифрованной истории анализа;
 - строгие Pydantic-контракты `CanonicalConfig`, `SourceLocation` и `Finding`;
 - независимый интерфейс `VendorParser` и явный registry адаптеров;
 - Cisco IOS/IOS-XE: hostname, version, AAA, SSH/Telnet, SNMP, NTP и Syslog;
@@ -90,6 +93,7 @@
 Для сквозного HTTP-сценария настройте токен, ключ шифрования и БД по
 [инструкции постоянного API](docs/persistent-api.md).
 Для работы в браузере соберите [веб-интерфейс](docs/web-interface.md).
+Выбор эталона и группы описан в [сравнениях API](docs/api-comparisons.md).
 
 ```powershell
 python -m venv .venv

@@ -3,6 +3,7 @@
 from uuid import UUID
 
 import pytest
+from app.detection.baseline import build_peer_baseline, evaluate_peer_baseline
 from app.detection.policy_engine import evaluate_policies
 from app.domain import Vendor
 from app.explanation.local import FindingExplanation, explain_finding
@@ -98,3 +99,28 @@ def test_partial_configuration_does_not_echo_unknown_instructions() -> None:
     payload["requires_human_review"] = False
     with pytest.raises(ValueError):
         FindingExplanation.model_validate(payload)
+
+
+def test_peer_explanation_recomputes_the_selected_profile_and_rejects_modified_facts() -> None:
+    def configured(host: str, transport: str):
+        config = parse_configuration(
+            f"hostname {host}\nline vty 0 4\n transport input {transport}\n!\n", filename="test.cfg"
+        )
+        config.device.role = "edge"
+        config.device.site_class = "branch"
+        config.device.service_profile = "private-test"
+        return config
+
+    baseline = build_peer_baseline([configured(f"peer-{index}", "ssh") for index in range(3)])
+    current = configured("target", "ssh telnet")
+    finding = evaluate_peer_baseline(current, baseline, device_id=DEVICE)[0]
+    explanation = explain_finding(finding, current, peer_baseline=baseline)
+    assert explanation.confidence == finding.confidence
+    assert explanation.source_sha256 == current.source.sha256
+    assert explanation.formal_verification == "not_run"
+    with pytest.raises(ValueError, match="selected consensus"):
+        explain_finding(finding, current)
+    with pytest.raises(ValueError, match="stale, modified"):
+        explain_finding(
+            finding.model_copy(update={"confidence": 0.1}), current, peer_baseline=baseline
+        )

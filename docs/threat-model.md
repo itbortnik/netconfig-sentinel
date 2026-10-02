@@ -23,6 +23,11 @@
   `nosniff`. В Docker build context исключены `.env`, ТЗ и локальные artifacts.
 - API не вызывает внешние ML/LLM-сервисы, не загружает модели из запроса,
   не подключается к устройствам и не применяет изменения.
+- Reference/peer inputs выбираются только по сохранённым IDs, до анализа
+  проверяются identity, группа, distinct devices, порядок приёма и полнота
+  парсинга. Результат хранит профиль/версии/hashes внутри encrypted payload.
+  Неверный выбор не создаёт ни анализа, ни успешного audit-event. Роль и
+  метки задаёт оператор; UUID/hostname не удостоверяют физическое устройство.
 - UI и API работают на одном origin. Токен используется только в Authorization,
   не в URL/cookies/localStorage/sessionStorage; logout, pagehide и восстановление
   страницы очищают сессию и видимые данные. Ошибки не отражают response body.

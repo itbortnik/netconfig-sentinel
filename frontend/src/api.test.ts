@@ -73,3 +73,25 @@ it("sanitizes transport errors and validates tokens locally", async () => {
   expect(() => new ApiClient(token + "\n")).toThrow(ApiError);
   api.close();
 });
+it("sends explicit comparison IDs in the bounded JSON analysis body, not in the URL", async () => {
+  const transport = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(new Response("{}", { status: 400 }));
+  const api = new ApiClient(token, transport);
+  const options = {
+    reference_configuration_id: "reference",
+    peer_configuration_ids: ["one", "two", "three"],
+  };
+  await expect(api.analyze("current", options)).rejects.toBeInstanceOf(
+    ApiError,
+  );
+  const [url, init] = transport.mock.calls[0]!;
+  expect(url).toBe("/api/v1/configurations/current/analyze");
+  expect(init?.method).toBe("POST");
+  expect(init?.body).toBe(JSON.stringify(options));
+  expect(init?.headers).toEqual({
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  });
+  api.close();
+});

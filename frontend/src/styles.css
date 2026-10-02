@@ -478,6 +478,13 @@ input[type="checkbox"] {
   font-family: Consolas, monospace;
   overflow-wrap: anywhere;
 }
+.comparison-panel {
+  overflow-wrap: anywhere;
+  margin-top: 20px;
+}
+.comparison-panel li {
+  margin-bottom: 8px;
+}
 .button-row {
   display: flex;
   flex-wrap: wrap;

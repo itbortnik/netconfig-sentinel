@@ -95,9 +95,28 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
           </div>
         </dl>
         <p className="notice">
-          Выполнены только политики. ML, сравнение с группой устройств и Batfish
-          не запускались. Оценки не калиброваны; требуется проверка инженером.
+          Выполнены политики
+          {result.comparison?.reference
+            ? ", сравнение с выбранным эталоном"
+            : ""}
+          {result.comparison?.peer_baseline
+            ? " и сравнение с выбранной группой"
+            : ""}
+          . ML и Batfish не запускались. Оценки не калиброваны; требуется
+          проверка инженером.
         </p>
+        {result.comparison && (
+          <details>
+            <summary>Входы сравнения и профиль группы</summary>
+            <p className="hint">
+              Различия с эталоном не входят в итоговый риск. Метки и снимки
+              выбраны оператором, не утверждены автоматически.
+            </p>
+            <pre className="json-view">
+              {JSON.stringify(result.comparison, null, 2)}
+            </pre>
+          </details>
+        )}
         {result.status === "partial" && (
           <p className="notice warning">
             Разбор неполный. Находки частичные, итоговый риск недоступен.
@@ -188,7 +207,7 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
                 <span className="muted">
                   {item.affected_lines.length
                     ? `Строки ${item.affected_lines.join(", ")}`
-                    : "Нарушение отсутствующего параметра"}
+                    : "Нет привязки к текущим строкам"}
                 </span>
               </button>
             ))}
@@ -197,7 +216,7 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
             <p className="empty">
               {result.findings.length
                 ? "Находок по этому фильтру нет."
-                : "Нарушений выполненных политик не найдено. Это не доказательство безопасности сети."}
+                : "Находок выполненных проверок нет. Это не доказательство безопасности сети."}
             </p>
           )}
         </section>
@@ -208,7 +227,9 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
                 {severityLabel[finding.severity]}
               </span>
               <h3>{finding.title}</h3>
-              <p className="mono muted">{finding.category}</p>
+              <p className="mono muted">
+                {finding.detector} · {finding.category}
+              </p>
               <dl className="metrics small-metrics">
                 <div>
                   <dt>Уверенность детектора</dt>
@@ -234,8 +255,8 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
                     </>
                   ) : (
                     <p className="hint">
-                      Отсутствие параметра не подтверждается существующей
-                      строкой; строка не выдумана.
+                      Доказательство не привязано к строке текущего снимка;
+                      строки не выдуманы.
                     </p>
                   )}
                 </div>

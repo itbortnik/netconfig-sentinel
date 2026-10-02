@@ -4,6 +4,18 @@ const id = z.guid();
 const hash = z.string().regex(/^[0-9a-f]{64}$/);
 const score = z.number().min(0).max(1);
 const timestamp = z.iso.datetime({ offset: true });
+const inventoryLabel = z
+  .string()
+  .min(1)
+  .max(64)
+  .refine(
+    (value) => value.trim() === value && !/[\p{C}\p{Zl}\p{Zp}]/u.test(value),
+  );
+export const inventorySchema = z.object({
+  device_role: inventoryLabel,
+  site_class: inventoryLabel,
+  service_profile: inventoryLabel,
+});
 export const severitySchema = z.enum([
   "info",
   "low",
@@ -33,6 +45,9 @@ export const snapshotSchema = z.object({
       hostname: z.string().nullable(),
       vendor: z.enum(["cisco", "juniper"]),
       platform: z.string(),
+      role: z.string().nullable().optional(),
+      site_class: z.string().nullable().optional(),
+      service_profile: z.string().nullable().optional(),
     }),
     parser_confidence: score,
     parse_warnings: z.array(z.string()),
@@ -59,7 +74,11 @@ export const configurationSummarySchema = z.object({
 export const findingSchema = z.object({
   finding_id: id,
   device_id: id,
-  detector: z.literal("policy_engine"),
+  detector: z.enum([
+    "policy_engine",
+    "expected_configuration",
+    "peer_baseline",
+  ]),
   category: z.string(),
   title: z.string(),
   severity: severitySchema,
@@ -107,9 +126,84 @@ const explanation = z.object({
   patch_draft: z.null(),
   requires_human_review: z.literal(true),
 });
+const snapshotBindingSchema = z.object({
+  configuration_id: id,
+  device_id: id,
+  source_sha256: hash,
+  created_at: timestamp,
+});
+const peerBaselineSchema = z
+  .object({
+    model_version: z.literal("peer-baseline-0.1.0"),
+    group: z.object({
+      vendor: z.enum(["cisco", "juniper"]),
+      platform: z.string().min(1),
+      ...inventorySchema.shape,
+    }),
+    sample_count: z.number().int().min(3).max(20),
+    consensus_threshold: z.number().gt(0.5).max(1),
+    features: z.array(
+      z.object({
+        field: z.enum([
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.telnet_enabled",
+          "management.aaa_enabled",
+          "management.snmp_versions",
+          "management.ntp_configured",
+          "management.syslog_configured",
+          "vlans.set",
+          "acls.patterns",
+          "bgp.present",
+          "bgp.local_as",
+          "ospf.present",
+          "ospf.areas",
+          "static_routes.destinations",
+        ]),
+        expected: z.json(),
+        support_count: z.number().int().positive(),
+        sample_count: z.number().int().min(3).max(20),
+      }),
+    ),
+    unsupported_ratio_median: score,
+    unsupported_ratio_limit: score,
+  })
+  .refine(
+    (profile) =>
+      profile.unsupported_ratio_limit >= profile.unsupported_ratio_median &&
+      new Set(profile.features.map((item) => item.field)).size ===
+        profile.features.length &&
+      profile.features.every(
+        (item) =>
+          item.sample_count === profile.sample_count &&
+          item.support_count <= item.sample_count &&
+          item.support_count / item.sample_count >= profile.consensus_threshold,
+      ),
+  );
+const comparisonSchema = z
+  .object({
+    reference: snapshotBindingSchema.nullable(),
+    peers: z.array(snapshotBindingSchema).max(20),
+    peer_baseline: peerBaselineSchema.nullable(),
+  })
+  .refine((context) => {
+    if (!context.reference && context.peers.length === 0) return false;
+    if (context.peers.length > 0 !== (context.peer_baseline !== null))
+      return false;
+    if (context.peers.length === 0) return true;
+    return (
+      context.peers.length >= 3 &&
+      context.peer_baseline?.sample_count === context.peers.length &&
+      ["configuration_id", "device_id", "source_sha256"].every(
+        (key) =>
+          new Set(context.peers.map((item) => item[key as keyof typeof item]))
+            .size === context.peers.length,
+      )
+    );
+  });
 export const analysisSchema = z
   .object({
-    version: z.literal("analysis-api-0.1.0"),
+    version: z.enum(["analysis-api-0.1.0", "analysis-api-0.2.0"]),
     analysis_id: id,
     configuration_id: id,
     device_id: id,
@@ -147,8 +241,20 @@ export const analysisSchema = z
       })
       .nullable(),
     limitations: z.array(z.string()),
+    comparison: comparisonSchema.nullable().optional(),
   })
   .refine((result) => {
+    const comparison = result.comparison;
+    if ((result.version === "analysis-api-0.2.0") !== !!comparison)
+      return false;
+    if (
+      comparison?.reference &&
+      (comparison.reference.device_id !== result.device_id ||
+        comparison.reference.configuration_id === result.configuration_id)
+    )
+      return false;
+    if (comparison?.peers.some((item) => item.device_id === result.device_id))
+      return false;
     if ((result.status === "completed") !== (result.risk !== null))
       return false;
     if (result.risk && result.risk.device_id !== result.device_id) return false;
@@ -161,13 +267,34 @@ export const analysisSchema = z
     if (
       result.risk &&
       result.risk.components.some((item) =>
-        item.source === "policy"
+        item.source === "policy" ||
+        (item.source === "peer_group" && comparison?.peer_baseline)
           ? item.status !== "completed" ||
             item.raw_score === null ||
-            item.effective_weight !== 1
+            Math.abs(
+              item.effective_weight -
+                (comparison?.peer_baseline
+                  ? item.source === "policy"
+                    ? 0.7
+                    : 0.3
+                  : 1),
+            ) > 1e-9 ||
+            [...item.finding_ids].sort().join() !==
+              result.findings
+                .filter(
+                  (finding) =>
+                    finding.detector ===
+                    (item.source === "policy"
+                      ? "policy_engine"
+                      : "peer_baseline"),
+                )
+                .map((finding) => finding.finding_id)
+                .sort()
+                .join()
           : item.status !== "unavailable" ||
             item.raw_score !== null ||
-            item.effective_weight !== 0,
+            item.effective_weight !== 0 ||
+            item.finding_ids.length !== 0,
       )
     )
       return false;
@@ -179,13 +306,32 @@ export const analysisSchema = z
       return false;
     return result.findings.every((finding, index) => {
       const exp = result.explanations[index];
+      const version =
+        finding.detector === "policy_engine"
+          ? result.policy_catalog_version
+          : finding.detector === "expected_configuration" &&
+              comparison?.reference
+            ? "expected-config-0.1.0"
+            : finding.detector === "peer_baseline"
+              ? comparison?.peer_baseline?.model_version
+              : undefined;
+      if (!version) return false;
+      if (
+        finding.detector === "expected_configuration" &&
+        (finding.expected.reference_id !==
+          comparison?.reference?.configuration_id ||
+          finding.expected.source_sha256 !==
+            comparison?.reference?.source_sha256 ||
+          finding.observed.source_sha256 !== result.source_sha256)
+      )
+        return false;
       return (
         exp &&
         finding.device_id === result.device_id &&
         exp.device_id === result.device_id &&
         finding.finding_id === exp.finding_id &&
         exp.source_sha256 === result.source_sha256 &&
-        finding.model_version === result.policy_catalog_version &&
+        finding.model_version === version &&
         exp.detector_version === finding.model_version &&
         finding.severity === exp.severity &&
         finding.confidence === exp.confidence &&
@@ -208,4 +354,14 @@ export type AnalysisResult = z.infer<typeof analysisSchema>;
 export type AnalysisSummary = z.infer<typeof analysisSummarySchema>;
 export type Finding = z.infer<typeof findingSchema>;
 export type Severity = z.infer<typeof severitySchema>;
-export type Upload = { device_id: string; filename: string; content: string };
+export type Inventory = z.infer<typeof inventorySchema>;
+export type Upload = {
+  device_id: string;
+  filename: string;
+  content: string;
+  inventory?: Inventory;
+};
+export type AnalysisOptions = {
+  reference_configuration_id?: string;
+  peer_configuration_ids?: string[];
+};

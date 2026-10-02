@@ -13,6 +13,9 @@ type Props = {
 export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   const [filename, setFilename] = useState("configuration.cfg");
   const [content, setContent] = useState("");
+  const [role, setRole] = useState("");
+  const [siteClass, setSiteClass] = useState("");
+  const [profile, setProfile] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -47,7 +50,20 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const upload = { device_id: device, filename, content };
+    const upload: Upload = {
+      device_id: device,
+      filename,
+      content,
+      ...(role || siteClass || profile
+        ? {
+            inventory: {
+              device_role: role,
+              site_class: siteClass,
+              service_profile: profile,
+            },
+          }
+        : {}),
+    };
     const invalid = validateUpload(upload);
     setError(invalid);
     if (invalid) return;
@@ -91,6 +107,41 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
         <p className="hint">
           Для следующей версии используйте UUID того же устройства.
         </p>
+        <details>
+          <summary>Метки группы сравнения (необязательно)</summary>
+          <p className="hint">
+            Для peer-сравнения заполните все три поля. Метки задаёт оператор;
+            они сохраняются со снимком и не выводятся из конфигурации
+            автоматически.
+          </p>
+          <label htmlFor="inventory-role">Роль устройства</label>
+          <input
+            id="inventory-role"
+            value={role}
+            onChange={(event) => setRole(event.target.value)}
+            disabled={disabled}
+            maxLength={64}
+            autoComplete="off"
+          />
+          <label htmlFor="inventory-site">Класс площадки</label>
+          <input
+            id="inventory-site"
+            value={siteClass}
+            onChange={(event) => setSiteClass(event.target.value)}
+            disabled={disabled}
+            maxLength={64}
+            autoComplete="off"
+          />
+          <label htmlFor="inventory-profile">Профиль сервиса</label>
+          <input
+            id="inventory-profile"
+            value={profile}
+            onChange={(event) => setProfile(event.target.value)}
+            disabled={disabled}
+            maxLength={64}
+            autoComplete="off"
+          />
+        </details>
         <label className="file-picker" htmlFor="config-file">
           <span>Выбрать конфигурацию</span>
           <small>.cfg / .conf / .txt · UTF-8 · до 2 MiB</small>
