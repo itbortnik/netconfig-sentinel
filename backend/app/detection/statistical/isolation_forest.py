@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from math import isfinite
 from statistics import median
+from typing import Protocol
 from uuid import UUID, uuid5
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -38,8 +40,8 @@ class IsolationForestMetadata(BaseModel):
     contamination: float = Field(gt=0.0, le=0.5)
     random_state: int
     estimator_count: int = Field(ge=1)
-    training_score_min: float
-    training_score_max: float
+    training_score_min: float = Field(ge=0, le=1)
+    training_score_max: float = Field(ge=0, le=1)
     feature_medians: tuple[float, ...]
     feature_scales: tuple[float, ...]
 
@@ -56,7 +58,23 @@ class IsolationForestMetadata(BaseModel):
             raise ValueError("feature scales must be positive")
         if self.training_score_min > self.training_score_max:
             raise ValueError("training score range is invalid")
+        if not all(
+            isfinite(value)
+            for value in (
+                *self.feature_medians,
+                *self.feature_scales,
+                self.training_score_min,
+                self.training_score_max,
+            )
+        ):
+            raise ValueError("metadata must contain finite numbers")
         return self
+
+
+class ForestScorer(Protocol):
+    def predict(self, rows: Sequence[Sequence[float]]) -> Sequence[int]: ...
+    def score_samples(self, rows: Sequence[Sequence[float]]) -> Sequence[float]: ...
+    def decision_function(self, rows: Sequence[Sequence[float]]) -> Sequence[float]: ...
 
 
 @dataclass(frozen=True)
@@ -64,7 +82,9 @@ class FittedIsolationForest:
     """In-memory estimator paired with its versioned, auditable metadata."""
 
     metadata: IsolationForestMetadata
-    estimator: IsolationForest
+    estimator: ForestScorer
+    registry_id: UUID | None = None
+    artifact_sha256: str | None = None
 
 
 def fit_isolation_forest(
@@ -80,9 +100,7 @@ def fit_isolation_forest(
     if minimum_samples < 2:
         raise ValueError("minimum_samples must be at least 2")
     if len(configs) < minimum_samples:
-        raise ValueError(
-            f"Isolation Forest requires at least {minimum_samples} configurations"
-        )
+        raise ValueError(f"Isolation Forest requires at least {minimum_samples} configurations")
     if not 0.0 < contamination <= 0.5:
         raise ValueError("contamination must be greater than 0 and at most 0.5")
     if estimator_count < 1:
@@ -105,9 +123,10 @@ def fit_isolation_forest(
     training_scores = [-float(score) for score in estimator.score_samples(matrix)]
     columns = list(zip(*(vector.values for vector in vectors), strict=True))
     feature_medians = tuple(float(median(column)) for column in columns)
-    feature_scales = tuple(_robust_scale(column, center) for column, center in zip(
-        columns, feature_medians, strict=True
-    ))
+    feature_scales = tuple(
+        _robust_scale(column, center)
+        for column, center in zip(columns, feature_medians, strict=True)
+    )
     metadata = IsolationForestMetadata(
         library_version=sklearn_version,
         group=group,
@@ -143,9 +162,7 @@ def evaluate_isolation_forest(
     decision = float(model.estimator.decision_function(row)[0])
     deviations = _top_deviations(vector, model.metadata)
     locations = _deviation_locations(vector, deviations)
-    affected_lines = sorted(
-        {line for location in locations for line in location.source_lines}
-    )
+    affected_lines = sorted({line for location in locations for line in location.source_lines})
     evidence = [
         Evidence(
             kind="statistical_feature_deviation",
@@ -168,7 +185,11 @@ def evaluate_isolation_forest(
     return [
         Finding(
             finding_id=_finding_id(
-                device_id, model.metadata.group, category, affected_lines
+                device_id,
+                model.metadata.group,
+                category,
+                affected_lines,
+                model.registry_id,
             ),
             device_id=device_id,
             detector="isolation_forest",
@@ -184,6 +205,11 @@ def evaluate_isolation_forest(
             affected_lines=affected_lines,
             evidence=evidence,
             observed={
+                **(
+                    {"model_id": str(model.registry_id), "artifact_sha256": model.artifact_sha256}
+                    if model.registry_id is not None
+                    else {}
+                ),
                 "raw_anomaly_score": raw_score,
                 "decision_function": decision,
                 "top_feature_deviations": deviations,
@@ -294,6 +320,7 @@ def _finding_id(
     group: PeerGroupKey,
     category: str,
     affected_lines: list[int],
+    registry_id: UUID | None = None,
 ) -> UUID:
     group_key = "|".join(
         (
@@ -307,5 +334,6 @@ def _finding_id(
     line_key = ",".join(str(line) for line in affected_lines)
     return uuid5(
         ISOLATION_FOREST_NAMESPACE,
-        f"{device_id}:{group_key}:{category}:{line_key}",
+        f"{device_id}:{group_key}:{category}:{line_key}"
+        + (f":{registry_id}" if registry_id is not None else ""),
     )

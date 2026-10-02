@@ -18,9 +18,11 @@ from app.api.contracts import (
     AnalysisSummary,
     ConfigurationSnapshot,
     ConfigurationSummary,
+    ModelSummary,
+    TrainModelOptions,
     UploadConfiguration,
 )
-from app.api.service import AnalysisService
+from app.api.service import AnalysisService, ModelTrainingBusy
 from app.db.store import DeviceIdentityConflict
 from app.domain import Finding
 
@@ -128,6 +130,58 @@ async def _analysis_body(request: Request) -> AnalysisOptions:
         return AnalysisOptions.model_validate(parsed)
     except (ValueError, RecursionError):
         raise HTTPException(status_code=400, detail="Invalid analysis options.") from None
+
+
+@router.post(
+    "/models/isolation-forest",
+    response_model=ModelSummary,
+    status_code=201,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {"schema": _request_schema(TrainModelOptions)},
+            },
+        }
+    },
+)
+async def train_model(request: Request, service: Service) -> ModelSummary:
+    body = await _request_body(request, maximum=16 * 1024)
+    try:
+        options = TrainModelOptions.model_validate(
+            json.loads(body.decode("utf-8"), object_pairs_hook=_unique_keys)
+        )
+    except (ValueError, RecursionError):
+        raise HTTPException(status_code=400, detail="Invalid training options.") from None
+    try:
+        return await run_in_threadpool(service.train_model, options)
+    except ModelTrainingBusy:
+        raise HTTPException(
+            status_code=429,
+            detail="Model training is already running.",
+            headers={"Retry-After": "5"},
+        ) from None
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="Training inputs are unavailable or incompatible."
+        ) from None
+
+
+@router.get("/models", response_model=list[ModelSummary])
+def list_models(
+    service: Service,
+    limit: Annotated[int, Query(ge=1, le=20)] = 20,
+    offset: Offset = 0,
+) -> list[ModelSummary]:
+    return [item.summary for item in service.store.list_models(limit=limit, offset=offset)]
+
+
+@router.get("/models/{model_id}", response_model=ModelSummary)
+def get_model(model_id: UUID, service: Service) -> ModelSummary:
+    model = service.store.get_model(model_id)
+    if model is None:
+        raise HTTPException(status_code=404, detail="Model not found.")
+    return model.summary
 
 
 @router.post(

@@ -8,6 +8,7 @@ import type {
   ConfigurationSnapshot,
   ConfigurationSummary,
   Upload,
+  ModelSummary,
 } from "./contracts";
 import { date, percent, shortId } from "./format";
 import { SnapshotView } from "./SnapshotView";
@@ -15,6 +16,8 @@ import { UploadForm } from "./UploadForm";
 import { ComparisonSelection } from "./ComparisonSelection";
 import { comparisonOptions, selectedSnapshot } from "./comparison";
 import type { SelectedSnapshot } from "./comparison";
+import { ModelPanel } from "./ModelPanel";
+import { statisticalOptions, trainingOptions } from "./models";
 
 function Login({
   busy,
@@ -120,6 +123,10 @@ export function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [reference, setReference] = useState<SelectedSnapshot | null>(null);
   const [peers, setPeers] = useState<SelectedSnapshot[]>([]);
+  const [training, setTraining] = useState<SelectedSnapshot[]>([]);
+  const [models, setModels] = useState<ModelSummary[]>([]);
+  const [model, setModel] = useState<ModelSummary | null>(null);
+  const [modelOffset, setModelOffset] = useState(0);
 
   const disconnect = useCallback(() => {
     active.current?.close();
@@ -135,6 +142,10 @@ export function App() {
     setResult(null);
     setReference(null);
     setPeers([]);
+    setTraining([]);
+    setModels([]);
+    setModel(null);
+    setModelOffset(0);
     setConfigOffset(0);
     setAnalysisOffset(0);
     setDeviceOnly(false);
@@ -197,14 +208,17 @@ export function App() {
     setLoading(true);
     setConfigurations([]);
     setAnalyses([]);
+    setModels([]);
     void Promise.all([
       session.configurations(configOffset, filterDevice),
       session.analyses(analysisOffset, filterSnapshot),
+      session.models(modelOffset),
     ])
-      .then(([configs, runs]) => {
+      .then(([configs, runs, registered]) => {
         if (alive && active.current === session) {
           setConfigurations(configs);
           setAnalyses(runs);
+          setModels(registered);
         }
       })
       .catch((problem: unknown) => {
@@ -220,6 +234,7 @@ export function App() {
     session,
     configOffset,
     analysisOffset,
+    modelOffset,
     filterDevice,
     filterSnapshot,
     refresh,
@@ -296,6 +311,11 @@ export function App() {
           reference,
           peers,
         );
+        if (model)
+          options = {
+            ...options,
+            ...statisticalOptions(selectedSnapshot(selected), model),
+          };
       } catch (problem) {
         throw new ApiError(
           400,
@@ -309,6 +329,27 @@ export function App() {
       if (active.current !== client) return;
       setResult(analysis);
       setAnalysisOffset(0);
+      setRefresh((value) => value + 1);
+    });
+  }
+
+  function train() {
+    void operation(async (client) => {
+      let options;
+      try {
+        options = trainingOptions(training);
+      } catch (problem) {
+        throw new ApiError(
+          400,
+          problem instanceof Error
+            ? problem.message
+            : "Неверные входы обучения.",
+        );
+      }
+      await client.trainModel(options);
+      if (active.current !== client) return;
+      setTraining([]);
+      setModelOffset(0);
       setRefresh((value) => value + 1);
     });
   }
@@ -561,6 +602,15 @@ export function App() {
                   }
                   setPeers((items) => [...items, selected]);
                 }}
+                onTraining={() => {
+                  const selected = selectedSnapshot(snapshot);
+                  if (training.some((item) => item.id === selected.id)) return;
+                  if (training.length >= 100) {
+                    setError("Допускается максимум 100 обучающих снимков.");
+                    return;
+                  }
+                  setTraining((items) => [...items, selected]);
+                }}
               />
             )}
             <ComparisonSelection
@@ -570,6 +620,19 @@ export function App() {
               onClearReference={() => setReference(null)}
               onRemovePeer={(id) =>
                 setPeers((items) => items.filter((peer) => peer.id !== id))
+              }
+            />
+            <ModelPanel
+              models={models}
+              training={training}
+              selected={model}
+              offset={modelOffset}
+              busy={busy || loading}
+              onTrain={train}
+              onSelect={setModel}
+              onOffset={setModelOffset}
+              onRemove={(id) =>
+                setTraining((items) => items.filter((item) => item.id !== id))
               }
             />
             {result && (

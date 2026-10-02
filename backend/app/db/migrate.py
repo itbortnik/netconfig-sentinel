@@ -7,7 +7,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine
 
-SCHEMA_REVISION = "0001_initial"
+SCHEMA_REVISION = "0002_model_registry"
 
 
 def upgrade_database(engine: Engine) -> None:

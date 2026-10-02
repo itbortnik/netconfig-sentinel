@@ -420,3 +420,94 @@ test("a current snapshot cannot silently become its own selected reference", asy
     page.getByRole("heading", { name: "Находки и доказательства" }),
   ).toBeVisible();
 });
+
+test("explicit training, model selection, held-out analysis and persisted ML history", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await connect(page);
+  const suffix = `${test.info().project.name}-${Date.now()}`;
+  await page
+    .getByText("Метки группы сравнения (необязательно)", { exact: true })
+    .click();
+  await page.getByLabel("Роль устройства", { exact: true }).fill("edge");
+  await page.getByLabel("Класс площадки", { exact: true }).fill("branch");
+  await page
+    .getByLabel("Профиль сервиса", { exact: true })
+    .fill(`model-${suffix}`);
+  const text = (host: string, count: number) =>
+    `hostname ${host}\naaa new-model\nip ssh version 2\n` +
+    Array.from(
+      { length: count },
+      (_, n) => `vlan ${10 + n}\n name VLAN-${n}\n!\n`,
+    ).join("");
+  for (let n = 0; n < 8; n++) {
+    await page.getByRole("button", { name: "Новое", exact: true }).click();
+    await upload(page, text(`training-${suffix}-${n}`, 1 + (n % 7)));
+    await page
+      .getByRole("button", { name: "Добавить в обучение модели", exact: true })
+      .click();
+  }
+  const registry = page.getByRole("region", { name: "Реестр моделей" });
+  await expect(registry).toContainText("Обучающие снимки: 8");
+  const trainingResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/models/isolation-forest") &&
+      response.request().method() === "POST",
+  );
+  await registry
+    .getByRole("button", { name: "Обучить и сохранить модель", exact: true })
+    .click();
+  const response = await trainingResponse;
+  expect(response.status()).toBe(201);
+  const model = await response.json();
+  await expect(registry).toContainText(model.model_id);
+  await expect(registry).toContainText("Не выбрана — ML не запускается");
+  await registry
+    .getByRole("button", {
+      name: `Выбрать модель ${model.model_id.slice(0, 8)}`,
+      exact: true,
+    })
+    .click();
+  // The currently open training device cannot be analyzed by its own model.
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("обучающим устройствам");
+  await page.getByRole("button", { name: "Новое", exact: true }).click();
+  await upload(page, text(`held-out-${suffix}`, 30));
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Находки и доказательства" }),
+  ).toBeVisible();
+  await page
+    .getByText("Модель и статистический результат", { exact: true })
+    .click();
+  await expect(page.locator(".analysis-summary")).toContainText(model.model_id);
+  await page.getByLabel("Поиск по находкам").fill("structured-feature outlier");
+  await page.locator(".finding-button").first().click();
+  await expect(
+    page.getByRole("region", { name: "Детали находки" }),
+  ).toContainText("isolation_forest");
+  await expectNoOverflow(page);
+  if (test.info().project.name === "desktop") {
+    for (const width of [1150, 1024, 800]) {
+      await page.setViewportSize({ width, height: 720 });
+      await expectNoOverflow(page);
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+  }
+  await page.getByRole("button", { name: "Отключиться", exact: true }).click();
+  expect(await localStorageState(page)).toEqual({ local: {}, session: {} });
+  await connect(page);
+  await expect(registry).toContainText("Не выбрана — ML не запускается");
+  await expect(registry).toContainText("Обучающие снимки: 0");
+  await page.getByRole("button", { name: "Анализы", exact: true }).click();
+  await page.locator(".history-item").first().click();
+  await page
+    .getByText("Модель и статистический результат", { exact: true })
+    .click();
+  await expect(page.locator(".analysis-summary")).toContainText(model.model_id);
+});

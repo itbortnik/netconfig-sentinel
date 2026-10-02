@@ -9,6 +9,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.detection.baseline import PeerBaseline
 from app.detection.fusion import RiskAssessment, RiskSource, fuse_risk
+from app.detection.statistical.artifact import ForestArtifact
+from app.detection.statistical.features import FEATURE_SCHEMA_VERSION
+from app.detection.statistical.isolation_forest import (
+    ISOLATION_FOREST_MODEL_VERSION,
+    IsolationForestMetadata,
+)
 from app.domain import CanonicalConfig, Finding
 from app.explanation.local import FindingExplanation
 
@@ -73,6 +79,7 @@ class AnalysisOptions(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     reference_configuration_id: UUID | None = None
     peer_configuration_ids: tuple[UUID, ...] = Field(default=(), max_length=20)
+    statistical_model_id: UUID | None = None
 
     @model_validator(mode="after")
     def distinct_selections(self) -> "AnalysisOptions":
@@ -89,6 +96,13 @@ class SnapshotBinding(BaseModel):
     device_id: UUID
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def aware_time(cls, value: datetime) -> datetime:
+        if value.utcoffset() is None:
+            raise ValueError("snapshot binding requires a timezone")
+        return value
 
     @classmethod
     def from_snapshot(cls, snapshot: ConfigurationSnapshot) -> "SnapshotBinding":
@@ -132,9 +146,99 @@ class ComparisonContext(BaseModel):
         return self
 
 
+class TrainModelOptions(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    configuration_ids: tuple[UUID, ...] = Field(min_length=8, max_length=100)
+    contamination: float = Field(default=0.1, gt=0, le=0.5)
+
+    @model_validator(mode="after")
+    def distinct_inputs(self) -> "TrainModelOptions":
+        if len(set(self.configuration_ids)) != len(self.configuration_ids):
+            raise ValueError("training inputs must be distinct")
+        return self
+
+
+class ModelSummary(BaseModel):
+    """An immutable experimental model, not a production approval or quality report."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["model-registry-0.1.0"] = "model-registry-0.1.0"
+    model_id: UUID
+    created_at: datetime
+    status: Literal["experimental"] = "experimental"
+    artifact_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    decision_offset: float = Field(ge=-1, le=0)
+    metadata: IsolationForestMetadata
+    training: tuple[SnapshotBinding, ...] = Field(min_length=8, max_length=100)
+    training_hostnames: tuple[str, ...] = Field(min_length=8, max_length=100)
+
+    @field_validator("created_at")
+    @classmethod
+    def aware_time(cls, value: datetime) -> datetime:
+        if value.utcoffset() is None:
+            raise ValueError("model timestamp requires a timezone")
+        return value
+
+    @model_validator(mode="after")
+    def bound_training(self) -> "ModelSummary":
+        if self.metadata.model_version != ISOLATION_FOREST_MODEL_VERSION or (
+            self.metadata.feature_schema_version != FEATURE_SCHEMA_VERSION
+        ):
+            raise ValueError("unsupported registry model")
+        if self.metadata.sample_count != len(self.training) or (
+            len(self.training_hostnames) != len(self.training)
+            or any(not host for host in self.training_hostnames)
+        ):
+            raise ValueError("training population differs from metadata")
+        for values in (
+            [item.configuration_id for item in self.training],
+            [item.device_id for item in self.training],
+            [item.source_sha256 for item in self.training],
+            list(self.training_hostnames),
+        ):
+            if len(values) != len(set(values)):
+                raise ValueError("training snapshots must identify independent devices")
+        if any(item.created_at > self.created_at for item in self.training):
+            raise ValueError("training snapshots cannot be newer than the model")
+        return self
+
+
+class RegisteredModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    summary: ModelSummary
+    artifact: ForestArtifact
+
+    @model_validator(mode="after")
+    def authenticated_artifact(self) -> "RegisteredModel":
+        if self.summary.metadata != self.artifact.metadata or (
+            self.summary.artifact_sha256 != self.artifact.fingerprint()
+            or self.summary.decision_offset != self.artifact.offset
+        ):
+            raise ValueError("model manifest differs from its numeric artifact")
+        return self
+
+
+class StatisticalContext(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    model: ModelSummary
+    score_samples: float = Field(ge=-1, le=0)
+    decision_function: float = Field(ge=-1, le=1)
+    prediction: Literal[-1, 1]
+
+    @model_validator(mode="after")
+    def consistent_prediction(self) -> "StatisticalContext":
+        if abs(self.decision_function - (self.score_samples - self.model.decision_offset)) > 1e-14:
+            raise ValueError("decision differs from the recorded model threshold")
+        if self.prediction != (-1 if self.decision_function < 0 else 1):
+            raise ValueError("prediction differs from decision")
+        return self
+
+
 class AnalysisResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    version: Literal["analysis-api-0.1.0", "analysis-api-0.2.0"] = "analysis-api-0.1.0"
+    version: Literal["analysis-api-0.1.0", "analysis-api-0.2.0", "analysis-api-0.3.0"] = (
+        "analysis-api-0.1.0"
+    )
     analysis_id: UUID
     configuration_id: UUID
     device_id: UUID
@@ -147,12 +251,38 @@ class AnalysisResult(BaseModel):
     risk: RiskAssessment | None
     limitations: tuple[str, ...]
     comparison: ComparisonContext | None = None
+    statistical: StatisticalContext | None = None
 
     @model_validator(mode="after")
     def bound_results(self) -> "AnalysisResult":
-        if (self.version == "analysis-api-0.2.0") != (self.comparison is not None):
+        if self.version != "analysis-api-0.3.0" and (
+            (self.version == "analysis-api-0.2.0") != (self.comparison is not None)
+        ):
             raise ValueError("comparison context requires the extended API version")
+        if (self.version == "analysis-api-0.3.0") != (self.statistical is not None):
+            raise ValueError("statistical context requires the model API version")
         versions = {"policy_engine": self.policy_catalog_version}
+        if self.statistical is not None:
+            if self.status != "completed":
+                raise ValueError("statistical model requires complete parsing")
+            versions["isolation_forest"] = self.statistical.model.metadata.model_version
+            if any(
+                item.device_id == self.device_id or (item.source_sha256 == self.source_sha256)
+                for item in self.statistical.model.training
+            ):
+                raise ValueError("target cannot belong to its training population")
+            outliers = [item for item in self.findings if item.detector == "isolation_forest"]
+            if len(outliers) != (1 if self.statistical.prediction == -1 else 0):
+                raise ValueError("statistical finding differs from model prediction")
+            for item in outliers:
+                if item.observed.get("model_id") != str(self.statistical.model.model_id) or (
+                    item.observed.get("artifact_sha256") != self.statistical.model.artifact_sha256
+                ):
+                    raise ValueError("statistical finding belongs to a different model")
+                if item.observed.get("raw_anomaly_score") != -self.statistical.score_samples or (
+                    item.observed.get("decision_function") != self.statistical.decision_function
+                ):
+                    raise ValueError("statistical finding differs from recorded scores")
         if self.comparison is not None:
             reference = self.comparison.reference
             if reference is not None:
@@ -194,10 +324,12 @@ class AnalysisResult(BaseModel):
                     raise ValueError("finding belongs to a different reference snapshot")
         if self.risk is not None and self.risk.device_id != self.device_id:
             raise ValueError("risk belongs to a different device")
-        if self.comparison is not None and self.risk is not None:
+        if (self.comparison is not None or self.statistical is not None) and self.risk is not None:
             sources = [RiskSource.POLICY]
-            if self.comparison.peer_baseline is not None:
+            if self.comparison is not None and self.comparison.peer_baseline is not None:
                 sources.append(RiskSource.PEER_GROUP)
+            if self.statistical is not None:
+                sources.append(RiskSource.STATISTICAL)
             expected_risk = fuse_risk(
                 [item for item in self.findings if item.detector != "expected_configuration"],
                 device_id=self.device_id,

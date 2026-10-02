@@ -102,8 +102,10 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
           {result.comparison?.peer_baseline
             ? " и сравнение с выбранной группой"
             : ""}
-          . ML и Batfish не запускались. Оценки не калиброваны; требуется
-          проверка инженером.
+          {result.statistical
+            ? ", экспериментальный Isolation Forest. Transformer и Batfish не запускались."
+            : ". ML и Batfish не запускались."}{" "}
+          Оценки не калиброваны; требуется проверка инженером.
         </p>
         {result.comparison && (
           <details>
@@ -114,6 +116,20 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
             </p>
             <pre className="json-view">
               {JSON.stringify(result.comparison, null, 2)}
+            </pre>
+          </details>
+        )}
+        {result.statistical && (
+          <details>
+            <summary>Модель и статистический результат</summary>
+            <p className="hint">
+              Модель: {result.statistical.model.model_id}.{" "}
+              {result.statistical.prediction === -1
+                ? "Вектор отмечен как выброс."
+                : "Вектор не отмечен как выброс — это не доказательство безопасности."}
+            </p>
+            <pre className="json-view">
+              {JSON.stringify(result.statistical, null, 2)}
             </pre>
           </details>
         )}

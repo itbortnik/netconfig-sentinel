@@ -62,8 +62,11 @@ CanonicalConfig -> versioned numeric features -> Isolation Forest -> Finding[]
 ```
 
 Training metadata keeps the feature schema, library version, deterministic
-seed, sample count, and score range. The fitted estimator remains in memory in
-this iteration; persistence will use the later model registry boundary.
+seed, sample count, and score range. Explicit API training exports bounded numeric
+trees into an encrypted immutable model registry with a training-snapshot manifest.
+Inference loads validated JSON, never pickle or executable artifact classes, and
+does not refit. API results bind the selected model ID, artifact hash and scores;
+this experimental control model is not promoted or production-calibrated.
 
 Completed detector results converge through a transparent fusion boundary:
 

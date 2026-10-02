@@ -9,6 +9,7 @@ export function SnapshotView({
   onDevice,
   onReference,
   onPeer,
+  onTraining,
 }: {
   snapshot: ConfigurationSnapshot;
   busy: boolean;
@@ -16,6 +17,7 @@ export function SnapshotView({
   onDevice: () => void;
   onReference: () => void;
   onPeer: () => void;
+  onTraining: () => void;
 }) {
   const config = snapshot.canonical;
   const heading = useRef<HTMLHeadingElement>(null);
@@ -104,6 +106,20 @@ export function SnapshotView({
           onClick={onPeer}
         >
           Добавить в группу сравнения
+        </button>
+        <button
+          className="button secondary"
+          disabled={
+            busy ||
+            partial ||
+            !config.device.hostname ||
+            !config.device.role ||
+            !config.device.site_class ||
+            !config.device.service_profile
+          }
+          onClick={onTraining}
+        >
+          Добавить в обучение модели
         </button>
       </div>
       {config.parse_warnings.length > 0 && (

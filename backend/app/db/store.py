@@ -10,10 +10,10 @@ from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy import Engine, create_engine, event, select, text
 from sqlalchemy.orm import sessionmaker
 
-from app.api.contracts import AnalysisResult, ConfigurationSnapshot
+from app.api.contracts import AnalysisResult, ConfigurationSnapshot, RegisteredModel
 from app.core.settings import ApiSettings
 from app.db.migrate import SCHEMA_REVISION
-from app.db.tables import AnalysisRow, AuditRow, ConfigurationRow, DeviceRow
+from app.db.tables import AnalysisRow, AuditRow, ConfigurationRow, DeviceRow, ModelRow
 
 
 class DeviceIdentityConflict(ValueError):
@@ -55,7 +55,7 @@ class Store:
                 )
                 if revisions != [SCHEMA_REVISION]:
                     return False
-                for table in ("devices", "configurations", "analyses", "audit_events"):
+                for table in ("devices", "configurations", "analyses", "audit_events", "models"):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True
         except Exception:
@@ -107,6 +107,54 @@ class Store:
         ):
             raise StorageIntegrityError("Stored data is unavailable.")
         return result
+
+    def _model(self, row: ModelRow) -> RegisteredModel:
+        try:
+            if len(row.payload) > 32 * 1024 * 1024:
+                raise ValueError("model payload exceeds limits")
+            result = RegisteredModel.model_validate_json(
+                self._decode(row.payload, kind="model", row_id=row.id)
+            )
+            if (str(result.summary.model_id), result.summary.artifact_sha256) != (
+                row.id,
+                row.artifact_sha256,
+            ):
+                raise ValueError("model row differs from manifest")
+        except ValueError:
+            raise StorageIntegrityError("Stored data is unavailable.") from None
+        return result
+
+    def add_model(self, model: RegisteredModel) -> None:
+        # Revalidate even when callers used model_copy/model_construct.
+        model = RegisteredModel.model_validate_json(model.model_dump_json())
+        model_id = str(model.summary.model_id)
+        with self._sessions.begin() as session:
+            session.add(
+                ModelRow(
+                    id=model_id,
+                    created_at=model.summary.created_at,
+                    artifact_sha256=model.summary.artifact_sha256,
+                    payload=self._encode(model.model_dump_json(), kind="model", row_id=model_id),
+                )
+            )
+            session.add(
+                AuditRow(
+                    id=str(uuid4()),
+                    action="model.trained",
+                    resource_id=model_id,
+                    created_at=datetime.now(UTC),
+                )
+            )
+
+    def get_model(self, model_id: UUID) -> RegisteredModel | None:
+        with self._sessions() as session:
+            row = session.get(ModelRow, str(model_id))
+            return self._model(row) if row is not None else None
+
+    def list_models(self, *, limit: int, offset: int) -> list[RegisteredModel]:
+        query = select(ModelRow).order_by(ModelRow.created_at.desc(), ModelRow.id.desc())
+        with self._sessions() as session:
+            return [self._model(row) for row in session.scalars(query.limit(limit).offset(offset))]
 
     def add_configuration(self, snapshot: ConfigurationSnapshot) -> None:
         config = snapshot.canonical

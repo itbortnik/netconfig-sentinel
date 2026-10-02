@@ -81,6 +81,7 @@ it("sends explicit comparison IDs in the bounded JSON analysis body, not in the 
   const options = {
     reference_configuration_id: "reference",
     peer_configuration_ids: ["one", "two", "three"],
+    statistical_model_id: "selected-model",
   };
   await expect(api.analyze("current", options)).rejects.toBeInstanceOf(
     ApiError,
@@ -93,5 +94,20 @@ it("sends explicit comparison IDs in the bounded JSON analysis body, not in the 
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   });
+  api.close();
+});
+it("training is a JSON POST with IDs, never an artifact upload or credential in the URL", async () => {
+  const transport = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(new Response("{}", { status: 400 }));
+  const api = new ApiClient(token, transport);
+  const options = {
+    configuration_ids: Array.from({ length: 8 }, (_, n) => `snapshot-${n}`),
+  };
+  await expect(api.trainModel(options)).rejects.toBeInstanceOf(ApiError);
+  const [url, init] = transport.mock.calls[0]!;
+  expect(url).toBe("/api/v1/models/isolation-forest");
+  expect(init?.method).toBe("POST");
+  expect(init?.body).toBe(JSON.stringify(options));
   api.close();
 });

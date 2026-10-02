@@ -1,8 +1,12 @@
 """Explicit settings, idempotent migrations, foreign keys and atomic audit writes."""
 
 from pathlib import Path
+from uuid import UUID
 
+import app.db.migrate as migration_module
 import pytest
+from alembic import command
+from alembic.config import Config
 from app.api.contracts import UploadConfiguration
 from app.api.service import AnalysisService
 from app.core.settings import ApiSettings
@@ -81,6 +85,7 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "configurations",
             "analyses",
             "audit_events",
+            "models",
         }
         with store.engine.begin() as connection, pytest.raises(IntegrityError):
             connection.execute(
@@ -89,6 +94,49 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
                     "VALUES ('orphan', 'missing', CURRENT_TIMESTAMP, 'encrypted')"
                 )
             )
+    finally:
+        store.close()
+
+
+def test_registry_migration_preserves_initial_schema_history(tmp_path: Path) -> None:
+    store = Store(settings_for(tmp_path))
+    try:
+        migration = Config()
+        migration.set_main_option(
+            "script_location", str(Path(migration_module.__file__).parent / "migrations")
+        )
+        with store.engine.begin() as connection:
+            migration.attributes["connection"] = connection
+            command.upgrade(migration, "0001_initial")
+        assert not store.ready()
+        service = AnalysisService(store)
+        snapshot = service.upload(
+            UploadConfiguration(
+                device_id=UUID(int=1),
+                filename="legacy.cfg",
+                content="hostname legacy\n",
+            )
+        )
+        result = service.analyze(snapshot.configuration_id)
+        assert result is not None
+        # Simulate the previously persisted v0.1 payload with no statistical field.
+        payload = store._encode(
+            result.model_dump_json(exclude={"statistical"}),
+            kind="analysis",
+            row_id=str(result.analysis_id),
+        )
+        with store.engine.begin() as connection:
+            connection.execute(
+                text("UPDATE analyses SET payload=:payload WHERE id=:id"),
+                {"payload": payload, "id": str(result.analysis_id)},
+            )
+        upgrade_database(store.engine)
+        assert store.ready()
+        assert store.get_configuration(snapshot.configuration_id) == snapshot
+        assert store.get_analysis(result.analysis_id) == result
+        assert store.list_models(limit=20, offset=0) == []
+        upgrade_database(store.engine)
+        assert store.get_analysis(result.analysis_id) == result
     finally:
         store.close()
 

@@ -39,3 +39,11 @@ class AuditRow(Base):
     action: Mapped[str] = mapped_column(String(64))
     resource_id: Mapped[str] = mapped_column(String(36))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ModelRow(Base):
+    __tablename__ = "models"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    artifact_sha256: Mapped[str] = mapped_column(String(64))
+    payload: Mapped[str] = mapped_column(Text)

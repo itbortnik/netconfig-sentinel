@@ -78,6 +78,7 @@ export const findingSchema = z.object({
     "policy_engine",
     "expected_configuration",
     "peer_baseline",
+    "isolation_forest",
   ]),
   category: z.string(),
   title: z.string(),
@@ -132,6 +133,74 @@ const snapshotBindingSchema = z.object({
   source_sha256: hash,
   created_at: timestamp,
 });
+const forestMetadataSchema = z
+  .object({
+    model_version: z.literal("isolation-forest-0.1.0"),
+    library_version: z.string().min(1),
+    feature_schema_version: z.literal("structured-features-0.1.0"),
+    feature_names: z.array(z.string()).length(33),
+    group: z.object({
+      vendor: z.enum(["cisco", "juniper"]),
+      platform: z.string(),
+      device_role: z.string(),
+      site_class: z.string(),
+      service_profile: z.string(),
+    }),
+    sample_count: z.number().int().min(8).max(100),
+    contamination: z.number().positive().max(0.5),
+    random_state: z.number().int(),
+    estimator_count: z.number().int().min(1).max(200),
+    training_score_min: score,
+    training_score_max: score,
+    feature_medians: z.array(z.number()).length(33),
+    feature_scales: z.array(z.number().positive()).length(33),
+  })
+  .refine(
+    (metadata) =>
+      metadata.training_score_min <= metadata.training_score_max &&
+      new Set(metadata.feature_names).size === 33,
+  );
+export const modelSchema = z
+  .object({
+    version: z.literal("model-registry-0.1.0"),
+    model_id: id,
+    created_at: timestamp,
+    status: z.literal("experimental"),
+    artifact_sha256: hash,
+    decision_offset: z.number().min(-1).max(0),
+    metadata: forestMetadataSchema,
+    training: z.array(snapshotBindingSchema).min(8).max(100),
+    training_hostnames: z.array(z.string().min(1)).min(8).max(100),
+  })
+  .refine(
+    (model) =>
+      model.training.length === model.metadata.sample_count &&
+      model.training.length === model.training_hostnames.length &&
+      new Set(model.training_hostnames).size === model.training.length &&
+      model.training.every(
+        (item) => Date.parse(item.created_at) <= Date.parse(model.created_at),
+      ) &&
+      ["configuration_id", "device_id", "source_sha256"].every(
+        (key) =>
+          new Set(model.training.map((item) => item[key as keyof typeof item]))
+            .size === model.training.length,
+      ),
+  );
+const statisticalSchema = z
+  .object({
+    model: modelSchema,
+    score_samples: z.number().min(-1).max(0),
+    decision_function: z.number().min(-1).max(1),
+    prediction: z.union([z.literal(-1), z.literal(1)]),
+  })
+  .refine(
+    (context) =>
+      context.prediction === (context.decision_function < 0 ? -1 : 1) &&
+      Math.abs(
+        context.decision_function -
+          (context.score_samples - context.model.decision_offset),
+      ) <= 1e-14,
+  );
 const peerBaselineSchema = z
   .object({
     model_version: z.literal("peer-baseline-0.1.0"),
@@ -203,7 +272,11 @@ const comparisonSchema = z
   });
 export const analysisSchema = z
   .object({
-    version: z.enum(["analysis-api-0.1.0", "analysis-api-0.2.0"]),
+    version: z.enum([
+      "analysis-api-0.1.0",
+      "analysis-api-0.2.0",
+      "analysis-api-0.3.0",
+    ]),
     analysis_id: id,
     configuration_id: id,
     device_id: id,
@@ -242,11 +315,45 @@ export const analysisSchema = z
       .nullable(),
     limitations: z.array(z.string()),
     comparison: comparisonSchema.nullable().optional(),
+    statistical: statisticalSchema.nullable().optional(),
   })
   .refine((result) => {
     const comparison = result.comparison;
-    if ((result.version === "analysis-api-0.2.0") !== !!comparison)
+    const statistical = result.statistical;
+    if (
+      result.version !== "analysis-api-0.3.0" &&
+      (result.version === "analysis-api-0.2.0") !== !!comparison
+    )
       return false;
+    if ((result.version === "analysis-api-0.3.0") !== !!statistical)
+      return false;
+    if (statistical) {
+      if (result.status !== "completed") return false;
+      if (
+        statistical.model.training.some(
+          (item) =>
+            item.device_id === result.device_id ||
+            item.source_sha256 === result.source_sha256,
+        )
+      )
+        return false;
+      const outliers = result.findings.filter(
+        (item) => item.detector === "isolation_forest",
+      );
+      if (outliers.length !== (statistical.prediction === -1 ? 1 : 0))
+        return false;
+      if (
+        outliers.some(
+          (item) =>
+            item.observed.model_id !== statistical.model.model_id ||
+            item.observed.artifact_sha256 !==
+              statistical.model.artifact_sha256 ||
+            item.observed.raw_anomaly_score !== -statistical.score_samples ||
+            item.observed.decision_function !== statistical.decision_function,
+        )
+      )
+        return false;
+    }
     if (
       comparison?.reference &&
       (comparison.reference.device_id !== result.device_id ||
@@ -268,16 +375,22 @@ export const analysisSchema = z
       result.risk &&
       result.risk.components.some((item) =>
         item.source === "policy" ||
-        (item.source === "peer_group" && comparison?.peer_baseline)
+        (item.source === "peer_group" && comparison?.peer_baseline) ||
+        (item.source === "statistical" && statistical)
           ? item.status !== "completed" ||
             item.raw_score === null ||
             Math.abs(
               item.effective_weight -
-                (comparison?.peer_baseline
-                  ? item.source === "policy"
-                    ? 0.7
-                    : 0.3
-                  : 1),
+                {
+                  policy: 0.35,
+                  peer_group: 0.15,
+                  statistical: 0.1,
+                  transformer: 0.1,
+                  verification: 0.3,
+                }[item.source] /
+                  (0.35 +
+                    (comparison?.peer_baseline ? 0.15 : 0) +
+                    (statistical ? 0.1 : 0)),
             ) > 1e-9 ||
             [...item.finding_ids].sort().join() !==
               result.findings
@@ -286,7 +399,9 @@ export const analysisSchema = z
                     finding.detector ===
                     (item.source === "policy"
                       ? "policy_engine"
-                      : "peer_baseline"),
+                      : item.source === "statistical"
+                        ? "isolation_forest"
+                        : "peer_baseline"),
                 )
                 .map((finding) => finding.finding_id)
                 .sort()
@@ -314,7 +429,9 @@ export const analysisSchema = z
             ? "expected-config-0.1.0"
             : finding.detector === "peer_baseline"
               ? comparison?.peer_baseline?.model_version
-              : undefined;
+              : finding.detector === "isolation_forest"
+                ? statistical?.model.metadata.model_version
+                : undefined;
       if (!version) return false;
       if (
         finding.detector === "expected_configuration" &&
@@ -355,6 +472,11 @@ export type AnalysisSummary = z.infer<typeof analysisSummarySchema>;
 export type Finding = z.infer<typeof findingSchema>;
 export type Severity = z.infer<typeof severitySchema>;
 export type Inventory = z.infer<typeof inventorySchema>;
+export type ModelSummary = z.infer<typeof modelSchema>;
+export type TrainModel = {
+  configuration_ids: string[];
+  contamination?: number;
+};
 export type Upload = {
   device_id: string;
   filename: string;
@@ -364,4 +486,5 @@ export type Upload = {
 export type AnalysisOptions = {
   reference_configuration_id?: string;
   peer_configuration_ids?: string[];
+  statistical_model_id?: string;
 };

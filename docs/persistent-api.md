@@ -66,6 +66,9 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | История анализов | `GET /api/v1/analyses?configuration_id=<UUID>&limit=20&offset=0` |
 | Результат с находками, объяснениями и риском | `GET /api/v1/analyses/<UUID>` |
 | Только находки | `GET /api/v1/analyses/<UUID>/findings` |
+| Паспорта экспериментальных моделей | `GET /api/v1/models?limit=20&offset=0` |
+| Явно обучить Isolation Forest | `POST /api/v1/models/isolation-forest` |
+| Паспорт модели | `GET /api/v1/models/<UUID>` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; повторные POST не
@@ -90,7 +93,10 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 раннего эталона/3–20 peers возвращается `analysis-api-0.2.0` с сохранённым
 профилем и hashes входов: [контракт сравнений](api-comparisons.md).
 Peer baseline добавляется в risk только при выполненном peer-анализе;
-эталонные различия в risk не входят. ML и формальная проверка не запускаются.
+эталонные различия в risk не входят. По явному `statistical_model_id` включается
+экспериментальный Isolation Forest и версия `analysis-api-0.3.0`:
+[реестр и контракт модели](model-registry.md). Без модели ML не запускается;
+формальная проверка и Transformer этим путём не запускаются.
 Оценки не калиброваны на реальных сетях. Объяснения детерминированные,
 повторно сверяют находки, не вызывают LLM и не обосновывают применение патча.
 
@@ -98,7 +104,8 @@ Peer baseline добавляется в risk только при выполне�
 поддержанные команды представлены нормализованными значениями и provenance;
 неизвестные фрагменты сохраняют raw text. Авторизованный GET может вернуть
 конфиденциальные сведения. Payload снимков, анализов и identity устройств
-зашифрованы; UUID, hashes, timestamps, связи и action metadata открыты.
+зашифрованы, как и числовые модели/обучающие паспорта;
+UUID, hashes, timestamps, связи и action metadata открыты.
 Подробнее — [модель угроз](threat-model.md).
 
 `/health` проверяет жизнь процесса. `/ready` проверяет registry парсеров и,

@@ -16,6 +16,10 @@ from app.detection.baseline import (
     evaluate_peer_baseline,
 )
 from app.detection.policy_engine import evaluate_policies
+from app.detection.statistical.isolation_forest import (
+    FittedIsolationForest,
+    evaluate_isolation_forest,
+)
 from app.domain import CanonicalConfig, Finding, Severity
 from app.policies import POLICY_CATALOG_VERSION, POLICY_RULES
 
@@ -56,6 +60,7 @@ def explain_finding(
     *,
     reference: ExpectedConfiguration | None = None,
     peer_baseline: PeerBaseline | None = None,
+    statistical_model: FittedIsolationForest | None = None,
 ) -> FindingExplanation:
     """Require a finding to match a fresh detector run before generating prose."""
     finding = Finding.model_validate(finding.model_dump())
@@ -94,6 +99,22 @@ def explain_finding(
         )
         recommendation = "Review peer selection, inventory labels and intended configuration."
         citations = ("docs/baseline.md",)
+    elif finding.detector == "isolation_forest":
+        if statistical_model is None:
+            raise ValueError("statistical findings require their selected model")
+        candidates = evaluate_isolation_forest(
+            config,
+            statistical_model,
+            device_id=finding.device_id,
+        )
+        summary = "The selected experimental forest classified the structured vector as an outlier."
+        technical = (
+            "The score was recomputed with the selected numeric model. Highlighted median "
+            "deviations are diagnostic context, not causal explanations or tree attributions. "
+            "An outlier is not proof of a security violation or network impact."
+        )
+        recommendation = "Review training selection, intended changes and independent policy facts."
+        citations = ("docs/statistical-baseline.md#finding-interpretation",)
     else:
         raise ValueError("unsupported explanation detector")
     if finding not in candidates:

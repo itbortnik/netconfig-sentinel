@@ -4,8 +4,9 @@ import {
   analysisSummarySchema,
   configurationSummarySchema,
   snapshotSchema,
+  modelSchema,
 } from "./contracts";
-import type { AnalysisOptions, Upload } from "./contracts";
+import type { AnalysisOptions, TrainModel, Upload } from "./contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -17,13 +18,14 @@ export class ApiError extends Error {
 }
 
 const messages: Record<number, string> = {
-  400: "Конфигурация не принята. Проверьте формат, содержимое и ограничения загрузки.",
+  400: "Запрос не принят. Проверьте формат, выбранные снимки, модель и ограничения операции.",
   401: "Токен не принят. Подключитесь заново.",
   404: "Запись не найдена. Обновите историю.",
   409: "Устройство уже существует с другим hostname, vendor или platform. Проверьте UUID.",
   413: "Загрузка превышает допустимый размер.",
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
+  429: "Обучение уже выполняется. Дождитесь завершения и обновите реестр.",
   503: "Хранилище недоступно. Проверьте настройки API, миграции и ключ шифрования.",
 };
 
@@ -47,7 +49,7 @@ export class ApiClient {
   private async request<T>(
     path: string,
     schema: z.ZodType<T>,
-    body?: Upload | AnalysisOptions,
+    body?: Upload | AnalysisOptions | TrainModel,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -85,7 +87,7 @@ export class ApiClient {
       throw new ApiError(
         0,
         timeout.aborted
-          ? "Время ожидания истекло. Проверьте историю перед повторной загрузкой или анализом."
+          ? "Время ожидания истекло. Проверьте историю и реестр моделей перед повтором."
           : "Не удалось связаться с API. Проверьте локальный сервер.",
       );
     }
@@ -121,5 +123,14 @@ export class ApiClient {
       analysisSchema,
       options,
     );
+  }
+  models(offset = 0) {
+    return this.request(
+      `/models?limit=20&offset=${offset}`,
+      z.array(modelSchema),
+    );
+  }
+  trainModel(options: TrainModel) {
+    return this.request("/models/isolation-forest", modelSchema, options);
   }
 }

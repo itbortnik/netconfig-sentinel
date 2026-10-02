@@ -50,8 +50,9 @@ history.
 
 ## Current limitations
 
-- The fitted estimator is in memory; safe persistence and registry integration
-  are not included in this slice.
+- The offline fitted estimator is in memory. The authenticated API additionally
+  supports a bounded, encrypted numeric JSON [model registry](model-registry.md)
+  and explicit held-out inference without refitting. Models remain experimental.
 - No production-quality metric is claimed from unit fixtures.
 - Thresholds and contamination require evaluation on isolated real and
   synthetic test sets before operational use.
