@@ -14,6 +14,7 @@ from app.api.configurations import router as configuration_router
 from app.api.feedback import router as feedback_router
 from app.api.health import router as health_router
 from app.api.service import AnalysisService
+from app.api.snapshot_diff import router as snapshot_diff_router
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
 from app.web import UI_CONTENT_SECURITY_POLICY, mount_frontend
@@ -65,6 +66,7 @@ def create_app(settings: ApiSettings | None = None, *, frontend_dir: Path | None
     application.include_router(health_router)
     application.include_router(configuration_router)
     application.include_router(feedback_router)
+    application.include_router(snapshot_diff_router)
     mount_frontend(application, frontend_dir)
     return application
 

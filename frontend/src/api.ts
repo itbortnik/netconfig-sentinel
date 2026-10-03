@@ -6,6 +6,7 @@ import {
   snapshotSchema,
   modelSchema,
   feedbackSchema,
+  snapshotDiffSchema,
 } from "./contracts";
 import type {
   AnalysisOptions,
@@ -27,8 +28,8 @@ const messages: Record<number, string> = {
   400: "Запрос не принят. Проверьте формат, выбранные снимки, модель и ограничения операции.",
   401: "Токен не принят. Подключитесь заново.",
   404: "Запись не найдена. Обновите историю.",
-  409: "Конфликт идентификатора или привязки записи. Проверьте UUID устройства либо выбранный анализ и историю обратной связи.",
-  413: "Загрузка превышает допустимый размер.",
+  409: "Конфликт идентификатора или привязки записи. Проверьте UUID устройства, выбранные снимки и историю.",
+  413: "Операция превышает допустимый размер или число изменений.",
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
   429: "Обучение уже выполняется. Дождитесь завершения и обновите реестр.",
@@ -115,6 +116,15 @@ export class ApiClient {
     return this.request(
       `/configurations/${encodeURIComponent(id)}`,
       snapshotSchema,
+    );
+  }
+  diff(current: string, reference: string) {
+    const query = new URLSearchParams({
+      reference_configuration_id: reference,
+    });
+    return this.request(
+      `/configurations/${encodeURIComponent(current)}/diff?${query}`,
+      snapshotDiffSchema,
     );
   }
   analysis(id: string) {

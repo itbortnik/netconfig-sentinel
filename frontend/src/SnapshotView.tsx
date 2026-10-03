@@ -10,6 +10,7 @@ export function SnapshotView({
   onReference,
   onPeer,
   onTraining,
+  onDiffReference,
 }: {
   snapshot: ConfigurationSnapshot;
   busy: boolean;
@@ -18,6 +19,7 @@ export function SnapshotView({
   onReference: () => void;
   onPeer: () => void;
   onTraining: () => void;
+  onDiffReference: () => void;
 }) {
   const config = snapshot.canonical;
   const heading = useRef<HTMLHeadingElement>(null);
@@ -81,6 +83,13 @@ export function SnapshotView({
         </p>
       )}
       <div className="button-row">
+        <button
+          className="button secondary"
+          disabled={busy}
+          onClick={onDiffReference}
+        >
+          Выбрать для diff
+        </button>
         <button className="button primary" disabled={busy} onClick={onAnalyze}>
           Анализировать снимок
         </button>

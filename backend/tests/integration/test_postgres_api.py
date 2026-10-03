@@ -60,6 +60,26 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             result = analyzed.json()
             assert result["status"] == "completed"
             assert result["risk"] is not None
+            candidate = client.post(
+                "/api/v1/configurations",
+                headers=headers,
+                json={
+                    "device_id": snapshot["device_id"],
+                    "filename": "edge.cfg",
+                    "content": "hostname edge\nntp server 192.0.2.1\n",
+                },
+            )
+            assert candidate.status_code == 201
+            candidate_id = candidate.json()["configuration_id"]
+            comparison = client.get(
+                f"/api/v1/configurations/{candidate_id}/diff",
+                headers=headers,
+                params={"reference_configuration_id": cid},
+            )
+            assert comparison.status_code == 200, comparison.text
+            object_diff = comparison.json()
+            assert object_diff["modified_count"] == 1
+            assert object_diff["changes"][0]["section"] == "management"
         upgrade_database(store.engine)
         with TestClient(create_app(settings)) as restarted:
             assert (
@@ -69,10 +89,18 @@ def test_postgresql_encrypted_history_and_restart() -> None:
                 restarted.get(f"/api/v1/analyses/{result['analysis_id']}", headers=headers).json()
                 == result
             )
+            assert (
+                restarted.get(
+                    f"/api/v1/configurations/{candidate_id}/diff",
+                    headers=headers,
+                    params={"reference_configuration_id": cid},
+                ).json()
+                == object_diff
+            )
         with store.engine.connect() as connection:
-            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 2
-            ciphertext = connection.execute(text("SELECT payload FROM configurations")).scalar_one()
-            assert "hostname" not in ciphertext
+            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 3
+            ciphertexts = connection.execute(text("SELECT payload FROM configurations")).scalars()
+            assert all("hostname" not in ciphertext for ciphertext in ciphertexts)
         with pytest.raises(IntegrityError), store.engine.begin() as connection:
             connection.execute(
                 text(

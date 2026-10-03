@@ -261,7 +261,7 @@ test("disconnect cancels a delayed response and clears sensitive views", async (
     .click();
   await expect(
     page.getByText(
-      "Операция выполняется. Повторный запуск создаёт новую запись.",
+      "Операция выполняется. Перед повтором записи проверьте историю.",
     ),
   ).toBeVisible();
   await page.getByRole("button", { name: "Отключиться", exact: true }).click();

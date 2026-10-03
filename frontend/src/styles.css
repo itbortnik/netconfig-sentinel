@@ -824,6 +824,33 @@ footer {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.diff-panel,
+.diff-change {
+  overflow-wrap: anywhere;
+}
+.diff-panel {
+  margin-top: 20px;
+}
+.diff-change {
+  border-top: 1px solid #e7ecf2;
+  padding: 12px 0;
+}
+.diff-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.diff-side {
+  min-width: 0;
+}
+.diff-side ul {
+  padding-left: 20px;
+}
+@media (max-width: 900px) {
+  .diff-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 @media (max-width: 900px) {
   .sidebar {
     height: auto;

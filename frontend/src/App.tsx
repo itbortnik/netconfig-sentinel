@@ -11,6 +11,7 @@ import type {
   ModelSummary,
   FeedbackRecord,
   FeedbackSubmission,
+  SnapshotDiff,
 } from "./contracts";
 import { date, percent, shortId } from "./format";
 import { SnapshotView } from "./SnapshotView";
@@ -20,6 +21,9 @@ import { comparisonOptions, selectedSnapshot } from "./comparison";
 import type { SelectedSnapshot } from "./comparison";
 import { ModelPanel } from "./ModelPanel";
 import { statisticalOptions, trainingOptions } from "./models";
+import { DiffPanel } from "./DiffPanel";
+import { diffSelection } from "./diff";
+import type { DiffSelection } from "./diff";
 
 function Login({
   busy,
@@ -129,6 +133,9 @@ export function App() {
   const [models, setModels] = useState<ModelSummary[]>([]);
   const [model, setModel] = useState<ModelSummary | null>(null);
   const [modelOffset, setModelOffset] = useState(0);
+  const [diffReference, setDiffReference] = useState<DiffSelection | null>(
+    null,
+  );
 
   const disconnect = useCallback(() => {
     active.current?.close();
@@ -148,6 +155,7 @@ export function App() {
     setModels([]);
     setModel(null);
     setModelOffset(0);
+    setDiffReference(null);
     setConfigOffset(0);
     setAnalysisOffset(0);
     setDeviceOnly(false);
@@ -366,6 +374,18 @@ export function App() {
       if (active.current === client) record = saved;
     });
     return record;
+  }
+
+  async function compareSnapshots(
+    current: string,
+    referenceId: string,
+  ): Promise<SnapshotDiff | null> {
+    let report: SnapshotDiff | null = null;
+    await operation(async (client) => {
+      const received = await client.diff(current, referenceId);
+      if (active.current === client) report = received;
+    });
+    return report;
   }
 
   return (
@@ -594,7 +614,7 @@ export function App() {
             </div>
             {busy && (
               <p className="operation-status" role="status">
-                Операция выполняется. Повторный запуск создаёт новую запись.
+                Операция выполняется. Перед повтором записи проверьте историю.
               </p>
             )}
             {snapshot && (
@@ -602,6 +622,9 @@ export function App() {
                 snapshot={snapshot}
                 busy={busy}
                 onAnalyze={analyze}
+                onDiffReference={() =>
+                  setDiffReference(diffSelection(snapshot))
+                }
                 onDevice={() => {
                   setDevice(snapshot.device_id);
                   setTab("configurations");
@@ -625,6 +648,17 @@ export function App() {
                   }
                   setTraining((items) => [...items, selected]);
                 }}
+              />
+            )}
+            {snapshot && (
+              <DiffPanel
+                key={`${snapshot.configuration_id}:${diffReference?.configuration_id ?? "none"}`}
+                snapshot={snapshot}
+                before={diffReference}
+                busy={busy}
+                onClear={() => setDiffReference(null)}
+                onCompare={compareSnapshots}
+                onError={failure}
               />
             )}
             <ComparisonSelection

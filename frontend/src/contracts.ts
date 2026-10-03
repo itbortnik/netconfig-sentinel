@@ -29,6 +29,114 @@ const location = z.object({
   parser_confidence: score,
 });
 const jsonObject = z.record(z.string(), z.json());
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const object = value as Record<string, unknown>;
+    return `{${Object.keys(object)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(object[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "undefined";
+}
+export const diffSnapshotSchema = z.strictObject({
+  configuration_id: id,
+  device_id: id,
+  source_sha256: hash,
+  created_at: timestamp,
+  vendor: z.enum(["cisco", "juniper"]),
+  platform: z.string(),
+  hostname: z.string().nullable(),
+  projection_sha256: hash,
+  parser_confidence: score,
+  warning_count: z.number().int().nonnegative(),
+  unparsed_count: z.number().int().nonnegative(),
+});
+export const objectChangeSchema = z
+  .strictObject({
+    section: z.enum([
+      "device",
+      "management",
+      "interfaces",
+      "vlans",
+      "acls",
+      "prefix_lists",
+      "static_routes",
+      "bgp",
+      "bgp_neighbors",
+      "ospf",
+    ]),
+    object_key: z.array(z.string()).min(1).max(3),
+    kind: z.enum(["added", "removed", "modified"]),
+    before_value: jsonObject.nullable(),
+    after_value: jsonObject.nullable(),
+    before_locations: z.array(location),
+    after_locations: z.array(location),
+  })
+  .refine((item) => {
+    if (stableJson(item.before_value) === stableJson(item.after_value))
+      return false;
+    const kind =
+      item.before_value === null
+        ? "added"
+        : item.after_value === null
+          ? "removed"
+          : "modified";
+    return (
+      item.kind === kind &&
+      (item.before_value !== null || item.before_locations.length === 0) &&
+      (item.after_value !== null || item.after_locations.length === 0)
+    );
+  }, "inconsistent object change");
+export const snapshotDiffSchema = z
+  .strictObject({
+    version: z.literal("snapshot-diff-0.1.0"),
+    representation: z.literal("normalized_objects"),
+    before: diffSnapshotSchema,
+    after: diffSnapshotSchema,
+    coverage: z.enum(["supported_complete", "partial"]),
+    source_changed: z.boolean(),
+    added_count: z.number().int().nonnegative(),
+    removed_count: z.number().int().nonnegative(),
+    modified_count: z.number().int().nonnegative(),
+    changes: z.array(objectChangeSchema).max(500),
+    limitations: z.array(z.string()).min(1),
+  })
+  .refine((result) => {
+    const a = result.before,
+      b = result.after;
+    const complete = (item: typeof a) =>
+      item.parser_confidence === 1 &&
+      item.warning_count === 0 &&
+      item.unparsed_count === 0;
+    const keys = result.changes.map((item) =>
+      JSON.stringify([item.section, item.object_key]),
+    );
+    return (
+      a.configuration_id !== b.configuration_id &&
+      a.device_id === b.device_id &&
+      a.vendor === b.vendor &&
+      a.platform === b.platform &&
+      a.hostname === b.hostname &&
+      Date.parse(a.created_at) <= Date.parse(b.created_at) &&
+      result.coverage ===
+        (complete(a) && complete(b) ? "supported_complete" : "partial") &&
+      result.source_changed === (a.source_sha256 !== b.source_sha256) &&
+      result.added_count ===
+        result.changes.filter((item) => item.kind === "added").length &&
+      result.removed_count ===
+        result.changes.filter((item) => item.kind === "removed").length &&
+      result.modified_count ===
+        result.changes.filter((item) => item.kind === "modified").length &&
+      keys.length === new Set(keys).size &&
+      (a.projection_sha256 === b.projection_sha256) ===
+        (result.changes.length === 0)
+    );
+  }, "inconsistent diff binding");
+export type SnapshotDiff = z.infer<typeof snapshotDiffSchema>;
+export type ObjectChange = z.infer<typeof objectChangeSchema>;
+export type DiffSnapshot = z.infer<typeof diffSnapshotSchema>;
 export const feedbackVerdictSchema = z.enum([
   "confirmed_anomaly",
   "false_positive",

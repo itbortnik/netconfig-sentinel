@@ -74,6 +74,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Паспорт модели | `GET /api/v1/models/<UUID>` |
 | Сохранить мнение о находке | `POST /api/v1/findings/<UUID>/feedback` |
 | История мнений по конкретному анализу | `GET /api/v1/findings/<UUID>/feedback?analysis_id=<UUID>&limit=20&offset=0` |
+| Read-only diff нормализованных объектов | `GET /api/v1/configurations/<UUID>/diff?reference_configuration_id=<UUID>` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; создание снимков,
@@ -88,6 +89,9 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 повторные JSON-ключи, сжатые тела и неподдерживаемый вендор отвергаются.
 Некорректный запрос получает общее сообщение без отражения входного текста.
 Feedback имеет отдельные меньшие лимиты: 16 KiB body и 1–2000 символов comment.
+Сравнение снимков — read-only GET с явной парой версий того же устройства:
+[контракт, budgets и ограничения](snapshot-diff.md). Оно не создаёт анализ и
+не сохраняет raw original file; partial scope не выдаётся за полное сравнение.
 
 ## Интерпретация результата
 

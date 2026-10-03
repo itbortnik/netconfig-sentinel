@@ -11,8 +11,8 @@ The current persistent HTTP path is deliberately narrower than the offline tooli
 ```text
 Bearer token + bounded JSON upload + explicit device UUID
   -> text validation -> vendor parser -> encrypted canonical snapshot + audit
-  -> policies + explicitly selected reference/peer comparison -> local explanations
-  -> policy/peer risk (reference differences excluded)
+  -> policies + selected reference/peers + optional selected forest -> local explanations
+  -> available policy/peer/statistical risk (reference differences excluded)
   -> encrypted analysis + audit -> authenticated history/results
 ```
 
@@ -22,7 +22,12 @@ their audit events commit together. Partial parsing keeps available findings
 but suppresses the aggregate risk; exact reference comparison requires complete parsing.
 Peer consensus is opt-in and persists the exact profile plus selected input fingerprints
 inside the encrypted analysis, without a separate profile registry.
-ML and formal verification remain unavailable in this HTTP path.
+Isolation Forest uses an explicitly selected immutable experimental model;
+Transformer and formal verification remain unavailable in this HTTP path.
+An independent authenticated GET compares normalized objects of an explicitly
+selected older/current saved pair. It binds source and projection hashes,
+preserves sensitive rule order and reports partial coverage without raw unknown
+text. It is read-only, bounded and separate from findings, risk and approvals.
 See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 [trust boundary](threat-model.md).
 
