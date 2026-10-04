@@ -69,6 +69,8 @@ class Store:
                     "audit_events",
                     "models",
                     "finding_feedback",
+                    "patch_proposals",
+                    "verification_runs",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True

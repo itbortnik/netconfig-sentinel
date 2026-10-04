@@ -1,5 +1,13 @@
 # Architecture
 
+Saved normalized change drafts are an append-only API/UI workflow, separate from
+offline raw-text patches. They bind the full object diff to two immutable saved
+snapshots, encrypt the record, and atomically append an audit event. Local review
+has its own immutable intent ID/history and cannot promote the draft or a formal
+verification status. Explicit unavailable formal requests fail without fallback.
+Neither path reconstructs raw files, changes saved risk, or contacts devices.
+See [persistent draft/review contracts](persistent-patches.md).
+
 The first iteration is a modular monolith. `app.domain` owns stable contracts;
 `app.parsers` owns content detection and vendor adapters; `app.api` exposes
 process probes and an authenticated persistent deterministic-analysis workflow.

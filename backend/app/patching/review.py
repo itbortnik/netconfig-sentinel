@@ -12,7 +12,7 @@ from app.patching.proposal import PatchProposal, check_proposal_inputs
 from app.verification.preflight import PreflightReport, review_configuration_change
 
 
-def _blockers(report: PreflightReport) -> tuple[str, ...]:
+def local_validation_blockers(report: PreflightReport) -> tuple[str, ...]:
     blockers = ["formal_verification_not_run", "human_review_required"]
     if not report.before.complete or not report.after.complete:
         blockers.append("incomplete_parsing")
@@ -42,7 +42,7 @@ class PatchReview(BaseModel):
             or self.proposal.after_sha256 != self.preflight.after.source_sha256
         ):
             raise ValueError("preflight does not belong to this proposal")
-        if self.validation_blockers != _blockers(self.preflight):
+        if self.validation_blockers != local_validation_blockers(self.preflight):
             raise ValueError("validation blockers do not match the available checks")
         return self
 
@@ -57,4 +57,8 @@ def review_patch_proposal(
         device_id=device_id,
         reference_id=proposal.reference_id,
     )
-    return PatchReview(proposal=proposal, preflight=report, validation_blockers=_blockers(report))
+    return PatchReview(
+        proposal=proposal,
+        preflight=report,
+        validation_blockers=local_validation_blockers(report),
+    )

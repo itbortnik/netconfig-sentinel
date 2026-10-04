@@ -6,6 +6,11 @@
 рассмотрения — `needs_review`. Переходы в `validated`, `approved` и `applied`
 в этой версии отсутствуют.
 
+Этот документ описывает offline-пару исходных текстов. Отдельный
+[persistent workflow](persistent-patches.md) хранит различия нормализованных
+объектов и историю локальных проверок в API/UI; он не подменяет отсутствующие
+raw-файлы и не запускает формальную проверку.
+
 ## Контракты и привязка версий
 
 `create_patch_proposal(before, after, device_id=..., reference_id=...)`:

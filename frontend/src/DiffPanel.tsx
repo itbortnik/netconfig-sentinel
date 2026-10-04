@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiError } from "./api";
+import { ApiClient, ApiError } from "./api";
+import { PatchPanel } from "./PatchPanel";
 import type {
   ConfigurationSnapshot,
   ObjectChange,
@@ -65,6 +66,7 @@ function Side({
   );
 }
 export function DiffPanel({
+  client,
   snapshot,
   before,
   busy,
@@ -72,6 +74,7 @@ export function DiffPanel({
   onCompare,
   onError,
 }: {
+  client: ApiClient;
   snapshot: ConfigurationSnapshot;
   before: DiffSelection | null;
   busy: boolean;
@@ -241,6 +244,13 @@ export function DiffPanel({
           </details>
         </div>
       )}
+      <PatchPanel
+        client={client}
+        snapshot={snapshot}
+        diff={report}
+        busy={busy}
+        onError={onError}
+      />
     </section>
   );
 }

@@ -90,8 +90,55 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             object_diff = comparison.json()
             assert object_diff["modified_count"] == 1
             assert object_diff["changes"][0]["section"] == "management"
+            draft_body = {
+                "patch_id": str(uuid4()),
+                "before_configuration_id": cid,
+                "after_configuration_id": candidate_id,
+                "before_source_sha256": snapshot["canonical"]["source"]["sha256"],
+                "after_source_sha256": candidate.json()["canonical"]["source"]["sha256"],
+            }
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                drafts = list(
+                    executor.map(
+                        lambda _: client.post("/api/v1/patches", headers=headers, json=draft_body),
+                        range(4),
+                    )
+                )
+            assert sorted(item.status_code for item in drafts) == [200, 200, 200, 201]
+            draft = drafts[0].json()
+            assert all(item.json() == draft for item in drafts)
+            review_path = f"/api/v1/patches/{draft['patch_id']}/verify"
+            review_body = {"verification_id": str(uuid4()), "draft_sha256": draft["draft_sha256"]}
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                reviews = list(
+                    executor.map(
+                        lambda _: client.post(review_path, headers=headers, json=review_body),
+                        range(4),
+                    )
+                )
+            assert sorted(item.status_code for item in reviews) == [200, 200, 200, 201]
+            review = reviews[0].json()
+            assert all(item.json() == review for item in reviews)
+            assert review["preflight"]["formal_verification"] == "not_run"
+            assert (
+                client.post(
+                    review_path, headers=headers, json=review_body | {"mode": "batfish"}
+                ).status_code
+                == 503
+            )
         upgrade_database(store.engine)
         with TestClient(create_app(settings)) as restarted:
+            assert (
+                restarted.post("/api/v1/patches", headers=headers, json=draft_body).json() == draft
+            )
+            assert restarted.post(review_path, headers=headers, json=review_body).json() == review
+            assert (
+                restarted.get(
+                    f"/api/v1/patches/{draft['patch_id']}/verifications/{review['verification_id']}",
+                    headers=headers,
+                ).json()
+                == review
+            )
             assert (
                 restarted.post(context_path, headers=headers, json=context_body).json()
                 == contextual
@@ -112,7 +159,10 @@ def test_postgresql_encrypted_history_and_restart() -> None:
                 == object_diff
             )
         with store.engine.connect() as connection:
-            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 3
+            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 5
+            for table in ("patch_proposals", "verification_runs"):
+                payload = connection.execute(text(f"SELECT payload FROM {table}")).scalar_one()
+                assert "edge" not in payload and "192.0.2.1" not in payload
             ciphertexts = connection.execute(text("SELECT payload FROM configurations")).scalars()
             assert all("hostname" not in ciphertext for ciphertext in ciphertexts)
         with pytest.raises(IntegrityError), store.engine.begin() as connection:

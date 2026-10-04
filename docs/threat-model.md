@@ -40,6 +40,12 @@
   отвергаются, не превращаются в пустой clean report. Unknown fragments исключены
   с partial coverage; source/projection hashes и anchors сторон сохраняются.
   Diff не обезличивает значения, не запускает детекторы и не меняет историю/риск.
+- Черновик сохраняет именно этот diff, не команды. Draft/review payload
+  зашифрованы, привязаны к UUID/снимкам/fingerprint и атомарны с аудитом.
+  Параллельные повторы одного намерения возвращают одну исходную запись;
+  чтение пересчитывает diff из родителей, но не переоценивает исторический
+  отчёт новым каталогом. Локальная проверка не может стать formal pass:
+  `mode=batfish` в HTTP возвращает 503 без fallback.
 - Reference/peer inputs выбираются только по сохранённым IDs, до анализа
   проверяются identity, группа, distinct devices, порядок приёма и полнота
   парсинга. Результат хранит профиль/версии/hashes внутри encrypted payload.
@@ -69,7 +75,7 @@ UUID, source hashes, timestamps, связи и типы действий отк�
 сохранение ключа отдельно от backups и безопасная rotation ещё не автоматизированы.
 Компрометация процесса/ключа не защищена шифрованием payload.
 
-Audit сейчас фиксирует только успешные создания snapshot/analysis/model/feedback, не чтения,
+Audit сейчас фиксирует только успешные создания snapshot/analysis/model/feedback/draft/local-review, не чтения,
 не попытки доступа и не конкретного человека. DB-admin может переписать или
 удалить metadata, audit и ciphertext. Нет append-only внешнего аудита,
 защиты от отката всей БД, подписей результатов, retention policy или backup UI.

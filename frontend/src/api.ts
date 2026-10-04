@@ -16,6 +16,13 @@ import type {
   Upload,
   ExplainFinding,
 } from "./contracts";
+import {
+  patchDraftSchema,
+  patchSummarySchema,
+  verificationSchema,
+  verificationSummarySchema,
+} from "./patches";
+import type { CreatePatch, VerifyPatch } from "./patches";
 
 export class ApiError extends Error {
   constructor(
@@ -63,7 +70,9 @@ export class ApiClient {
       | AnalysisOptions
       | TrainModel
       | FeedbackSubmission
-      | ExplainFinding,
+      | ExplainFinding
+      | CreatePatch
+      | VerifyPatch,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -178,6 +187,42 @@ export class ApiClient {
     return this.request(
       `/findings/${encodeURIComponent(finding)}/explain`,
       explanationBundleSchema,
+      options,
+    );
+  }
+  patches(after: string, offset = 0) {
+    const query = new URLSearchParams({
+      after_configuration_id: after,
+      limit: "20",
+      offset: String(offset),
+    });
+    return this.request(
+      `/patches?${query}`,
+      z.array(patchSummarySchema).max(20),
+    );
+  }
+  patch(id: string) {
+    return this.request(`/patches/${encodeURIComponent(id)}`, patchDraftSchema);
+  }
+  createPatch(options: CreatePatch) {
+    return this.request("/patches", patchDraftSchema, options);
+  }
+  verifications(patch: string, offset = 0) {
+    return this.request(
+      `/patches/${encodeURIComponent(patch)}/verifications?limit=20&offset=${offset}`,
+      z.array(verificationSummarySchema).max(20),
+    );
+  }
+  verification(patch: string, id: string) {
+    return this.request(
+      `/patches/${encodeURIComponent(patch)}/verifications/${encodeURIComponent(id)}`,
+      verificationSchema,
+    );
+  }
+  verifyPatch(patch: string, options: VerifyPatch) {
+    return this.request(
+      `/patches/${encodeURIComponent(patch)}/verify`,
+      verificationSchema,
       options,
     );
   }

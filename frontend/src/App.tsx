@@ -652,6 +652,7 @@ export function App() {
             )}
             {snapshot && (
               <DiffPanel
+                client={session!}
                 key={`${snapshot.configuration_id}:${diffReference?.configuration_id ?? "none"}`}
                 snapshot={snapshot}
                 before={diffReference}

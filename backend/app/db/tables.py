@@ -59,3 +59,24 @@ class FeedbackRow(Base):
     finding_id: Mapped[str] = mapped_column(String(36))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[str] = mapped_column(Text)
+
+
+class PatchRow(Base):
+    __tablename__ = "patch_proposals"
+    __table_args__ = (
+        Index("ix_patch_proposals_after_created_at", "after_configuration_id", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    before_configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"))
+    after_configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)
+
+
+class VerificationRow(Base):
+    __tablename__ = "verification_runs"
+    __table_args__ = (Index("ix_verification_runs_patch_created_at", "patch_id", "created_at"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)

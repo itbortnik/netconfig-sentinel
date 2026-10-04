@@ -28,9 +28,10 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0003_finding_feedback`; перед обновлением существующей БД
+Текущая revision — `0004_patch_reviews`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
-[контракт обратной связи](finding-feedback.md).
+[контракт обратной связи](finding-feedback.md) и
+[черновики объектов / локальные проверки](persistent-patches.md).
 SQLite покрыта интеграционными тестами. PostgreSQL 17 проверен отдельным
 [успешным CI job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/36924852321)
 со свежим контейнером: миграции, encrypted history, анализ и перезапуск приложения.
@@ -76,11 +77,19 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | История мнений по конкретному анализу | `GET /api/v1/findings/<UUID>/feedback?analysis_id=<UUID>&limit=20&offset=0` |
 | Read-only diff нормализованных объектов | `GET /api/v1/configurations/<UUID>/diff?reference_configuration_id=<UUID>` |
 | Локальное объяснение с конкретными разделами источников | `POST /api/v1/findings/<UUID>/explain` |
+| Сохранить черновик объектов | `POST /api/v1/patches` |
+| Черновики позднего снимка | `GET /api/v1/patches?after_configuration_id=<UUID>&limit=20&offset=0` |
+| Получить черновик | `GET /api/v1/patches/<UUID>` |
+| Локальная проверка черновика | `POST /api/v1/patches/<UUID>/verify` |
+| История локальных проверок | `GET /api/v1/patches/<UUID>/verifications?limit=20&offset=0` |
+| Сохранённый отчёт проверки | `GET /api/v1/patches/<UUID>/verifications/<UUID>` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; создание снимков,
 анализов и моделей не идемпотентно. Feedback с явным ID идемпотентен:
 повтор того же намерения возвращает исходную запись, изменение под тем же ID — 409.
+Черновики объектов и проверки тоже используют явные идемпотентные IDs:
+[контракт и восстановление](persistent-patches.md). Write-body для них — 16 KiB.
 Нет endpoints удаления, замены, применения изменений или выхода
 на оборудование. Поддерживается только JSON, не multipart/архивы.
 

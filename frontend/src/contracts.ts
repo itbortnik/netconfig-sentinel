@@ -29,7 +29,7 @@ const location = z.object({
   parser_confidence: score,
 });
 const jsonObject = z.record(z.string(), z.json());
-function stableJson(value: unknown): string {
+export function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
     const object = value as Record<string, unknown>;
