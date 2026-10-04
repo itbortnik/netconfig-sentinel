@@ -117,7 +117,7 @@ export function FeedbackPanel({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !client.permits("feedback")) return;
     setNotice(null);
     let request: FeedbackSubmission;
     try {
@@ -174,7 +174,7 @@ export function FeedbackPanel({
         <select
           id="feedback-verdict"
           value={verdict}
-          disabled={busy}
+          disabled={busy || !client.permits("feedback")}
           onChange={(event) =>
             setVerdict(event.target.value as FeedbackVerdict)
           }
@@ -189,7 +189,7 @@ export function FeedbackPanel({
         <textarea
           id="feedback-comment"
           value={comment}
-          disabled={busy}
+          disabled={busy || !client.permits("feedback")}
           maxLength={4000}
           rows={4}
           required
@@ -199,7 +199,7 @@ export function FeedbackPanel({
         <p className="hint">{Array.from(comment).length} / 2000 символов</p>
         <button
           className="button secondary"
-          disabled={busy || !comment.trim()}
+          disabled={busy || !client.permits("feedback") || !comment.trim()}
           type="submit"
         >
           Сохранить оценку

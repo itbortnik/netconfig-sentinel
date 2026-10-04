@@ -8,7 +8,18 @@ from tempfile import TemporaryDirectory
 REPOSITORY = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY / "backend"))
 # Keep this child test process independent of a developer's configured API database.
-for name in ("NETCONFIG_DATABASE_URL", "NETCONFIG_API_TOKEN", "NETCONFIG_ENCRYPTION_KEY"):
+for name in (
+    "NETCONFIG_DATABASE_URL",
+    "NETCONFIG_API_TOKEN",
+    "NETCONFIG_ENCRYPTION_KEY",
+    "NETCONFIG_READER_TOKEN",
+    "NETCONFIG_ANALYST_TOKEN",
+    "NETCONFIG_ENGINEER_TOKEN",
+    "NETCONFIG_LLM_ENDPOINT",
+    "NETCONFIG_LLM_MODEL",
+    "NETCONFIG_LLM_ALLOW_LOCAL_CONTEXT",
+    "NETCONFIG_LLM_API_KEY",
+):
     os.environ.pop(name, None)
 
 import uvicorn  # noqa: E402
@@ -29,6 +40,9 @@ def main() -> None:
             f"sqlite:///{Path(temporary) / 'history.sqlite3'}",
             TOKEN,
             Fernet.generate_key().decode("ascii"),
+            reader_token="browser-tests-reader-service-token-000001",
+            analyst_token="browser-tests-analyst-service-token-000001",
+            engineer_token="browser-tests-engineer-service-token-000001",
         )
         store = Store(settings)
         upgrade_database(store.engine)

@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
+from app.api.access import authorize
 from app.api.configurations import Service, _request_body, _request_schema, _unique_keys
 from app.api.explanation_contracts import (
     ExplainFinding,
@@ -142,6 +143,8 @@ async def explain_finding(
     except (ValueError, RecursionError):
         raise HTTPException(status_code=400, detail="Invalid explanation request.") from None
     try:
+        if options.provider == "llm":
+            authorize(request, "model_explanation")
         return await run_in_threadpool(
             _explain, service, finding_id, options, request.app.state.local_model
         )

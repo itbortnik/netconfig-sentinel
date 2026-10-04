@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.responses import Response
 
+from app.api.access import router as access_router
 from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
@@ -76,6 +77,7 @@ def create_app(
         return response
 
     application.include_router(health_router)
+    application.include_router(access_router)
     application.include_router(configuration_router)
     application.include_router(feedback_router)
     application.include_router(snapshot_diff_router)

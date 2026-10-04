@@ -23,6 +23,10 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 Откройте `http://127.0.0.1:8000/ui/`, введите свой `NETCONFIG_API_TOKEN`.
 Root `/` перенаправляет на UI. Статика не содержит токен/ключ/данные пользователя;
 все бизнес-операции по-прежнему требуют Authorization.
+При входе UI проверяет [роль и permissions](service-roles.md); права без ответа
+`GET /api/v1/session` не выдаются. Недоступные записи/обучение/model invocation
+скрыты или отключены, но вся история остаётся доступной для чтения каждой роли.
+Logout очищает permissions в памяти, не отзывает сам service key.
 Если build отсутствует, `/ui/` возвращает явный 503, probes/API не ломаются.
 
 Backend ищет `app/static` в пакете, затем локальный `frontend/dist`.

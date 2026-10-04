@@ -3,6 +3,9 @@
 Этот срез реализует загрузку UTF-8 конфигурации, сохранение канонического снимка,
 policy-анализ, opt-in сравнения, локальные объяснения, обратную связь и историю. Для работы в браузере
 доступен [React-интерфейс](web-interface.md); OpenAPI и HTTP-клиент также поддерживаются.
+Операции ограничены [ролью service key](service-roles.md). Прежний
+`NETCONFIG_API_TOKEN` — admin, дополнительные reader/analyst/engineer keys opt-in;
+все роли читают все устройства. Индивидуальная identity не устанавливается.
 
 ## Локальный запуск с SQLite
 
@@ -63,6 +66,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 
 | Операция | Путь |
 | --- | --- |
+| Текущая роль и точные permissions | `GET /api/v1/session` |
 | Создать канонический снимок | `POST /api/v1/configurations` |
 | История снимков | `GET /api/v1/configurations?device_id=<UUID>&limit=20&offset=0` |
 | Получить снимок | `GET /api/v1/configurations/<UUID>` |

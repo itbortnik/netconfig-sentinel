@@ -5,6 +5,8 @@ import { date, percent } from "./format";
 export function SnapshotView({
   snapshot,
   busy,
+  canAnalyze,
+  canTrain,
   onAnalyze,
   onDevice,
   onReference,
@@ -14,6 +16,8 @@ export function SnapshotView({
 }: {
   snapshot: ConfigurationSnapshot;
   busy: boolean;
+  canAnalyze: boolean;
+  canTrain: boolean;
   onAnalyze: () => void;
   onDevice: () => void;
   onReference: () => void;
@@ -90,7 +94,11 @@ export function SnapshotView({
         >
           Выбрать для diff
         </button>
-        <button className="button primary" disabled={busy} onClick={onAnalyze}>
+        <button
+          className="button primary"
+          disabled={busy || !canAnalyze}
+          onClick={onAnalyze}
+        >
           Анализировать снимок
         </button>
         <button className="button secondary" disabled={busy} onClick={onDevice}>
@@ -98,7 +106,7 @@ export function SnapshotView({
         </button>
         <button
           className="button secondary"
-          disabled={busy || partial}
+          disabled={busy || partial || !canAnalyze}
           onClick={onReference}
         >
           Выбрать как эталон
@@ -107,6 +115,7 @@ export function SnapshotView({
           className="button secondary"
           disabled={
             busy ||
+            !canAnalyze ||
             partial ||
             !config.device.role ||
             !config.device.site_class ||
@@ -120,6 +129,7 @@ export function SnapshotView({
           className="button secondary"
           disabled={
             busy ||
+            !canTrain ||
             partial ||
             !config.device.hostname ||
             !config.device.role ||

@@ -55,7 +55,12 @@ export function ExplanationPanel({
   }, [client, onError]);
   async function load(model = false) {
     if (busy || loading) return;
-    if (model && (!permission || capabilities?.local_model !== "configured"))
+    if (
+      model &&
+      (!client.permits("model_explanation") ||
+        !permission ||
+        capabilities?.local_model !== "configured")
+    )
       return;
     const saved = analysis.explanations.find(
       (item) => item.finding_id === finding.finding_id,
@@ -110,32 +115,33 @@ export function ExplanationPanel({
       >
         {loading ? "Загрузка источников…" : "Показать источники объяснения"}
       </button>
-      {capabilities?.local_model === "configured" && (
-        <div className="model-explanation-controls">
-          <p className="notice warning">
-            В модель на этом компьютере будут отправлены псевдонимизированные
-            факты и публичные разделы документов. Числа, hashes и номера строк
-            сохраняются и могут быть конфиденциальны. Полный файл и неизвестные
-            команды не передаются.
-          </p>
-          <label>
-            <input
-              type="checkbox"
-              checked={permission}
-              disabled={busy || loading}
-              onChange={(event) => setPermission(event.target.checked)}
-            />{" "}
-            Разрешаю передачу этого контекста локальной модели
-          </label>
-          <button
-            className="button secondary"
-            disabled={busy || loading || !permission}
-            onClick={() => void load(true)}
-          >
-            Запросить черновик у локальной модели
-          </button>
-        </div>
-      )}
+      {capabilities?.local_model === "configured" &&
+        client.permits("model_explanation") && (
+          <div className="model-explanation-controls">
+            <p className="notice warning">
+              В модель на этом компьютере будут отправлены псевдонимизированные
+              факты и публичные разделы документов. Числа, hashes и номера строк
+              сохраняются и могут быть конфиденциальны. Полный файл и
+              неизвестные команды не передаются.
+            </p>
+            <label>
+              <input
+                type="checkbox"
+                checked={permission}
+                disabled={busy || loading}
+                onChange={(event) => setPermission(event.target.checked)}
+              />{" "}
+              Разрешаю передачу этого контекста локальной модели
+            </label>
+            <button
+              className="button secondary"
+              disabled={busy || loading || !permission}
+              onClick={() => void load(true)}
+            >
+              Запросить черновик у локальной модели
+            </button>
+          </div>
+        )}
       {loading && (
         <p role="status">Получение разделов для выбранной находки…</p>
       )}

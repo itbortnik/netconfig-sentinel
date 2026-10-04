@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import json
-import secrets
 from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
+from app.api.access import require_access
 from app.api.contracts import (
     AnalysisOptions,
     AnalysisResult,
@@ -28,31 +27,11 @@ from app.domain import Finding
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 MAX_REQUEST_BYTES = 3 * 1024 * 1024
-bearer = HTTPBearer(auto_error=False)
-
-
-def require_service(
-    request: Request,
-    credential: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
-) -> AnalysisService:
-    settings = request.app.state.api_settings
-    service = request.app.state.analysis_service
-    if settings is None or service is None:
-        raise HTTPException(status_code=503, detail="Persistent API is not configured.")
-    if credential is None or not secrets.compare_digest(
-        credential.credentials.encode("utf-8"), settings.api_token.encode("ascii")
-    ):
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not service.store.ready():
-        raise HTTPException(status_code=503, detail="Storage schema is unavailable.")
-    return service  # type: ignore[no-any-return]
-
-
+require_service = require_access("read")
 Service = Annotated[AnalysisService, Depends(require_service)]
+UploadService = Annotated[AnalysisService, Depends(require_access("upload"))]
+AnalyzeService = Annotated[AnalysisService, Depends(require_access("analyze"))]
+TrainingService = Annotated[AnalysisService, Depends(require_access("train_model"))]
 Limit = Annotated[int, Query(ge=1, le=100)]
 Offset = Annotated[int, Query(ge=0, le=10_000)]
 
@@ -145,7 +124,7 @@ async def _analysis_body(request: Request) -> AnalysisOptions:
         }
     },
 )
-async def train_model(request: Request, service: Service) -> ModelSummary:
+async def train_model(request: Request, service: TrainingService) -> ModelSummary:
     body = await _request_body(request, maximum=16 * 1024)
     try:
         options = TrainModelOptions.model_validate(
@@ -195,7 +174,7 @@ def get_model(model_id: UUID, service: Service) -> ModelSummary:
         }
     },
 )
-async def upload_configuration(request: Request, service: Service) -> ConfigurationSnapshot:
+async def upload_configuration(request: Request, service: UploadService) -> ConfigurationSnapshot:
     upload = await _upload_body(request)
     try:
         return await run_in_threadpool(service.upload, upload)
@@ -253,7 +232,7 @@ def get_configuration(configuration_id: UUID, service: Service) -> Configuration
     },
 )
 async def analyze_configuration(
-    configuration_id: UUID, request: Request, service: Service
+    configuration_id: UUID, request: Request, service: AnalyzeService
 ) -> AnalysisResult:
     options = await _analysis_body(request)
     try:

@@ -8,6 +8,8 @@ export function ModelPanel({
   selected,
   offset,
   busy,
+  canTrain,
+  canAnalyze,
   onTrain,
   onRemove,
   onSelect,
@@ -18,6 +20,8 @@ export function ModelPanel({
   selected: ModelSummary | null;
   offset: number;
   busy: boolean;
+  canTrain: boolean;
+  canAnalyze: boolean;
   onTrain: () => void;
   onRemove: (id: string) => void;
   onSelect: (model: ModelSummary | null) => void;
@@ -50,7 +54,7 @@ export function ModelPanel({
         </ul>
         <button
           className="button secondary"
-          disabled={busy || training.length < 8}
+          disabled={busy || !canTrain || training.length < 8}
           onClick={onTrain}
         >
           Обучить и сохранить модель
@@ -70,7 +74,7 @@ export function ModelPanel({
       {selected && (
         <button
           className="button secondary compact"
-          disabled={busy}
+          disabled={busy || !canAnalyze}
           onClick={() => onSelect(null)}
         >
           Убрать модель
@@ -84,7 +88,7 @@ export function ModelPanel({
             experimental{" "}
             <button
               className="button secondary compact"
-              disabled={busy}
+              disabled={busy || !canAnalyze}
               onClick={() => onSelect(model)}
               aria-pressed={selected?.model_id === model.model_id}
             >

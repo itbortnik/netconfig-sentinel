@@ -1,11 +1,13 @@
 """Authenticated append-only draft and local review API with idempotent intent IDs."""
 
 import json
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 
+from app.api.access import require_access
 from app.api.configurations import (
     Limit,
     Offset,
@@ -22,11 +24,14 @@ from app.api.patch_contracts import (
     VerificationSummary,
     VerifyPatch,
 )
+from app.api.service import AnalysisService
 from app.comparison.snapshots import DiffConflict, DiffLimitExceeded
 from app.db.patch_records import PatchConflict
 from app.patching.persistent import FormalVerificationUnavailable, PatchNotFound, PatchWorkflow
 
 router = APIRouter(prefix="/api/v1/patches", tags=["draft changes and local review"])
+DraftService = Annotated[AnalysisService, Depends(require_access("draft"))]
+VerificationService = Annotated[AnalysisService, Depends(require_access("verify"))]
 
 
 def _error(exception: Exception) -> HTTPException:
@@ -55,7 +60,7 @@ def _error(exception: Exception) -> HTTPException:
         }
     },
 )
-async def create_patch(request: Request, response: Response, service: Service) -> PatchDraft:
+async def create_patch(request: Request, response: Response, service: DraftService) -> PatchDraft:
     body = await _request_body(request, maximum=16 * 1024)
     try:
         options = CreatePatchDraft.model_validate(
@@ -112,7 +117,7 @@ def get_patch(patch_id: UUID, service: Service) -> PatchDraft:
     },
 )
 async def verify_patch(
-    patch_id: UUID, request: Request, response: Response, service: Service
+    patch_id: UUID, request: Request, response: Response, service: VerificationService
 ) -> VerificationRun:
     body = await _request_body(request, maximum=16 * 1024)
     try:

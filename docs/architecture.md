@@ -13,6 +13,9 @@ The first iteration is a modular monolith. `app.domain` owns stable contracts;
 process probes and an authenticated persistent deterministic-analysis workflow.
 Ingestion, detection, verification, and explanation code
 must depend on the domain contracts rather than on vendor parser internals.
+Fixed [service-key roles](service-roles.md) enforce read/upload/analyze/engineer/train
+permissions before write-body processing. UI validates `/session` before enabling
+operations; all roles still share access to saved devices, without individual identity.
 
 The current persistent HTTP path is deliberately narrower than the offline tooling:
 

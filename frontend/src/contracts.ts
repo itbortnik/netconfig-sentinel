@@ -1,5 +1,47 @@
 import { z } from "zod";
 
+export const rolePermissions = {
+  reader: ["read"],
+  analyst: ["read", "upload", "analyze"],
+  engineer: [
+    "read",
+    "upload",
+    "analyze",
+    "feedback",
+    "draft",
+    "verify",
+    "model_explanation",
+  ],
+  admin: [
+    "read",
+    "upload",
+    "analyze",
+    "train_model",
+    "feedback",
+    "draft",
+    "verify",
+    "model_explanation",
+  ],
+} as const;
+export type Permission = (typeof rolePermissions.admin)[number];
+export const sessionAccessSchema = z
+  .strictObject({
+    version: z.literal("service-access-0.1.0"),
+    role: z.enum(["reader", "analyst", "engineer", "admin"]),
+    permissions: z.array(z.enum(rolePermissions.admin)).min(1).max(8),
+    individual_identity_verified: z.literal(false),
+    device_scope: z.literal("all_saved_devices"),
+  })
+  .refine(
+    (access) =>
+      new Set(access.permissions).size === access.permissions.length &&
+      access.permissions.length === rolePermissions[access.role].length &&
+      rolePermissions[access.role].every((permission) =>
+        access.permissions.includes(permission),
+      ),
+  );
+export type SessionAccess = z.infer<typeof sessionAccessSchema>;
+
 const id = z.guid();
 const hash = z.string().regex(/^[0-9a-f]{64}$/);
 const score = z.number().min(0).max(1);

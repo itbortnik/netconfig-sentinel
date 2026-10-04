@@ -1,11 +1,13 @@
 """Authenticated, bounded, immutable and idempotent human assessment endpoints."""
 
 import json
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 
+from app.api.access import require_access
 from app.api.configurations import (
     Limit,
     Offset,
@@ -15,10 +17,11 @@ from app.api.configurations import (
     _unique_keys,
 )
 from app.api.feedback_contracts import FeedbackRecord, SubmitFeedback
-from app.api.service import FeedbackTargetNotFound
+from app.api.service import AnalysisService, FeedbackTargetNotFound
 from app.db.store import FeedbackConflict
 
 router = APIRouter(prefix="/api/v1", tags=["feedback"])
+FeedbackService = Annotated[AnalysisService, Depends(require_access("feedback"))]
 
 
 @router.post(
@@ -38,7 +41,7 @@ router = APIRouter(prefix="/api/v1", tags=["feedback"])
     },
 )
 async def submit_feedback(
-    finding_id: UUID, request: Request, response: Response, service: Service
+    finding_id: UUID, request: Request, response: Response, service: FeedbackService
 ) -> FeedbackRecord:
     body = await _request_body(request, maximum=16 * 1024)
     try:

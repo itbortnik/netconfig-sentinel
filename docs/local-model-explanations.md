@@ -50,6 +50,9 @@ service token приложения и Fernet key не пересылаются. 
 `disabled|configured`, transport и требование разрешения. `model_health_checked=false`
 всегда: `configured` не означает, что сервер работает или модель пригодна.
 Endpoint, ключ и путь модели не возвращаются.
+Запрос model draft дополнительно требует role permission `model_explanation`:
+[engineer/admin](service-roles.md). Reader/analyst могут получать локальные
+источники, но не передавать контекст модели. Role permission не заменяет consent.
 
 В выбранной находке UI показывает отдельное предупреждение и галочку разрешения.
 Кнопка модели отключена без галочки; переключение находки или выход очищает

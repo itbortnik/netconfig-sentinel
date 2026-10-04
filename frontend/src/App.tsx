@@ -12,6 +12,7 @@ import type {
   FeedbackRecord,
   FeedbackSubmission,
   SnapshotDiff,
+  SessionAccess,
 } from "./contracts";
 import { date, percent, shortId } from "./format";
 import { SnapshotView } from "./SnapshotView";
@@ -107,6 +108,7 @@ function Pager({
 
 export function App() {
   const [session, setSession] = useState<ApiClient | null>(null);
+  const [access, setAccess] = useState<SessionAccess | null>(null);
   const [sessionEpoch, setSessionEpoch] = useState(0);
   const active = useRef<ApiClient | null>(null);
   const [busy, setBusy] = useState(false);
@@ -141,6 +143,7 @@ export function App() {
     active.current?.close();
     active.current = null;
     setSession(null);
+    setAccess(null);
     setBusy(false);
     setLoading(false);
     setError(null);
@@ -196,8 +199,12 @@ export function App() {
     try {
       candidate = new ApiClient(token);
       active.current = candidate;
+      const receivedAccess = await candidate.access();
       await candidate.configurations();
-      if (active.current === candidate) setSession(candidate);
+      if (active.current === candidate) {
+        setAccess(receivedAccess);
+        setSession(candidate);
+      }
     } catch (problem) {
       if (candidate === null || active.current === candidate) {
         candidate?.close();
@@ -267,6 +274,7 @@ export function App() {
     }
   }
   async function upload(body: Upload) {
+    if (!active.current?.permits("upload")) return false;
     return operation(async (client) => {
       const created = await client.upload(body);
       if (active.current !== client) return;
@@ -310,7 +318,7 @@ export function App() {
     });
   }
   function analyze() {
-    if (!snapshot) return;
+    if (!snapshot || !active.current?.permits("analyze")) return;
     const selected = snapshot;
     setResult(null);
     void operation(async (client) => {
@@ -344,6 +352,7 @@ export function App() {
   }
 
   function train() {
+    if (!active.current?.permits("train_model")) return;
     void operation(async (client) => {
       let options;
       try {
@@ -368,6 +377,7 @@ export function App() {
     finding: string,
     submission: FeedbackSubmission,
   ): Promise<FeedbackRecord | null> {
+    if (!active.current?.permits("feedback")) return null;
     let record: FeedbackRecord | null = null;
     await operation(async (client) => {
       const saved = await client.submitFeedback(finding, submission);
@@ -462,12 +472,27 @@ export function App() {
           </>
         ) : (
           <>
+            <p className="notice" aria-label="Роль сессии">
+              Доступ:{" "}
+              {access
+                ? {
+                    reader: "только просмотр",
+                    analyst: "анализ",
+                    engineer: "инженерные действия",
+                    admin: "администрирование",
+                  }[access.role]
+                : "не подтверждён"}
+              . Все сохранённые устройства доступны для чтения; личность
+              владельца ключа не подтверждается.
+            </p>
             <div
               className={
-                tab === "configurations" ? "intake-grid" : "history-grid"
+                tab === "configurations" && session.permits("upload")
+                  ? "intake-grid"
+                  : "history-grid"
               }
             >
-              {tab === "configurations" && (
+              {tab === "configurations" && session.permits("upload") && (
                 <UploadForm
                   device={device}
                   onDevice={setDevice}
@@ -621,6 +646,8 @@ export function App() {
               <SnapshotView
                 snapshot={snapshot}
                 busy={busy}
+                canAnalyze={session.permits("analyze")}
+                canTrain={session.permits("train_model")}
                 onAnalyze={analyze}
                 onDiffReference={() =>
                   setDiffReference(diffSelection(snapshot))
@@ -677,6 +704,8 @@ export function App() {
               selected={model}
               offset={modelOffset}
               busy={busy || loading}
+              canTrain={session.permits("train_model")}
+              canAnalyze={session.permits("analyze")}
               onTrain={train}
               onSelect={setModel}
               onOffset={setModelOffset}

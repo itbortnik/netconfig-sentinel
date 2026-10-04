@@ -47,12 +47,15 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -e ".[dev]"
-      - run: pytest -q backend/tests/integration/test_postgres_api.py backend/tests/integration/test_local_model_api.py
+      - run: pytest -q backend/tests/integration/test_postgres_api.py backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py
 
   frontend:
     runs-on: ubuntu-latest
     env:
       NETCONFIG_API_TOKEN: browser-tests-service-token-32-characters-001
+      NETCONFIG_READER_TOKEN: browser-tests-reader-service-token-000001
+      NETCONFIG_ANALYST_TOKEN: browser-tests-analyst-service-token-000001
+      NETCONFIG_ENGINEER_TOKEN: browser-tests-engineer-service-token-000001
       NETCONFIG_POSTGRES_PASSWORD: 1234567890abcdef1234567890abcdef
       # Synthetic CI-only key, never a deployment credential.
       NETCONFIG_ENCRYPTION_KEY: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=

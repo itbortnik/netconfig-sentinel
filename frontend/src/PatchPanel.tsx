@@ -109,7 +109,13 @@ export function PatchPanel({
     }
   }
   async function save() {
-    if (!diff || !diff.source_changed || diff.changes.length === 0) return;
+    if (
+      !client.permits("draft") ||
+      !diff ||
+      !diff.source_changed ||
+      diff.changes.length === 0
+    )
+      return;
     createIntent.current ??= patchIntent(diff, crypto.randomUUID());
     const received = await client.createPatch(createIntent.current);
     if (
@@ -138,7 +144,7 @@ export function PatchPanel({
     await refreshRuns(received, 0);
   }
   async function review() {
-    if (!draft) return;
+    if (!draft || !client.permits("verify")) return;
     reviewIntent.current ??= {
       verification_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
@@ -198,7 +204,12 @@ export function PatchPanel({
       <div className="button-row">
         <button
           className="button secondary"
-          disabled={busy || !diff?.source_changed || diff.changes.length === 0}
+          disabled={
+            busy ||
+            !client.permits("draft") ||
+            !diff?.source_changed ||
+            diff.changes.length === 0
+          }
           onClick={() => {
             void operation(save, true);
           }}
@@ -287,7 +298,7 @@ export function PatchPanel({
           <div className="button-row">
             <button
               className="button secondary"
-              disabled={busy}
+              disabled={busy || !client.permits("verify")}
               onClick={() => {
                 void operation(review, true);
               }}

@@ -10,6 +10,7 @@ import {
   explanationBundleSchema,
   modelExplanationSchema,
   explanationCapabilitiesSchema,
+  sessionAccessSchema,
 } from "./contracts";
 import type {
   AnalysisOptions,
@@ -17,6 +18,7 @@ import type {
   TrainModel,
   Upload,
   ExplainFinding,
+  Permission,
 } from "./contracts";
 import {
   patchDraftSchema,
@@ -38,7 +40,7 @@ export class ApiError extends Error {
 const messages: Record<number, string> = {
   400: "Запрос не принят. Проверьте формат, выбранные снимки, модель и ограничения операции.",
   401: "Токен не принят. Подключитесь заново.",
-  403: "Для обращения к локальной модели требуется отдельное разрешение на передачу контекста.",
+  403: "Недостаточно прав для этой операции или не разрешена передача контекста локальной модели.",
   404: "Запись не найдена. Обновите историю.",
   409: "Конфликт идентификатора или привязки записи. Проверьте UUID устройства, выбранные снимки и историю.",
   413: "Операция превышает допустимый размер или число изменений.",
@@ -51,19 +53,35 @@ const messages: Record<number, string> = {
 export class ApiClient {
   private readonly controller = new AbortController();
   private token: string;
+  private permissions: Permission[] = [];
   constructor(
     token: string,
     private readonly transport: typeof fetch = globalThis.fetch.bind(
       globalThis,
     ),
   ) {
-    if (token.length < 32 || !/^[\x21-\x7e]+$/.test(token))
+    if (
+      token.length < 32 ||
+      token.length > 512 ||
+      !/^[\x21-\x7e]+$/.test(token)
+    )
       throw new ApiError(401, messages[401]!);
     this.token = token;
   }
   close() {
     this.token = "";
+    this.permissions = [];
     this.controller.abort();
+  }
+  async access() {
+    const result = await this.request("/session", sessionAccessSchema);
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    this.permissions = result.permissions;
+    return result;
+  }
+  permits(permission: Permission) {
+    return this.permissions.includes(permission);
   }
   private async request<T>(
     path: string,

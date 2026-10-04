@@ -5,8 +5,10 @@
 
 ## Что защищено
 
-- Все persistent endpoints проверяют единственный service bearer-token до чтения
-  upload body. Нет demo-token, fallback-пароля или открытого business endpoint.
+- Все persistent endpoints проверяют service bearer-token и разрешения роли до
+  чтения write body; LLM permission — после bounded selection, до передачи.
+  [Фиксированные роли](service-roles.md) не принимаются из request body.
+  Нет demo-token, fallback-пароля или открытого business endpoint.
 - Текст имеет бюджеты bytes/lines, JSON — общий byte budget. Пути файлов,
   control characters, архивы, сжатые тела и неизвестные поля не принимаются.
   Filename никогда не используется как путь записи. SQL-значения параметризованы.
@@ -63,9 +65,11 @@
 
 ## Что остаётся открытым или ограниченным
 
-Общий token — одна service identity, не пользователи/тенанты. Его владелец видит
-все устройства, включая конфиденциальный canonical/raw-unparsed text. RBAC,
-пользовательские sessions, отзыв токенов, SSO и разделение tenants отсутствуют.
+Service key — роль, не индивидуальный пользователь/tenant. Его владелец видит
+все устройства, включая конфиденциальный canonical/raw-unparsed text. Ограничение
+операций по роли реализовано, отзыв/ротация — только через настройки и restart
+всех процессов. Individual identity, пользовательские sessions, hot-revocation,
+SSO, expiry и разделение tenants отсутствуют.
 Без reverse proxy нет TLS; наружу этот development API открывать нельзя.
 Секреты и файл SQLite требуют ограниченных OS permissions.
 Любой исполняемый скрипт того же origin, вредоносное расширение браузера или
