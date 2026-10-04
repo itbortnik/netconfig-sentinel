@@ -17,12 +17,21 @@ from app.api.health import router as health_router
 from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
+from app.core.local_model import LocalModelSettings
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
+from app.explanation.local_model import LocalModelRuntime
 from app.web import UI_CONTENT_SECURITY_POLICY, mount_frontend
 
 
-def create_app(settings: ApiSettings | None = None, *, frontend_dir: Path | None = None) -> FastAPI:
+def create_app(
+    settings: ApiSettings | None = None,
+    *,
+    frontend_dir: Path | None = None,
+    local_model: LocalModelSettings | None = None,
+) -> FastAPI:
+    if local_model is not None and settings is None:
+        raise ValueError("local model requires an authenticated persistent API")
     store = Store(settings) if settings is not None else None
 
     @asynccontextmanager
@@ -41,6 +50,7 @@ def create_app(settings: ApiSettings | None = None, *, frontend_dir: Path | None
     )
     application.state.api_settings = settings
     application.state.analysis_service = AnalysisService(store) if store is not None else None
+    application.state.local_model = LocalModelRuntime(local_model) if local_model else None
 
     @application.exception_handler(RequestValidationError)
     async def invalid_request(_: Request, __: RequestValidationError) -> JSONResponse:
@@ -75,4 +85,4 @@ def create_app(settings: ApiSettings | None = None, *, frontend_dir: Path | None
     return application
 
 
-app = create_app(ApiSettings.from_environment())
+app = create_app(ApiSettings.from_environment(), local_model=LocalModelSettings.from_environment())

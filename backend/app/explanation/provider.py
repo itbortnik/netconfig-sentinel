@@ -1,4 +1,4 @@
-"""Opt-in provider protocol and fail-closed validation; no network adapter is installed."""
+"""Opt-in provider protocol and fail-closed schema/citation validation."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ class ProviderPrompt:
 
 
 class ExplanationProvider(Protocol):
-    """A future explicitly authorized adapter must bound its own transport and deadline."""
+    """Adapters must enforce explicit authorization, transport bounds and a deadline."""
 
     def generate(self, prompt: ProviderPrompt) -> bytes: ...
 
@@ -177,7 +177,7 @@ def generate_draft(
     prompt: ProviderPrompt,
     chunks: tuple[DocumentChunk, ...],
 ) -> DraftAnswer:
-    """Explicit library-only invocation; the HTTP service never calls a provider."""
+    """Explicit invocation; a model answer never changes detector facts or verification."""
     # Bind validation to exactly the sources sent to this provider, not another retrieval.
     if len((prompt.instructions + prompt.context_json + prompt.answer_schema_json).encode()) > (
         MAX_PROMPT_BYTES

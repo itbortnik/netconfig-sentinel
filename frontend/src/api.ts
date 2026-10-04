@@ -8,6 +8,8 @@ import {
   feedbackSchema,
   snapshotDiffSchema,
   explanationBundleSchema,
+  modelExplanationSchema,
+  explanationCapabilitiesSchema,
 } from "./contracts";
 import type {
   AnalysisOptions,
@@ -36,12 +38,13 @@ export class ApiError extends Error {
 const messages: Record<number, string> = {
   400: "Запрос не принят. Проверьте формат, выбранные снимки, модель и ограничения операции.",
   401: "Токен не принят. Подключитесь заново.",
+  403: "Для обращения к локальной модели требуется отдельное разрешение на передачу контекста.",
   404: "Запись не найдена. Обновите историю.",
   409: "Конфликт идентификатора или привязки записи. Проверьте UUID устройства, выбранные снимки и историю.",
   413: "Операция превышает допустимый размер или число изменений.",
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
-  429: "Обучение уже выполняется. Дождитесь завершения и обновите реестр.",
+  429: "Операция уже выполняется. Дождитесь завершения и повторите запрос.",
   503: "Сервис или источники недоступны. Проверьте настройки API, миграции и ключ шифрования.",
 };
 
@@ -187,6 +190,25 @@ export class ApiClient {
     return this.request(
       `/findings/${encodeURIComponent(finding)}/explain`,
       explanationBundleSchema,
+      options,
+    );
+  }
+  explanationCapabilities() {
+    return this.request(
+      "/explanation-capabilities",
+      explanationCapabilitiesSchema,
+    );
+  }
+  explainModel(
+    finding: string,
+    options: ExplainFinding & {
+      provider: "llm";
+      allow_local_model_context: true;
+    },
+  ) {
+    return this.request(
+      `/findings/${encodeURIComponent(finding)}/explain`,
+      modelExplanationSchema,
       options,
     );
   }

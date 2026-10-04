@@ -77,6 +77,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | История мнений по конкретному анализу | `GET /api/v1/findings/<UUID>/feedback?analysis_id=<UUID>&limit=20&offset=0` |
 | Read-only diff нормализованных объектов | `GET /api/v1/configurations/<UUID>/diff?reference_configuration_id=<UUID>` |
 | Локальное объяснение с конкретными разделами источников | `POST /api/v1/findings/<UUID>/explain` |
+| Настройка локального LLM adapter без health check | `GET /api/v1/explanation-capabilities` |
 | Сохранить черновик объектов | `POST /api/v1/patches` |
 | Черновики позднего снимка | `GET /api/v1/patches?after_configuration_id=<UUID>&limit=20&offset=0` |
 | Получить черновик | `GET /api/v1/patches/<UUID>` |
@@ -105,8 +106,11 @@ Feedback имеет отдельные меньшие лимиты: 16 KiB body 
 
 Объяснение с источниками требует analysis ID и finding content hash, читает
 неизменное локальное объяснение и allowlisted разделы внутренней документации.
-LLM недоступна; её явный выбор возвращает 503 без скрытого fallback. История,
-риск и verifier status не меняются: [контракт](contextual-explanations.md).
+LLM по умолчанию недоступна; её выбор без настройки возвращает 503 без fallback.
+Отдельный [локальный adapter](local-model-explanations.md) требует разрешения
+оператора и запроса, псевдонимизирует контекст и возвращает только непроверенный
+черновик. История, риск, audit и verifier status не меняются:
+[контракт](contextual-explanations.md). Новая миграция для LLM не нужна.
 
 ## Интерпретация результата
 

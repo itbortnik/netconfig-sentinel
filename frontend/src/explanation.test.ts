@@ -1,6 +1,11 @@
 import { expect, it, vi } from "vitest";
 import { ApiClient, ApiError } from "./api";
-import { explanationBundleSchema } from "./contracts";
+import {
+  explanationBundleSchema,
+  modelExplanationSchema,
+  modelDraftSchema,
+  explanationCapabilitiesSchema,
+} from "./contracts";
 import type { ExplanationBundle } from "./contracts";
 import { explanationMatches } from "./explanation";
 
@@ -72,6 +77,110 @@ const analysis = {
   explanations: [explanation],
 };
 const finding = { finding_id: id };
+const answer = {
+  summary: "Model draft",
+  technical_explanation: "Unverified text",
+  recommendation: "Review operational intent",
+  possible_impact: ["Hypothesis"],
+  assumptions: [],
+  missing_information: [],
+  citations: [bundle.documents[0]!.citation],
+  patch_draft: null,
+  requires_human_review: true,
+};
+const modelBundle = {
+  ...bundle,
+  version: "model-explanation-0.1.0",
+  provider: "loopback_language_model",
+  llm_status: "draft",
+  privacy_version: "finding-context-redaction-0.1.0",
+  context_sha256: "e".repeat(64),
+  model_alias: "synthetic-model",
+  answer,
+};
+
+it("accepts only bound model drafts without changing the original deterministic explanation", async () => {
+  const parsed = modelExplanationSchema.parse(modelBundle);
+  expect(await explanationMatches(parsed, analysis, finding)).toBe(true);
+  expect(
+    modelExplanationSchema.safeParse({
+      ...modelBundle,
+      finding_sha256: "f".repeat(64),
+    }).success,
+  ).toBe(false);
+  expect(
+    explanationCapabilitiesSchema.safeParse({
+      version: "explanation-capabilities-0.1.0",
+      local_model: "configured",
+      model_health_checked: false,
+      transport: "literal_loopback_only",
+      explicit_request_permission_required: true,
+    }).success,
+  ).toBe(true);
+});
+it.each([
+  { approved: true },
+  { risk: 0 },
+  { patch_draft: "command" },
+  { requires_human_review: false },
+  { requires_human_review: 1 },
+  { summary: "" },
+  { technical_explanation: "hidden\u202etext" },
+  { citations: [] },
+  { citations: [answer.citations[0], answer.citations[0]] },
+  { possible_impact: Array(11).fill("unverified") },
+])("rejects unsafe model answer %j", (update) =>
+  expect(modelDraftSchema.safeParse({ ...answer, ...update }).success).toBe(
+    false,
+  ),
+);
+it.each([
+  { llm_status: "verified" },
+  { approved: true },
+  { provider: "remote" },
+  { privacy_version: "unknown" },
+  { model_alias: "private/path" },
+  { answer: { ...answer, citations: ["outside#source"] } },
+])("rejects misleading or unrelated model response %j", (update) =>
+  expect(
+    modelExplanationSchema.safeParse({ ...modelBundle, ...update }).success,
+  ).toBe(false),
+);
+it("does not accept a model answer exceeding the wire budget or claiming checked health", () => {
+  expect(
+    modelDraftSchema.safeParse({
+      ...answer,
+      assumptions: Array(20).fill("x".repeat(2000)),
+    }).success,
+  ).toBe(false);
+  expect(
+    explanationCapabilitiesSchema.safeParse({
+      version: "explanation-capabilities-0.1.0",
+      local_model: "configured",
+      model_health_checked: true,
+      transport: "literal_loopback_only",
+      explicit_request_permission_required: true,
+    }).success,
+  ).toBe(false);
+});
+it("model calls use the same-origin binding and explicit permission, never a browser-selected provider URL", async () => {
+  const transport = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(new Response("{}", { status: 403 }));
+  const api = new ApiClient(token, transport);
+  const options = {
+    analysis_id: id,
+    finding_sha256: bundle.finding_sha256,
+    provider: "llm" as const,
+    allow_local_model_context: true as const,
+  };
+  await expect(api.explainModel(id, options)).rejects.toBeInstanceOf(ApiError);
+  expect(transport.mock.calls[0]![0]).toBe(`/api/v1/findings/${id}/explain`);
+  expect(transport.mock.calls[0]![1]?.body).toBe(JSON.stringify(options));
+  expect(transport.mock.calls[0]![1]?.credentials).toBe("omit");
+  expect(transport.mock.calls[0]![1]?.redirect).toBe("error");
+  api.close();
+});
 
 it("accepts only the selected analysis, original explanation and exact chunk contents", async () => {
   const parsed = explanationBundleSchema.parse(bundle);

@@ -42,11 +42,17 @@ See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 A separate read-only POST binds an explicit analysis/finding hash to its saved
 local explanation and retrieves exact sections of eight allowlisted project
 documents. Ingestion is bounded; source/chunk/catalog hashes identify the current
-document set. No semantic index or provider transport is configured. The library
+document set. No semantic index is configured. The library
 provider protocol builds a minimized fact context and validates JSON/citation
 membership, not semantic truth; patch drafts and score/status mutation are forbidden.
-HTTP LLM selection reports unavailable rather than falling back silently.
-See [contextual explanations](contextual-explanations.md).
+HTTP LLM selection defaults to unavailable. A separate opt-in literal-loopback
+adapter requires operator and per-request consent, pseudonymizes string keys/values,
+omits evidence prose and uses a bounded isolated worker with a hard deadline.
+The untrusted model draft is read-only and never silently falls back, changes
+saved scores, or invokes tools. Numeric facts/hashes can still be confidential.
+No real model weights or explanation quality have been validated.
+See [contextual explanations](contextual-explanations.md) and
+[local-model transport](local-model-explanations.md).
 
 The browser is a React/TypeScript client of that same API, not a parallel detector.
 It sends bearer credentials only to relative same-origin endpoints and validates

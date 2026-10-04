@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
 import type { AnalysisResult } from "../../src/contracts";
 
 const TOKEN = "browser-tests-service-token-32-characters-001";
@@ -173,4 +173,203 @@ test("late explanation responses are ignored after switching finding and disconn
   await expect(
     page.getByRole("heading", { name: "Подключить рабочую сессию" }),
   ).toBeVisible();
+});
+
+const modelButton = (page: Page) =>
+  page.getByRole("button", {
+    name: "Запросить черновик у локальной модели",
+    exact: true,
+  });
+const permission = (page: Page) =>
+  page.getByLabel("Разрешаю передачу этого контекста локальной модели");
+const modelDraft = (page: Page) =>
+  panel(page).locator('[aria-label="Черновик объяснения модели"]');
+
+async function configuredModel(page: Page) {
+  await page.route("**/api/v1/explanation-capabilities", (route) =>
+    route.fulfill({
+      json: {
+        version: "explanation-capabilities-0.1.0",
+        local_model: "configured",
+        model_health_checked: false,
+        transport: "literal_loopback_only",
+        explicit_request_permission_required: true,
+      },
+    }),
+  );
+}
+
+// UI-only model fixture. Real local API supplies the bound saved explanation and sources;
+// no real language model is configured or invoked by these browser tests.
+async function syntheticModelBody(route: Route) {
+  const requested = route.request().postDataJSON();
+  expect(requested.provider).toBe("llm");
+  expect(requested.allow_local_model_context).toBe(true);
+  const response = await route.fetch({
+    postData: {
+      ...requested,
+      provider: "local",
+      allow_local_model_context: false,
+    },
+  });
+  expect(response.ok()).toBe(true);
+  const context = await response.json();
+  return {
+    ...context,
+    version: "model-explanation-0.1.0",
+    provider: "loopback_language_model",
+    llm_status: "draft",
+    privacy_version: "finding-context-redaction-0.1.0",
+    context_sha256: "a".repeat(64),
+    model_alias: "synthetic-browser-test",
+    answer: {
+      summary:
+        '<img src=x onerror="window.modelExecuted=1"> [click](https://outside.invalid)',
+      technical_explanation: "untrusted-model-text-" + "x".repeat(1200),
+      possible_impact: ["Unverified hypothesis."],
+      recommendation: "Review the approved policy, not this draft alone.",
+      assumptions: [],
+      missing_information: ["Operational context."],
+      citations: [context.documents[0].citation],
+      patch_draft: null,
+      requires_human_review: true,
+    },
+  };
+}
+
+test("local model draft requires permission, stays plain text and leaves saved analysis unchanged", async ({
+  page,
+}) => {
+  await configuredModel(page);
+  let calls = 0;
+  await page.route("**/api/v1/findings/*/explain", async (route) => {
+    calls++;
+    await route.fulfill({ json: await syntheticModelBody(route) });
+  });
+  const result = await analyze(page, true);
+  await expect(modelButton(page)).toBeDisabled();
+  await expect(permission(page)).not.toBeChecked();
+  expect(calls).toBe(0);
+  await permission(page).check();
+  await modelButton(page).click();
+  await expect(modelDraft(page)).toContainText(
+    "Черновик модели — непроверенный текст",
+  );
+  await expect(modelDraft(page)).toContainText(
+    '<img src=x onerror="window.modelExecuted=1">',
+  );
+  await expect(modelDraft(page).locator("img, a")).toHaveCount(0);
+  expect(await page.evaluate(() => "modelExecuted" in window)).toBe(false);
+  expect(calls).toBe(1);
+  expect(
+    await (
+      await page.request.get(`/api/v1/analyses/${result.analysis_id}`, {
+        headers,
+      })
+    ).json(),
+  ).toEqual(result);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  expect(
+    await page.evaluate(() => ({
+      local: { ...localStorage },
+      session: { ...sessionStorage },
+    })),
+  ).toEqual({ local: {}, session: {} });
+  await page.locator(".finding-button").nth(1).click();
+  await expect(permission(page)).not.toBeChecked();
+  await expect(modelDraft(page)).toHaveCount(0);
+  await expect(modelButton(page)).toBeDisabled();
+});
+
+test("unsafe model contracts and foreign binding are rejected without showing a draft", async ({
+  page,
+}) => {
+  await configuredModel(page);
+  let calls = 0;
+  await page.route("**/api/v1/findings/*/explain", async (route) => {
+    const body = await syntheticModelBody(route);
+    switch (calls++) {
+      case 0:
+        body.answer.approved = true;
+        break;
+      case 1:
+        body.answer.citations = ["unretrieved#section"];
+        break;
+      case 2:
+        body.answer.requires_human_review = false;
+        break;
+      case 3:
+        body.analysis_id = "00000000-0000-0000-0000-000000000001";
+        break;
+    }
+    await route.fulfill({ json: body });
+  });
+  const result = await analyze(page);
+  await permission(page).check();
+  for (let index = 0; index < 4; index++) {
+    await modelButton(page).click();
+    await expect.poll(() => calls).toBe(index + 1);
+    await expect(modelButton(page)).toBeEnabled();
+    await expect(page.getByRole("alert")).toContainText(
+      index === 3
+        ? "не соответствуют выбранной находке"
+        : "не соответствует поддерживаемому контракту",
+    );
+    await expect(modelDraft(page)).toHaveCount(0);
+  }
+  expect(
+    await (
+      await page.request.get(`/api/v1/analyses/${result.analysis_id}`, {
+        headers,
+      })
+    ).json(),
+  ).toEqual(result);
+});
+
+test("late model response is discarded on finding switch and logout", async ({
+  page,
+}) => {
+  await configuredModel(page);
+  let entered!: () => void;
+  let release!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const paused = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/v1/findings/*/explain", async (route) => {
+    const body = await syntheticModelBody(route);
+    entered();
+    await paused;
+    await route.fulfill({ json: body }).catch(() => undefined);
+  });
+  await analyze(page);
+  await permission(page).check();
+  await modelButton(page).click();
+  await waiting;
+  await page.locator(".finding-button").nth(1).click();
+  await expect(permission(page)).not.toBeChecked();
+  await expect(modelDraft(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Отключиться", exact: true }).click();
+  release();
+  await expect(panel(page)).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Подключить рабочую сессию" }),
+  ).toBeVisible();
+});
+
+test("default disabled adapter does not expose model request controls", async ({
+  page,
+}) => {
+  await analyze(page);
+  await expect(panel(page)).toContainText(
+    "LLM недоступна без отдельной настройки сервера",
+  );
+  await expect(modelButton(page)).toHaveCount(0);
+  await expect(permission(page)).toHaveCount(0);
 });

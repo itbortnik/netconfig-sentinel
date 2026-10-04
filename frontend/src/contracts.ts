@@ -326,10 +326,74 @@ export const explanationBundleSchema = z
     );
   });
 export type ExplanationBundle = z.infer<typeof explanationBundleSchema>;
+const modelText = (maximum: number) =>
+  z
+    .string()
+    .min(1)
+    .max(maximum)
+    .refine(
+      (value) =>
+        value.trim().length > 0 &&
+        !/[\p{C}\p{Zl}\p{Zp}]/u.test(value.replace(/[\n\t]/g, "")),
+    );
+export const modelDraftSchema = z
+  .strictObject({
+    summary: modelText(1000),
+    technical_explanation: modelText(8000),
+    recommendation: modelText(4000),
+    possible_impact: z.array(modelText(8000)).max(10),
+    patch_draft: z.null(),
+    assumptions: z.array(modelText(8000)).max(20),
+    missing_information: z.array(modelText(8000)).max(20),
+    citations: z.array(modelText(330)).min(1).max(4),
+    requires_human_review: z.literal(true),
+  })
+  .refine(
+    (answer) =>
+      new Set(answer.citations).size === answer.citations.length &&
+      new TextEncoder().encode(JSON.stringify(answer)).byteLength <= 32768,
+  );
+export const modelExplanationSchema = z
+  .strictObject({
+    ...explanationBundleSchema.shape,
+    version: z.literal("model-explanation-0.1.0"),
+    provider: z.literal("loopback_language_model"),
+    llm_status: z.literal("draft"),
+    privacy_version: z.literal("finding-context-redaction-0.1.0"),
+    context_sha256: hash,
+    model_alias: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/),
+    answer: modelDraftSchema,
+  })
+  .refine((bundle) => {
+    const item = bundle.explanation;
+    return (
+      item.finding_id === bundle.finding_id &&
+      item.device_id === bundle.device_id &&
+      item.source_sha256 === bundle.source_sha256 &&
+      item.finding_sha256 === bundle.finding_sha256 &&
+      new Set(bundle.documents.map((chunk) => chunk.citation)).size ===
+        bundle.documents.length &&
+      bundle.answer.citations.every((citation) =>
+        bundle.documents.some((chunk) => chunk.citation === citation),
+      )
+    );
+  });
+export type ModelExplanation = z.infer<typeof modelExplanationSchema>;
+export const explanationCapabilitiesSchema = z.strictObject({
+  version: z.literal("explanation-capabilities-0.1.0"),
+  local_model: z.enum(["disabled", "configured"]),
+  model_health_checked: z.literal(false),
+  transport: z.literal("literal_loopback_only"),
+  explicit_request_permission_required: z.literal(true),
+});
+export type ExplanationCapabilities = z.infer<
+  typeof explanationCapabilitiesSchema
+>;
 export type ExplainFinding = {
   analysis_id: string;
   finding_sha256: string;
   provider?: "local" | "llm";
+  allow_local_model_context?: boolean;
 };
 const snapshotBindingSchema = z.object({
   configuration_id: id,

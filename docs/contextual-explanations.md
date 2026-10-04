@@ -53,17 +53,23 @@ Hashes не являются подписью издателя или защит
 
 Реализованы библиотечный `ExplanationProvider`, минимальный структурированный
 контекст, отделённые инструкции, JSON-схема ответа и fail-closed validator.
-HTTP-сервис не подключает и не вызывает provider. `provider=llm` возвращает
-503 `Language model provider is unavailable.` без скрытой замены на local.
-Нет внешнего SDK, API key, URL или фоновой передачи конфигурации.
+По умолчанию HTTP-сервис не вызывает provider. `provider=llm` без настройки
+возвращает 503 `Language model provider is unavailable.` без скрытой замены на local.
+Теперь есть отдельный [opt-in literal-loopback transport](local-model-explanations.md)
+с разрешением оператора и запроса, псевдонимизацией, hard deadline и ограниченным
+HTTP-ответом. Внешние адреса, фоновая передача и автоматическая загрузка weights
+не поддерживаются; `provider=local` всегда остаётся без вызова модели.
 
 Контекст содержит только факты выбранной находки, её evidence/anchors и hashes,
 vendor/platform, численные ограничения парсера и выбранные разделы. Полный
 снимок, исходный текст, unknown fragments, filename, inventory и итоговый риск
 не добавляются. Значения observed/expected всё ещё могут содержать адреса и
-другие закрытые данные; это не обезличивание. Библиотечный вызов явный, будущий
-transport adapter должен отдельно получить разрешение, ограничить время/трафик
-и обеспечить конфиденциальность. Сейчас используются только тестовые providers.
+другие закрытые данные; этот библиотечный контекст сам по себе не обезличен.
+HTTP runtime перед отправкой обязательно заменяет string values/keys, исключает
+evidence prose и исходные limitations. Числа/hashes/anchors остаются потенциально
+закрытыми; разрешение требуется даже для local endpoint. Подробности — в
+[privacy-контракте](local-model-explanations.md). Реальные weights не проверены;
+wire tests используют синтетический сервер, не языковую модель.
 
 Ответ требует summary, technical_explanation, possible_impact, recommendation,
 assumptions, missing_information, citations, `patch_draft=null` и
@@ -79,7 +85,10 @@ assumptions, missing_information, citations, `patch_draft=null` и
 Модель может ошибиться даже в schema-valid тексте; такой ответ остаётся
 недоверенным черновиком для инженера. Команды, генерация патча, изменение оценок,
 approval/apply и продвижение verifier status в этой границе отсутствуют.
-Полноценная LLM/RAG-интеграция и оценка качества пока не завершены.
+Реальная модель, её качество и полноценный semantic RAG пока не проверены.
+HTTP-ответ модели имеет отдельную версию `model-explanation-0.1.0`, статус `draft`
+и не меняет сохранённое детерминированное объяснение. Нет записи model answer в
+БД/аудит, авто-retry или fallback на успешный ответ при отказе.
 
 ## Интерфейс и проверки
 
@@ -87,7 +96,9 @@ approval/apply и продвижение verifier status в этой грани�
 раздел открывается отдельно с citation и hashes; Markdown/HTML показаны только
 как текст, без активных ссылок. UI проверяет IDs, исходное объяснение и hash
 текста раздела, игнорирует late responses при смене находки/logout и не сохраняет
-материалы в browser storage. LLM честно помечена недоступной.
+материалы в browser storage. LLM по умолчанию помечена недоступной; настроенный
+adapter открывает отдельную кнопку только после разрешения. Model prose показана
+текстом с предупреждением, без изменения исходных оценок и статусов.
 
 Unit tests проверяют разрешение всех 20 policy references, ingestion/budgets,
 provider fakes, защищённую схему и цитаты. API tests проверяют оба вендора,

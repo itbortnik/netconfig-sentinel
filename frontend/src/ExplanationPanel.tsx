@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
-import type { AnalysisResult, ExplanationBundle, Finding } from "./contracts";
+import type {
+  AnalysisResult,
+  ExplanationBundle,
+  Finding,
+  ModelExplanation,
+  ExplanationCapabilities,
+} from "./contracts";
 import { explanationMatches } from "./explanation";
 
 export function ExplanationPanel({
@@ -16,7 +22,12 @@ export function ExplanationPanel({
   busy: boolean;
   onError: (problem: unknown) => void;
 }) {
-  const [bundle, setBundle] = useState<ExplanationBundle | null>(null);
+  const [bundle, setBundle] = useState<
+    ExplanationBundle | ModelExplanation | null
+  >(null);
+  const [capabilities, setCapabilities] =
+    useState<ExplanationCapabilities | null>(null);
+  const [permission, setPermission] = useState(false);
   const [loading, setLoading] = useState(false);
   const mounted = useRef(true);
   const sequence = useRef(0);
@@ -27,8 +38,25 @@ export function ExplanationPanel({
       sequence.current += 1;
     };
   }, []);
-  async function load() {
+  useEffect(() => {
+    let alive = true;
+    void client
+      .explanationCapabilities()
+      .then((received) => {
+        if (alive) setCapabilities(received);
+      })
+      .catch((problem: unknown) => {
+        if (alive && problem instanceof ApiError && problem.status === 401)
+          onError(problem);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [client, onError]);
+  async function load(model = false) {
     if (busy || loading) return;
+    if (model && (!permission || capabilities?.local_model !== "configured"))
+      return;
     const saved = analysis.explanations.find(
       (item) => item.finding_id === finding.finding_id,
     );
@@ -38,11 +66,20 @@ export function ExplanationPanel({
     setLoading(true);
     setBundle(null);
     try {
-      const result = await client.explain(finding.finding_id, {
+      const options = {
         analysis_id: analysis.analysis_id,
         finding_sha256: saved.finding_sha256,
-        provider: "local",
-      });
+      };
+      const result = model
+        ? await client.explainModel(finding.finding_id, {
+            ...options,
+            provider: "llm",
+            allow_local_model_context: true,
+          })
+        : await client.explain(finding.finding_id, {
+            ...options,
+            provider: "local",
+          });
       if (!current()) return;
       if (!(await explanationMatches(result, analysis, finding)))
         throw new ApiError(
@@ -60,16 +97,45 @@ export function ExplanationPanel({
     <section className="knowledge-panel" aria-label="Объяснение с источниками">
       <h4>Проверяемые источники</h4>
       <p className="hint">
-        LLM недоступна. Доступны локальные документы проекта; внешних вызовов
-        нет. Это не документация вендора и не утверждённый эталон.
+        {capabilities?.local_model === "configured"
+          ? "Локальная модель настроена. Её работоспособность проверяется только по отдельному запросу."
+          : "LLM недоступна без отдельной настройки сервера."}{" "}
+        Доступны локальные документы проекта. Это не документация вендора и не
+        утверждённый эталон.
       </p>
       <button
         className="button secondary"
         disabled={busy || loading}
-        onClick={() => void load()}
+        onClick={() => void load(false)}
       >
         {loading ? "Загрузка источников…" : "Показать источники объяснения"}
       </button>
+      {capabilities?.local_model === "configured" && (
+        <div className="model-explanation-controls">
+          <p className="notice warning">
+            В модель на этом компьютере будут отправлены псевдонимизированные
+            факты и публичные разделы документов. Числа, hashes и номера строк
+            сохраняются и могут быть конфиденциальны. Полный файл и неизвестные
+            команды не передаются.
+          </p>
+          <label>
+            <input
+              type="checkbox"
+              checked={permission}
+              disabled={busy || loading}
+              onChange={(event) => setPermission(event.target.checked)}
+            />{" "}
+            Разрешаю передачу этого контекста локальной модели
+          </label>
+          <button
+            className="button secondary"
+            disabled={busy || loading || !permission}
+            onClick={() => void load(true)}
+          >
+            Запросить черновик у локальной модели
+          </button>
+        </div>
+      )}
       {loading && (
         <p role="status">Получение разделов для выбранной находки…</p>
       )}
@@ -79,6 +145,53 @@ export function ExplanationPanel({
             Подбор по явным ссылкам детектора · {bundle.knowledge_version}.
             Оценки и сохранённое объяснение не изменены.
           </p>
+          {"answer" in bundle && (
+            <div aria-label="Черновик объяснения модели">
+              <h4>Черновик модели — непроверенный текст</h4>
+              <p className="notice warning">
+                Требуется проверка инженером. Цитаты и формат проверены,
+                истинность текста не установлена. Риск, находка и формальная
+                проверка не изменены.
+              </p>
+              <p>{bundle.answer.summary}</p>
+              <pre>{bundle.answer.technical_explanation}</pre>
+              <h5>Возможное влияние — гипотезы</h5>
+              <ul>
+                {bundle.answer.possible_impact.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+              <h5>Рекомендация для рассмотрения</h5>
+              <pre>{bundle.answer.recommendation}</pre>
+              <h5>Допущения</h5>
+              <ul>
+                {bundle.answer.assumptions.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+              <h5>Недостающие сведения</h5>
+              <ul>
+                {bundle.answer.missing_information.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+              <p className="hint">
+                Исполняемый патч не создаётся. Ответ не сохранён как новый
+                анализ.
+              </p>
+              <details>
+                <summary>Привязка ответа модели</summary>
+                <p>Настроенный alias: {bundle.model_alias}</p>
+                <p className="hash">Контекст: {bundle.context_sha256}</p>
+                <p>{bundle.privacy_version}</p>
+                <ul>
+                  {bundle.answer.citations.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
           {bundle.documents.map((chunk) => (
             <details className="knowledge-source" key={chunk.citation}>
               <summary>{chunk.section_title}</summary>

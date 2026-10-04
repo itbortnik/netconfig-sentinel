@@ -35,6 +35,10 @@
   `nosniff`. В Docker build context исключены `.env`, ТЗ и локальные artifacts.
 - API не вызывает внешние ML/LLM-сервисы, не загружает модели из запроса,
   не подключается к устройствам и не применяет изменения.
+  Отдельный opt-in LLM adapter обращается только к буквальному loopback после
+  разрешения оператора/запроса; строковые keys/values заменены, evidence prose
+  исключена. Числа/hashes/anchors могут быть закрытыми. Один bounded worker на
+  процесс и hard deadline не заменяют общие quotas или контроль сервера модели.
 - Snapshot diff читает только явно выбранную пару сохранённых версий того же
   устройства с проверкой времени. Неоднозначные keys и превышенные бюджеты
   отвергаются, не превращаются в пустой clean report. Unknown fragments исключены
@@ -105,10 +109,17 @@ penetration testing ещё не выполнены. Static checks и SQLite inte
 
 The authenticated read-only `explain` endpoint retrieves only allowlisted internal
 project documents, not arbitrary URLs or uploaded configuration fragments.
-It never calls an LLM. An explicit LLM request reports unavailable; scores,
+Local retrieval never calls an LLM. An explicit LLM request defaults to unavailable;
+an opt-in literal-loopback adapter requires separate context permission. Scores,
 verification and saved analysis cannot be changed by an answer. UI renders source
 content as text and checks bindings/chunk hashes, which are not publisher signatures.
-The library-only provider boundary rejects extra fields, commands and unretrieved
+The provider boundary rejects extra fields, executable patch drafts and unretrieved
 citations; schema validity does not establish semantic truth or eliminate prompt
-injection. Observed/expected values may still be confidential. No external transport
-adapter is configured or authorized. See [contextual explanations](contextual-explanations.md).
+injection. Model prose remains untrusted and is never executed or saved as an analysis.
+String pseudonyms and omission of evidence prose do not establish anonymity:
+numeric facts, hashes and line anchors can still be confidential. Remote addresses,
+redirects and environment proxies are prohibited, but the local server's own logging,
+storage and outgoing network access require operator control. Worker termination
+does not prove remote computation was cancelled. No actual model or quality test
+has been completed. See [contextual explanations](contextual-explanations.md) and
+[local-model limits](local-model-explanations.md).

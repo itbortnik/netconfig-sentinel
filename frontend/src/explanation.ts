@@ -1,7 +1,17 @@
 import type { AnalysisResult, ExplanationBundle, Finding } from "./contracts";
 
 export async function explanationMatches(
-  bundle: ExplanationBundle,
+  bundle: Pick<
+    ExplanationBundle,
+    | "analysis_id"
+    | "configuration_id"
+    | "device_id"
+    | "source_sha256"
+    | "finding_id"
+    | "finding_sha256"
+    | "explanation"
+    | "documents"
+  >,
   analysis: Pick<
     AnalysisResult,
     | "analysis_id"

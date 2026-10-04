@@ -57,6 +57,10 @@
   и повторным локальным анализом до загрузки в движок;
 - локальные объяснения находок с повторной проверкой детектора, сохранением
   оценок и привязкой доказательств к снимку;
+- [экспериментальный локальный LLM transport](docs/local-model-explanations.md):
+  по умолчанию выключен, только loopback и отдельное разрешение на
+  псевдонимизированный контекст; непроверенный черновик не меняет риск/историю;
+  реальная модель и качество её объяснений пока не проверены;
 - воспроизводимый Isolation Forest на версионированной схеме из 33
   структурированных признаков;
 - [экспериментальный реестр моделей](docs/model-registry.md): явное обучение
@@ -187,8 +191,10 @@ frontend/              React + TypeScript, контракты ответов и 
 [`docs/supported-features.md`](docs/supported-features.md).
 
 Подбор проверяемых локальных источников для находки, endpoint `explain` и
-границы пока не подключённой LLM описаны в
+строгая граница ответа описаны в
 [`docs/contextual-explanations.md`](docs/contextual-explanations.md).
+Явное подключение локального сервера модели и privacy/transport limits — в
+[`docs/local-model-explanations.md`](docs/local-model-explanations.md).
 
 Реализованные требования безопасности описаны в
 [`docs/policies/management-plane.md`](docs/policies/management-plane.md) и
