@@ -75,6 +75,11 @@ carry their original text, one-based line numbers, a hash, and zero parsing
 confidence. The aggregate confidence is reduced according to the unsupported
 line ratio.
 
+The [local device-account slice](local-device-users.md) emits canonical schema
+`1.1` with explicit rights and credential metadata, never credential values.
+Saved `1.0` serialization remains unchanged; old snapshots are not reparsed.
+Unsupported options remain raw unknown fragments, not normalized account facts.
+
 Peer comparison is a separate deterministic detector:
 
 ```text

@@ -13,6 +13,7 @@ import { date } from "./format";
 const sectionNames: Record<ObjectChange["section"], string> = {
   device: "Метаданные устройства",
   management: "Управление и наблюдаемость",
+  local_users: "Локальные пользователи устройства",
   interfaces: "Интерфейсы",
   vlans: "VLAN",
   acls: "ACL / фильтры",

@@ -476,9 +476,14 @@ test("explicit training, model selection, held-out analysis and persisted ML his
   await expect(page.getByRole("alert")).toContainText("обучающим устройствам");
   await page.getByRole("button", { name: "Новое", exact: true }).click();
   await upload(page, text(`held-out-${suffix}`, 30));
+  const heldOutResponse = page.waitForResponse(
+    (item) =>
+      item.request().method() === "POST" && item.url().endsWith("/analyze"),
+  );
   await page
     .getByRole("button", { name: "Анализировать снимок", exact: true })
     .click();
+  const heldOutAnalysis = await (await heldOutResponse).json();
   await expect(
     page.getByRole("heading", { name: "Находки и доказательства" }),
   ).toBeVisible();
@@ -501,11 +506,33 @@ test("explicit training, model selection, held-out analysis and persisted ML his
   }
   await page.getByRole("button", { name: "Отключиться", exact: true }).click();
   expect(await localStorageState(page)).toEqual({ local: {}, session: {} });
+  const historyResponse = () =>
+    page.waitForResponse(
+      (item) =>
+        item.request().method() === "GET" &&
+        new URL(item.url()).pathname === "/api/v1/analyses",
+    );
+  let history = historyResponse();
   await connect(page);
   await expect(registry).toContainText("Не выбрана — ML не запускается");
   await expect(registry).toContainText("Обучающие снимки: 0");
   await page.getByRole("button", { name: "Анализы", exact: true }).click();
-  await page.locator(".history-item").first().click();
+  let records: { analysis_id: string }[] = await (await history).json();
+  for (
+    let index = 0;
+    index < 10 &&
+    !records.some((item) => item.analysis_id === heldOutAnalysis.analysis_id);
+    index++
+  ) {
+    history = historyResponse();
+    await page.getByRole("button", { name: "Далее", exact: true }).click();
+    records = await (await history).json();
+  }
+  const savedAnalysis = page
+    .locator(".history-item")
+    .filter({ hasText: heldOutAnalysis.analysis_id.slice(0, 8) });
+  await expect(savedAnalysis).toBeVisible();
+  await savedAnalysis.click();
   await page
     .getByText("Модель и статистический результат", { exact: true })
     .click();

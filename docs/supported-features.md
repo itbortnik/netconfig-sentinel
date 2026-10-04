@@ -7,6 +7,8 @@ Supported in the current parser slice:
 - `hostname`;
 - `version`;
 - `aaa new-model` and `no aaa new-model`;
+- [local device accounts](local-device-users.md) with explicit privilege and
+  password/secret/nopassword metadata, never credential values;
 - `ip ssh ...`, including explicit protocol version 1 or 2;
 - `line vty` with `transport input ssh`, `telnet`, or `all`;
 - `snmp-server group ... v3`;
@@ -41,6 +43,8 @@ Both hierarchical and `set` syntax are supported for:
 - `system services ssh|telnet`, including explicit SSH protocol version 1 or 2;
 - external AAA indicators in `authentication-order`, `radius-server`, and
   `tacplus-server`;
+- [local device accounts](local-device-users.md) with class, UID and declared
+  encrypted-password/SSH-key metadata, never credential values;
 - SNMP v3 and community configuration;
 - NTP servers;
 - Syslog hosts.

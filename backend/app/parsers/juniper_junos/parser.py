@@ -33,6 +33,12 @@ from app.domain import (
 )
 from app.parsers.base import VendorParser, config_source, source_location
 from app.parsers.cisco_ios.parser import _overall_confidence
+from app.parsers.local_users import (
+    LocalUserBuilder,
+    consume_junos_user,
+    ensure_user,
+    valid_account_name,
+)
 
 _SAFE_BLOCKS = {
     "system",
@@ -373,6 +379,7 @@ class _JunosState:
         self.snmp_versions: set[str] = set()
         self.ntp_servers: list[str] = []
         self.syslog_servers: list[str] = []
+        self.local_users: dict[str, LocalUserBuilder] = {}
         self.facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
         self.interfaces: dict[tuple[str, str | None], _JunosInterface] = {}
         self.vlans: dict[str, _JunosVlan] = {}
@@ -405,10 +412,14 @@ class _JunosState:
 
     def consume_set(self, command: str, number: int, raw_line: str) -> bool:
         try:
-            tokens = shlex.split(command)
+            tokens = shlex.split(command[:-1] if command.endswith(";") else command)
         except ValueError:
             return False
         lowered = [token.lower() for token in tokens]
+        if lowered[:4] == ["set", "system", "login", "user"]:
+            return len(tokens) >= 6 and consume_junos_user(
+                self.local_users, tokens[4], tokens[5:], number, raw_line
+            )
         if lowered[:3] == ["set", "system", "host-name"] and len(tokens) >= 4:
             self.hostname = tokens[3]
             self.remember("hostname", number, raw_line)
@@ -676,6 +687,26 @@ class _JunosState:
     ) -> bool:
         name = block.split()[0].lower()
         context_names = [item.split()[0].lower() for item in context]
+        if context == ["system"] and block == "login":
+            return True
+        if context[:2] == ["system", "login"]:
+            try:
+                parts = shlex.split(block)
+            except ValueError:
+                return False
+            if len(context) == 2 and len(parts) == 2 and parts[0] == "user":
+                if not valid_account_name(parts[1]):
+                    return False
+                ensure_user(self.local_users, parts[1], number, raw_line)
+                return True
+            if len(context) == 3 and len(parts) == 1 and parts[0] == "authentication":
+                user_parts = shlex.split(context[2])
+                return (
+                    len(user_parts) == 2
+                    and user_parts[0] == "user"
+                    and valid_account_name(user_parts[1])
+                )
+            return False
         if name == "firewall" and not context:
             return True
         if "firewall" in context_names:
@@ -882,6 +913,22 @@ class _JunosState:
         if not tokens:
             return True
         lowered = [token.lower() for token in tokens]
+
+        if context[:2] == ["system", "login"]:
+            try:
+                user_parts = shlex.split(context[2]) if len(context) >= 3 else []
+                user_options = shlex.split(leaf)
+            except ValueError:
+                return False
+            if len(user_parts) != 2 or user_parts[0] != "user":
+                return False
+            if len(context) == 4 and context[3] == "authentication":
+                user_options.insert(0, "authentication")
+            elif len(context) != 3:
+                return False
+            return consume_junos_user(
+                self.local_users, user_parts[1], user_options, number, raw_line
+            )
 
         if "interfaces" in context_names:
             return self.consume_interface_leaf(context, leaf, number, raw_line)
@@ -1764,6 +1811,7 @@ class _JunosState:
                 provenance=management_provenance,
             ),
             interfaces=self.build_interfaces(),
+            local_users=[user.build() for user in self.local_users.values()],
             vlans=[vlan.build() for vlan in self.vlans.values()],
             acls=acls,
             prefix_lists=[

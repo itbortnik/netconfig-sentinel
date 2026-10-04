@@ -55,6 +55,34 @@ async function compare(page: Page) {
     .click();
 }
 
+test("device accounts show explicit rights and metadata differences without supported credential values", async ({
+  page,
+}) => {
+  await connect(page);
+  const host = `accounts-${test.info().project.name}-${Date.now()}`;
+  const before = await upload(
+    page,
+    `hostname ${host}\nusername admin privilege 1 secret 9 PRIVATE-OLD\n`,
+  );
+  expect(JSON.stringify(before)).not.toContain("PRIVATE");
+  await page.getByText("Пользователи устройства (1)", { exact: true }).click();
+  await expect(page.locator(".snapshot-panel")).toContainText("Privilege: 1");
+  await expect(page.locator(".snapshot-panel")).not.toContainText("PRIVATE");
+  await page
+    .getByRole("button", { name: "Выбрать для diff", exact: true })
+    .click();
+  const after = await upload(
+    page,
+    `hostname ${host}\nusername admin privilege 15 secret 9 PRIVATE-NEW\n`,
+    before.device_id,
+  );
+  expect(JSON.stringify(after)).not.toContain("PRIVATE");
+  await compare(page);
+  await expect(panel(page)).toContainText("Локальные пользователи устройства");
+  await expect(panel(page)).toContainText("Изменено: 1");
+  await expect(panel(page)).not.toContainText("PRIVATE");
+});
+
 test("real Cisco object changes retain side-specific anchors, render text safely and leave snapshots unchanged", async ({
   page,
 }) => {

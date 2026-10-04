@@ -74,6 +74,32 @@ def test_read_only_restart_safe_comparison_has_no_analysis_or_audit_side_effect(
     )
 
 
+def test_account_upload_history_and_comparison_never_store_supported_credential_values(diff_api):
+    client, store, settings = diff_api
+    before = upload(client, "hostname edge\nusername admin privilege 1 secret 9 PRIVATE-OLD\n")
+    after = upload(
+        client,
+        "hostname edge\nusername admin privilege 15 secret 9 PRIVATE-NEW\n",
+        device=before["device_id"],
+    )
+    assert before["canonical"]["schema_version"] == "1.1"
+    assert before["canonical"]["local_users"][0]["privilege"] == 1
+    assert "PRIVATE" not in str(before) + str(after)
+    report = diff(client, before, after)
+    assert report.status_code == 200 and report.json()["changes"][0]["section"] == "local_users"
+    assert "PRIVATE" not in report.text
+    with TestClient(create_app(settings)) as restarted:
+        assert (
+            restarted.get(
+                f"/api/v1/configurations/{after['configuration_id']}", headers=HEADERS
+            ).json()
+            == after
+        )
+        assert diff(restarted, before, after).json() == report.json()
+    with store.engine.connect() as connection:
+        assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 2
+
+
 def test_explicit_query_auth_missing_identity_future_and_same_snapshot(diff_api) -> None:
     client, _, _ = diff_api
     before = upload(client, "hostname edge\n")

@@ -36,6 +36,9 @@
   GNN, discovery, формальной проверки и включения в риск;
 - Cisco IOS/IOS-XE: hostname, version, AAA, SSH/Telnet, SNMP, NTP и Syslog;
 - JunOS в hierarchical и `set`-формате: hostname, AAA, SSH/Telnet, SNMP, NTP и Syslog;
+- [локальные пользователи устройств](docs/local-device-users.md): явно заданные
+  privilege/class/UID и тип учётных данных с provenance; без значений паролей,
+  проверки возможности входа и определения фактических прав;
 - типизированные интерфейсы, logical units, IPv4/IPv6 CIDR, описание и явно
   заданное административное состояние;
 - типизированные VLAN и access/trunk-параметры с разрешением JunOS VLAN-имён;

@@ -100,6 +100,7 @@ export const objectChangeSchema = z
     section: z.enum([
       "device",
       "management",
+      "local_users",
       "interfaces",
       "vlans",
       "acls",
@@ -214,33 +215,90 @@ export type FeedbackRecord = z.infer<typeof feedbackSchema>;
 export type FeedbackSubmission = z.infer<typeof feedbackSubmissionSchema>;
 export type FeedbackVerdict = z.infer<typeof feedbackVerdictSchema>;
 
+const accountName = z.string().regex(/^[A-Za-z0-9_.@+-]{1,64}$/);
+export const localAuthenticationSchema = z
+  .strictObject({
+    kind: z.enum(["password", "secret", "ssh_public_key", "none"]),
+    encoding: z
+      .enum([
+        "unspecified",
+        "0",
+        "4",
+        "5",
+        "7",
+        "8",
+        "9",
+        "encrypted",
+        "ssh-rsa",
+        "ssh-ecdsa",
+        "ssh-ed25519",
+      ])
+      .nullable(),
+    provenance: location,
+  })
+  .refine((item) => {
+    if (item.kind === "none") return item.encoding === null;
+    const allowed: Record<"password" | "secret" | "ssh_public_key", string[]> =
+      {
+        password: ["unspecified", "0", "7"],
+        secret: ["unspecified", "0", "4", "5", "8", "9", "encrypted"],
+        ssh_public_key: ["ssh-rsa", "ssh-ecdsa", "ssh-ed25519"],
+      };
+    return item.encoding !== null && allowed[item.kind].includes(item.encoding);
+  });
+export const localUserSchema = z
+  .strictObject({
+    name: accountName,
+    privilege: z.number().int().min(0).max(15).nullable(),
+    login_class: accountName.nullable(),
+    uid: z.number().int().min(100).max(64000).nullable(),
+    authentication: z.array(localAuthenticationSchema).max(8),
+    provenance: z.record(z.string(), location),
+  })
+  .refine(
+    (user) =>
+      new Set(
+        user.authentication.map((item) => `${item.kind}:${item.encoding}`),
+      ).size === user.authentication.length,
+  );
+
 export const snapshotSchema = z.object({
   configuration_id: id,
   device_id: id,
   created_at: timestamp,
-  canonical: z.looseObject({
-    schema_version: z.literal("1.0"),
-    source: z.object({
-      filename: z.string(),
-      sha256: hash,
-      collected_at: timestamp,
-    }),
-    device: z.looseObject({
-      hostname: z.string().nullable(),
-      vendor: z.enum(["cisco", "juniper"]),
-      platform: z.string(),
-      role: z.string().nullable().optional(),
-      site_class: z.string().nullable().optional(),
-      service_profile: z.string().nullable().optional(),
-    }),
-    parser_confidence: score,
-    parse_warnings: z.array(z.string()),
-    unparsed_fragments: z.array(z.object({ raw_text: z.string(), location })),
-    interfaces: z.array(jsonObject),
-    vlans: z.array(jsonObject),
-    acls: z.array(jsonObject),
-    static_routes: z.array(jsonObject),
-  }),
+  canonical: z
+    .looseObject({
+      schema_version: z.enum(["1.0", "1.1"]),
+      source: z.object({
+        filename: z.string(),
+        sha256: hash,
+        collected_at: timestamp,
+      }),
+      device: z.looseObject({
+        hostname: z.string().nullable(),
+        vendor: z.enum(["cisco", "juniper"]),
+        platform: z.string(),
+        role: z.string().nullable().optional(),
+        site_class: z.string().nullable().optional(),
+        service_profile: z.string().nullable().optional(),
+      }),
+      parser_confidence: score,
+      parse_warnings: z.array(z.string()),
+      unparsed_fragments: z.array(z.object({ raw_text: z.string(), location })),
+      interfaces: z.array(jsonObject),
+      vlans: z.array(jsonObject),
+      acls: z.array(jsonObject),
+      static_routes: z.array(jsonObject),
+      local_users: z.array(localUserSchema).optional(),
+    })
+    .refine(
+      (config) =>
+        (config.schema_version === "1.0"
+          ? !config.local_users?.length
+          : config.local_users !== undefined) &&
+        new Set(config.local_users?.map((user) => user.name)).size ===
+          (config.local_users?.length ?? 0),
+    ),
 });
 export const configurationSummarySchema = z.object({
   configuration_id: id,

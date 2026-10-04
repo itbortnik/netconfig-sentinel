@@ -32,6 +32,7 @@ from app.domain import (
     VlanSet,
 )
 from app.parsers.base import VendorParser, config_source, source_location
+from app.parsers.local_users import LocalUserBuilder, consume_cisco_user
 
 _HOSTNAME = re.compile(r"^hostname\s+(?P<value>\S+)$", re.IGNORECASE)
 _VERSION = re.compile(r"^version\s+(?P<value>\S+)", re.IGNORECASE)
@@ -290,6 +291,7 @@ class CiscoIOSParser(VendorParser):
         snmp_versions: set[str] = set()
         ntp_servers: list[str] = []
         syslog_servers: list[str] = []
+        local_users: dict[str, LocalUserBuilder] = {}
         interfaces: list[_CiscoInterface] = []
         current_interface: _CiscoInterface | None = None
         vlans: dict[int, _CiscoVlan] = {}
@@ -548,6 +550,15 @@ class CiscoIOSParser(VendorParser):
             elif lowered == "no aaa new-model":
                 aaa_enabled = False
                 facts["aaa_enabled"].append((number, raw_line))
+            elif lowered.startswith(("username ", "no username ")):
+                if not consume_cisco_user(local_users, command, number, raw_line):
+                    warnings.append(f"unsupported local account command at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location([(number, raw_line)], parser_confidence=0.0),
+                        )
+                    )
             elif match := _SSH_VERSION.fullmatch(command):
                 ssh_enabled = True
                 ssh_version = "1" if match.group("value") == "1" else "2"
@@ -646,6 +657,7 @@ class CiscoIOSParser(VendorParser):
                 provenance=management_provenance,
             ),
             interfaces=[interface.build() for interface in interfaces],
+            local_users=[user.build() for user in local_users.values()],
             vlans=[vlan.build() for vlan in vlans.values()],
             acls=[acl.build() for acl in acls],
             prefix_lists=[prefix_list.build() for prefix_list in prefix_lists.values()],

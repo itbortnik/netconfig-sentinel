@@ -141,6 +141,47 @@ export function SnapshotView({
           Добавить в обучение модели
         </button>
       </div>
+      {config.schema_version === "1.1" && (
+        <details>
+          <summary>
+            Пользователи устройства ({config.local_users?.length ?? 0})
+          </summary>
+          <p className="hint">
+            Только явно разобранные параметры. Пароли, их значения и ключи здесь
+            не хранятся; фактические права и возможность входа не проверены.
+          </p>
+          <div className="fragment-list">
+            {config.local_users?.map((user) => (
+              <div key={user.name}>
+                <strong>{user.name}</strong>
+                <p>
+                  Privilege: {user.privilege ?? "Не задан"} · Класс:{" "}
+                  {user.login_class ?? "Не задан"}
+                  {user.uid !== null && ` · UID: ${user.uid}`}
+                </p>
+                <p>
+                  Аутентификация:{" "}
+                  {user.authentication.length
+                    ? user.authentication
+                        .map(
+                          (item) =>
+                            `${item.kind} / ${item.encoding ?? "без пароля (явно)"}`,
+                        )
+                        .join(", ")
+                    : "Не задана в поддержанном фрагменте"}
+                </p>
+                <span className="muted">
+                  Строки{" "}
+                  {user.provenance.name?.source_lines.join(", ") ?? "не заданы"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+      {config.schema_version === "1.0" && (
+        <p className="hint">Снимок старой схемы: пользователи не разобраны.</p>
+      )}
       {config.parse_warnings.length > 0 && (
         <details>
           <summary>

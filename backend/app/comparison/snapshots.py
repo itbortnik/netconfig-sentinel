@@ -86,6 +86,12 @@ def _objects(config: CanonicalConfig) -> ObjectIndex:
         assert isinstance(items, list)
         management[name] = sorted(items, key=_dump)
     add("management", ("global",), config.management, management)
+    for user in config.local_users:
+        values = _normal(user)
+        authentication = values["authentication"]
+        assert isinstance(authentication, list)
+        values["authentication"] = sorted(authentication, key=_dump)
+        add("local_users", (user.name,), user, values)
     for interface in config.interfaces:
         values = _normal(interface)
         addresses = values["addresses"]
@@ -212,6 +218,14 @@ def compare_snapshots(before: ConfigurationSnapshot, after: ConfigurationSnapsho
             "approval or formal verification.",
             "Values may contain confidential information; "
             "this comparison is not a sanitization boundary.",
+        )
+        + (
+            (
+                "Local credential values are omitted; account metadata equality "
+                "does not prove credential equality or effective access.",
+            )
+            if before.canonical.schema_version == "1.1" or after.canonical.schema_version == "1.1"
+            else ()
         ),
     )
     if len(report.model_dump_json().encode("utf-8")) > MAX_OUTPUT_BYTES:

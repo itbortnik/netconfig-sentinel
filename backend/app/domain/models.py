@@ -8,7 +8,15 @@ from ipaddress import ip_address, ip_interface, ip_network
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
 
@@ -93,6 +101,59 @@ class ManagementConfig(StrictModel):
     ntp_servers: list[str] = Field(default_factory=list)
     syslog_servers: list[str] = Field(default_factory=list)
     provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+
+class LocalAuthentication(StrictModel):
+    """Declared credential metadata only, never password/hash/key material."""
+
+    kind: Literal["password", "secret", "ssh_public_key", "none"]
+    encoding: (
+        Literal[
+            "unspecified",
+            "0",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "encrypted",
+            "ssh-rsa",
+            "ssh-ecdsa",
+            "ssh-ed25519",
+        ]
+        | None
+    ) = None
+    provenance: SourceLocation
+
+    @model_validator(mode="after")
+    def compatible_encoding(self) -> LocalAuthentication:
+        allowed: dict[str, set[str | None]] = {
+            "password": {"unspecified", "0", "7"},
+            "secret": {"unspecified", "0", "4", "5", "8", "9", "encrypted"},
+            "ssh_public_key": {"ssh-rsa", "ssh-ecdsa", "ssh-ed25519"},
+            "none": {None},
+        }
+        if self.encoding not in allowed[self.kind]:
+            raise ValueError("inconsistent local authentication metadata")
+        return self
+
+
+class LocalUserConfig(StrictModel):
+    """Explicit device account facts, not effective access or application identity."""
+
+    name: str = Field(pattern=r"^[A-Za-z0-9_.@+-]{1,64}$")
+    privilege: int | None = Field(default=None, strict=True, ge=0, le=15)
+    login_class: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.@+-]{1,64}$")
+    uid: int | None = Field(default=None, strict=True, ge=100, le=64000)
+    authentication: list[LocalAuthentication] = Field(default_factory=list, max_length=8)
+    provenance: dict[str, SourceLocation] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def unique_authentication_metadata(self) -> LocalUserConfig:
+        identities = [(item.kind, item.encoding) for item in self.authentication]
+        if len(set(identities)) != len(identities):
+            raise ValueError("duplicate local authentication metadata")
+        return self
 
 
 class InterfaceAddress(StrictModel):
@@ -261,8 +322,7 @@ class PrefixListRule(StrictModel):
         for field_name, value in (("ge", self.ge), ("le", self.le)):
             if value is not None and not network.prefixlen <= value <= network.max_prefixlen:
                 raise ValueError(
-                    f"{field_name} must be between {network.prefixlen} and "
-                    f"{network.max_prefixlen}"
+                    f"{field_name} must be between {network.prefixlen} and {network.max_prefixlen}"
                 )
         if self.ge is not None and self.le is not None and self.ge > self.le:
             raise ValueError("ge must not exceed le")
@@ -480,10 +540,11 @@ class UnparsedFragment(StrictModel):
 class CanonicalConfig(StrictModel):
     """Stable vendor-neutral representation produced by every parser."""
 
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: Literal["1.0", "1.1"] = "1.1"
     source: ConfigSource
     device: DeviceInfo
     management: ManagementConfig = Field(default_factory=ManagementConfig)
+    local_users: list[LocalUserConfig] = Field(default_factory=list)
     interfaces: list[InterfaceConfig] = Field(default_factory=list)
     vlans: list[VlanConfig] = Field(default_factory=list)
     acls: list[AclConfig] = Field(default_factory=list)
@@ -494,6 +555,24 @@ class CanonicalConfig(StrictModel):
     unparsed_fragments: list[UnparsedFragment] = Field(default_factory=list)
     parse_warnings: list[str] = Field(default_factory=list)
     parser_confidence: float = Field(ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def versioned_local_users(self) -> CanonicalConfig:
+        names = [user.name for user in self.local_users]
+        if len(names) != len(set(names)):
+            raise ValueError("local user names must be unique")
+        if self.schema_version == "1.0" and self.local_users:
+            raise ValueError("local users require canonical schema 1.1")
+        return self
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        if self.schema_version == "1.0":
+            result.pop("local_users", None)
+        return result
 
 
 class Evidence(StrictModel):

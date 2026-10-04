@@ -10,6 +10,7 @@ from app.domain import SourceLocation, Vendor
 DiffSection = Literal[
     "device",
     "management",
+    "local_users",
     "interfaces",
     "vlans",
     "acls",
