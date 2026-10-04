@@ -63,7 +63,9 @@ class LoopbackProvider:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             env=environment,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+            creationflags=(
+                int(getattr(subprocess, "CREATE_NO_WINDOW", 0)) if sys.platform == "win32" else 0
+            ),
         )
         try:
             stdout, _ = process.communicate(request, timeout=self.settings.timeout_seconds)
