@@ -101,6 +101,12 @@ this experimental control model is not promoted or production-calibrated.
 
 Completed detector results converge through a transparent fusion boundary:
 
+The separate [future topology boundary](topology-contract.md) accepts a bounded,
+explicit-subset graph with device/snapshot provenance, typed vertices/links and
+compatible numeric features/embeddings. No GNN is bundled. Without an adapter the
+result is unavailable; an explicitly supplied adapter produces only partial,
+unfused findings, never a complete-network or formal-verification status.
+
 ```text
 policy + peer + statistical + future transformer + verification -> RiskAssessment
 ```

@@ -31,6 +31,9 @@
   сохраняются в зашифрованной истории анализа;
 - строгие Pydantic-контракты `CanonicalConfig`, `SourceLocation` и `Finding`;
 - независимый интерфейс `VendorParser` и явный registry адаптеров;
+- [контракт будущего TopologyDetector](docs/topology-contract.md): ограниченный
+  явно выбранный граф, fingerprints и совместимость векторов; без встроенной
+  GNN, discovery, формальной проверки и включения в риск;
 - Cisco IOS/IOS-XE: hostname, version, AAA, SSH/Telnet, SNMP, NTP и Syslog;
 - JunOS в hierarchical и `set`-формате: hostname, AAA, SSH/Telnet, SNMP, NTP и Syslog;
 - типизированные интерфейсы, logical units, IPv4/IPv6 CIDR, описание и явно
