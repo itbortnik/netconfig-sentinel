@@ -60,6 +60,16 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             result = analyzed.json()
             assert result["status"] == "completed"
             assert result["risk"] is not None
+            context_path = f"/api/v1/findings/{result['findings'][0]['finding_id']}/explain"
+            context_body = {
+                "analysis_id": result["analysis_id"],
+                "finding_sha256": result["explanations"][0]["finding_sha256"],
+            }
+            explained = client.post(context_path, headers=headers, json=context_body)
+            assert explained.status_code == 200, explained.text
+            contextual = explained.json()
+            assert contextual["explanation"] == result["explanations"][0]
+            assert contextual["llm_status"] == "unavailable"
             candidate = client.post(
                 "/api/v1/configurations",
                 headers=headers,
@@ -82,6 +92,10 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             assert object_diff["changes"][0]["section"] == "management"
         upgrade_database(store.engine)
         with TestClient(create_app(settings)) as restarted:
+            assert (
+                restarted.post(context_path, headers=headers, json=context_body).json()
+                == contextual
+            )
             assert (
                 restarted.get(f"/api/v1/configurations/{cid}", headers=headers).json() == snapshot
             )

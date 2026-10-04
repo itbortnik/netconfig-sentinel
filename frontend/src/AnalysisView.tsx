@@ -8,6 +8,7 @@ import type {
 } from "./contracts";
 import type { ApiClient } from "./api";
 import { FeedbackPanel } from "./FeedbackPanel";
+import { ExplanationPanel } from "./ExplanationPanel";
 import {
   date,
   numericScore,
@@ -336,6 +337,14 @@ export function AnalysisView({
                   </div>
                 ))}
               </details>
+              <ExplanationPanel
+                key={`sources:${result.analysis_id}:${finding.finding_id}`}
+                analysis={result}
+                finding={finding}
+                client={client}
+                busy={busy}
+                onError={onError}
+              />
               <details>
                 <summary>Ограничения этой находки</summary>
                 <ul>

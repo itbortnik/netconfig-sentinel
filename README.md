@@ -169,7 +169,7 @@ backend/app/
   policies/            декларативный версионированный каталог политик
   detection/           policy engine, будущие детекторы и risk fusion
   verification/        будущая формальная проверка
-  explanation/         будущие объяснения и RAG
+  explanation/         локальные объяснения, источники и строгая граница LLM
   patching/            будущие предложения патчей
   audit/               будущий аудит
 ml/
@@ -182,6 +182,10 @@ frontend/              React + TypeScript, контракты ответов и 
 
 Поддерживаемая синтаксическая область и ограничения перечислены в
 [`docs/supported-features.md`](docs/supported-features.md).
+
+Подбор проверяемых локальных источников для находки, endpoint `explain` и
+границы пока не подключённой LLM описаны в
+[`docs/contextual-explanations.md`](docs/contextual-explanations.md).
 
 Реализованные требования безопасности описаны в
 [`docs/policies/management-plane.md`](docs/policies/management-plane.md) и

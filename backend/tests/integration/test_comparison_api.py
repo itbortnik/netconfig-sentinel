@@ -123,6 +123,21 @@ def test_reference_provenance_risk_and_restart(comparison_api, before: str) -> N
     assert deviations[0]["expected"]["source_sha256"] == reference["canonical"]["source"]["sha256"]
     assert result["risk"] == policy_only["risk"]  # A planned difference is not a risk signal.
     assert result["comparison"]["reference"]["configuration_id"] == reference["configuration_id"]
+    deviation = deviations[0]
+    explanation = next(
+        item for item in result["explanations"] if item["finding_id"] == deviation["finding_id"]
+    )
+    contextual = client.post(
+        f"/api/v1/findings/{deviation['finding_id']}/explain",
+        headers=HEADERS,
+        json={
+            "analysis_id": result["analysis_id"],
+            "finding_sha256": explanation["finding_sha256"],
+        },
+    )
+    assert contextual.status_code == 200, contextual.text
+    assert contextual.json()["explanation"] == explanation
+    assert contextual.json()["documents"][0]["document_id"] == "docs/expected-configuration.md"
     with TestClient(create_app(settings)) as restarted:
         assert (
             restarted.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json()
@@ -151,6 +166,20 @@ def test_peer_profile_and_actual_completed_signals(comparison_api) -> None:
         "baseline.management.telnet_enabled_deviation"
     ]
     assert findings[0]["affected_lines"] == [5]
+    explanation = next(
+        item for item in result["explanations"] if item["finding_id"] == findings[0]["finding_id"]
+    )
+    contextual = client.post(
+        f"/api/v1/findings/{findings[0]['finding_id']}/explain",
+        headers=HEADERS,
+        json={
+            "analysis_id": result["analysis_id"],
+            "finding_sha256": explanation["finding_sha256"],
+        },
+    )
+    assert contextual.status_code == 200, contextual.text
+    assert len(contextual.json()["documents"]) == 2
+    assert all(item["document_id"] == "docs/baseline.md" for item in contextual.json()["documents"])
     sources = {item["source"]: item for item in result["risk"]["components"]}
     assert sources["policy"]["effective_weight"] == pytest.approx(0.7)
     assert sources["peer_group"]["effective_weight"] == pytest.approx(0.3)

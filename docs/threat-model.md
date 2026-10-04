@@ -95,3 +95,14 @@ Fernet выявляет подмену прочитанных payload, но не
 Production-проверки PostgreSQL, deployment, TLS, roles, backup/restore и
 penetration testing ещё не выполнены. Static checks и SQLite integration tests
 не заменяют этих проверок.
+## Retrieved explanation sources
+
+The authenticated read-only `explain` endpoint retrieves only allowlisted internal
+project documents, not arbitrary URLs or uploaded configuration fragments.
+It never calls an LLM. An explicit LLM request reports unavailable; scores,
+verification and saved analysis cannot be changed by an answer. UI renders source
+content as text and checks bindings/chunk hashes, which are not publisher signatures.
+The library-only provider boundary rejects extra fields, commands and unretrieved
+citations; schema validity does not establish semantic truth or eliminate prompt
+injection. Observed/expected values may still be confidential. No external transport
+adapter is configured or authorized. See [contextual explanations](contextual-explanations.md).

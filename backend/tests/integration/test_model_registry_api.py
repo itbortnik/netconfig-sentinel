@@ -97,6 +97,23 @@ def test_training_restart_outlier_history_and_encryption(registry_api, monkeypat
     assert result["statistical"]["prediction"] == -1
     findings = [item for item in result["findings"] if item["detector"] == "isolation_forest"]
     assert len(findings) == 1
+    explanation = next(
+        item for item in result["explanations"] if item["finding_id"] == findings[0]["finding_id"]
+    )
+    contextual = client.post(
+        f"/api/v1/findings/{findings[0]['finding_id']}/explain",
+        headers=HEADERS,
+        json={
+            "analysis_id": result["analysis_id"],
+            "finding_sha256": explanation["finding_sha256"],
+        },
+    )
+    assert contextual.status_code == 200, contextual.text
+    assert contextual.json()["explanation"] == explanation
+    assert all(
+        item["document_id"] == "docs/statistical-baseline.md"
+        for item in contextual.json()["documents"]
+    )
     sources = {item["source"]: item for item in result["risk"]["components"]}
     assert sources["statistical"]["status"] == "completed"
     assert sources["statistical"]["effective_weight"] == pytest.approx(0.1 / 0.45)

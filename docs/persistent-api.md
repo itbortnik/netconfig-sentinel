@@ -75,6 +75,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Сохранить мнение о находке | `POST /api/v1/findings/<UUID>/feedback` |
 | История мнений по конкретному анализу | `GET /api/v1/findings/<UUID>/feedback?analysis_id=<UUID>&limit=20&offset=0` |
 | Read-only diff нормализованных объектов | `GET /api/v1/configurations/<UUID>/diff?reference_configuration_id=<UUID>` |
+| Локальное объяснение с конкретными разделами источников | `POST /api/v1/findings/<UUID>/explain` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; создание снимков,
@@ -92,6 +93,11 @@ Feedback имеет отдельные меньшие лимиты: 16 KiB body 
 Сравнение снимков — read-only GET с явной парой версий того же устройства:
 [контракт, budgets и ограничения](snapshot-diff.md). Оно не создаёт анализ и
 не сохраняет raw original file; partial scope не выдаётся за полное сравнение.
+
+Объяснение с источниками требует analysis ID и finding content hash, читает
+неизменное локальное объяснение и allowlisted разделы внутренней документации.
+LLM недоступна; её явный выбор возвращает 503 без скрытого fallback. История,
+риск и verifier status не меняются: [контракт](contextual-explanations.md).
 
 ## Интерпретация результата
 

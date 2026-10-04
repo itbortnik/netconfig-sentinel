@@ -7,12 +7,14 @@ import {
   modelSchema,
   feedbackSchema,
   snapshotDiffSchema,
+  explanationBundleSchema,
 } from "./contracts";
 import type {
   AnalysisOptions,
   FeedbackSubmission,
   TrainModel,
   Upload,
+  ExplainFinding,
 } from "./contracts";
 
 export class ApiError extends Error {
@@ -33,7 +35,7 @@ const messages: Record<number, string> = {
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
   429: "Обучение уже выполняется. Дождитесь завершения и обновите реестр.",
-  503: "Хранилище недоступно. Проверьте настройки API, миграции и ключ шифрования.",
+  503: "Сервис или источники недоступны. Проверьте настройки API, миграции и ключ шифрования.",
 };
 
 export class ApiClient {
@@ -56,7 +58,12 @@ export class ApiClient {
   private async request<T>(
     path: string,
     schema: z.ZodType<T>,
-    body?: Upload | AnalysisOptions | TrainModel | FeedbackSubmission,
+    body?:
+      | Upload
+      | AnalysisOptions
+      | TrainModel
+      | FeedbackSubmission
+      | ExplainFinding,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -165,6 +172,13 @@ export class ApiClient {
       `/findings/${encodeURIComponent(finding)}/feedback`,
       feedbackSchema,
       submission,
+    );
+  }
+  explain(finding: string, options: ExplainFinding) {
+    return this.request(
+      `/findings/${encodeURIComponent(finding)}/explain`,
+      explanationBundleSchema,
+      options,
     );
   }
 }

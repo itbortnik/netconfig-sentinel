@@ -269,6 +269,68 @@ const explanation = z.object({
   patch_draft: z.null(),
   requires_human_review: z.literal(true),
 });
+export const knowledgeDocumentIds = [
+  "docs/policies/management-plane.md",
+  "docs/policies/observability.md",
+  "docs/policies/access-control.md",
+  "docs/policies/routing.md",
+  "docs/policies/layer2.md",
+  "docs/expected-configuration.md",
+  "docs/baseline.md",
+  "docs/statistical-baseline.md",
+] as const;
+export const documentChunkSchema = z
+  .strictObject({
+    document_id: z.enum(knowledgeDocumentIds),
+    document_title: z.string().min(1).max(200),
+    section: z.string().min(1).max(200),
+    section_title: z.string().min(1).max(200),
+    citation: z.string().min(1).max(330),
+    document_sha256: hash,
+    content_sha256: hash,
+    content: z.string().min(1).max(8192),
+    authority: z.literal("internal_project_document"),
+  })
+  .refine(
+    (chunk) =>
+      chunk.citation === `${chunk.document_id}#${chunk.section}` &&
+      new TextEncoder().encode(chunk.content).byteLength <= 8192,
+  );
+export const explanationBundleSchema = z
+  .strictObject({
+    version: z.literal("finding-context-0.1.0"),
+    analysis_id: id,
+    configuration_id: id,
+    device_id: id,
+    source_sha256: hash,
+    finding_id: id,
+    finding_sha256: hash,
+    knowledge_version: z.literal("project-knowledge-0.1.0"),
+    knowledge_sha256: hash,
+    retrieval: z.literal("explicit_reference"),
+    provider: z.literal("deterministic_local"),
+    llm_status: z.literal("unavailable"),
+    explanation: z.strictObject(explanation.shape),
+    documents: z.array(documentChunkSchema).min(1).max(4),
+    limitations: z.array(z.string()).min(1),
+  })
+  .refine((bundle) => {
+    const item = bundle.explanation;
+    return (
+      item.finding_id === bundle.finding_id &&
+      item.device_id === bundle.device_id &&
+      item.source_sha256 === bundle.source_sha256 &&
+      item.finding_sha256 === bundle.finding_sha256 &&
+      new Set(bundle.documents.map((chunk) => chunk.citation)).size ===
+        bundle.documents.length
+    );
+  });
+export type ExplanationBundle = z.infer<typeof explanationBundleSchema>;
+export type ExplainFinding = {
+  analysis_id: string;
+  finding_sha256: string;
+  provider?: "local" | "llm";
+};
 const snapshotBindingSchema = z.object({
   configuration_id: id,
   device_id: id,

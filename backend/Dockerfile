@@ -16,6 +16,8 @@ WORKDIR /srv/app
 COPY pyproject.toml README.md hatch_build.py ./
 COPY backend ./backend
 COPY ml ./ml
+COPY docs/policies/management-plane.md docs/policies/observability.md docs/policies/access-control.md docs/policies/routing.md docs/policies/layer2.md ./docs/policies/
+COPY docs/expected-configuration.md docs/baseline.md docs/statistical-baseline.md ./docs/
 COPY --from=frontend /ui/dist ./backend/app/static
 
 RUN python -m pip install --no-cache-dir .

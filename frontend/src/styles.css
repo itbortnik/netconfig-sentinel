@@ -813,6 +813,19 @@ footer {
   margin-top: 24px;
   padding-top: 12px;
 }
+.knowledge-panel {
+  border-top: 1px solid #e7ecf2;
+  margin-top: 20px;
+  padding-top: 12px;
+  overflow-wrap: anywhere;
+}
+.knowledge-source {
+  margin-top: 12px;
+}
+.knowledge-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .feedback-panel form {
   display: grid;
   gap: 10px;

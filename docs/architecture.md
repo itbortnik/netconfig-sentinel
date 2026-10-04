@@ -31,6 +31,15 @@ text. It is read-only, bounded and separate from findings, risk and approvals.
 See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 [trust boundary](threat-model.md).
 
+A separate read-only POST binds an explicit analysis/finding hash to its saved
+local explanation and retrieves exact sections of eight allowlisted project
+documents. Ingestion is bounded; source/chunk/catalog hashes identify the current
+document set. No semantic index or provider transport is configured. The library
+provider protocol builds a minimized fact context and validates JSON/citation
+membership, not semantic truth; patch drafts and score/status mutation are forbidden.
+HTTP LLM selection reports unavailable rather than falling back silently.
+See [contextual explanations](contextual-explanations.md).
+
 The browser is a React/TypeScript client of that same API, not a parallel detector.
 It sends bearer credentials only to relative same-origin endpoints and validates
 versioned responses before rendering. UI code never computes replacement detector
