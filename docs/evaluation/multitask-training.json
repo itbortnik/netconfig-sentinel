@@ -1,0 +1,446 @@
+{
+  "best_epoch": 20,
+  "encoder_frozen": true,
+  "encoder_sha256": "0165e4ce47ad106a39382e9a3fd8b0d8f49ee96a21e39bc60bafc71b8971c8e4",
+  "head_policy": {
+    "adapter_rank": 16,
+    "classes": [
+      "telnet_enabled",
+      "aaa_disabled"
+    ],
+    "contrastive_margin": 0.2,
+    "embedding_size": 64,
+    "max_blocks_per_configuration": 1024,
+    "max_examples": 64,
+    "max_feature_values": 2000000,
+    "max_lines_per_configuration": 100000,
+    "version": "multitask-heads-0.1.0"
+  },
+  "loss_weights": {
+    "anomaly": 1,
+    "category": 1,
+    "contrastive": 0.1,
+    "localization": 1,
+    "severity": 0
+  },
+  "losses": [
+    {
+      "epoch": 1,
+      "train_components": {
+        "anomaly": 0.6752251982688904,
+        "category": 0.7162964344024658,
+        "contrastive": 0.49811211228370667,
+        "localization": 0.7236289381980896,
+        "severity": null
+      },
+      "train_total": 2.164961814880371,
+      "validation_components": {
+        "anomaly": 0.6553406119346619,
+        "category": 0.683326780796051,
+        "contrastive": 0.49414652585983276,
+        "localization": 0.6398259401321411,
+        "severity": null
+      },
+      "validation_total": 2.0279080867767334
+    },
+    {
+      "epoch": 2,
+      "train_components": {
+        "anomaly": 0.6498569250106812,
+        "category": 0.6890079975128174,
+        "contrastive": 0.430919885635376,
+        "localization": 0.6255545020103455,
+        "severity": null
+      },
+      "train_total": 2.0075113773345947,
+      "validation_components": {
+        "anomaly": 0.644277811050415,
+        "category": 0.6587148308753967,
+        "contrastive": 0.5718899369239807,
+        "localization": 0.5295221209526062,
+        "severity": null
+      },
+      "validation_total": 1.8897037506103516
+    },
+    {
+      "epoch": 3,
+      "train_components": {
+        "anomaly": 0.640716552734375,
+        "category": 0.6635255217552185,
+        "contrastive": 0.45598894357681274,
+        "localization": 0.5203409790992737,
+        "severity": null
+      },
+      "train_total": 1.870181918144226,
+      "validation_components": {
+        "anomaly": 0.6421776413917542,
+        "category": 0.64143967628479,
+        "contrastive": 0.585655152797699,
+        "localization": 0.42218026518821716,
+        "severity": null
+      },
+      "validation_total": 1.7643630504608154
+    },
+    {
+      "epoch": 4,
+      "train_components": {
+        "anomaly": 0.640720784664154,
+        "category": 0.6460091471672058,
+        "contrastive": 0.4662640392780304,
+        "localization": 0.4202437996864319,
+        "severity": null
+      },
+      "train_total": 1.7536002397537231,
+      "validation_components": {
+        "anomaly": 0.6442701816558838,
+        "category": 0.6322311162948608,
+        "contrastive": 0.5932233333587646,
+        "localization": 0.3350972831249237,
+        "severity": null
+      },
+      "validation_total": 1.670920968055725
+    },
+    {
+      "epoch": 5,
+      "train_components": {
+        "anomaly": 0.6448649168014526,
+        "category": 0.6369611024856567,
+        "contrastive": 0.4522014260292053,
+        "localization": 0.3425791561603546,
+        "severity": null
+      },
+      "train_total": 1.6696252822875977,
+      "validation_components": {
+        "anomaly": 0.6444347500801086,
+        "category": 0.6297245621681213,
+        "contrastive": 0.6016702055931091,
+        "localization": 0.28453853726387024,
+        "severity": null
+      },
+      "validation_total": 1.618864893913269
+    },
+    {
+      "epoch": 6,
+      "train_components": {
+        "anomaly": 0.6459425687789917,
+        "category": 0.6350107192993164,
+        "contrastive": 0.4142979085445404,
+        "localization": 0.30254805088043213,
+        "severity": null
+      },
+      "train_total": 1.6249310970306396,
+      "validation_components": {
+        "anomaly": 0.63897305727005,
+        "category": 0.6302806735038757,
+        "contrastive": 0.6131001710891724,
+        "localization": 0.2711245119571686,
+        "severity": null
+      },
+      "validation_total": 1.601688265800476
+    },
+    {
+      "epoch": 7,
+      "train_components": {
+        "anomaly": 0.638924777507782,
+        "category": 0.6361904740333557,
+        "contrastive": 0.4365685284137726,
+        "localization": 0.29727134108543396,
+        "severity": null
+      },
+      "train_total": 1.6160434484481812,
+      "validation_components": {
+        "anomaly": 0.6388675570487976,
+        "category": 0.629129946231842,
+        "contrastive": 0.6330441236495972,
+        "localization": 0.27484700083732605,
+        "severity": null
+      },
+      "validation_total": 1.6061489582061768
+    },
+    {
+      "epoch": 8,
+      "train_components": {
+        "anomaly": 0.6350682973861694,
+        "category": 0.635162889957428,
+        "contrastive": 0.4885999858379364,
+        "localization": 0.30451881885528564,
+        "severity": null
+      },
+      "train_total": 1.623610019683838,
+      "validation_components": {
+        "anomaly": 0.6490989327430725,
+        "category": 0.6262514591217041,
+        "contrastive": 0.636030375957489,
+        "localization": 0.27667099237442017,
+        "severity": null
+      },
+      "validation_total": 1.6156243085861206
+    },
+    {
+      "epoch": 9,
+      "train_components": {
+        "anomaly": 0.6421816349029541,
+        "category": 0.6318535804748535,
+        "contrastive": 0.5112311840057373,
+        "localization": 0.3051658570766449,
+        "severity": null
+      },
+      "train_total": 1.6303242444992065,
+      "validation_components": {
+        "anomaly": 0.6461958289146423,
+        "category": 0.622840166091919,
+        "contrastive": 0.6364464163780212,
+        "localization": 0.2714799642562866,
+        "severity": null
+      },
+      "validation_total": 1.6041606664657593
+    },
+    {
+      "epoch": 10,
+      "train_components": {
+        "anomaly": 0.6391264200210571,
+        "category": 0.6283228397369385,
+        "contrastive": 0.5158426761627197,
+        "localization": 0.29606887698173523,
+        "severity": null
+      },
+      "train_total": 1.6151024103164673,
+      "validation_components": {
+        "anomaly": 0.6340960264205933,
+        "category": 0.6192627549171448,
+        "contrastive": 0.63584965467453,
+        "localization": 0.2614883482456207,
+        "severity": null
+      },
+      "validation_total": 1.5784320831298828
+    },
+    {
+      "epoch": 11,
+      "train_components": {
+        "anomaly": 0.6286942362785339,
+        "category": 0.6255198121070862,
+        "contrastive": 0.514021098613739,
+        "localization": 0.28101930022239685,
+        "severity": null
+      },
+      "train_total": 1.5866354703903198,
+      "validation_components": {
+        "anomaly": 0.6256365776062012,
+        "category": 0.61460942029953,
+        "contrastive": 0.6341438293457031,
+        "localization": 0.24986326694488525,
+        "severity": null
+      },
+      "validation_total": 1.5535236597061157
+    },
+    {
+      "epoch": 12,
+      "train_components": {
+        "anomaly": 0.6217420697212219,
+        "category": 0.6225640773773193,
+        "contrastive": 0.5076016187667847,
+        "localization": 0.26409825682640076,
+        "severity": null
+      },
+      "train_total": 1.5591645240783691,
+      "validation_components": {
+        "anomaly": 0.6211569905281067,
+        "category": 0.6075184941291809,
+        "contrastive": 0.6303139328956604,
+        "localization": 0.23925700783729553,
+        "severity": null
+      },
+      "validation_total": 1.5309638977050781
+    },
+    {
+      "epoch": 13,
+      "train_components": {
+        "anomaly": 0.6172495484352112,
+        "category": 0.6177782416343689,
+        "contrastive": 0.4953708350658417,
+        "localization": 0.24846845865249634,
+        "severity": null
+      },
+      "train_total": 1.5330332517623901,
+      "validation_components": {
+        "anomaly": 0.6153597235679626,
+        "category": 0.5977146029472351,
+        "contrastive": 0.6217716336250305,
+        "localization": 0.23139601945877075,
+        "severity": null
+      },
+      "validation_total": 1.5066475868225098
+    },
+    {
+      "epoch": 14,
+      "train_components": {
+        "anomaly": 0.6102187633514404,
+        "category": 0.610529363155365,
+        "contrastive": 0.4732995331287384,
+        "localization": 0.23609748482704163,
+        "severity": null
+      },
+      "train_total": 1.5041755437850952,
+      "validation_components": {
+        "anomaly": 0.6075026988983154,
+        "category": 0.5864385366439819,
+        "contrastive": 0.6032047271728516,
+        "localization": 0.22648413479328156,
+        "severity": null
+      },
+      "validation_total": 1.4807459115982056
+    },
+    {
+      "epoch": 15,
+      "train_components": {
+        "anomaly": 0.6016364097595215,
+        "category": 0.6015641689300537,
+        "contrastive": 0.43311166763305664,
+        "localization": 0.2272024154663086,
+        "severity": null
+      },
+      "train_total": 1.4737141132354736,
+      "validation_components": {
+        "anomaly": 0.5995519161224365,
+        "category": 0.5755295157432556,
+        "contrastive": 0.5666875243186951,
+        "localization": 0.2232947051525116,
+        "severity": null
+      },
+      "validation_total": 1.4550449848175049
+    },
+    {
+      "epoch": 16,
+      "train_components": {
+        "anomaly": 0.5953731536865234,
+        "category": 0.5922619700431824,
+        "contrastive": 0.4098445773124695,
+        "localization": 0.2204047292470932,
+        "severity": null
+      },
+      "train_total": 1.4490244388580322,
+      "validation_components": {
+        "anomaly": 0.5918164253234863,
+        "category": 0.5654800534248352,
+        "contrastive": 0.5202139019966125,
+        "localization": 0.21991494297981262,
+        "severity": null
+      },
+      "validation_total": 1.4292327165603638
+    },
+    {
+      "epoch": 17,
+      "train_components": {
+        "anomaly": 0.5916503071784973,
+        "category": 0.583563506603241,
+        "contrastive": 0.43048128485679626,
+        "localization": 0.21360774338245392,
+        "severity": null
+      },
+      "train_total": 1.4318697452545166,
+      "validation_components": {
+        "anomaly": 0.5830195546150208,
+        "category": 0.5556899309158325,
+        "contrastive": 0.47413837909698486,
+        "localization": 0.21521815657615662,
+        "severity": null
+      },
+      "validation_total": 1.4013415575027466
+    },
+    {
+      "epoch": 18,
+      "train_components": {
+        "anomaly": 0.5870636105537415,
+        "category": 0.5750601887702942,
+        "contrastive": 0.4075993597507477,
+        "localization": 0.20559145510196686,
+        "severity": null
+      },
+      "train_total": 1.4084751605987549,
+      "validation_components": {
+        "anomaly": 0.5709987282752991,
+        "category": 0.5450177788734436,
+        "contrastive": 0.4414459764957428,
+        "localization": 0.20881254971027374,
+        "severity": null
+      },
+      "validation_total": 1.368973731994629
+    },
+    {
+      "epoch": 19,
+      "train_components": {
+        "anomaly": 0.5776193737983704,
+        "category": 0.5656387805938721,
+        "contrastive": 0.3917471170425415,
+        "localization": 0.19606181979179382,
+        "severity": null
+      },
+      "train_total": 1.3784946203231812,
+      "validation_components": {
+        "anomaly": 0.5517670512199402,
+        "category": 0.5320526957511902,
+        "contrastive": 0.4068978428840637,
+        "localization": 0.20059509575366974,
+        "severity": null
+      },
+      "validation_total": 1.3251047134399414
+    },
+    {
+      "epoch": 20,
+      "train_components": {
+        "anomaly": 0.5575473308563232,
+        "category": 0.5544579029083252,
+        "contrastive": 0.3888396620750427,
+        "localization": 0.1851680725812912,
+        "severity": null
+      },
+      "train_total": 1.336057186126709,
+      "validation_components": {
+        "anomaly": 0.5188167691230774,
+        "category": 0.5162322521209717,
+        "contrastive": 0.34823739528656006,
+        "localization": 0.1908385157585144,
+        "severity": null
+      },
+      "validation_total": 1.2607113122940063
+    }
+  ],
+  "origin_counts": {
+    "synthetic": 42
+  },
+  "parameter_count": 133560,
+  "production_quality_proven": false,
+  "supervised_counts": {
+    "anomaly": 36,
+    "category": 72,
+    "contrastive": 630,
+    "localization": 240,
+    "severity": 0
+  },
+  "target_semantics": "injected_mutation",
+  "test_evaluated": false,
+  "tokenizer_sha256": "4a3f72229b5da57cd9531d486848750c825d39cbc8597bd21bdc4e40a26d9b47",
+  "torch_version": "2.14.0+cpu",
+  "train_examples": 36,
+  "train_fingerprint": "d7ba4b2abe5ef78df8ed506334baec8ef7ca78fa47f5de29bb8c8a0d25abb28c",
+  "trainable_parameters": 8986,
+  "training_policy": {
+    "epochs": 20,
+    "gradient_clip": 1,
+    "learning_rate": 0.01,
+    "max_feature_values": 4000000,
+    "max_total_windows": 10000,
+    "seed": 17,
+    "weight_decay": 0.01
+  },
+  "validation_examples": 6,
+  "validation_fingerprint": "bfe84ec4309dc754d63dfea38e55175308297a4f181353266a2aa1a3aaf252c8",
+  "validation_supervised_counts": {
+    "anomaly": 6,
+    "category": 12,
+    "contrastive": 15,
+    "localization": 45,
+    "severity": 0
+  },
+  "version": "multitask-training-0.1.0"
+}

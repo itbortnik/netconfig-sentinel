@@ -1,0 +1,1113 @@
+{
+  "version": "offline-metrics-0.1.0",
+  "input_sha256": "20c24d412aa4378a7e230e359929b7340cee81e0c321ce9809e35bf2c9a89d5f",
+  "protocol_sha256": "03bf7e86c086e5e5e9ff78fe87273ae72d0b5c71bf8c7a34a358bdc6cb27add6",
+  "model_version": "multitask-training-0.1.0",
+  "model_sha256": "7a7a5c141238a395003a28bb7918ee42e0b5614304224b9bf253536137b9cd7f",
+  "tokenizer_sha256": "4a3f72229b5da57cd9531d486848750c825d39cbc8597bd21bdc4e40a26d9b47",
+  "policy_version": null,
+  "document_catalog_sha256": null,
+  "calibration_sha256": null,
+  "dataset_manifest_sha256": "0643f750ea2beec5f505da470b43908af734bfa55da4d241db44c9ce8c92df1f",
+  "threshold_policy_sha256": "e3b4d783bf346645f657b0f91ba80afcb87243375f0a01441b7f92bd5f240208",
+  "detection_threshold": 0.5,
+  "category_thresholds": [
+    0.5,
+    0.5
+  ],
+  "score_kind": "probability",
+  "target_semantics": "injected_mutation",
+  "latency_scope": "parsing_and_inference",
+  "partition": "validation",
+  "independent_test": false,
+  "production_quality_proven": false,
+  "cohorts": {
+    "synthetic": {
+      "status": "available",
+      "summary": {
+        "configurations": 6,
+        "unique_devices": 1,
+        "detection": {
+          "label": "anomaly",
+          "support": 4,
+          "negatives": 2,
+          "predicted_positive": 6,
+          "true_positive": 4,
+          "false_positive": 2,
+          "false_negative": 0,
+          "true_negative": 0,
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "average_precision": 1.0,
+          "pr_auc_trapezoidal": 1.0,
+          "ranking_unavailable_reason": null,
+          "calibration": {
+            "ece": 0.3870145181814829,
+            "brier": 0.1690254209454801,
+            "bins": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "count": 2,
+                "mean_probability": 0.5816087126731873,
+                "positive_fraction": 0.0
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "count": 2,
+                "mean_probability": 0.6886588335037231,
+                "positive_fraction": 1.0
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "count": 2,
+                "mean_probability": 0.7319063246250153,
+                "positive_fraction": 1.0
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "count": 0,
+                "mean_probability": null,
+                "positive_fraction": null
+              }
+            ]
+          }
+        },
+        "categories": [
+          {
+            "label": "telnet_enabled",
+            "support": 2,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 2,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "ranking_unavailable_reason": null,
+            "calibration": {
+              "ece": 0.37099646776914597,
+              "brier": 0.16266566147254202,
+              "bins": [
+                {
+                  "lower": 0.0,
+                  "upper": 0.1,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.1,
+                  "upper": 0.2,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.2,
+                  "upper": 0.3,
+                  "count": 4,
+                  "mean_probability": 0.25977346673607826,
+                  "positive_fraction": 0.0
+                },
+                {
+                  "lower": 0.3,
+                  "upper": 0.4,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.4,
+                  "upper": 0.5,
+                  "count": 2,
+                  "mean_probability": 0.40655753016471863,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.5,
+                  "upper": 0.6,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.6,
+                  "upper": 0.7,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.7,
+                  "upper": 0.8,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.8,
+                  "upper": 0.9,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.9,
+                  "upper": 1.0,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                }
+              ]
+            }
+          },
+          {
+            "label": "aaa_disabled",
+            "support": 2,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 2,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "ranking_unavailable_reason": null,
+            "calibration": {
+              "ece": 0.39345337450504303,
+              "brier": 0.1749423696630991,
+              "bins": [
+                {
+                  "lower": 0.0,
+                  "upper": 0.1,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.1,
+                  "upper": 0.2,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.2,
+                  "upper": 0.3,
+                  "count": 2,
+                  "mean_probability": 0.27488215267658234,
+                  "positive_fraction": 0.0
+                },
+                {
+                  "lower": 0.3,
+                  "upper": 0.4,
+                  "count": 2,
+                  "mean_probability": 0.31252317130565643,
+                  "positive_fraction": 0.0
+                },
+                {
+                  "lower": 0.4,
+                  "upper": 0.5,
+                  "count": 2,
+                  "mean_probability": 0.4070452004671097,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.5,
+                  "upper": 0.6,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.6,
+                  "upper": 0.7,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.7,
+                  "upper": 0.8,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.8,
+                  "upper": 0.9,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.9,
+                  "upper": 1.0,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                }
+              ]
+            }
+          }
+        ],
+        "macro_f1": 0.0,
+        "macro_f1_defined_classes": 2,
+        "false_positives_per_device": 2.0,
+        "false_positives_per_configuration": 0.3333333333333333,
+        "unknown_ranking": {
+          "annotated_cases": 0,
+          "scored_cases": 0,
+          "positive_cases": 0,
+          "average_precision": null,
+          "pr_auc_trapezoidal": null,
+          "precision_at_k": {
+            "1": {
+              "requested_k": 1,
+              "precision": null,
+              "expected_positive_count": null,
+              "boundary_tie_size": 0,
+              "reason": "insufficient_scored_cases"
+            },
+            "5": {
+              "requested_k": 5,
+              "precision": null,
+              "expected_positive_count": null,
+              "boundary_tie_size": 0,
+              "reason": "insufficient_scored_cases"
+            },
+            "10": {
+              "requested_k": 10,
+              "precision": null,
+              "expected_positive_count": null,
+              "boundary_tie_size": 0,
+              "reason": "insufficient_scored_cases"
+            }
+          }
+        },
+        "localization": {
+          "annotated_cases": 6,
+          "evaluated_cases": 6,
+          "missing_annotation_cases": 0,
+          "excluded_deletion_cases": 0,
+          "eligible_lines": 45,
+          "scored_lines": 45,
+          "unscored_eligible_lines": 0,
+          "unscored_positive_lines": 0,
+          "true_positive": 2,
+          "false_positive": 0,
+          "false_negative": 2,
+          "true_negative": 41,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666
+        },
+        "latency": {
+          "measured_cases": 6,
+          "missing_cases": 0,
+          "mean_seconds": 0.009018266728768745,
+          "median_seconds": 0.008989099878817797,
+          "p95_seconds": 0.010283325100317597,
+          "max_seconds": 0.010666700080037117
+        },
+        "parser_coverage": {
+          "measured_cases": 6,
+          "missing_cases": 0,
+          "zero_significant_cases": 0,
+          "significant_lines": 42,
+          "recognized_lines": 42,
+          "micro_fraction": 1.0,
+          "macro_fraction": 1.0
+        }
+      },
+      "unseen_sites": null,
+      "by_vendor": {
+        "cisco": {
+          "configurations": 6,
+          "unique_devices": 1,
+          "detection": {
+            "label": "anomaly",
+            "support": 4,
+            "negatives": 2,
+            "predicted_positive": 6,
+            "true_positive": 4,
+            "false_positive": 2,
+            "false_negative": 0,
+            "true_negative": 0,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "ranking_unavailable_reason": null,
+            "calibration": {
+              "ece": 0.3870145181814829,
+              "brier": 0.1690254209454801,
+              "bins": [
+                {
+                  "lower": 0.0,
+                  "upper": 0.1,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.1,
+                  "upper": 0.2,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.2,
+                  "upper": 0.3,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.3,
+                  "upper": 0.4,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.4,
+                  "upper": 0.5,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.5,
+                  "upper": 0.6,
+                  "count": 2,
+                  "mean_probability": 0.5816087126731873,
+                  "positive_fraction": 0.0
+                },
+                {
+                  "lower": 0.6,
+                  "upper": 0.7,
+                  "count": 2,
+                  "mean_probability": 0.6886588335037231,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.7,
+                  "upper": 0.8,
+                  "count": 2,
+                  "mean_probability": 0.7319063246250153,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.8,
+                  "upper": 0.9,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.9,
+                  "upper": 1.0,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                }
+              ]
+            }
+          },
+          "categories": [
+            {
+              "label": "telnet_enabled",
+              "support": 2,
+              "negatives": 4,
+              "predicted_positive": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 2,
+              "true_negative": 4,
+              "precision": null,
+              "recall": 0.0,
+              "f1": 0.0,
+              "average_precision": 1.0,
+              "pr_auc_trapezoidal": 1.0,
+              "ranking_unavailable_reason": null,
+              "calibration": {
+                "ece": 0.37099646776914597,
+                "brier": 0.16266566147254202,
+                "bins": [
+                  {
+                    "lower": 0.0,
+                    "upper": 0.1,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.1,
+                    "upper": 0.2,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.2,
+                    "upper": 0.3,
+                    "count": 4,
+                    "mean_probability": 0.25977346673607826,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.3,
+                    "upper": 0.4,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.4,
+                    "upper": 0.5,
+                    "count": 2,
+                    "mean_probability": 0.40655753016471863,
+                    "positive_fraction": 1.0
+                  },
+                  {
+                    "lower": 0.5,
+                    "upper": 0.6,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.6,
+                    "upper": 0.7,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.7,
+                    "upper": 0.8,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.8,
+                    "upper": 0.9,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.9,
+                    "upper": 1.0,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  }
+                ]
+              }
+            },
+            {
+              "label": "aaa_disabled",
+              "support": 2,
+              "negatives": 4,
+              "predicted_positive": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 2,
+              "true_negative": 4,
+              "precision": null,
+              "recall": 0.0,
+              "f1": 0.0,
+              "average_precision": 1.0,
+              "pr_auc_trapezoidal": 1.0,
+              "ranking_unavailable_reason": null,
+              "calibration": {
+                "ece": 0.39345337450504303,
+                "brier": 0.1749423696630991,
+                "bins": [
+                  {
+                    "lower": 0.0,
+                    "upper": 0.1,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.1,
+                    "upper": 0.2,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.2,
+                    "upper": 0.3,
+                    "count": 2,
+                    "mean_probability": 0.27488215267658234,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.3,
+                    "upper": 0.4,
+                    "count": 2,
+                    "mean_probability": 0.31252317130565643,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.4,
+                    "upper": 0.5,
+                    "count": 2,
+                    "mean_probability": 0.4070452004671097,
+                    "positive_fraction": 1.0
+                  },
+                  {
+                    "lower": 0.5,
+                    "upper": 0.6,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.6,
+                    "upper": 0.7,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.7,
+                    "upper": 0.8,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.8,
+                    "upper": 0.9,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.9,
+                    "upper": 1.0,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  }
+                ]
+              }
+            }
+          ],
+          "macro_f1": 0.0,
+          "macro_f1_defined_classes": 2,
+          "false_positives_per_device": 2.0,
+          "false_positives_per_configuration": 0.3333333333333333,
+          "unknown_ranking": {
+            "annotated_cases": 0,
+            "scored_cases": 0,
+            "positive_cases": 0,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "precision_at_k": {
+              "1": {
+                "requested_k": 1,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              },
+              "5": {
+                "requested_k": 5,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              },
+              "10": {
+                "requested_k": 10,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              }
+            }
+          },
+          "localization": {
+            "annotated_cases": 6,
+            "evaluated_cases": 6,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 45,
+            "scored_lines": 45,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 2,
+            "false_positive": 0,
+            "false_negative": 2,
+            "true_negative": 41,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "latency": {
+            "measured_cases": 6,
+            "missing_cases": 0,
+            "mean_seconds": 0.009018266728768745,
+            "median_seconds": 0.008989099878817797,
+            "p95_seconds": 0.010283325100317597,
+            "max_seconds": 0.010666700080037117
+          },
+          "parser_coverage": {
+            "measured_cases": 6,
+            "missing_cases": 0,
+            "zero_significant_cases": 0,
+            "significant_lines": 42,
+            "recognized_lines": 42,
+            "micro_fraction": 1.0,
+            "macro_fraction": 1.0
+          }
+        },
+        "juniper": null
+      },
+      "by_role": {
+        "edge-router": {
+          "configurations": 6,
+          "unique_devices": 1,
+          "detection": {
+            "label": "anomaly",
+            "support": 4,
+            "negatives": 2,
+            "predicted_positive": 6,
+            "true_positive": 4,
+            "false_positive": 2,
+            "false_negative": 0,
+            "true_negative": 0,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "ranking_unavailable_reason": null,
+            "calibration": {
+              "ece": 0.3870145181814829,
+              "brier": 0.1690254209454801,
+              "bins": [
+                {
+                  "lower": 0.0,
+                  "upper": 0.1,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.1,
+                  "upper": 0.2,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.2,
+                  "upper": 0.3,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.3,
+                  "upper": 0.4,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.4,
+                  "upper": 0.5,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.5,
+                  "upper": 0.6,
+                  "count": 2,
+                  "mean_probability": 0.5816087126731873,
+                  "positive_fraction": 0.0
+                },
+                {
+                  "lower": 0.6,
+                  "upper": 0.7,
+                  "count": 2,
+                  "mean_probability": 0.6886588335037231,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.7,
+                  "upper": 0.8,
+                  "count": 2,
+                  "mean_probability": 0.7319063246250153,
+                  "positive_fraction": 1.0
+                },
+                {
+                  "lower": 0.8,
+                  "upper": 0.9,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                },
+                {
+                  "lower": 0.9,
+                  "upper": 1.0,
+                  "count": 0,
+                  "mean_probability": null,
+                  "positive_fraction": null
+                }
+              ]
+            }
+          },
+          "categories": [
+            {
+              "label": "telnet_enabled",
+              "support": 2,
+              "negatives": 4,
+              "predicted_positive": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 2,
+              "true_negative": 4,
+              "precision": null,
+              "recall": 0.0,
+              "f1": 0.0,
+              "average_precision": 1.0,
+              "pr_auc_trapezoidal": 1.0,
+              "ranking_unavailable_reason": null,
+              "calibration": {
+                "ece": 0.37099646776914597,
+                "brier": 0.16266566147254202,
+                "bins": [
+                  {
+                    "lower": 0.0,
+                    "upper": 0.1,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.1,
+                    "upper": 0.2,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.2,
+                    "upper": 0.3,
+                    "count": 4,
+                    "mean_probability": 0.25977346673607826,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.3,
+                    "upper": 0.4,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.4,
+                    "upper": 0.5,
+                    "count": 2,
+                    "mean_probability": 0.40655753016471863,
+                    "positive_fraction": 1.0
+                  },
+                  {
+                    "lower": 0.5,
+                    "upper": 0.6,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.6,
+                    "upper": 0.7,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.7,
+                    "upper": 0.8,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.8,
+                    "upper": 0.9,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.9,
+                    "upper": 1.0,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  }
+                ]
+              }
+            },
+            {
+              "label": "aaa_disabled",
+              "support": 2,
+              "negatives": 4,
+              "predicted_positive": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 2,
+              "true_negative": 4,
+              "precision": null,
+              "recall": 0.0,
+              "f1": 0.0,
+              "average_precision": 1.0,
+              "pr_auc_trapezoidal": 1.0,
+              "ranking_unavailable_reason": null,
+              "calibration": {
+                "ece": 0.39345337450504303,
+                "brier": 0.1749423696630991,
+                "bins": [
+                  {
+                    "lower": 0.0,
+                    "upper": 0.1,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.1,
+                    "upper": 0.2,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.2,
+                    "upper": 0.3,
+                    "count": 2,
+                    "mean_probability": 0.27488215267658234,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.3,
+                    "upper": 0.4,
+                    "count": 2,
+                    "mean_probability": 0.31252317130565643,
+                    "positive_fraction": 0.0
+                  },
+                  {
+                    "lower": 0.4,
+                    "upper": 0.5,
+                    "count": 2,
+                    "mean_probability": 0.4070452004671097,
+                    "positive_fraction": 1.0
+                  },
+                  {
+                    "lower": 0.5,
+                    "upper": 0.6,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.6,
+                    "upper": 0.7,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.7,
+                    "upper": 0.8,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.8,
+                    "upper": 0.9,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  },
+                  {
+                    "lower": 0.9,
+                    "upper": 1.0,
+                    "count": 0,
+                    "mean_probability": null,
+                    "positive_fraction": null
+                  }
+                ]
+              }
+            }
+          ],
+          "macro_f1": 0.0,
+          "macro_f1_defined_classes": 2,
+          "false_positives_per_device": 2.0,
+          "false_positives_per_configuration": 0.3333333333333333,
+          "unknown_ranking": {
+            "annotated_cases": 0,
+            "scored_cases": 0,
+            "positive_cases": 0,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "precision_at_k": {
+              "1": {
+                "requested_k": 1,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              },
+              "5": {
+                "requested_k": 5,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              },
+              "10": {
+                "requested_k": 10,
+                "precision": null,
+                "expected_positive_count": null,
+                "boundary_tie_size": 0,
+                "reason": "insufficient_scored_cases"
+              }
+            }
+          },
+          "localization": {
+            "annotated_cases": 6,
+            "evaluated_cases": 6,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 45,
+            "scored_lines": 45,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 2,
+            "false_positive": 0,
+            "false_negative": 2,
+            "true_negative": 41,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "latency": {
+            "measured_cases": 6,
+            "missing_cases": 0,
+            "mean_seconds": 0.009018266728768745,
+            "median_seconds": 0.008989099878817797,
+            "p95_seconds": 0.010283325100317597,
+            "max_seconds": 0.010666700080037117
+          },
+          "parser_coverage": {
+            "measured_cases": 6,
+            "missing_cases": 0,
+            "zero_significant_cases": 0,
+            "significant_lines": 42,
+            "recognized_lines": 42,
+            "micro_fraction": 1.0,
+            "macro_fraction": 1.0
+          }
+        }
+      }
+    },
+    "laboratory": {
+      "status": "missing",
+      "summary": null,
+      "unseen_sites": null,
+      "by_vendor": {
+        "cisco": null,
+        "juniper": null
+      },
+      "by_role": {}
+    },
+    "real_confirmed": {
+      "status": "missing",
+      "summary": null,
+      "unseen_sites": null,
+      "by_vendor": {
+        "cisco": null,
+        "juniper": null
+      },
+      "by_role": {}
+    }
+  },
+  "limitations": [
+    "Caller-supplied source authorization, annotation and grouping hashes require review; this evaluator does not attest their semantic truth.",
+    "No pooled metric combines synthetic, laboratory and confirmed-real examples.",
+    "Selection/calibration reuse is diagnostic only. Scores never update online risk.",
+    "Latency covers only the interval measured by the producer, not implied end-to-end time.",
+    "Unknown ranking covers annotated scored cases; absent scores are reported separately.",
+    "False positives per device count binary configuration alerts, not alert deduplication."
+  ]
+}

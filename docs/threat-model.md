@@ -144,3 +144,16 @@ or data-quality pass. Generic reports and SVG never alter online risk or approve
 a patch. Missing real data and undefined metrics remain explicit. Only reviewed
 synthetic aggregate diagnostics are published in the demonstration report;
 real predictions and calibration inputs are not automatically uploaded.
+
+## Supervised encoder outputs
+
+The joint model consumes sanitized source-aligned features and explicit labels.
+Training rechecks original split membership, entity isolation, tokenizer/corpus
+binding and annotation hashes; these integrity checks cannot verify a human's
+source authorization or factual labels. Similarity groups and embeddings can be
+confidential. Inference returns no score for explicitly disabled/untrained tasks.
+Neural severity is a prediction, not a policy override or formal consequence.
+The local model bundle is loaded only from trusted storage, with bounded files,
+inventory/checksum/tensor/report checks. Hashes do not authenticate model authors.
+The synthetic full-batch training/evaluation path does not promote weights into
+the API, alter online risk, approve a patch or replace live verification.

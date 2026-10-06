@@ -203,6 +203,15 @@ objective. Deletion-only variants have no current-line target and are excluded,
 not mapped to innocent neighboring lines. Inference needs only the current
 configuration; scores remain uncalibrated and outside production risk fusion.
 
+A joint supervised path extracts exact block/line features from a frozen copy of
+the trusted encoder. A residual feature adapter and block-attention pooler train
+anomaly, category, localization, severity and similar-case projection heads with
+explicit objective weights. Unknown labels are masked, untrained outputs remain
+unavailable, and test parents cannot enter the train/selection corpus. This path
+does not activate an HTTP Transformer detector or replace verification. The
+general external-pretrained/transfer path and large-corpus training remain open;
+see [joint training boundaries](multitask-training.md).
+
 Offline evaluation consumes bounded prediction/annotation artifacts, not raw
 configuration or online findings. It enforces recorded entity exposure gates,
 reports origin/vendor/role/unseen-site slices without pooling synthetic and real
