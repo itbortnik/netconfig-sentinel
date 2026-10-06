@@ -81,6 +81,21 @@ test("device accounts show explicit rights and metadata differences without supp
   await expect(panel(page)).toContainText("Локальные пользователи устройства");
   await expect(panel(page)).toContainText("Изменено: 1");
   await expect(panel(page)).not.toContainText("PRIVATE");
+  const analysisResponse = page.waitForResponse(
+    (item) =>
+      item.request().method() === "POST" && item.url().endsWith("/analyze"),
+  );
+  await page
+    .getByRole("button", { name: "Анализировать снимок", exact: true })
+    .click();
+  const analysis = await (await analysisResponse).json();
+  expect(analysis.policy_catalog_version).toBe("policy-rules-0.7.0");
+  expect(
+    analysis.findings.some(
+      (item: { category: string }) => item.category === "account.legacy_secret",
+    ),
+  ).toBe(false);
+  expect(JSON.stringify(analysis)).not.toContain("PRIVATE");
 });
 
 test("real Cisco object changes retain side-specific anchors, render text safely and leave snapshots unchanged", async ({

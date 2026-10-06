@@ -1,7 +1,10 @@
 """Versioned policy catalog kept separate from execution code."""
 
+from types import MappingProxyType
+
 from app.domain import Severity
 from app.policies.models import (
+    AccountField,
     AclField,
     DeviceField,
     Layer2Field,
@@ -12,7 +15,7 @@ from app.policies.models import (
     RoutingField,
 )
 
-POLICY_CATALOG_VERSION = "policy-rules-0.6.0"
+POLICY_CATALOG_VERSION = "policy-rules-0.7.0"
 
 SUPPORTED_PLATFORMS = (
     PolicyPlatform.CISCO_IOS,
@@ -277,10 +280,157 @@ LAYER2_RULES = (
     ),
 )
 
+LEGACY_POLICY_RULES = (
+    MANAGEMENT_RULES + OBSERVABILITY_RULES + ACCESS_CONTROL_RULES + ROUTING_RULES + LAYER2_RULES
+)
+
+
+def _derived_rule(
+    rule_id: str,
+    title: str,
+    severity: Severity,
+    field: AccountField | RoutingField | Layer2Field,
+    expected: str,
+    evidence: str,
+    remediation: str,
+    reference: str,
+    platforms: tuple[PolicyPlatform, ...] = SUPPORTED_PLATFORMS,
+) -> PolicyRule:
+    return PolicyRule(
+        rule_id=rule_id,
+        title=title,
+        severity=severity,
+        platforms=platforms,
+        field=field,
+        operator=PolicyOperator.MATCHES,
+        expected_value=expected,
+        evidence_message=evidence,
+        remediation=remediation,
+        references=(reference,),
+    )
+
+
+ACCOUNT_RULES = (
+    _derived_rule(
+        "account.passwordless",
+        "Local account explicitly permits no password",
+        Severity.CRITICAL,
+        AccountField.PASSWORDLESS,
+        "No explicit passwordless local accounts",
+        "A supported local account statement explicitly selects nopassword.",
+        "Require an approved credential and review intended fallback access before changing it.",
+        "docs/policies/management-plane.md#local-accounts-must-not-be-passwordless",
+        (PolicyPlatform.CISCO_IOS,),
+    ),
+    _derived_rule(
+        "account.cleartext_credential",
+        "Local credential is explicitly stored as type 0",
+        Severity.HIGH,
+        AccountField.CLEARTEXT,
+        "No explicitly stored type-0 credentials",
+        "The account explicitly declares unencrypted credential storage type 0.",
+        "Replace the credential with an approved non-reversible format and protect source files.",
+        "docs/policies/management-plane.md#local-credentials-must-not-use-type-0",
+        (PolicyPlatform.CISCO_IOS,),
+    ),
+    _derived_rule(
+        "account.reversible_password",
+        "Local password uses reversible type 7",
+        Severity.HIGH,
+        AccountField.REVERSIBLE,
+        "No reversible type-7 local passwords",
+        "The supported local password statement explicitly declares storage type 7.",
+        "Migrate to an approved non-reversible secret after testing administrative fallback.",
+        "docs/policies/management-plane.md#local-passwords-must-not-be-reversible",
+        (PolicyPlatform.CISCO_IOS,),
+    ),
+    _derived_rule(
+        "account.legacy_secret",
+        "Local secret uses legacy type 4 or 5",
+        Severity.MEDIUM,
+        AccountField.LEGACY_SECRET,
+        "An approved modern secret format",
+        "The local secret explicitly declares legacy storage type 4 or 5.",
+        "Review release compatibility and migrate to an approved modern secret format.",
+        "docs/policies/management-plane.md#local-secrets-must-not-use-legacy-formats",
+        (PolicyPlatform.CISCO_IOS,),
+    ),
+    _derived_rule(
+        "account.duplicate_uid",
+        "Different local accounts share an explicit UID",
+        Severity.HIGH,
+        AccountField.DUPLICATE_UID,
+        "Unique explicitly assigned account UIDs",
+        "Two or more supported account entries declare the same numeric UID.",
+        "Review account identity mappings and assign unique UIDs through the approved process.",
+        "docs/policies/management-plane.md#local-account-uids-must-be-unique",
+        (PolicyPlatform.JUNIPER_JUNOS,),
+    ),
+)
+
+ADDITIONAL_ROUTING_RULES = (
+    _derived_rule(
+        "routing.static_next_hop_is_local",
+        "Static route points to a local interface address",
+        Severity.HIGH,
+        RoutingField.STATIC_NEXT_HOP_IS_LOCAL,
+        "A remote forwarding next hop",
+        "An explicit static-route next hop equals an address configured on this device.",
+        "Review the route target, VRF scope and intended neighbor before changing the route.",
+        "docs/policies/routing.md#static-next-hops-must-not-be-local-addresses",
+    ),
+    _derived_rule(
+        "routing.static_next_hop_non_unicast",
+        "Static next hop is not a unicast target",
+        Severity.HIGH,
+        RoutingField.STATIC_NEXT_HOP_NON_UNICAST,
+        "A unicast forwarding next hop",
+        "An explicit static next hop is multicast, unspecified or limited broadcast.",
+        "Choose the intended unicast neighbor or an explicit supported discard action.",
+        "docs/policies/routing.md#static-next-hops-must-be-unicast",
+    ),
+)
+
+ADDITIONAL_INTERFACE_RULES = (
+    _derived_rule(
+        "interface.vlan_reference_undefined",
+        "Interface references an undefined local VLAN",
+        Severity.MEDIUM,
+        Layer2Field.VLAN_REFERENCE_UNDEFINED,
+        "Explicit local definitions for referenced VLANs",
+        "A supported explicit VLAN reference has no matching local VLAN definition.",
+        "Confirm VLAN provisioning and define the intended VLAN or remove the stale reference.",
+        "docs/policies/layer2.md#referenced-vlans-must-have-local-definitions",
+    ),
+    _derived_rule(
+        "interface.native_vlan_excluded",
+        "Native VLAN is excluded from an explicit trunk set",
+        Severity.MEDIUM,
+        Layer2Field.NATIVE_VLAN_EXCLUDED,
+        "Native VLAN included in the intended Cisco trunk set",
+        "The explicit Cisco trunk allowed set excludes its explicitly configured native VLAN.",
+        "Review intentional native-VLAN filtering and align the native VLAN and allowed set.",
+        "docs/policies/layer2.md#native-vlan-filtering-must-be-reviewed",
+        (PolicyPlatform.CISCO_IOS,),
+    ),
+    _derived_rule(
+        "interface.duplicate_address",
+        "Different interfaces declare the same host address",
+        Severity.HIGH,
+        Layer2Field.DUPLICATE_ADDRESS,
+        "Unique interface host addresses within the reviewed scope",
+        "The same IP host address appears on two or more different supported interfaces.",
+        "Review anycast, VRFs and interface ownership before resolving duplicate addresses.",
+        "docs/policies/layer2.md#duplicate-interface-addresses-must-be-reviewed",
+    ),
+)
+
 POLICY_RULES = (
-    MANAGEMENT_RULES
-    + OBSERVABILITY_RULES
-    + ACCESS_CONTROL_RULES
-    + ROUTING_RULES
-    + LAYER2_RULES
+    LEGACY_POLICY_RULES + ACCOUNT_RULES + ADDITIONAL_ROUTING_RULES + ADDITIONAL_INTERFACE_RULES
+)
+POLICY_CATALOGS = MappingProxyType(
+    {
+        "policy-rules-0.6.0": LEGACY_POLICY_RULES,
+        POLICY_CATALOG_VERSION: POLICY_RULES,
+    }
 )

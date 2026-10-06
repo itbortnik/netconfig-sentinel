@@ -100,7 +100,7 @@ HTTP-ответ модели имеет отдельную версию `model-e
 adapter открывает отдельную кнопку только после разрешения. Model prose показана
 текстом с предупреждением, без изменения исходных оценок и статусов.
 
-Unit tests проверяют разрешение всех 20 policy references, ingestion/budgets,
+Unit tests проверяют разрешение всех 30 policy references, ingestion/budgets,
 provider fakes, защищённую схему и цитаты. API tests проверяют оба вендора,
 partial parsing, restart, scope, read-only историю, ошибки и отсутствие fallback.
 Desktop/mobile browser tests используют реальный API, проверяют hashes/bindings,

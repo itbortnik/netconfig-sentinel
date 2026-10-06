@@ -88,6 +88,13 @@ def test_account_upload_history_and_comparison_never_store_supported_credential_
     report = diff(client, before, after)
     assert report.status_code == 200 and report.json()["changes"][0]["section"] == "local_users"
     assert "PRIVATE" not in report.text
+    analysis_response = client.post(
+        f"/api/v1/configurations/{after['configuration_id']}/analyze", headers=HEADERS
+    )
+    assert analysis_response.status_code == 201
+    analysis = analysis_response.json()
+    assert analysis["policy_catalog_version"] == "policy-rules-0.7.0"
+    assert "PRIVATE" not in analysis_response.text
     with TestClient(create_app(settings)) as restarted:
         assert (
             restarted.get(
@@ -96,8 +103,12 @@ def test_account_upload_history_and_comparison_never_store_supported_credential_
             == after
         )
         assert diff(restarted, before, after).json() == report.json()
+        assert (
+            restarted.get(f"/api/v1/analyses/{analysis['analysis_id']}", headers=HEADERS).json()
+            == analysis
+        )
     with store.engine.connect() as connection:
-        assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 2
+        assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 3
 
 
 def test_explicit_query_auth_missing_identity_future_and_same_snapshot(diff_api) -> None:

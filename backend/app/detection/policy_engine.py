@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from ipaddress import ip_interface, ip_network
+from ipaddress import ip_address, ip_interface, ip_network
 from uuid import UUID, uuid5
 
 from app.domain import (
@@ -18,7 +18,8 @@ from app.domain import (
 )
 from app.policies import (
     POLICY_CATALOG_VERSION,
-    POLICY_RULES,
+    POLICY_CATALOGS,
+    AccountField,
     AclField,
     DeviceField,
     Layer2Field,
@@ -43,13 +44,22 @@ def evaluate_policies(
     config: CanonicalConfig,
     *,
     device_id: UUID,
-    rules: tuple[PolicyRule, ...] = POLICY_RULES,
+    rules: tuple[PolicyRule, ...] | None = None,
+    catalog_version: str = POLICY_CATALOG_VERSION,
 ) -> list[Finding]:
     """Return policy violations in catalog order for a canonical configuration."""
 
+    catalog = POLICY_CATALOGS.get(catalog_version)
+    if catalog is None:
+        raise ValueError("unsupported policy catalog version")
+    selected = catalog if rules is None else rules
+    if len({rule.rule_id for rule in selected}) != len(selected) or any(
+        rule not in catalog for rule in selected
+    ):
+        raise ValueError("rules do not belong to the selected policy catalog")
     platform = _platform_for(config)
     findings: list[Finding] = []
-    for rule in rules:
+    for rule in selected:
         if platform not in rule.platforms:
             continue
         for match in _evaluate_rule(config, rule):
@@ -100,7 +110,7 @@ def evaluate_policies(
                     remediation=rule.remediation,
                     references=list(rule.references),
                     limitations=list(match.limitations),
-                    model_version=POLICY_CATALOG_VERSION,
+                    model_version=catalog_version,
                 )
             )
     return findings
@@ -137,6 +147,8 @@ def _management_value(
 
 
 def _evaluate_rule(config: CanonicalConfig, rule: PolicyRule) -> list[_RuleMatch]:
+    if isinstance(rule.field, AccountField):
+        return _account_matches(config, rule.field)
     if isinstance(rule.field, AclField):
         return _acl_matches(config, rule.field)
     if isinstance(rule.field, RoutingField):
@@ -277,6 +289,8 @@ def _acl_rule_locations(rule: AclRule) -> tuple[SourceLocation, ...]:
 def _routing_matches(
     config: CanonicalConfig, field: RoutingField
 ) -> list[_RuleMatch]:
+    if field in {RoutingField.STATIC_NEXT_HOP_IS_LOCAL, RoutingField.STATIC_NEXT_HOP_NON_UNICAST}:
+        return _static_next_hop_matches(config, field)
     if field is RoutingField.BGP_ROUTER_ID_MISSING:
         if config.bgp is None or config.bgp.router_id is not None:
             return []
@@ -369,6 +383,12 @@ def _unique_locations(
 
 
 def _layer2_matches(config: CanonicalConfig, field: Layer2Field) -> list[_RuleMatch]:
+    if field is Layer2Field.DUPLICATE_ADDRESS:
+        return _duplicate_address_matches(config)
+    if field is Layer2Field.VLAN_REFERENCE_UNDEFINED:
+        return _undefined_vlan_matches(config)
+    if field is Layer2Field.NATIVE_VLAN_EXCLUDED:
+        return _native_vlan_matches(config)
     matches: list[_RuleMatch] = []
     for interface in config.interfaces:
         if field is Layer2Field.ACCESS_VLAN_MISSING:
@@ -434,6 +454,207 @@ def _layer2_matches(config: CanonicalConfig, field: Layer2Field) -> list[_RuleMa
                     locations=_conflicting_interface_locations(interface),
                 )
             )
+    return matches
+
+
+def _account_matches(config: CanonicalConfig, field: AccountField) -> list[_RuleMatch]:
+    if field is AccountField.DUPLICATE_UID:
+        groups: dict[int, list[tuple[str, SourceLocation | None]]] = {}
+        for user in config.local_users:
+            location = user.provenance.get("uid")
+            if user.uid is not None:
+                groups.setdefault(user.uid, []).append((user.name, location))
+        return [
+            _RuleMatch(
+                observed={"uid": uid, "accounts": sorted(name for name, _ in accounts)},
+                locations=_unique_locations(
+                    [location for _, location in accounts if location is not None]
+                ),
+                limitations=(
+                    "Declared accounts only; actual identity and login are not verified.",
+                ),
+            )
+            for uid, accounts in sorted(groups.items())
+            if len({name for name, _ in accounts}) > 1
+        ]
+    matches = []
+    for user in config.local_users:
+        methods = [
+            method
+            for method in user.authentication
+            if (
+                (field is AccountField.PASSWORDLESS and method.kind == "none")
+                or (field is AccountField.CLEARTEXT and method.encoding == "0")
+                or (
+                    field is AccountField.REVERSIBLE
+                    and method.kind == "password"
+                    and method.encoding == "7"
+                )
+                or (
+                    field is AccountField.LEGACY_SECRET
+                    and method.kind == "secret"
+                    and method.encoding in {"4", "5"}
+                )
+            )
+        ]
+        if methods:
+            matches.append(
+                _RuleMatch(
+                    observed={
+                        "account": user.name,
+                        "declared_authentication": [
+                            {"kind": method.kind, "encoding": method.encoding} for method in methods
+                        ],
+                    },
+                    locations=_unique_locations([method.provenance for method in methods]),
+                    limitations=(
+                        "Only explicit storage metadata is checked; credential validity, "
+                        "effective authentication and login are not verified.",
+                    ),
+                )
+            )
+    return matches
+
+
+def _static_next_hop_matches(config: CanonicalConfig, field: RoutingField) -> list[_RuleMatch]:
+    local: dict[str, list[SourceLocation]] = {}
+    for interface in config.interfaces:
+        for address in interface.addresses:
+            local.setdefault(str(ip_interface(address.address).ip), []).append(address.provenance)
+    matches = []
+    for route in config.static_routes:
+        if route.next_hop is None or route.discard:
+            continue
+        target = ip_address(route.next_hop)
+        is_local = route.next_hop in local
+        non_unicast = (
+            target.is_multicast or target.is_unspecified or str(target) == "255.255.255.255"
+        )
+        if not (
+            (field is RoutingField.STATIC_NEXT_HOP_IS_LOCAL and is_local)
+            or (field is RoutingField.STATIC_NEXT_HOP_NON_UNICAST and non_unicast)
+        ):
+            continue
+        locations = list(route.provenance.values())
+        if field is RoutingField.STATIC_NEXT_HOP_IS_LOCAL:
+            locations.extend(local[route.next_hop])
+        matches.append(
+            _RuleMatch(
+                observed={"destination": route.destination, "next_hop": route.next_hop},
+                locations=_unique_locations(locations),
+                limitations=(
+                    "Supported declared addresses/routes only; VRFs, recursion, "
+                    "forwarding state and reachability are not verified.",
+                ),
+            )
+        )
+    return matches
+
+
+def _duplicate_address_matches(config: CanonicalConfig) -> list[_RuleMatch]:
+    addresses: dict[str, dict[tuple[str, str | None], list[SourceLocation]]] = {}
+    for interface in config.interfaces:
+        if interface.enabled is False:
+            continue
+        identity = interface.name, interface.unit
+        for address in interface.addresses:
+            host = str(ip_interface(address.address).ip)
+            addresses.setdefault(host, {}).setdefault(identity, []).append(address.provenance)
+    return [
+        _RuleMatch(
+            observed={
+                "host_address": host,
+                "interfaces": [
+                    {"name": name, "unit": unit}
+                    for name, unit in sorted(group, key=lambda item: (item[0], item[1] or ""))
+                ],
+            },
+            locations=_unique_locations(
+                [location for locations in group.values() for location in locations]
+            ),
+            limitations=(
+                "Explicitly disabled interfaces are excluded; intended anycast, "
+                "VRFs and actual operational state are not verified.",
+            ),
+        )
+        for host, group in sorted(addresses.items())
+        if len(group) > 1
+    ]
+
+
+def _undefined_vlan_matches(config: CanonicalConfig) -> list[_RuleMatch]:
+    defined_ids = {vlan.vlan_id for vlan in config.vlans if vlan.vlan_id is not None}
+    defined_names = {vlan.name for vlan in config.vlans if vlan.name is not None}
+    matches = []
+    for interface in config.interfaces:
+        missing_ids, missing_names, locations = set(), set(), []
+        for reference in (interface.access_vlan, interface.native_vlan):
+            if reference is None:
+                continue
+            missing = False
+            if reference.vlan_id is not None and reference.vlan_id not in defined_ids:
+                missing_ids.add(reference.vlan_id)
+                missing = True
+            if reference.name is not None and reference.name not in defined_names:
+                missing_names.add(reference.name)
+                missing = True
+            if missing:
+                locations.append(reference.provenance)
+        allowed = interface.allowed_vlans
+        if allowed is not None and not allowed.all_vlans:
+            unknown_ids = set(allowed.vlan_ids) - defined_ids
+            unknown_names = set(allowed.vlan_names) - defined_names
+            if unknown_ids or unknown_names:
+                missing_ids.update(unknown_ids)
+                missing_names.update(unknown_names)
+                locations.append(allowed.provenance)
+        if missing_ids or missing_names:
+            matches.append(
+                _RuleMatch(
+                    observed={
+                        "interface": interface.name,
+                        "unit": interface.unit,
+                        "undefined_vlan_ids": sorted(missing_ids),
+                        "undefined_vlan_names": sorted(missing_names),
+                    },
+                    locations=_unique_locations(locations),
+                    limitations=(
+                        "This internal policy requires explicit local definitions; "
+                        "dynamic provisioning, inherited configuration and actual VLAN state "
+                        "are not verified.",
+                    ),
+                )
+            )
+    return matches
+
+
+def _native_vlan_matches(config: CanonicalConfig) -> list[_RuleMatch]:
+    matches = []
+    for interface in config.interfaces:
+        native, allowed = interface.native_vlan, interface.allowed_vlans
+        if (
+            interface.switchport_mode != "trunk"
+            or native is None
+            or native.vlan_id is None
+            or allowed is None
+            or allowed.all_vlans
+            or native.vlan_id in allowed.vlan_ids
+        ):
+            continue
+        matches.append(
+            _RuleMatch(
+                observed={
+                    "interface": interface.name,
+                    "native_vlan": native.vlan_id,
+                    "allowed_vlan_ids": allowed.vlan_ids,
+                },
+                locations=_unique_locations([native.provenance, allowed.provenance]),
+                limitations=(
+                    "Intentional native-VLAN filtering can be valid; this is a review "
+                    "requirement, not proof of unsafe forwarding or lost connectivity.",
+                ),
+            )
+        )
     return matches
 
 

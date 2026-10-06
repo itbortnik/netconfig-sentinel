@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.domain import Finding
-from app.policies import POLICY_CATALOG_VERSION, POLICY_RULES
+from app.policies import POLICY_CATALOGS
 
 KNOWLEDGE_VERSION = "project-knowledge-0.1.0"
 DOCUMENT_IDS = (
@@ -137,8 +137,9 @@ class KnowledgeCatalog:
 
     def retrieve(self, finding: Finding) -> tuple[DocumentChunk, ...]:
         if finding.detector == "policy_engine":
-            rule = next((item for item in POLICY_RULES if item.rule_id == finding.category), None)
-            if rule is None or finding.model_version != POLICY_CATALOG_VERSION:
+            catalog = POLICY_CATALOGS.get(finding.model_version, ())
+            rule = next((item for item in catalog if item.rule_id == finding.category), None)
+            if rule is None:
                 raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
             citations = rule.references
         else:

@@ -29,7 +29,7 @@ def finding(**updates) -> Finding:
 def test_catalog_all_policy_references_and_content_hashes() -> None:
     catalog = load_knowledge_catalog()
     assert catalog == load_knowledge_catalog()
-    assert len(catalog.chunks) == 31
+    assert len(catalog.chunks) == 41
     assert {chunk.document_id for chunk in catalog.chunks} == set(DOCUMENT_IDS)
     for rule in POLICY_RULES:
         selected = catalog.retrieve(

@@ -44,6 +44,8 @@ class RoutingField(StrEnum):
     BGP_NEIGHBOR_IS_LOCAL = "bgp.neighbor_is_local_address"
     OSPF_ROUTER_ID_MISSING = "ospf.router_id_missing"
     DEFAULT_ROUTE_DISCARDED = "routing.default_route_discarded"
+    STATIC_NEXT_HOP_IS_LOCAL = "routing.static_next_hop_is_local"
+    STATIC_NEXT_HOP_NON_UNICAST = "routing.static_next_hop_non_unicast"
 
 
 class Layer2Field(StrEnum):
@@ -52,6 +54,19 @@ class Layer2Field(StrEnum):
     ACCESS_VLAN_MISSING = "interface.access_vlan_missing"
     TRUNK_VLANS_UNRESTRICTED = "interface.trunk_vlans_unrestricted"
     SWITCHPORT_MODE_CONFLICT = "interface.switchport_mode_conflict"
+    VLAN_REFERENCE_UNDEFINED = "interface.vlan_reference_undefined"
+    NATIVE_VLAN_EXCLUDED = "interface.native_vlan_excluded"
+    DUPLICATE_ADDRESS = "interface.duplicate_address"
+
+
+class AccountField(StrEnum):
+    """Declared account metadata, never credential values or effective access."""
+
+    PASSWORDLESS = "account.passwordless"
+    CLEARTEXT = "account.cleartext_credential"
+    REVERSIBLE = "account.reversible_password"
+    LEGACY_SECRET = "account.legacy_secret"
+    DUPLICATE_UID = "account.duplicate_uid"
 
 
 class DeviceField(StrEnum):
@@ -91,7 +106,7 @@ class PolicyRule(BaseModel):
     title: str = Field(min_length=1)
     severity: Severity
     platforms: tuple[PolicyPlatform, ...] = Field(min_length=1)
-    field: ManagementField | AclField | RoutingField | Layer2Field | DeviceField
+    field: ManagementField | AclField | RoutingField | Layer2Field | DeviceField | AccountField
     operator: PolicyOperator = PolicyOperator.EQUALS
     violation_value: bool | str | tuple[str, ...] | None = None
     expected_value: bool | str
@@ -131,7 +146,7 @@ class PolicyRule(BaseModel):
                 raise ValueError("contains_any requires a collection field and values")
         elif self.operator is PolicyOperator.MATCHES:
             if not isinstance(
-                self.field, (AclField, RoutingField, Layer2Field, DeviceField)
+                self.field, (AclField, RoutingField, Layer2Field, DeviceField, AccountField)
             ) or (self.violation_value is not None):
                 raise ValueError("matches requires a derived field and no value")
         return self

@@ -39,3 +39,26 @@ Severity: critical
 
 An IPv4 or IPv6 default static route must not point to a discard action. More
 specific discard routes used for aggregation are outside this rule.
+
+## Static next hops must not be local addresses
+
+Policy ID: `routing.static_next_hop_is_local`
+
+Severity: high. Platforms: Cisco IOS/IOS-XE and JunOS parser slices.
+
+Report an explicit non-discard static next hop equal to a supported interface host
+address on the same supplied configuration. Cite the route and matching address
+statements. Review target/VRF intent before changing it. This checks local declared
+facts, not route recursion, forwarding state, full inventory or reachability.
+
+## Static next hops must be unicast
+
+Policy ID: `routing.static_next_hop_non_unicast`
+
+Severity: high. Platforms: Cisco IOS/IOS-XE and JunOS parser slices.
+
+Report explicit multicast, unspecified or IPv4 limited-broadcast next hops on
+non-discard static routes. Private, documentation and IPv6 link-local addresses
+are not treated as violations by this rule. Require the intended unicast neighbor
+or an explicit supported discard action. Interface-only/discard routes are not
+guessed to have a next hop; runtime forwarding and reachability are not verified.

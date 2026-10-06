@@ -20,7 +20,7 @@ from app.detection.statistical.isolation_forest import (
 )
 from app.domain import CanonicalConfig, Finding, Severity
 from app.domain.fingerprints import finding_fingerprint
-from app.policies import POLICY_CATALOG_VERSION, POLICY_RULES
+from app.policies import POLICY_CATALOGS
 
 
 class EvidenceAnchor(BaseModel):
@@ -65,9 +65,14 @@ def explain_finding(
     finding = Finding.model_validate(finding.model_dump())
     config = CanonicalConfig.model_validate(config.model_dump())
     if finding.detector == "policy_engine":
-        candidates = evaluate_policies(config, device_id=finding.device_id)
-        rule = next((rule for rule in POLICY_RULES if rule.rule_id == finding.category), None)
-        if rule is None or finding.model_version != POLICY_CATALOG_VERSION:
+        catalog = POLICY_CATALOGS.get(finding.model_version)
+        if catalog is None:
+            raise ValueError("unsupported policy finding")
+        candidates = evaluate_policies(
+            config, device_id=finding.device_id, catalog_version=finding.model_version
+        )
+        rule = next((rule for rule in catalog if rule.rule_id == finding.category), None)
+        if rule is None:
             raise ValueError("unsupported policy finding")
         summary = rule.title
         technical = rule.evidence_message

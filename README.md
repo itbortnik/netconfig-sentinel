@@ -51,8 +51,8 @@
 - типизированный OSPFv2 с router ID, нормализованными area ID, Cisco network
   statements и JunOS interface membership, passive state и metric;
 - детерминированный policy engine с воспроизводимыми ID находок;
-- двадцать политик для management plane, наблюдаемости, ACL, маршрутизации и
-  L2;
+- [тридцать уникальных политик](docs/policy-catalog.md) для management plane, локальных учётных записей,
+  наблюдаемости, ACL, маршрутизации и L2;
 - детерминированный peer-group baseline с явным ключом группы, порогом
   консенсуса и проверяемыми отклонениями;
 - сравнение с явно выбранной конфигурацией того же устройства;

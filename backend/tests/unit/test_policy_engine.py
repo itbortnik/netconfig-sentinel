@@ -223,7 +223,7 @@ def test_each_observability_rule_has_positive_and_negative_case(
 def test_policy_catalog_has_unique_rule_ids() -> None:
     rule_ids = [rule.rule_id for rule in POLICY_RULES]
 
-    assert len(POLICY_RULES) == 20
+    assert len(POLICY_RULES) == 30
     assert len(rule_ids) == len(set(rule_ids))
 
 
