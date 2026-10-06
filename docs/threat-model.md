@@ -127,3 +127,20 @@ storage and outgoing network access require operator control. Worker termination
 does not prove remote computation was cancelled. No actual model or quality test
 has been completed. See [contextual explanations](contextual-explanations.md) and
 [local-model limits](local-model-explanations.md).
+
+## Offline prediction and calibration artifacts
+
+Local prediction files must not contain configuration text or secrets. Opaque
+grouping keys, source/annotation/model hashes and calibration exposure can still
+be confidential and linkable; hashing does not grant evaluation or publication
+permission. The evaluator bounds JSON/arrays, rejects duplicate keys/nonfinite
+values, checks supplied grouping/exposure and suppresses raw input in CLI errors.
+It cannot attest operator-provided annotations, source authorization, deduplication
+or model identity. Keep files in trusted access-controlled storage.
+
+Calibration refuses test/selection reuse for fitting and records its exact
+model/corpus/exposure binding; a valid artifact is not a production calibration
+or data-quality pass. Generic reports and SVG never alter online risk or approve
+a patch. Missing real data and undefined metrics remain explicit. Only reviewed
+synthetic aggregate diagnostics are published in the demonstration report;
+real predictions and calibration inputs are not automatically uploaded.

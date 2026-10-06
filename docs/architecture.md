@@ -203,6 +203,16 @@ objective. Deletion-only variants have no current-line target and are excluded,
 not mapped to innocent neighboring lines. Inference needs only the current
 configuration; scores remain uncalibrated and outside production risk fusion.
 
+Offline evaluation consumes bounded prediction/annotation artifacts, not raw
+configuration or online findings. It enforces recorded entity exposure gates,
+reports origin/vendor/role/unseen-site slices without pooling synthetic and real
+data, and binds thresholds, model/corpus/input hashes. Binary temperature and
+per-category threshold fitting require a separate calibration partition outside
+training and model selection; test application cannot refit. These artifacts do
+not activate a model or change risk/patch states. The existing frozen-model
+adapter reports measured synthetic selection diagnostics, not independent test
+quality. See [offline evaluation](offline-evaluation.md).
+
 Finding assessments form a separate append-only boundary, never a mutation of
 analysis or automatic ground truth. Each encrypted record binds a client intent
 UUID to an analysis, finding content hash, snapshot, device and source hash.

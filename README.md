@@ -243,6 +243,10 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 описана в [`docs/line-localization.md`](docs/line-localization.md).
 Диагностика ложных срабатываний и чувствительности к форматированию описана в
 [`docs/localization-diagnostics.md`](docs/localization-diagnostics.md).
+Общие offline-метрики, отдельные результаты по происхождению данных и калибровка
+на независимой выборке описаны в [`docs/offline-evaluation.md`](docs/offline-evaluation.md).
+Текущий измеренный пример — только синтетическая диагностика выбранной модели,
+не подтверждение качества на реальных сетях.
 Экспериментальный порог по обучающим конфигурациям и измеренный компромисс между
 ложными срабатываниями и пропусками описаны в
 [`docs/line-operating-point.md`](docs/line-operating-point.md).
