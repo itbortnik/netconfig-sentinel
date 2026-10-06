@@ -157,3 +157,11 @@ The local model bundle is loaded only from trusted storage, with bounded files,
 inventory/checksum/tensor/report checks. Hashes do not authenticate model authors.
 The synthetic full-batch training/evaluation path does not promote weights into
 the API, alter online risk, approve a patch or replace live verification.
+
+The joint pretraining path likewise consumes already approved/sanitized records
+and treats semantic pair reviews as operator-supplied declarations, not proof.
+Original/derived views, hashes and embeddings remain confidential. Pair scope
+is explicit: a match in a narrow routing slice cannot establish full-config
+equivalence, management safety or reachability. Synthetic replacement labels do
+not certify anomalies or syntax validity. Offline bundle integrity, construction
+budgets and tensor-only loading do not establish source consent or model quality.

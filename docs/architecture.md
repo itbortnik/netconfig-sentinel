@@ -191,6 +191,14 @@ remain fixed. A compact CPU encoder is optimized on train and its best epoch
 is selected by validation loss. Test remains untouched. Model checkpoints bind
 weights, tokenizer, and training report through a checksum manifest.
 
+A separate joint pretraining boundary shares the encoder across token/command/
+typed-parameter reconstruction, synthetic replaced-line detection, same-device
+block classification and explicitly labeled cross-vendor scoped contrastive
+pairs. Automatic construction remains partition-local; semantic truth cannot be
+derived from metadata. The exact weighted gradient is accumulated before one
+optimizer update per epoch. These bundles do not silently become ordinary MLM
+checkpoints or activate an HTTP detector. See [objective pretraining](configuration-pretraining.md).
+
 A supervised linear probe consumes token-mean embeddings from a frozen copy
 of that encoder. Single-mutation examples are generated only after splitting;
 their parent partition is preserved. The probe predicts mutation types or an
