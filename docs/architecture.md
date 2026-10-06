@@ -44,8 +44,10 @@ See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 
 A separate read-only POST binds an explicit analysis/finding hash to its saved
 local explanation and retrieves exact sections of eight allowlisted project
-documents. Ingestion is bounded; source/chunk/catalog hashes identify the current
-document set. No semantic index is configured. The library
+documents. Ingestion is bounded; source/chunk/catalog hashes identify the sealed
+release pinned to the recorded detector version. Both supported historic source
+releases are packaged; missing/changed archives never fall back to current docs.
+See [source releases](knowledge-releases.md). No semantic index is configured. The library
 provider protocol builds a minimized fact context and validates JSON/citation
 membership, not semantic truth; patch drafts and score/status mutation are forbidden.
 HTTP LLM selection defaults to unavailable. A separate opt-in literal-loopback

@@ -7,14 +7,35 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from types import MappingProxyType
+from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.domain import Finding
 from app.policies import POLICY_CATALOGS
 
-KNOWLEDGE_VERSION = "project-knowledge-0.1.0"
+type KnowledgeVersion = Literal["project-knowledge-0.1.0", "project-knowledge-0.2.0"]
+KNOWLEDGE_VERSION: KnowledgeVersion = "project-knowledge-0.2.0"
+ARCHIVE_MANIFESTS = MappingProxyType(
+    {
+        "project-knowledge-0.1.0": (
+            "454eab77e7233bd69e570b159dc96d9639e176b633cfbfb2a80d0cc531f3ef74"
+        ),
+        "project-knowledge-0.2.0": (
+            "73434e471171d10016e6cb7e43c4c970128e9b086667e8634e60498b76785eb7"
+        ),
+    }
+)
+RELEASE_BY_DETECTOR_VERSION: MappingProxyType[str, KnowledgeVersion] = MappingProxyType(
+    {
+        "policy-rules-0.6.0": "project-knowledge-0.1.0",
+        "policy-rules-0.7.0": "project-knowledge-0.2.0",
+        "expected-config-0.1.0": "project-knowledge-0.1.0",
+        "peer-baseline-0.1.0": "project-knowledge-0.1.0",
+        "isolation-forest-0.1.0": "project-knowledge-0.1.0",
+    }
+)
 DOCUMENT_IDS = (
     "docs/policies/management-plane.md",
     "docs/policies/observability.md",
@@ -134,8 +155,11 @@ def ingest_document(document_id: str, raw: bytes) -> tuple[DocumentChunk, ...]:
 class KnowledgeCatalog:
     chunks: tuple[DocumentChunk, ...]
     sha256: str
+    version: KnowledgeVersion = KNOWLEDGE_VERSION
 
     def retrieve(self, finding: Finding) -> tuple[DocumentChunk, ...]:
+        if knowledge_version_for_finding(finding) != self.version:
+            raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
         if finding.detector == "policy_engine":
             catalog = POLICY_CATALOGS.get(finding.model_version, ())
             rule = next((item for item in catalog if item.rule_id == finding.category), None)
@@ -174,32 +198,98 @@ class KnowledgeCatalog:
         return selected
 
 
-def load_knowledge_catalog() -> KnowledgeCatalog:
-    """Use wheel-bundled sources, or this checkout's allowlisted docs in development."""
-    app_root = Path(__file__).resolve().parents[1]
-    packaged = app_root / "knowledge"
-    root = packaged if packaged.is_dir() else app_root.parent.parent
-    if root != packaged and not (root / "pyproject.toml").is_file():
+def knowledge_version_for_finding(finding: Finding) -> KnowledgeVersion:
+    """Pin supported detector versions to released sources, never to a current file."""
+    if finding.detector == "policy_engine":
+        if finding.model_version == "policy-rules-0.6.0":
+            return "project-knowledge-0.1.0"
+        if finding.model_version == "policy-rules-0.7.0":
+            return "project-knowledge-0.2.0"
+    elif (finding.detector, finding.model_version) in {
+        ("expected_configuration", "expected-config-0.1.0"),
+        ("peer_baseline", "peer-baseline-0.1.0"),
+        ("isolation_forest", "isolation-forest-0.1.0"),
+    }:
+        return "project-knowledge-0.1.0"
+    raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+
+
+def _archive_file(root: Path, relative: str, limit: int) -> bytes:
+    path = root / relative
+    for candidate in (root, *path.parents[: len(Path(relative).parts) - 1], path):
+        if candidate.is_symlink() or candidate.is_junction():
+            raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+    if not path.is_file() or not path.resolve().is_relative_to(root.resolve()):
         raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+    with path.open("rb") as source:
+        raw = source.read(limit + 1)
+    if len(raw) > limit:
+        raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+    return raw
+
+
+def load_knowledge_catalog(version: str = KNOWLEDGE_VERSION) -> KnowledgeCatalog:
+    """Load one sealed release from the package; no current-document fallback."""
+    if version not in ARCHIVE_MANIFESTS:
+        raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+    app_root = Path(__file__).resolve().parents[1]
+    root = app_root / "knowledge" / "versions" / version
     chunks: list[DocumentChunk] = []
     manifest: list[tuple[str, str]] = []
     try:
-        for document_id in DOCUMENT_IDS:
-            path = root / document_id
+        if (
+            any(
+                path.is_symlink() or path.is_junction()
+                for path in (app_root / "knowledge", root.parent, root)
+            )
+            or not root.is_dir()
+        ):
+            raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+        expected_inventory = {
+            root: {"manifest.json", "docs"},
+            root / "docs": {
+                "policies",
+                "expected-configuration.md",
+                "baseline.md",
+                "statistical-baseline.md",
+            },
+            root / "docs" / "policies": {
+                "management-plane.md",
+                "observability.md",
+                "access-control.md",
+                "routing.md",
+                "layer2.md",
+            },
+        }
+        for directory, names in expected_inventory.items():
             if (
-                path.is_symlink()
-                or not path.is_file()
-                or (not path.resolve().is_relative_to(root.resolve()))
+                directory.is_symlink()
+                or directory.is_junction()
+                or ({item.name for item in directory.iterdir()} != names)
             ):
                 raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
-            with path.open("rb") as source:
-                raw = source.read(MAX_DOCUMENT_BYTES + 1)
+        raw_manifest = _archive_file(root, "manifest.json", 4096)
+        if hashlib.sha256(raw_manifest).hexdigest() != ARCHIVE_MANIFESTS[version]:
+            raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+        release = json.loads(raw_manifest)
+        if (
+            set(release) != {"version", "source_commit", "authority", "documents"}
+            or release["version"] != version
+            or release["authority"] != "internal_project_document"
+            or not re.fullmatch(r"[0-9a-f]{40}", release["source_commit"])
+            or set(release["documents"]) != set(DOCUMENT_IDS)
+        ):
+            raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
+        for document_id in DOCUMENT_IDS:
+            raw = _archive_file(root, document_id, MAX_DOCUMENT_BYTES)
+            if hashlib.sha256(raw).hexdigest() != release["documents"][document_id]:
+                raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
             ingested = ingest_document(document_id, raw)
             chunks.extend(ingested)
             manifest.append((document_id, ingested[0].document_sha256))
-    except OSError:
+    except (OSError, ValueError, TypeError, RecursionError):
         raise KnowledgeUnavailable("Reviewed knowledge is unavailable.") from None
     digest = text_sha256(
-        json.dumps([KNOWLEDGE_VERSION, sorted(manifest)], ensure_ascii=False, separators=(",", ":"))
+        json.dumps([version, sorted(manifest)], ensure_ascii=False, separators=(",", ":"))
     )
-    return KnowledgeCatalog(tuple(chunks), digest)
+    return KnowledgeCatalog(tuple(chunks), digest, cast(KnowledgeVersion, version))

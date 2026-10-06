@@ -13,6 +13,7 @@ from app.explanation.knowledge import (
     DocumentChunk,
     KnowledgeUnavailable,
     ingest_document,
+    knowledge_version_for_finding,
     load_knowledge_catalog,
     text_sha256,
 )
@@ -50,8 +51,9 @@ def test_catalog_all_policy_references_and_content_hashes() -> None:
     ],
 )
 def test_non_policy_sources_use_explicit_versioned_selection(detector, version, count) -> None:
-    catalog = load_knowledge_catalog()
-    assert len(catalog.retrieve(finding(detector=detector, model_version=version))) == count
+    selected = finding(detector=detector, model_version=version)
+    catalog = load_knowledge_catalog(knowledge_version_for_finding(selected))
+    assert len(catalog.retrieve(selected)) == count
     with pytest.raises(KnowledgeUnavailable):
         catalog.retrieve(finding(detector=detector, model_version="future-version"))
 
@@ -128,14 +130,13 @@ def test_packaged_sources_are_self_contained_and_never_fall_back_when_missing(
     import app.explanation.knowledge as knowledge
 
     checkout = load_knowledge_catalog()
+    from shutil import copytree
+
     project = Path(__file__).resolve().parents[3]
     package = tmp_path / "app"
-    for document_id in DOCUMENT_IDS:
-        target = package / "knowledge" / document_id
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes((project / document_id).read_bytes())
+    copytree(project / "backend" / "app" / "knowledge", package / "knowledge")
     monkeypatch.setattr(knowledge, "__file__", str(package / "explanation" / "knowledge.py"))
     assert load_knowledge_catalog() == checkout
-    (package / "knowledge" / DOCUMENT_IDS[0]).unlink()
+    (package / "knowledge" / "versions" / checkout.version / DOCUMENT_IDS[0]).unlink()
     with pytest.raises(KnowledgeUnavailable):
         load_knowledge_catalog()

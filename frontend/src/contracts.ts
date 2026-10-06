@@ -396,6 +396,13 @@ export const documentChunkSchema = z
       chunk.citation === `${chunk.document_id}#${chunk.section}` &&
       new TextEncoder().encode(chunk.content).byteLength <= 8192,
   );
+const knowledgeReleaseByDetectorVersion: Record<string, string> = {
+  "policy-rules-0.6.0": "project-knowledge-0.1.0",
+  "policy-rules-0.7.0": "project-knowledge-0.2.0",
+  "expected-config-0.1.0": "project-knowledge-0.1.0",
+  "peer-baseline-0.1.0": "project-knowledge-0.1.0",
+  "isolation-forest-0.1.0": "project-knowledge-0.1.0",
+};
 export const explanationBundleSchema = z
   .strictObject({
     version: z.literal("finding-context-0.1.0"),
@@ -405,7 +412,10 @@ export const explanationBundleSchema = z
     source_sha256: hash,
     finding_id: id,
     finding_sha256: hash,
-    knowledge_version: z.literal("project-knowledge-0.1.0"),
+    knowledge_version: z.enum([
+      "project-knowledge-0.1.0",
+      "project-knowledge-0.2.0",
+    ]),
     knowledge_sha256: hash,
     retrieval: z.literal("explicit_reference"),
     provider: z.literal("deterministic_local"),
@@ -421,6 +431,8 @@ export const explanationBundleSchema = z
       item.device_id === bundle.device_id &&
       item.source_sha256 === bundle.source_sha256 &&
       item.finding_sha256 === bundle.finding_sha256 &&
+      knowledgeReleaseByDetectorVersion[item.detector_version] ===
+        bundle.knowledge_version &&
       new Set(bundle.documents.map((chunk) => chunk.citation)).size ===
         bundle.documents.length
     );
@@ -471,6 +483,8 @@ export const modelExplanationSchema = z
       item.device_id === bundle.device_id &&
       item.source_sha256 === bundle.source_sha256 &&
       item.finding_sha256 === bundle.finding_sha256 &&
+      knowledgeReleaseByDetectorVersion[item.detector_version] ===
+        bundle.knowledge_version &&
       new Set(bundle.documents.map((chunk) => chunk.citation)).size ===
         bundle.documents.length &&
       bundle.answer.citations.every((citation) =>

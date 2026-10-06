@@ -18,7 +18,11 @@ from app.api.explanation_contracts import (
 from app.api.service import AnalysisService, FeedbackTargetNotFound
 from app.db.store import StorageIntegrityError
 from app.domain.fingerprints import finding_fingerprint
-from app.explanation.knowledge import KnowledgeUnavailable, load_knowledge_catalog
+from app.explanation.knowledge import (
+    KnowledgeUnavailable,
+    knowledge_version_for_finding,
+    load_knowledge_catalog,
+)
 from app.explanation.local_model import LocalModelRuntime, ModelBusy
 from app.explanation.provider import InvalidProviderAnswer, build_prompt
 
@@ -48,7 +52,7 @@ def _explain(
         or (snapshot.canonical.source.sha256 != analysis.source_sha256)
     ):
         raise StorageIntegrityError("Stored data is unavailable.")
-    catalog = load_knowledge_catalog()
+    catalog = load_knowledge_catalog(knowledge_version_for_finding(finding))
     explanation = next(item for item in analysis.explanations if item.finding_id == finding_id)
     common = ExplanationContext(
         analysis_id=analysis.analysis_id,
@@ -57,6 +61,7 @@ def _explain(
         source_sha256=analysis.source_sha256,
         finding_id=finding_id,
         finding_sha256=options.finding_sha256,
+        knowledge_version=catalog.version,
         knowledge_sha256=catalog.sha256,
         explanation=explanation,
         documents=catalog.retrieve(finding),

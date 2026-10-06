@@ -100,6 +100,52 @@ def test_llm_selection_does_not_silently_fall_back(explanation_api):
     assert request(client, result).status_code == 200
 
 
+def test_historical_analysis_reads_its_sealed_sources_after_restart(explanation_api):
+    from app.api.contracts import AnalysisResult
+    from app.detection.fusion import RiskSource, fuse_risk
+    from app.detection.policy_engine import evaluate_policies
+    from app.explanation.knowledge import load_knowledge_catalog
+    from app.explanation.local import explain_finding
+
+    client, service, settings = explanation_api
+    current = analyze(client)
+    existing = service.store.get_analysis(current["analysis_id"])
+    assert existing is not None
+    snapshot = service.store.get_configuration(existing.configuration_id)
+    assert snapshot is not None
+    findings = evaluate_policies(
+        snapshot.canonical, device_id=existing.device_id, catalog_version="policy-rules-0.6.0"
+    )
+    legacy = AnalysisResult.model_validate(
+        existing.model_dump()
+        | {
+            "analysis_id": uuid4(),
+            "policy_catalog_version": "policy-rules-0.6.0",
+            "findings": tuple(findings),
+            "explanations": tuple(explain_finding(item, snapshot.canonical) for item in findings),
+            "risk": fuse_risk(
+                findings, device_id=existing.device_id, completed_detectors=(RiskSource.POLICY,)
+            ),
+        }
+    )
+    service.store.add_analysis(legacy)
+    response = request(client, legacy.model_dump(mode="json"))
+    assert response.status_code == 200, response.text
+    historical = response.json()
+    assert historical["knowledge_version"] == "project-knowledge-0.1.0"
+    catalog = load_knowledge_catalog("project-knowledge-0.1.0")
+    assert historical["knowledge_sha256"] == catalog.sha256
+    assert historical["documents"] == [
+        chunk.model_dump(mode="json") for chunk in catalog.retrieve(findings[0])
+    ]
+    assert request(client, current).json()["knowledge_version"] == "project-knowledge-0.2.0"
+    with TestClient(create_app(settings)) as restarted:
+        assert request(restarted, legacy.model_dump(mode="json")).json() == historical
+        assert restarted.get(f"/api/v1/analyses/{legacy.analysis_id}", headers=HEADERS).json() == (
+            legacy.model_dump(mode="json")
+        )
+
+
 def test_binding_and_scope_are_explicit(explanation_api):
     client, _, _ = explanation_api
     result = analyze(client)
@@ -140,7 +186,7 @@ def test_request_budget_duplicate_keys_and_missing_sources(explanation_api, monk
         )
     assert client.post(path, headers=HEADERS, content="private").status_code == 415
 
-    def missing():
+    def missing(*args):
         raise KnowledgeUnavailable("private-file-path")
 
     monkeypatch.setattr("app.api.explanations.load_knowledge_catalog", missing)

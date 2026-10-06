@@ -370,7 +370,7 @@ def test_catalog_version_is_bound_and_old_findings_explain_without_new_rules():
     assert all(item.model_version == "policy-rules-0.6.0" for item in legacy)
     for finding in legacy:
         assert explain_finding(finding, config).detector_version == "policy-rules-0.6.0"
-        assert load_knowledge_catalog().retrieve(finding)
+        assert load_knowledge_catalog("project-knowledge-0.1.0").retrieve(finding)
     with pytest.raises(ValueError, match="catalog"):
         evaluate_policies(config, device_id=DEVICE, catalog_version="unknown")
     with pytest.raises(ValueError, match="catalog"):

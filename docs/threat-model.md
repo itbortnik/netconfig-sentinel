@@ -130,6 +130,13 @@ has been completed. See [contextual explanations](contextual-explanations.md) an
 
 ## Offline prediction and calibration artifacts
 
+Explanation source releases are pinned to supported recorded detector versions.
+The application anchors manifest hashes, checks archived file/parent boundaries,
+inventory and document hashes, and never substitutes mutable current documents.
+Backend and frontend reject incompatible detector/knowledge versions. This is
+content integrity and version isolation, not publisher signatures, external
+license approval or protection from an actor who can rewrite application code.
+
 Local prediction files must not contain configuration text or secrets. Opaque
 grouping keys, source/annotation/model hashes and calibration exposure can still
 be confidential and linkable; hashing does not grant evaluation or publication

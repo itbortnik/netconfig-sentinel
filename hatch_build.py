@@ -20,11 +20,13 @@ class FrontendAssetsHook(BuildHookInterface):
                 "docs/baseline.md",
                 "docs/statistical-baseline.md",
             )
-            for source in sources:
-                path = Path(self.root) / source
-                if path.is_symlink() or not path.is_file():
-                    raise ValueError("Missing reviewed knowledge source")
-                build_data.setdefault("force_include", {})[str(path)] = f"app/knowledge/{source}"
+            for release in ("project-knowledge-0.1.0", "project-knowledge-0.2.0"):
+                for source in (*sources, "manifest.json"):
+                    relative = f"knowledge/versions/{release}/{source}"
+                    path = Path(self.root) / "backend" / "app" / relative
+                    if path.is_symlink() or not path.is_file():
+                        raise ValueError("Missing reviewed knowledge source")
+                    build_data.setdefault("force_include", {})[str(path)] = f"app/{relative}"
         directory = Path(self.root) / "frontend" / "dist"
         if self.target_name != "wheel" or not (directory / "index.html").is_file():
             return

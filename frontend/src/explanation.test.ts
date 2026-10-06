@@ -219,6 +219,8 @@ it("accepts only the selected analysis, original explanation and exact chunk con
 
 it.each([
   { provider: "llm" },
+  { knowledge_version: "project-knowledge-0.2.0" },
+  { knowledge_version: "unreviewed-version" },
   { llm_status: "completed" },
   { approved: true },
   { documents: [] },
@@ -236,6 +238,34 @@ it.each([
 ])("rejects unsupported or inconsistent source bundles: %j", (updates) => {
   expect(
     explanationBundleSchema.safeParse({ ...bundle, ...updates }).success,
+  ).toBe(false);
+});
+
+it("binds current and historical knowledge releases to the recorded detector for both providers", () => {
+  const latest = {
+    ...bundle,
+    knowledge_version: "project-knowledge-0.2.0",
+    explanation: { ...explanation, detector_version: "policy-rules-0.7.0" },
+  };
+  expect(explanationBundleSchema.safeParse(latest).success).toBe(true);
+  expect(
+    explanationBundleSchema.safeParse({
+      ...latest,
+      knowledge_version: "project-knowledge-0.1.0",
+    }).success,
+  ).toBe(false);
+  expect(
+    modelExplanationSchema.safeParse({
+      ...modelBundle,
+      knowledge_version: latest.knowledge_version,
+      explanation: latest.explanation,
+    }).success,
+  ).toBe(true);
+  expect(
+    modelExplanationSchema.safeParse({
+      ...modelBundle,
+      knowledge_version: "project-knowledge-0.2.0",
+    }).success,
   ).toBe(false);
 });
 

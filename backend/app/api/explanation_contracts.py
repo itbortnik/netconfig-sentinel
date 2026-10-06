@@ -5,7 +5,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.explanation.knowledge import DocumentChunk
+from app.explanation.knowledge import (
+    KNOWLEDGE_VERSION,
+    RELEASE_BY_DETECTOR_VERSION,
+    DocumentChunk,
+    KnowledgeVersion,
+)
 from app.explanation.local import FindingExplanation
 from app.explanation.provider import DraftAnswer
 
@@ -32,7 +37,7 @@ class ExplanationContext(BaseModel):
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     finding_id: UUID
     finding_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    knowledge_version: Literal["project-knowledge-0.1.0"] = "project-knowledge-0.1.0"
+    knowledge_version: KnowledgeVersion = KNOWLEDGE_VERSION
     knowledge_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     retrieval: Literal["explicit_reference"] = "explicit_reference"
     explanation: FindingExplanation
@@ -42,12 +47,17 @@ class ExplanationContext(BaseModel):
     @model_validator(mode="after")
     def bound_explanation(self) -> "ExplanationContext":
         item = self.explanation
-        if (item.finding_id, item.device_id, item.source_sha256, item.finding_sha256) != (
-            self.finding_id,
-            self.device_id,
-            self.source_sha256,
-            self.finding_sha256,
-        ) or len({chunk.citation for chunk in self.documents}) != len(self.documents):
+        if (
+            (item.finding_id, item.device_id, item.source_sha256, item.finding_sha256)
+            != (
+                self.finding_id,
+                self.device_id,
+                self.source_sha256,
+                self.finding_sha256,
+            )
+            or len({chunk.citation for chunk in self.documents}) != len(self.documents)
+            or (RELEASE_BY_DETECTOR_VERSION.get(item.detector_version) != self.knowledge_version)
+        ):
             raise ValueError("explanation or retrieved sources are inconsistent")
         return self
 

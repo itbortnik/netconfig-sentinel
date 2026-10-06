@@ -46,6 +46,10 @@ test("real local source sections preserve the saved analysis and display unavail
   await sources(page);
   await expect(panel(page).locator(".knowledge-source")).toHaveCount(1);
   await expect(panel(page)).toContainText("LLM недоступна");
+  await expect(panel(page)).toContainText("project-knowledge-0.2.0");
+  await expect(panel(page)).toContainText(
+    "Источники закреплены за версией детектора",
+  );
   await panel(page).locator(".knowledge-source summary").click();
   await expect(panel(page).locator(".knowledge-content")).toContainText(
     "SSH must be explicitly enabled",
@@ -85,14 +89,17 @@ test("invalid returned bindings or chunk hash cannot be shown as sources", async
     const body = await response.json();
     if (++attempt === 1)
       body.analysis_id = "00000000-0000-0000-0000-000000000001";
-    else
+    else if (attempt === 2)
       body.documents[0].content = "forged contents without updating its hash";
+    else body.knowledge_version = "project-knowledge-0.1.0";
     await route.fulfill({ response, json: body });
   });
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     await sources(page);
     await expect(page.getByRole("alert")).toContainText(
-      "не соответствуют выбранной находке",
+      i < 2
+        ? "не соответствуют выбранной находке"
+        : "не соответствует поддерживаемому контракту",
     );
     await expect(panel(page).locator(".knowledge-source")).toHaveCount(0);
     await expect(
