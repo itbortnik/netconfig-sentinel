@@ -142,4 +142,10 @@ timeout/reap/concurrency, proxy exclusion, schema/citations, неизменно�
 на отдельной PostgreSQL test schema. Desktop/mobile tests проверяют consent,
 unsafe DTO, plain-text rendering, привязки и late responses. Реальная модель,
 качество на эксплуатационных данных, load testing и production deployment не
-проверены. Это не полноценный semantic RAG: index/embeddings по-прежнему отсутствуют.
+проверены этим transport test suite. Отдельная
+[offline instruct диагностика](local-instruct-runtime.md) уже использует полный
+checkpoint и фактические generated drafts, но не квалифицирует этот HTTP service
+или семантическую достоверность ответа. Отдельный optional
+[semantic document index](semantic-explanation-context.md) уже использует реальные
+локальные document embeddings; его tiny owned query checks не доказывают качество
+retrieval на независимой vendor/internal библиотеке.

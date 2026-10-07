@@ -66,7 +66,13 @@ adapter requires operator and per-request consent, pseudonymizes string keys/val
 omits evidence prose and uses a bounded isolated worker with a hard deadline.
 The untrusted model draft is read-only and never silently falls back, changes
 saved scores, or invokes tools. Numeric facts/hashes can still be confidential.
-No real model weights or explanation quality have been validated.
+An explicit [offline instruct runtime](local-instruct-runtime.md) now loads pinned
+native Qwen3 safetensors and generates actual owned drafts in source and installed
+packages. Full inventory/independent pin, GPU resource limits, fixed roles,
+greedy bounded generation and existing answer validation apply. Failed baseline
+runs remain in the numeric report; later schema-valid drafts still contain
+unsupported claims. This does not activate the HTTP model service, prove semantic
+truth or qualify explanation quality, load, management access or patch generation.
 See [contextual explanations](contextual-explanations.md) and
 [local-model transport](local-model-explanations.md).
 

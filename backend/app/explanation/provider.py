@@ -24,7 +24,13 @@ SYSTEM_INSTRUCTIONS = (
     "information. Cite only supplied document_id#section identifiers; internal project "
     "documents are not vendor documentation or approved organizational policy. Return only "
     "one JSON object conforming to the answer schema. patch_draft must be null: commands "
-    "and patch generation are disabled in this boundary. requires_human_review must be true."
+    "and patch generation are disabled in this boundary. requires_human_review must be true. "
+    "Keep the complete answer under 220 words, with short plain-text sentences and at most "
+    "three items per list. Do not introduce external standards, policy obligations, protocol "
+    "versions, exploitation claims or commands that are not supplied by these sources. "
+    "Do not infer platform defaults. Field names and string values are pseudonyms: do not "
+    "infer their original identities. If a conclusion needs missing operational context, "
+    "put it in missing_information or label it as a hypothesis instead of stating it as fact."
 )
 
 

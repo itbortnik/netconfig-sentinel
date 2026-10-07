@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-07 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-08 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -15,7 +15,7 @@
 | Reference/peers/Isolation Forest | Explicit inputs, persisted manifests, actual numeric scoring; [demo](demo-runbook.md) | Synthetic functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
-| Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual optional document encoder, schema/citation-constrained provider transport | Настоящая instruct-модель и её качество не проверены; vendor/internal source library требует прав и отбора |
+| Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md) | Schema-valid outputs всё ещё содержат unsupported claims; полноценный vendor-patch/model API workflow и independent quality не закрыты; vendor/internal library требует прав и отбора |
 | Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; no status promotion without formal inputs | Live Batfish не подтверждён; безопасный management access/device syntax/engineer approval не реализованы как квалифицированный end-to-end переход |
 | Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/e2e` | Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
 | Секреты/access/audit | Sanitization, encrypted at-rest API payload, service RBAC, receipt/completion journal, bounded uploads | Не доказательство отсутствия всех секретов; production secret scan/pentest/SSO/tenant/TLS/backup квалификация открыты |
@@ -53,8 +53,9 @@ Multilingual MiniLM фактически загружен и используе�
 
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.
-- Выбранный доверенный instruct checkpoint/server, права использования и ресурсы;
-  schema/adversarial/citation evaluation actual outputs, не synthetic wire response.
+- Квалифицированный instruct service, independent/adversarial/semantic/citation
+  evaluation actual outputs: pinned checkpoint уже выбран и 16 owned генераций
+  выполнены, но schema validity не устраняет наблюдённые неподтверждённые утверждения.
 - Доверенный Batfish engine и разрешение явно выбранных loopback uploads;
   поддержанные network inputs/scope, actual before/after results и failure coverage.
 - Разрешённая vendor/internal документация и reviewed ingestion, retrieval quality
@@ -88,6 +89,16 @@ Published paired comparison имеет
 [успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37646999268).
 Local full suite с private Transformer registry: 1398 passed, те же два skips;
 ruff/mypy чистые, все 14 installed-wheel сценариев пройдены. Registry не закрывает
-online deployment, calibration или quality gates.
+online deployment, calibration или quality gates. Published registry имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37677295661).
 Demo имеет свои integration tests и [измеренный отчёт](evaluation/owned-workflow.json).
 Эти факты не закрывают перечисленные недостающие evidence.
+
+Local full suite с explicit instruct runtime: 1451 passed, те же два skips;
+ruff и mypy на обеих платформах чистые, все 15 installed-wheel сценариев пройдены.
+Полные Qwen weights проверены; 16 actual
+owned generations в четырёх source/installed runs отражены в
+[numeric report](evaluation/owned-instruct.json), включая неудачные исходные
+запуски. Последние schema-valid 4/4 + 4/4 не доказывают factual/citation quality:
+принятые drafts всё ещё содержат unsupported claims. Online model activation,
+MVP acceptance, vendor patch generation и production quality не заявлены.

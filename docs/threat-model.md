@@ -127,8 +127,11 @@ String pseudonyms and omission of evidence prose do not establish anonymity:
 numeric facts, hashes and line anchors can still be confidential. Remote addresses,
 redirects and environment proxies are prohibited, but the local server's own logging,
 storage and outgoing network access require operator control. Worker termination
-does not prove remote computation was cancelled. No actual instruct-language
-weights or explanation quality have been validated. See [contextual explanations](contextual-explanations.md) and
+does not prove remote computation was cancelled. An explicit offline
+[pinned instruct runtime](local-instruct-runtime.md) has generated actual owned
+drafts, not qualified the HTTP service or explanation quality. Its accepted outputs
+still show unsupported assertions despite source-grounded instructions. No model
+service starts or API settings change automatically. See [contextual explanations](contextual-explanations.md) and
 [local-model limits](local-model-explanations.md).
 
 ## Offline prediction and calibration artifacts
