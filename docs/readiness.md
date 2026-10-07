@@ -13,7 +13,7 @@
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted manifests, actual numeric scoring; [demo](demo-runbook.md) | Synthetic functional checks не измеряют эксплуатационные false positives |
-| Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
+| Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual optional document encoder, schema/citation-constrained provider transport | Настоящая instruct-модель и её качество не проверены; vendor/internal source library требует прав и отбора |
 | Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; no status promotion without formal inputs | Live Batfish не подтверждён; безопасный management access/device syntax/engineer approval не реализованы как квалифицированный end-to-end переход |
@@ -84,5 +84,10 @@ explicit local PostgreSQL test skipped; PostgreSQL/Compose проверены о
 [успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37642765987).
 Local full suite с paired comparison: 1363 passed, те же два explicit skips;
 ruff и mypy на обеих платформах чистые, 13 installed-wheel сценариев пройдены.
+Published paired comparison имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37646999268).
+Local full suite с private Transformer registry: 1398 passed, те же два skips;
+ruff/mypy чистые, все 14 installed-wheel сценариев пройдены. Registry не закрывает
+online deployment, calibration или quality gates.
 Demo имеет свои integration tests и [измеренный отчёт](evaluation/owned-workflow.json).
 Эти факты не закрывают перечисленные недостающие evidence.

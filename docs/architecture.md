@@ -246,6 +246,14 @@ diagnostics bind each side separately; partial parsing suppresses both outputs.
 They never rewrite the local policy/reference risk, raise patch/formal status,
 activate HTTP inference, apply commands, or establish independent model quality.
 
+The [private configuration-model registry](transformer-model-registry.md) stores
+new-only experimental native bundles or external heads with source-bound numeric
+cards. Enrollment re-decodes the saved bundle; every explicit selection checks an
+independent pin and a freshly derived card. Metadata-only listing imports no
+optional model runtime and does not authenticate weights. It is distinct from
+the encrypted HTTP forest registry and provides no automatic activation or
+deployment/quality promotion.
+
 Offline evaluation consumes bounded prediction/annotation artifacts, not raw
 configuration or online findings. It enforces recorded entity exposure gates,
 reports origin/vendor/role/unseen-site slices without pooling synthetic and real

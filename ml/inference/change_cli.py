@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--before", type=Path, required=True)
         command.add_argument("--after", type=Path, required=True)
         command.add_argument("--model", type=Path)
+        command.add_argument("--registry", type=Path)
         command.add_argument("--model-sha256")
         command.add_argument("--model-kind", choices=("native", "foundation"), default="native")
         command.add_argument("--foundation-source", type=Path)
@@ -81,35 +82,45 @@ def main(argv: list[str] | None = None) -> int:
             local = saved.local_review
         model: MultiTaskResult | FoundationTransferResult | None = None
         key = None
-        if (args.model is None) != (args.model_sha256 is None):
+        if args.model is not None and args.registry is not None:
+            raise ValueError("select either an explicit bundle or private registry")
+        selected = args.model is not None or args.registry is not None
+        if selected != (args.model_sha256 is not None):
             raise ValueError("model path and independent identity pin must be selected together")
-        if args.model is None and (
-            args.model_kind != "native" or args.foundation_source is not None
-        ):
+        if not selected and (args.model_kind != "native" or args.foundation_source is not None):
             raise ValueError("foundation options require explicit model selection")
         if args.model_kind == "native" and args.foundation_source is not None:
             raise ValueError("native selection cannot use an external source")
         if args.model_kind == "foundation" and args.foundation_source is None:
             raise ValueError("foundation selection requires explicit external source")
-        if args.model is not None:
+        if selected:
             if len(args.model_sha256) != 64 or any(
                 value not in "0123456789abcdef" for value in args.model_sha256
             ):
                 raise ValueError("invalid independent model identity pin")
-            safe_path(args.model)
             raw_key = os.environ.get(KEY_ENV, "")
             if len(raw_key) != 64:
                 raise ValueError("configure a private 32-byte hex pseudonymization key")
             key = bytes.fromhex(raw_key)
             if len(key) != 32:
                 raise ValueError("invalid private pseudonymization key")
-            if args.model_kind == "native":
+            if args.registry is not None:
+                from ml.registry.store import load_registered_model
+
+                model = load_registered_model(
+                    args.registry,
+                    args.model_sha256,
+                    foundation_source=args.foundation_source,
+                )
+            elif args.model_kind == "native":
+                safe_path(args.model)
                 _native_inventory(args.model)
                 # Native CPU weights_only=True tensor checkpoint, not an untrusted uploader.
                 from ml.training.multitask_training import load_multitask
 
                 model = load_multitask(args.model)
             else:
+                safe_path(args.model)
                 safe_path(args.foundation_source)
                 from ml.training.foundation_transfer import load_foundation_transfer
 
@@ -135,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
         OSError,
         ValueError,
         RuntimeError,
+        ImportError,
         pickle.UnpicklingError,
         EOFError,
         RecursionError,

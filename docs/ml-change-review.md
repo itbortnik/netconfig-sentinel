@@ -8,6 +8,11 @@
 Он не активирует Transformer в HTTP/UI и не объявляет пригодность лабораторной
 модели для реальной детекции.
 
+Вместо прямого `--model` можно явно выбрать private
+[`--registry`](transformer-model-registry.md) с тем же обязательным independent
+pin. Формат результата и все no-promotion gates остаются прежними; совместный
+выбор bundle и registry отвергается.
+
 ## Последовательность и границы
 
 1. Выберите точный original snapshot и candidate. Для поддержанных двух

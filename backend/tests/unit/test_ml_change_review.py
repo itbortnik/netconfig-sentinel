@@ -216,6 +216,14 @@ def test_joint_objective_transfer_native_vendor_candidate_both_sides(tmp_path):
     bundle = tmp_path / "model"
     save_multitask(result, bundle)
     loaded = load_multitask(bundle)
+    from ml.registry.store import initialize_registry, load_registered_model, register_model
+
+    registry = tmp_path / "registry"
+    initialize_registry(registry)
+    card = register_model(registry, loaded, expected_identity=multitask_identity(loaded))
+    assert card.training_format == "multitask-training-0.2.0"
+    assert card.source_manifest_sha256 == loaded.report.pretraining.source_manifest_sha256
+    loaded = load_registered_model(registry, card.model_sha256)
     before = (
         "set system host-name private-junos\nset system services ssh\nset system services telnet\n"
     )

@@ -526,3 +526,87 @@ def test_explicit_foundation_cli_review_recheck_and_wrong_kind_are_fail_closed(
         and "31" * 32 not in printed.out + printed.err
     )
     assert saved.local_review == local and saved.formal_verification == "not_run"
+    from ml.registry.store import initialize_registry, register_model
+
+    registry = tmp_path / "registry"
+    initialize_registry(registry)
+    register_model(registry, model, expected_identity=pin, foundation_source=source[0])
+    registered = args.copy()
+    selected = registered.index("--model")
+    registered[selected : selected + 2] = ["--registry", str(registry)]
+    registered_output = tmp_path / "registered-review.json"
+    assert (
+        main(
+            [
+                "review",
+                *registered,
+                "--patch-review",
+                str(local_file),
+                "--output",
+                str(registered_output),
+            ]
+        )
+        == 0
+    )
+    assert load_ml_change_review(registered_output) == saved
+    assert main(["check", *registered, "--artifact", str(registered_output)]) == 0
+
+
+def test_private_foundation_registry_requires_source_and_preserves_only_heads(
+    inputs, source, tmp_path
+):
+    from ml.registry.store import (
+        initialize_registry,
+        list_models,
+        load_registered_model,
+        register_model,
+    )
+
+    model = train(inputs)
+    pin = foundation_transfer_identity(model)
+    root = tmp_path / "registry"
+    initialize_registry(root)
+    with pytest.raises(ValueError):
+        register_model(root, model, expected_identity=pin)
+    assert {item.name for item in root.iterdir()} == {"registry.json"}
+    card = register_model(root, model, expected_identity=pin, foundation_source=source[0])
+    assert card.kind == "foundation" and card.external_pretraining_exposure == "unknown"
+    assert card.source_manifest_sha256 == model.report.source_manifest_sha256
+    assert not card.enabled_heads["severity"] and not card.activated
+    assert {item.name for item in (root / pin / "bundle").iterdir()} == {
+        "heads.json",
+        "heads.sha256",
+    }
+    assert str(source[0]) not in (root / pin / "entry.json").read_text(encoding="utf-8")
+    assert list_models(root) == (card,)
+    with pytest.raises(ValueError):
+        load_registered_model(root, pin)
+    restored = load_registered_model(root, pin, foundation_source=source[0])
+    assert predict_foundation_transfer(
+        restored, inputs[2][0].record
+    ) == predict_foundation_transfer(model, inputs[2][0].record)
+
+
+def test_foundation_registry_cli_recheck_with_actual_artificial_source(
+    inputs, source, tmp_path, capsys
+):
+    from ml.registry.cli import main
+
+    model = train(inputs)
+    bundle = tmp_path / "trusted"
+    pin = save_foundation_transfer(model, bundle)
+    root = tmp_path / "registry"
+    assert main(["init", "--root", str(root)]) == 0
+    base = ["--root", str(root), "--model-sha256", pin]
+    source_flags = ["--foundation-source", str(source[0])]
+    assert main(["register", *base, "--model", str(bundle), "--model-kind", "foundation"]) == 2
+    assert (
+        main(
+            ["register", *base, "--model", str(bundle), "--model-kind", "foundation", *source_flags]
+        )
+        == 0
+    )
+    assert main(["check", *base]) == 2
+    assert main(["check", *base, *source_flags]) == 0
+    printed = capsys.readouterr()
+    assert str(tmp_path) not in printed.out + printed.err

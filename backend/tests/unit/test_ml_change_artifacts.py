@@ -36,6 +36,48 @@ def test_private_roundtrip_no_overwrite_and_no_automatic_current_recheck(model, 
     assert changed != run(model)
 
 
+def test_cli_explicit_registered_native_selection_has_the_same_bound_review(
+    model, tmp_path, monkeypatch, capsys
+):
+    from ml.registry.store import initialize_registry, register_model
+
+    root = tmp_path / "registry"
+    initialize_registry(root)
+    pin = multitask_identity(model)
+    register_model(root, model, expected_identity=pin)
+    before, after = tmp_path / "old.cfg", tmp_path / "new.cfg"
+    before.write_bytes(BEFORE.encode())
+    after.write_bytes(AFTER.encode())
+    review, output = tmp_path / "local.json", tmp_path / "registered.json"
+    save_patch_review(local(), review)
+    monkeypatch.setenv(KEY_ENV, "91" * 32)
+    flags = [
+        "--before",
+        str(before),
+        "--after",
+        str(after),
+        "--registry",
+        str(root),
+        "--model-sha256",
+        pin,
+    ]
+    assert main(["review", *flags, "--patch-review", str(review), "--output", str(output)]) == 0
+    saved = load_ml_change_review(output)
+    assert saved == run(model, pseudonymization_key=bytes.fromhex("91" * 32))
+    assert main(["check", *flags, "--artifact", str(output)]) == 0
+    assert (
+        main(["check", *flags, "--model", str(root / pin / "bundle"), "--artifact", str(output)])
+        == 2
+    )
+    no_pin = flags[:-2]
+    assert main(["check", *no_pin, "--artifact", str(output)]) == 2
+    printed = capsys.readouterr()
+    assert (
+        str(tmp_path) not in printed.out + printed.err
+        and "91" * 32 not in printed.out + printed.err
+    )
+
+
 @pytest.mark.parametrize("damage", ["checksum", "duplicates", "truncated", "nan", "extra"])
 def test_damaged_private_artifact_refused(damage, tmp_path):
     result = review_patch_ml(local(), BEFORE, AFTER)

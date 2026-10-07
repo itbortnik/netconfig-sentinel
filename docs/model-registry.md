@@ -100,3 +100,7 @@ decision_function и prediction в `statistical`. Если prediction = -1,
 Нужны разрешённые реальные данные, независимая оценка, калибровка порога и
 контроль дрейфа. Этот registry не регистрирует Transformer checkpoints и не
 предоставляет promotion, rollback, retention или deployment approval.
+
+Для отдельного offline-выбора native/external configuration checkpoints есть
+[приватный filesystem registry](transformer-model-registry.md). Он не добавляет
+Transformer в этот HTTP-реестр и не активирует модели автоматически.

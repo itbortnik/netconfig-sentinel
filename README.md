@@ -268,6 +268,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Отдельный путь настоящих внешних замороженных весов → конфигурационный адаптер и
 головы, с неизвестной external pretraining exposure и измеренными diagnostics,
 описан в [`docs/foundation-config-transfer.md`](docs/foundation-config-transfer.md).
+Приватная immutable регистрация native/external checkpoints, повторная проверка
+независимых pins и явный offline-выбор описаны в
+[`docs/transformer-model-registry.md`](docs/transformer-model-registry.md).
 Ограниченные Cisco/JunOS черновики по точным исходным строкам, их private lifecycle
 и обязательные проверки перед любым применением описаны в
 [`docs/vendor-patch-drafts.md`](docs/vendor-patch-drafts.md).
