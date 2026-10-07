@@ -281,6 +281,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 на независимой выборке описаны в [`docs/offline-evaluation.md`](docs/offline-evaluation.md).
 Текущий измеренный пример — только синтетическая диагностика выбранной модели,
 не подтверждение качества на реальных сетях.
+Парное anomaly-only сравнение Isolation Forest, native и external encoder на
+одинаковых примерах, с exact bindings и без фиктивных baseline heads, описано в
+[`docs/paired-detection-comparison.md`](docs/paired-detection-comparison.md).
 Экспериментальный порог по обучающим конфигурациям и измеренный компромисс между
 ложными срабатываниями и пропусками описаны в
 [`docs/line-operating-point.md`](docs/line-operating-point.md).

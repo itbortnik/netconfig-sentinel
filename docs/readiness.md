@@ -13,7 +13,7 @@
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted manifests, actual numeric scoring; [demo](demo-runbook.md) | Synthetic functional checks не измеряют эксплуатационные false positives |
-| Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
+| Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual optional document encoder, schema/citation-constrained provider transport | Настоящая instruct-модель и её качество не проверены; vendor/internal source library требует прав и отбора |
 | Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; no status promotion without formal inputs | Live Batfish не подтверждён; безопасный management access/device syntax/engineer approval не реализованы как квалифицированный end-to-end переход |
@@ -80,7 +80,9 @@ production-команд не входит в этот workflow и не доба�
 [CI всех трёх jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37641564421)
 успешен. Local baseline этого этапа: 1319 backend tests passed, live Batfish и
 explicit local PostgreSQL test skipped; PostgreSQL/Compose проверены отдельно
-этим CI. Local full suite с external pre/post review: 1333 passed, те же два explicit skips;
-ruff и mypy на обеих платформах чистые, двенадцать installed-wheel сценариев пройдены.
+этим CI. External pre/post review также имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37642765987).
+Local full suite с paired comparison: 1363 passed, те же два explicit skips;
+ruff и mypy на обеих платформах чистые, 13 installed-wheel сценариев пройдены.
 Demo имеет свои integration tests и [измеренный отчёт](evaluation/owned-workflow.json).
 Эти факты не закрывают перечисленные недостающие evidence.

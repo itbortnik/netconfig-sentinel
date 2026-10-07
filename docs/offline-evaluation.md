@@ -106,6 +106,9 @@ Input can be produced from any supported detector by an explicit exporter
 following `ml/evaluation/contracts.py`. Different models should use the same
 annotations, exposures and decision protocol for a meaningful paired comparison;
 this tool does not manufacture predictions for unavailable detectors.
+For a complete shared anomaly truth table and per-model exposures/thresholds,
+use the [paired detection comparator](paired-detection-comparison.md). It refuses
+partial row intersections and never invents category/localization baseline heads.
 The SVG shows binary anomaly reliability separately by origin. It renders fixed
 labels and numerical coordinates only, never untrusted prose or raw identifiers.
 CLI errors do not echo private input. Outputs must be new files with existing

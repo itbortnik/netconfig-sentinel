@@ -256,6 +256,14 @@ not activate a model or change risk/patch states. The existing frozen-model
 adapter reports measured synthetic selection diagnostics, not independent test
 quality. See [offline evaluation](offline-evaluation.md).
 
+The separate [paired detection comparator](paired-detection-comparison.md)
+requires one complete source-bound anomaly truth table, per-model exposure and
+threshold bindings, and a shared manifest/purpose. It reports separate cohorts
+and candidate-minus-baseline deltas without invented baseline category/line heads,
+pooled synthetic/real quality or production acceptance. Its owned adapter fits
+actual vendor forests and evaluates pinned native/external heads on the same
+selection views; no independent-test or model activation is inferred.
+
 Finding assessments form a separate append-only boundary, never a mutation of
 analysis or automatic ground truth. Each encrypted record binds a client intent
 UUID to an analysis, finding content hash, snapshot, device and source hash.
