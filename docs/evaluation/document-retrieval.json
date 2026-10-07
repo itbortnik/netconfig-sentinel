@@ -1,0 +1,798 @@
+{
+  "report_version": "document-retrieval-diagnostic-0.1.0",
+  "scope": "six authored EN/RU queries over two sealed internal project releases",
+  "independent_evaluation": false,
+  "production_qualified": false,
+  "uses_customer_configurations": false,
+  "vendor_documentation_included": false,
+  "encoder": {
+    "model_id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+    "files_sha256": "f06f383e830b5f0b8de78453cb641878e027abc6ef28e72ad6fe494b1098bce2",
+    "pipeline_version": "minilm-all-content-window128-mean-l2-0.1.0",
+    "dimensions": 384,
+    "runtime_versions": [
+      "torch=2.14.0+cpu",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ]
+  },
+  "load_seconds": 1.5514929997734725,
+  "releases": [
+    {
+      "knowledge_version": "project-knowledge-0.1.0",
+      "knowledge_sha256": "c5fd6ac0a7bdbb3e3fa8af290e2c92e868251fd09ecc53d6a83292a64471b5ad",
+      "index_sha256": "67a82e9cf12286bf2b8af30fe394b8346a0e904d7e8940ae311e5e3437cd8307",
+      "rows": 31,
+      "build_seconds": 1.8352449000813067,
+      "hit_at_1": 0.8333333333333334,
+      "hit_at_4": 1.0,
+      "queries": [
+        {
+          "query": "Why should Telnet be disabled and SSH used for management?",
+          "language": "en",
+          "expected_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "telnet-must-be-disabled",
+                "section_title": "Telnet must be disabled",
+                "citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "b1318ef8de68fcafb801d126a5a142c35ee71957b259e0cb27b67bd8ee830404",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.7338634522229408
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6642302708299387
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-version-1-must-be-disabled",
+                "section_title": "SSH version 1 must be disabled",
+                "citation": "docs/policies/management-plane.md#ssh-version-1-must-be-disabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "906a1a470951d5376d3217888cce13aca73906bcfd32a02350e034427d0d8dc6",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5613333052210205
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-must-be-enabled",
+                "section_title": "SSH must be enabled",
+                "citation": "docs/policies/management-plane.md#ssh-must-be-enabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "bc4f4a0cc1efb80794584e522d0c69c1e751eef76abfbe699522214bcb9cd0c1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5482006113828812
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.02072319993749261
+        },
+        {
+          "query": "Почему следует отключить Telnet и использовать SSH для управления?",
+          "language": "ru",
+          "expected_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "telnet-must-be-disabled",
+                "section_title": "Telnet must be disabled",
+                "citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "b1318ef8de68fcafb801d126a5a142c35ee71957b259e0cb27b67bd8ee830404",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6511231429123053
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6367030546467096
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-version-1-must-be-disabled",
+                "section_title": "SSH version 1 must be disabled",
+                "citation": "docs/policies/management-plane.md#ssh-version-1-must-be-disabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "906a1a470951d5376d3217888cce13aca73906bcfd32a02350e034427d0d8dc6",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.49000557865631145
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-must-be-enabled",
+                "section_title": "SSH must be enabled",
+                "citation": "docs/policies/management-plane.md#ssh-must-be-enabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "bc4f4a0cc1efb80794584e522d0c69c1e751eef76abfbe699522214bcb9cd0c1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.47157436244270007
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.02014550007879734
+        },
+        {
+          "query": "Configure NTP time synchronization on the network device.",
+          "language": "en",
+          "expected_citation": "docs/policies/observability.md#time-synchronization-is-required",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/observability.md",
+                "document_title": "Observability and audit policy",
+                "section": "time-synchronization-is-required",
+                "section_title": "Time synchronization is required",
+                "citation": "docs/policies/observability.md#time-synchronization-is-required",
+                "document_sha256": "1f99a2f91da825d92048f0bdcc0457fb657a6a602c1cf9ec61b4f3ad59cde17f",
+                "content_sha256": "f32912842f541e7325b90f8c8e703f1178cdd43b71b7957e5116348a20fa9936",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6710048334239274
+            },
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "контракт",
+                "section_title": "Контракт",
+                "citation": "docs/expected-configuration.md#контракт",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "80c64829843e6b4086bdeea80fe7851f8919ab4ec62e39fb9360d07cc2b54f33",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.27820321180718444
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/layer2.md",
+                "document_title": "Layer 2 interface policy",
+                "section": "access-vlans-must-be-explicit",
+                "section_title": "Access VLANs must be explicit",
+                "citation": "docs/policies/layer2.md#access-vlans-must-be-explicit",
+                "document_sha256": "659b5a9751269e80e71d270d9254e969e7f93458f60500d5237dd7056972ccf5",
+                "content_sha256": "91b384cd284240e4ed549d0b554d074ff691fbeacc1506e9ab961b5ee8f9ad6f",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2600156971707106
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2576178408891141
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.02046199981123209
+        },
+        {
+          "query": "На устройстве не настроена синхронизация времени NTP.",
+          "language": "ru",
+          "expected_citation": "docs/policies/observability.md#time-synchronization-is-required",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/observability.md",
+                "document_title": "Observability and audit policy",
+                "section": "time-synchronization-is-required",
+                "section_title": "Time synchronization is required",
+                "citation": "docs/policies/observability.md#time-synchronization-is-required",
+                "document_sha256": "1f99a2f91da825d92048f0bdcc0457fb657a6a602c1cf9ec61b4f3ad59cde17f",
+                "content_sha256": "f32912842f541e7325b90f8c8e703f1178cdd43b71b7957e5116348a20fa9936",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.579313365231933
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2854789808708552
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/layer2.md",
+                "document_title": "Layer 2 interface policy",
+                "section": "switchport-mode-must-be-consistent",
+                "section_title": "Switchport mode must be consistent",
+                "citation": "docs/policies/layer2.md#switchport-mode-must-be-consistent",
+                "document_sha256": "659b5a9751269e80e71d270d9254e969e7f93458f60500d5237dd7056972ccf5",
+                "content_sha256": "26723dd56f8beadaee4f5a87697e78deb5a5194690ffb0588fae8a070b2c54f5",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.23980533326492823
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "telnet-must-be-disabled",
+                "section_title": "Telnet must be disabled",
+                "citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+                "document_sha256": "c9962ac79d2f593585f8f364b0b76ac956565a2a580eb8978a5a56df470174ee",
+                "content_sha256": "b1318ef8de68fcafb801d126a5a142c35ee71957b259e0cb27b67bd8ee830404",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2325495892520688
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.019139499869197607
+        },
+        {
+          "query": "What are the limitations of the peer configuration baseline?",
+          "language": "en",
+          "expected_citation": "docs/baseline.md#limitations",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "limitations",
+                "section_title": "Limitations",
+                "citation": "docs/baseline.md#limitations",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "788fab3441f283d7a899867ddea0deafb3d9f81f911ddb48fe9389e4f56e7c62",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.7758006721010144
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "exact-consensus-features",
+                "section_title": "Exact consensus features",
+                "citation": "docs/baseline.md#exact-consensus-features",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "2df2c703eac9099220790a567175b644abb072df0edb2610ceddc719f01886e1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6751229535646907
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "group-identity",
+                "section_title": "Group identity",
+                "citation": "docs/baseline.md#group-identity",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "8021e5daae8182dd2389d3e2b8ad90633561c397809e5d4aacc464b230c4e0ad",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6114636109703266
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "unsupported-syntax-ratio",
+                "section_title": "Unsupported syntax ratio",
+                "citation": "docs/baseline.md#unsupported-syntax-ratio",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "ae9ae9f8e5ce5f8a5235e79609b94faff7e39b70effd391f98ce454d00a208fc",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5847883649620718
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.019470300059765577
+        },
+        {
+          "query": "Ограничения сравнения конфигурации с похожими устройствами.",
+          "language": "ru",
+          "expected_citation": "docs/baseline.md#limitations",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "контракт",
+                "section_title": "Контракт",
+                "citation": "docs/expected-configuration.md#контракт",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "80c64829843e6b4086bdeea80fe7851f8919ab4ec62e39fb9360d07cc2b54f33",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5910960309353279
+            },
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "доказательства-и-ограничения",
+                "section_title": "Доказательства и ограничения",
+                "citation": "docs/expected-configuration.md#доказательства-и-ограничения",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "d0ef1886585d5ddcf3bbe1d5c6b5cacd525b7c6c1059bc7f2216642454b6908f",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5115859849182525
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "limitations",
+                "section_title": "Limitations",
+                "citation": "docs/baseline.md#limitations",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "788fab3441f283d7a899867ddea0deafb3d9f81f911ddb48fe9389e4f56e7c62",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.46013015239155264
+            },
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "локальная-команда-сравнения",
+                "section_title": "Локальная команда сравнения",
+                "citation": "docs/expected-configuration.md#локальная-команда-сравнения",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "8416ae5d917c8b23d49a4918029233d751bc03482abb3ef2244d1030f69c4a49",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.4127564385543182
+            }
+          ],
+          "hit_at_1": false,
+          "hit_at_4": true,
+          "seconds": 0.0194561998359859
+        }
+      ]
+    },
+    {
+      "knowledge_version": "project-knowledge-0.2.0",
+      "knowledge_sha256": "db90abb1346d48a81b015ae4f779a3748fe9d97345d9d419c590d4a42d60299c",
+      "index_sha256": "b2cfdb2eedab0bfe7b857aac10803764e5a790ea65ffd7877a5d1d763a4a48b1",
+      "rows": 41,
+      "build_seconds": 2.8144391998648643,
+      "hit_at_1": 0.8333333333333334,
+      "hit_at_4": 1.0,
+      "queries": [
+        {
+          "query": "Why should Telnet be disabled and SSH used for management?",
+          "language": "en",
+          "expected_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "telnet-must-be-disabled",
+                "section_title": "Telnet must be disabled",
+                "citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "b1318ef8de68fcafb801d126a5a142c35ee71957b259e0cb27b67bd8ee830404",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.7338634522229408
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6642302708299387
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-version-1-must-be-disabled",
+                "section_title": "SSH version 1 must be disabled",
+                "citation": "docs/policies/management-plane.md#ssh-version-1-must-be-disabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "906a1a470951d5376d3217888cce13aca73906bcfd32a02350e034427d0d8dc6",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5613333052210205
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-must-be-enabled",
+                "section_title": "SSH must be enabled",
+                "citation": "docs/policies/management-plane.md#ssh-must-be-enabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "bc4f4a0cc1efb80794584e522d0c69c1e751eef76abfbe699522214bcb9cd0c1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.548200578838357
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.02039490034803748
+        },
+        {
+          "query": "Почему следует отключить Telnet и использовать SSH для управления?",
+          "language": "ru",
+          "expected_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "telnet-must-be-disabled",
+                "section_title": "Telnet must be disabled",
+                "citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "b1318ef8de68fcafb801d126a5a142c35ee71957b259e0cb27b67bd8ee830404",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6511231429123053
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6367030546467096
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-version-1-must-be-disabled",
+                "section_title": "SSH version 1 must be disabled",
+                "citation": "docs/policies/management-plane.md#ssh-version-1-must-be-disabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "906a1a470951d5376d3217888cce13aca73906bcfd32a02350e034427d0d8dc6",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.49000557865631145
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/management-plane.md",
+                "document_title": "Management-plane policy",
+                "section": "ssh-must-be-enabled",
+                "section_title": "SSH must be enabled",
+                "citation": "docs/policies/management-plane.md#ssh-must-be-enabled",
+                "document_sha256": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+                "content_sha256": "bc4f4a0cc1efb80794584e522d0c69c1e751eef76abfbe699522214bcb9cd0c1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.4715743361298005
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.019080900121480227
+        },
+        {
+          "query": "Configure NTP time synchronization on the network device.",
+          "language": "en",
+          "expected_citation": "docs/policies/observability.md#time-synchronization-is-required",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/observability.md",
+                "document_title": "Observability and audit policy",
+                "section": "time-synchronization-is-required",
+                "section_title": "Time synchronization is required",
+                "citation": "docs/policies/observability.md#time-synchronization-is-required",
+                "document_sha256": "1f99a2f91da825d92048f0bdcc0457fb657a6a602c1cf9ec61b4f3ad59cde17f",
+                "content_sha256": "f32912842f541e7325b90f8c8e703f1178cdd43b71b7957e5116348a20fa9936",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6710048334239274
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/routing.md",
+                "document_title": "Routing policy",
+                "section": "static-next-hops-must-be-unicast",
+                "section_title": "Static next hops must be unicast",
+                "citation": "docs/policies/routing.md#static-next-hops-must-be-unicast",
+                "document_sha256": "3b819a006f954176c24151e5c21485768da80231892f32d2cdcac25db31b85c3",
+                "content_sha256": "35bc09caa17603a9e9a6945c551129b9f10175579f85b4afdb510adb85ea974d",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.3115642612858016
+            },
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "контракт",
+                "section_title": "Контракт",
+                "citation": "docs/expected-configuration.md#контракт",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "80c64829843e6b4086bdeea80fe7851f8919ab4ec62e39fb9360d07cc2b54f33",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.27820321180718444
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/layer2.md",
+                "document_title": "Layer 2 interface policy",
+                "section": "duplicate-interface-addresses-must-be-reviewed",
+                "section_title": "Duplicate interface addresses must be reviewed",
+                "citation": "docs/policies/layer2.md#duplicate-interface-addresses-must-be-reviewed",
+                "document_sha256": "0dc02c775184f10508a5899d65da2a6fb5ce7a2e7d707c8f42676bd2133ff8e0",
+                "content_sha256": "672cbf6eafda4b36ebccd02c5e2871f36dec9f4de243d662e1826ab6868b328b",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2710770691356664
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.02057819999754429
+        },
+        {
+          "query": "На устройстве не настроена синхронизация времени NTP.",
+          "language": "ru",
+          "expected_citation": "docs/policies/observability.md#time-synchronization-is-required",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/policies/observability.md",
+                "document_title": "Observability and audit policy",
+                "section": "time-synchronization-is-required",
+                "section_title": "Time synchronization is required",
+                "citation": "docs/policies/observability.md#time-synchronization-is-required",
+                "document_sha256": "1f99a2f91da825d92048f0bdcc0457fb657a6a602c1cf9ec61b4f3ad59cde17f",
+                "content_sha256": "f32912842f541e7325b90f8c8e703f1178cdd43b71b7957e5116348a20fa9936",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.579313365231933
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/routing.md",
+                "document_title": "Routing policy",
+                "section": "static-next-hops-must-be-unicast",
+                "section_title": "Static next hops must be unicast",
+                "citation": "docs/policies/routing.md#static-next-hops-must-be-unicast",
+                "document_sha256": "3b819a006f954176c24151e5c21485768da80231892f32d2cdcac25db31b85c3",
+                "content_sha256": "35bc09caa17603a9e9a6945c551129b9f10175579f85b4afdb510adb85ea974d",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2992860659639411
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/access-control.md",
+                "document_title": "Access-control policy",
+                "section": "telnet-must-not-be-permitted",
+                "section_title": "Telnet must not be permitted",
+                "citation": "docs/policies/access-control.md#telnet-must-not-be-permitted",
+                "document_sha256": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+                "content_sha256": "565d7862d57ffadffe6383e03e5b4ddd7eabdc6d1a779887a166e2ffbf6c741e",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.2854789808708552
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/layer2.md",
+                "document_title": "Layer 2 interface policy",
+                "section": "native-vlan-filtering-must-be-reviewed",
+                "section_title": "Native VLAN filtering must be reviewed",
+                "citation": "docs/policies/layer2.md#native-vlan-filtering-must-be-reviewed",
+                "document_sha256": "0dc02c775184f10508a5899d65da2a6fb5ce7a2e7d707c8f42676bd2133ff8e0",
+                "content_sha256": "ac3338e221e399cf6f1c3cdaf2e9c762240e8ee05c32e108435e29e0a7f9f699",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.28461806830155323
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.01887849997729063
+        },
+        {
+          "query": "What are the limitations of the peer configuration baseline?",
+          "language": "en",
+          "expected_citation": "docs/baseline.md#limitations",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "limitations",
+                "section_title": "Limitations",
+                "citation": "docs/baseline.md#limitations",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "788fab3441f283d7a899867ddea0deafb3d9f81f911ddb48fe9389e4f56e7c62",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.7758006721010144
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "exact-consensus-features",
+                "section_title": "Exact consensus features",
+                "citation": "docs/baseline.md#exact-consensus-features",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "2df2c703eac9099220790a567175b644abb072df0edb2610ceddc719f01886e1",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6751229535646907
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "group-identity",
+                "section_title": "Group identity",
+                "citation": "docs/baseline.md#group-identity",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "8021e5daae8182dd2389d3e2b8ad90633561c397809e5d4aacc464b230c4e0ad",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.6114636109703266
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "unsupported-syntax-ratio",
+                "section_title": "Unsupported syntax ratio",
+                "citation": "docs/baseline.md#unsupported-syntax-ratio",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "ae9ae9f8e5ce5f8a5235e79609b94faff7e39b70effd391f98ce454d00a208fc",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5847883649620718
+            }
+          ],
+          "hit_at_1": true,
+          "hit_at_4": true,
+          "seconds": 0.019551599863916636
+        },
+        {
+          "query": "Ограничения сравнения конфигурации с похожими устройствами.",
+          "language": "ru",
+          "expected_citation": "docs/baseline.md#limitations",
+          "matches": [
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "контракт",
+                "section_title": "Контракт",
+                "citation": "docs/expected-configuration.md#контракт",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "80c64829843e6b4086bdeea80fe7851f8919ab4ec62e39fb9360d07cc2b54f33",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5910960309353279
+            },
+            {
+              "document": {
+                "document_id": "docs/expected-configuration.md",
+                "document_title": "Явный эталон конфигурации устройства",
+                "section": "доказательства-и-ограничения",
+                "section_title": "Доказательства и ограничения",
+                "citation": "docs/expected-configuration.md#доказательства-и-ограничения",
+                "document_sha256": "43d8a5f35a6b85d33e221983c7d0d312069714918e1fc7ace79290f0f07543da",
+                "content_sha256": "d0ef1886585d5ddcf3bbe1d5c6b5cacd525b7c6c1059bc7f2216642454b6908f",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.5115859849182525
+            },
+            {
+              "document": {
+                "document_id": "docs/policies/layer2.md",
+                "document_title": "Layer 2 interface policy",
+                "section": "duplicate-interface-addresses-must-be-reviewed",
+                "section_title": "Duplicate interface addresses must be reviewed",
+                "citation": "docs/policies/layer2.md#duplicate-interface-addresses-must-be-reviewed",
+                "document_sha256": "0dc02c775184f10508a5899d65da2a6fb5ce7a2e7d707c8f42676bd2133ff8e0",
+                "content_sha256": "672cbf6eafda4b36ebccd02c5e2871f36dec9f4de243d662e1826ab6868b328b",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.4741916352143194
+            },
+            {
+              "document": {
+                "document_id": "docs/baseline.md",
+                "document_title": "Peer-group baseline",
+                "section": "limitations",
+                "section_title": "Limitations",
+                "citation": "docs/baseline.md#limitations",
+                "document_sha256": "b4cfdbe9fd36124d679802dcfc429df83281e8a7746eaf61353674f6c05dcbef",
+                "content_sha256": "788fab3441f283d7a899867ddea0deafb3d9f81f911ddb48fe9389e4f56e7c62",
+                "authority": "internal_project_document"
+              },
+              "cosine_similarity": 0.46013015239155264
+            }
+          ],
+          "hit_at_1": false,
+          "hit_at_4": true,
+          "seconds": 0.018974000122398138
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Queries and expected citations are authored by the implementation, not independent labels.",
+    "Cosine similarity is not detector confidence, correctness or network impact.",
+    "Only approved internal project sources are indexed, not licensed vendor manuals.",
+    "All content windows are pooled; this differs from publisher short-text truncation.",
+    "This diagnostic does not activate HTTP retrieval or an anomaly detector."
+  ]
+}

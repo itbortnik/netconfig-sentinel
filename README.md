@@ -68,6 +68,9 @@
   оценок и привязкой доказательств к снимку;
 - [архивные версии источников объяснений](docs/knowledge-releases.md): старые
   находки читают закреплённые документы, без замены текущими файлами;
+- [офлайн векторный поиск](docs/document-vector-retrieval.md): настоящие локальные
+  multilingual MiniLM embeddings, sealed source/model/runtime bindings и числовой
+  индекс; пока не включён в HTTP-объяснения и не является детектором аномалий;
 - [экспериментальный локальный LLM transport](docs/local-model-explanations.md):
   по умолчанию выключен, только loopback и отдельное разрешение на
   псевдонимизированный контекст; непроверенный черновик не меняет риск/историю;
@@ -194,6 +197,7 @@ ml/
   datasets/            импорт, дедупликация, разбиение, качество и артефакты
   mutation/            обратимые синтетические аномалии и разметка
   training/            маскирование, encoder, CPU-обучение и checkpoint
+  retrieval/           pinned local document encoder и offline vector diagnostics
   preprocessing/       детерминированное обезличивание конфигураций
 frontend/              React + TypeScript, контракты ответов и браузерные тесты
 ```
