@@ -326,3 +326,203 @@ def test_invalid_hidden_outputs_fail_without_a_partial_prediction(inputs, monkey
     monkeypatch.setattr(inputs[1]._model, "forward", broken)
     with pytest.raises(ValueError, match="hidden states"):
         predict_foundation_transfer(result, inputs[2][0].record)
+
+
+@pytest.mark.parametrize(
+    "before,category",
+    (
+        (
+            "hostname owned\nip ssh version 2\nline vty 0 4\n transport input ssh telnet\n",
+            "management.telnet_enabled",
+        ),
+        ("hostname owned\nip ssh version 1\n", "management.ssh_version_1"),
+        (
+            "set system host-name owned\nset system services ssh\nset system services telnet\n",
+            "management.telnet_enabled",
+        ),
+        (
+            "set system host-name owned\nset system services ssh protocol-version v1\n",
+            "management.ssh_version_1",
+        ),
+    ),
+)
+@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+def test_source_bound_external_model_review_on_four_native_recipes(
+    inputs, before, category, newline
+):
+    from uuid import UUID
+
+    from app.detection.policy_engine import evaluate_policies
+    from app.parsers import parse_configuration
+    from app.patching.vendor_drafts import create_vendor_draft
+
+    from ml.inference.change_review import review_patch_ml
+
+    before = before.replace("\n", newline)
+    device = UUID("de383e03-1806-4e9b-92f2-5de2d33cf89d")
+    finding = next(
+        row
+        for row in evaluate_policies(
+            parse_configuration(before, filename="owned.cfg"), device_id=device
+        )
+        if row.category == category
+    )
+    draft = create_vendor_draft(
+        before,
+        finding=finding,
+        source_sha256=digest(before),
+        reference_id="owned",
+    )
+    model = train(inputs)
+    pin = foundation_transfer_identity(model)
+    source_identity = model.source.verify()
+    rng, threads = torch.get_rng_state().clone(), torch.get_num_threads()
+    result = review_patch_ml(
+        draft.metadata.review,
+        before,
+        draft.candidate_text,
+        model=model,
+        expected_model_sha256=pin,
+        pseudonymization_key=b"owned-private-config-inference-key",
+    )
+    assert result.local_review == draft.metadata.review
+    assert result.status == "needs_review" and result.formal_verification == "not_run"
+    assert not result.applied and not result.independent_quality_evaluation
+    assert result.transformer.training_format == "foundation-config-transfer-0.1.0"
+    assert result.transformer.status == "completed" and not result.transformer.risk_fused
+    assert result.transformer.before.raw_source_sha256 == digest(before)
+    assert result.transformer.after.raw_source_sha256 == digest(draft.candidate_text)
+    assert result.transformer.before.total_lines == len(before.splitlines())
+    assert result.transformer.after.total_lines == len(draft.candidate_text.splitlines())
+    assert result.transformer.after.severity_scores is None
+    assert (
+        "candidate_text" not in result.model_dump_json()
+        and "sanitized_text" not in result.model_dump_json()
+    )
+    assert model.source.verify() == source_identity and foundation_transfer_identity(model) == pin
+    assert torch.equal(rng, torch.get_rng_state()) and torch.get_num_threads() == threads
+
+
+def test_partial_external_model_review_never_calls_inference(inputs, monkeypatch):
+    from uuid import UUID
+
+    from app.patching.proposal import create_patch_proposal
+    from app.patching.review import review_patch_proposal
+
+    from ml.inference.change_review import review_patch_ml
+
+    before = "hostname owned\nip ssh version 1\nunknown private-value\n"
+    after = before.replace("version 1", "version 2")
+    device = UUID("de383e03-1806-4e9b-92f2-5de2d33cf89d")
+    proposal = create_patch_proposal(before, after, device_id=device, reference_id="owned")
+    local = review_patch_proposal(proposal, before, after, device_id=device)
+    model = train(inputs)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("partial external inference was called")
+
+    monkeypatch.setattr("ml.training.foundation_transfer.predict_foundation_transfer", forbidden)
+    result = review_patch_ml(
+        local,
+        before,
+        after,
+        model=model,
+        expected_model_sha256=foundation_transfer_identity(model),
+        pseudonymization_key=b"owned-key-123456789",
+    )
+    assert (
+        result.transformer.status == "unavailable"
+        and result.transformer.reason == "incomplete_parsing"
+    )
+    assert result.transformer.before is None and result.transformer.after is None
+    assert result.local_review == local and "private-value" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize("bad_option", ("pin", "key", "source", "heads"))
+def test_external_review_refuses_changed_binding_or_selection(inputs, bad_option):
+    from uuid import UUID
+
+    from app.patching.proposal import create_patch_proposal
+    from app.patching.review import review_patch_proposal
+
+    from ml.inference.change_review import review_patch_ml
+
+    before = "hostname owned\nip ssh version 1\n"
+    after = before.replace("version 1", "version 2")
+    device = UUID("de383e03-1806-4e9b-92f2-5de2d33cf89d")
+    proposal = create_patch_proposal(before, after, device_id=device, reference_id="owned")
+    local = review_patch_proposal(proposal, before, after, device_id=device)
+    model = train(inputs)
+    pin = foundation_transfer_identity(model)
+    if bad_option == "pin":
+        pin = "0" * 64
+    elif bad_option == "source":
+        with torch.no_grad():
+            model.source._model.weight[0] += 1
+    elif bad_option == "heads":
+        with torch.no_grad():
+            next(model.heads.parameters()).add_(1)
+    with pytest.raises(ValueError):
+        review_patch_ml(
+            local,
+            before,
+            after,
+            model=model,
+            expected_model_sha256=pin,
+            pseudonymization_key=None if bad_option == "key" else b"owned-key-123456789",
+        )
+
+
+def test_explicit_foundation_cli_review_recheck_and_wrong_kind_are_fail_closed(
+    inputs, source, tmp_path, monkeypatch, capsys
+):
+    from uuid import UUID
+
+    from app.patching.artifacts import save_patch_review
+    from app.patching.proposal import create_patch_proposal
+    from app.patching.review import review_patch_proposal
+
+    from ml.inference.change_artifacts import load_ml_change_review
+    from ml.inference.change_cli import KEY_ENV, main
+
+    before, after = "hostname owned\nip ssh version 1\n", "hostname owned\nip ssh version 2\n"
+    device = UUID("de383e03-1806-4e9b-92f2-5de2d33cf89d")
+    proposal = create_patch_proposal(before, after, device_id=device, reference_id="owned")
+    local = review_patch_proposal(proposal, before, after, device_id=device)
+    before_file, after_file = tmp_path / "before.cfg", tmp_path / "after.cfg"
+    before_file.write_bytes(before.encode())
+    after_file.write_bytes(after.encode())
+    local_file, output = tmp_path / "local.json", tmp_path / "ml.json"
+    save_patch_review(local, local_file)
+    model = train(inputs)
+    model_path = tmp_path / "model"
+    pin = save_foundation_transfer(model, model_path)
+    monkeypatch.setenv(KEY_ENV, "31" * 32)
+    args = [
+        "--before",
+        str(before_file),
+        "--after",
+        str(after_file),
+        "--model",
+        str(model_path),
+        "--model-sha256",
+        pin,
+        "--model-kind",
+        "foundation",
+        "--foundation-source",
+        str(source[0]),
+    ]
+    assert main(["review", *args, "--patch-review", str(local_file), "--output", str(output)]) == 0
+    saved = load_ml_change_review(output)
+    assert saved.transformer.training_format == "foundation-config-transfer-0.1.0"
+    assert main(["check", *args, "--artifact", str(output)]) == 0
+    assert main(["review", *args, "--patch-review", str(local_file), "--output", str(output)]) == 2
+    wrong = args.copy()
+    wrong[wrong.index("foundation")] = "native"
+    assert main(["check", *wrong, "--artifact", str(output)]) == 2
+    printed = capsys.readouterr()
+    assert (
+        str(tmp_path) not in printed.out + printed.err
+        and "31" * 32 not in printed.out + printed.err
+    )
+    assert saved.local_review == local and saved.formal_verification == "not_run"

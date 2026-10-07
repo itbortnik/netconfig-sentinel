@@ -1,7 +1,8 @@
 # ML-перепроверка private-пары до/после
 
 `ml.inference.change_cli` связывает существующий offline `PatchReview` с
-повторным **фактическим** CPU-inference явно выбранной native multitask-модели.
+повторным **фактическим** CPU-inference явно выбранной native multitask-модели
+или отдельного [external frozen config checkpoint](foundation-config-transfer.md).
 Это отдельный диагностический отчёт: локальные политики/reference/risk не
 переписываются, formal остаётся `not_run`, статус — `needs_review`, применения нет.
 Он не активирует Transformer в HTTP/UI и не объявляет пригодность лабораторной
@@ -16,7 +17,8 @@
    `local-review.json`. При запуске ML review весь local report пересчитывается,
    включая source hashes, current parser/policy/reference и ограничения.
 3. Выберите доверенный checkpoint и **независимо сохранённый** `multitask_identity`
-   этой модели. Это hash report и heads, связанный через report с exact encoder
+   (native) или `foundation_transfer_identity` (external). Это hash report и heads,
+   связанный через report с exact encoder
    и tokenizer; не SHA одного файла, не подпись издателя и не quality verdict.
 4. До inference обе стороны обезличиваются в памяти одним private key и scope
    выбранного device UUID. Замены сохраняют количество строк; scores относятся
@@ -42,7 +44,8 @@
 ## Запуск
 
 Для выбранной модели установите training extra (`python -m pip install -e
-".[training]"`). До запуска настройте private 32-byte hex key в переменной
+".[training]"`); для external-пути нужен `.[retrieval]` и уже выбранные pinned
+publisher weights, не auto-download. До запуска настройте private 32-byte hex key в переменной
 `NETCONFIG_ML_PSEUDONYMIZATION_KEY` через свой secret-management процесс.
 Ключ не передавайте аргументом команды, не печатайте и не сохраняйте в Git.
 Стабильная перепроверка требует прежнего key; смена key требует нового отчёта.
@@ -60,6 +63,19 @@ loaders используют bounded JSON heads, проверяемые manifest
 произвольных недоверенных модельных файлов. Доверенный checkpoint и key выбирает
 оператор. Наличие hashes не удостоверяет происхождение, лицензию, labels или
 качество модели; не подменяет проверку безопасной поставки.
+
+Native — default `--model-kind native`. Для external checkpoint явно добавьте
+`--model-kind foundation --foundation-source <verified-publisher-directory>` к
+**обеим** командам; `--model` тогда указывает на сохранённую пару `heads.json` /
+`heads.sha256`, а pin — на полный `foundation_transfer_identity`. Тип модели
+не угадывается по содержимому и не меняется при ошибке. Foundation options без
+модели, отсутствующий source или external source для native selection дают отказ.
+Полный pin проверяется до выделения external модели. Повторно проверяются точные
+publisher/runtime/tokenizer/frozen tensor bindings; report содержит
+`training_format=foundation-config-transfer-0.1.0`. Native shape/старые numeric
+артефакты не меняются; unselected и native пути не импортируют Transformers.
+External pretraining exposure остаётся **unknown**, не isolated/proven quality.
+Никаких HTTP activation, повторного обучения или калибровки этот выбор не добавляет.
 
 Код 0 означает успешную запись/точную перепроверку, **не formal pass**.
 Код 2 — обобщённый отказ без private paths/config/key/exception text.
@@ -93,7 +109,10 @@ checksum изменённых scores может пройти загрузку, �
 расхождение. Смена model/runtime/input/parser/catalog/key требует нового отчёта.
 Повреждённый частичный output не объявляется успешным и не исправляется автоматически.
 
-Этот путь проверен на owned fixtures и фактических native weights. Малые модели
+Этот путь проверен на owned fixtures и фактических native/external weights:
+четыре native-рецепта, отдельные review/check processes, сохранённый exact local
+review и обе текущие системы строк, включая JunOS удаление строки Telnet.
+External модель не получает специальной безопасности от размера энкодера. Малые модели
 обучались на синтетических мутациях, не подтверждённых реальных аномалиях.
 Uncalibrated score — не измеренная вероятность безопасного изменения; сравнение
 до/после — не metric improvement, не независимый benchmark и не baseline superiority.

@@ -107,7 +107,8 @@ are not independent networks or new real labels.
 The measured parsing/inference latency includes binding checks and is CPU/local,
 not a production benchmark or target-hardware SLA. No real-confirmed cohort,
 independent test, unknown-anomaly evaluation, fitted calibration, baseline
-superiority or cross-vendor generalization is proven. Native pre/post patch
-diagnostics currently select native project bundles only; this experimental
-external checkpoint is not silently substituted there or in HTTP risk fusion.
+superiority or cross-vendor generalization is proven. An explicit
+[private pre/post patch supplement](ml-change-review.md) can select this checkpoint
+with its independent full pin and separate publisher source; native remains the
+default. It never substitutes the external source silently or enters HTTP risk fusion.
 See [readiness](readiness.md) for remaining acceptance gates.

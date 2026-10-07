@@ -240,7 +240,8 @@ for configuration inputs or prove independent anomaly quality.
 
 An explicit [private pre/post ML review](ml-change-review.md) recomputes the exact
 offline patch's local review, sanitizes both raw sides in memory and repeats CPU
-inference of one independently pinned trusted native multitask bundle. Numeric
+inference of one independently pinned trusted native multitask bundle or explicitly
+selected external config-head checkpoint with its separate pinned publisher source. Numeric
 diagnostics bind each side separately; partial parsing suppresses both outputs.
 They never rewrite the local policy/reference risk, raise patch/formal status,
 activate HTTP inference, apply commands, or establish independent model quality.

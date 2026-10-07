@@ -57,7 +57,14 @@ class TransformerSupplement(Frozen):
     model_sha256: Digest | None = None
     tokenizer_sha256: Digest | None = None
     training_report_sha256: Digest | None = None
-    training_format: Literal["multitask-training-0.1.0", "multitask-training-0.2.0"] | None = None
+    training_format: (
+        Literal[
+            "multitask-training-0.1.0",
+            "multitask-training-0.2.0",
+            "foundation-config-transfer-0.1.0",
+        ]
+        | None
+    ) = None
     runtime_torch_version: str | None = Field(default=None, min_length=1, max_length=64)
     sanitization_version: Literal["config-sanitizer-0.1.0"] | None = None
     before: SidePrediction | None = None

@@ -8,7 +8,9 @@ import os
 import pickle
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from app.explanation.vector_index import RetrievalUnavailable
 from app.ingestion.local import read_local_configuration
 from app.patching.artifacts import load_patch_review
 
@@ -21,6 +23,33 @@ from ml.inference.change_review import review_patch_ml
 
 KEY_ENV = "NETCONFIG_ML_PSEUDONYMIZATION_KEY"
 
+if TYPE_CHECKING:
+    from ml.training.foundation_transfer import FoundationTransferResult
+    from ml.training.multitask_training import MultiTaskResult
+
+
+def _native_inventory(path: Path) -> None:
+    # Inspect the fixed two-level bundle, never recursively enumerate user directories.
+    safe_path(path)
+    if not path.is_dir() or {item.name for item in path.iterdir()} != {
+        "encoder",
+        "heads.json",
+        "heads.sha256",
+    }:
+        raise ValueError("trusted native model inventory differs")
+    for item in path.iterdir():
+        safe_path(item)
+    encoder = path / "encoder"
+    if not encoder.is_dir() or {item.name for item in encoder.iterdir()} != {
+        "manifest.json",
+        "report.json",
+        "tokenizer.json",
+        "weights.pt",
+    }:
+        raise ValueError("trusted native encoder inventory differs")
+    for item in encoder.iterdir():
+        safe_path(item)
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -31,6 +60,8 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--after", type=Path, required=True)
         command.add_argument("--model", type=Path)
         command.add_argument("--model-sha256")
+        command.add_argument("--model-kind", choices=("native", "foundation"), default="native")
+        command.add_argument("--foundation-source", type=Path)
         if action == "review":
             command.add_argument("--patch-review", type=Path, required=True)
             command.add_argument("--output", type=Path, required=True)
@@ -48,49 +79,45 @@ def main(argv: list[str] | None = None) -> int:
         else:
             saved = load_ml_change_review(args.artifact)
             local = saved.local_review
-        model = None
+        model: MultiTaskResult | FoundationTransferResult | None = None
         key = None
         if (args.model is None) != (args.model_sha256 is None):
             raise ValueError("model path and independent identity pin must be selected together")
+        if args.model is None and (
+            args.model_kind != "native" or args.foundation_source is not None
+        ):
+            raise ValueError("foundation options require explicit model selection")
+        if args.model_kind == "native" and args.foundation_source is not None:
+            raise ValueError("native selection cannot use an external source")
+        if args.model_kind == "foundation" and args.foundation_source is None:
+            raise ValueError("foundation selection requires explicit external source")
         if args.model is not None:
             if len(args.model_sha256) != 64 or any(
                 value not in "0123456789abcdef" for value in args.model_sha256
             ):
                 raise ValueError("invalid independent model identity pin")
             safe_path(args.model)
-            # Inspect only the fixed two-level bundle. Never recursively enumerate
-            # arbitrary user directories; reject links before descending to encoder.
-            if not args.model.is_dir():
-                raise ValueError("trusted model directory is missing")
-            if {item.name for item in args.model.iterdir()} != {
-                "encoder",
-                "heads.json",
-                "heads.sha256",
-            }:
-                raise ValueError("trusted model inventory differs")
-            for item in args.model.iterdir():
-                safe_path(item)
-            encoder = args.model / "encoder"
-            if not encoder.is_dir() or {item.name for item in encoder.iterdir()} != {
-                "manifest.json",
-                "report.json",
-                "tokenizer.json",
-                "weights.pt",
-            }:
-                raise ValueError("trusted encoder inventory differs")
-            for item in encoder.iterdir():
-                safe_path(item)
             raw_key = os.environ.get(KEY_ENV, "")
             if len(raw_key) != 64:
                 raise ValueError("configure a private 32-byte hex pseudonymization key")
             key = bytes.fromhex(raw_key)
             if len(key) != 32:
                 raise ValueError("invalid private pseudonymization key")
-            # Existing native loader: bounded JSON heads + CPU weights_only=True
-            # tensor checkpoint. This is not an arbitrary/untrusted model uploader.
-            from ml.training.multitask_training import load_multitask
+            if args.model_kind == "native":
+                _native_inventory(args.model)
+                # Native CPU weights_only=True tensor checkpoint, not an untrusted uploader.
+                from ml.training.multitask_training import load_multitask
 
-            model = load_multitask(args.model)
+                model = load_multitask(args.model)
+            else:
+                safe_path(args.foundation_source)
+                from ml.training.foundation_transfer import load_foundation_transfer
+
+                model = load_foundation_transfer(
+                    args.model,
+                    source_root=args.foundation_source,
+                    expected_identity=args.model_sha256,
+                )
         result = review_patch_ml(
             local,
             previous,
@@ -104,7 +131,15 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("saved numeric diagnostics no longer match exact recomputation")
         else:
             save_ml_change_review(result, args.output)
-    except (OSError, ValueError, RuntimeError, pickle.UnpicklingError, EOFError, RecursionError):
+    except (
+        OSError,
+        ValueError,
+        RuntimeError,
+        pickle.UnpicklingError,
+        EOFError,
+        RecursionError,
+        RetrievalUnavailable,
+    ):
         print(
             "ML change review refused: check exact private inputs, trusted pinned model, "
             "private key and unused output path.",

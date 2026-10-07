@@ -76,11 +76,11 @@ production-команд не входит в этот workflow и не доба�
 точной модели/корпуса/thresholds и источников. Артефакты/checksums — evidence
 целостности, не издательская подпись, label truth или успешная внешняя проверка.
 
-Для published demo этапа
-[CI всех трёх jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37639134290)
-успешен. Local baseline этого этапа: 1282 backend tests passed, live Batfish и
+Для published external-transfer этапа
+[CI всех трёх jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37641564421)
+успешен. Local baseline этого этапа: 1319 backend tests passed, live Batfish и
 explicit local PostgreSQL test skipped; PostgreSQL/Compose проверены отдельно
-этим CI. Local full suite с новым demo: 1282 passed, те же два explicit skips;
-ruff и mypy на обеих платформах чистые, десять installed-wheel сценариев пройдены.
+этим CI. Local full suite с external pre/post review: 1333 passed, те же два explicit skips;
+ruff и mypy на обеих платформах чистые, двенадцать installed-wheel сценариев пройдены.
 Demo имеет свои integration tests и [измеренный отчёт](evaluation/owned-workflow.json).
 Эти факты не закрывают перечисленные недостающие evidence.

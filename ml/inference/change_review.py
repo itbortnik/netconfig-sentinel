@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
+from functools import partial
 from typing import TYPE_CHECKING
 
 from app.ingestion.local import validate_configuration_text
@@ -15,6 +17,7 @@ from ml.preprocessing import sanitize_configuration
 from ml.preprocessing.blocks import digest
 
 if TYPE_CHECKING:
+    from ml.training.foundation_transfer import FoundationTransferResult
     from ml.training.multitask_training import MultiTaskPrediction, MultiTaskResult
 
 
@@ -71,7 +74,7 @@ def review_patch_ml(
     before: str,
     after: str,
     *,
-    model: MultiTaskResult | None = None,
+    model: MultiTaskResult | FoundationTransferResult | None = None,
     expected_model_sha256: str | None = None,
     pseudonymization_key: bytes | None = None,
 ) -> MLChangeReview:
@@ -96,28 +99,66 @@ def review_patch_ml(
 
     from ml.training.classification import _encoder_hash
     from ml.training.multitask_training import (
+        MultiTaskResult,
+        _MultiTaskReportFields,
         _verified_report,
         multitask_identity,
         predict_multitask,
     )
 
-    report = _verified_report(model)
-    identity = multitask_identity(model)
-    if (
-        identity != expected_model_sha256
-        or _encoder_hash(model.pretrained.model) != report.encoder_sha256
-        or model.pretrained.tokenizer.tokenizer_sha256 != report.tokenizer_sha256
-        or any(module.training for module in model.heads.modules())
-        or any(module.training for module in model.pretrained.model.modules())
-        or any(
-            value.device.type != "cpu"
-            or value.dtype != torch.float32
-            or not bool(torch.isfinite(value).all())
-            for module in (model.heads, model.pretrained.model)
-            for value in module.parameters()
+    report: _MultiTaskReportFields
+    predict: Callable[[ImportedDatasetRecord], MultiTaskPrediction]
+    recheck: Callable[[], tuple[str, str]]
+    if isinstance(model, MultiTaskResult):
+        native = model
+        report = _verified_report(native)
+        identity = multitask_identity(native)
+        if (
+            identity != expected_model_sha256
+            or _encoder_hash(native.pretrained.model) != report.encoder_sha256
+            or native.pretrained.tokenizer.tokenizer_sha256 != report.tokenizer_sha256
+            or any(module.training for module in native.heads.modules())
+            or any(module.training for module in native.pretrained.model.modules())
+            or any(
+                value.device.type != "cpu"
+                or value.dtype != torch.float32
+                or not bool(torch.isfinite(value).all())
+                for module in (native.heads, native.pretrained.model)
+                for value in module.parameters()
+            )
+        ):
+            raise ValueError("selected model pin/bindings/evaluation mode differ")
+        predict = partial(predict_multitask, native)
+
+        def recheck_native() -> tuple[str, str]:
+            return _encoder_hash(native.pretrained.model), multitask_identity(native)
+
+        recheck = recheck_native
+    else:
+        # Foundation dependencies are never imported by unselected or native inference.
+        from ml.training.foundation_transfer import (
+            FoundationTransferResult,
+            foundation_transfer_identity,
+            predict_foundation_transfer,
+            verify_transfer,
         )
-    ):
-        raise ValueError("selected model pin/bindings/evaluation mode differ")
+
+        if not isinstance(model, FoundationTransferResult):
+            raise ValueError("unsupported selected inference model")
+        foundation = model
+        report = verify_transfer(foundation)
+        identity = foundation_transfer_identity(foundation)
+        if identity != expected_model_sha256:
+            raise ValueError("selected foundation model independent pin differs")
+        predict = partial(predict_foundation_transfer, foundation)
+
+        def recheck_foundation() -> tuple[str, str]:
+            return (
+                verify_transfer(foundation).encoder_sha256,
+                foundation_transfer_identity(foundation),
+            )
+
+        recheck = recheck_foundation
     bindings = dict(
         model_sha256=identity,
         tokenizer_sha256=report.tokenizer_sha256,
@@ -142,13 +183,11 @@ def review_patch_ml(
     try:
         torch.set_num_threads(1)
         with torch.random.fork_rng(devices=[]):
-            old = _side(previous, predict_multitask(model, previous))
-            new = _side(candidate, predict_multitask(model, candidate))
+            old = _side(previous, predict(previous))
+            new = _side(candidate, predict(candidate))
     finally:
         torch.set_num_threads(threads)
-    if identity != multitask_identity(model) or (
-        _encoder_hash(model.pretrained.model) != report.encoder_sha256
-    ):
+    if recheck() != (report.encoder_sha256, identity):
         raise ValueError("model changed during before/after inference")
     return MLChangeReview(
         local_review=fresh,
