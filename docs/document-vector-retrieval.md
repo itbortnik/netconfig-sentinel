@@ -3,8 +3,9 @@
 Реализован отдельный ограниченный cosine index для approved внутренних разделов
 knowledge 0.1.0 и 0.2.0. Его библиотека не импортирует PyTorch/Transformers и
 не меняет findings, risk, confidence, feedback, patches или сохранённые анализы.
-HTTP `explain` пока использует только `explicit_reference`; этот этап не включает
-семантический поиск в API или передачу дополнительных разделов языковой модели.
+HTTP `explain` по умолчанию использует `explicit_reference`; отдельный
+[opt-in semantic context](semantic-explanation-context.md) подключает индекс
+к API/UI и разрешённому LLM draft, не меняя mandatory references или оценки.
 
 ## Реальный локальный encoder
 
@@ -112,6 +113,6 @@ results = search_documents(index, catalog, encoder, 'Почему следует
 
 Expected citations и queries написаны вместе с реализацией. Шесть запросов не
 являются independent held-out dataset, реальной оценкой RAG/LLM, cross-domain
-качеством или production acceptance. Ещё нужны API/workflow integration,
-независимые query labels и проверенные разрешённые vendor sources. Реальный
+качеством или production acceptance. [API/workflow integration](semantic-explanation-context.md)
+реализована отдельно; ещё нужны независимые query labels и проверенные разрешённые vendor sources. Реальный
 локальный instruct-LLM и его explanations этой моделью не заменяются.

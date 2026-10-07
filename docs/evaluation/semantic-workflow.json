@@ -1,0 +1,69 @@
+{
+  "report_version": "semantic-workflow-diagnostic-0.1.0",
+  "actual_document_weights": true,
+  "actual_instruct_language_model": false,
+  "customer_configurations_used": false,
+  "independent_quality_evaluation": false,
+  "production_qualified": false,
+  "encoder": {
+    "model_id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+    "files_sha256": "f06f383e830b5f0b8de78453cb641878e027abc6ef28e72ad6fe494b1098bce2",
+    "pipeline_version": "minilm-all-content-window128-mean-l2-0.1.0",
+    "dimensions": 384,
+    "runtime_versions": [
+      "torch=2.14.0+cpu",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ]
+  },
+  "observations": [
+    {
+      "scope": "actual-isolated-worker-deadline",
+      "timeout_seconds": 1,
+      "failure_reported": true,
+      "seconds": 1.0535077000968158
+    },
+    {
+      "scope": "isolated-document-worker",
+      "knowledge_version": "project-knowledge-0.1.0",
+      "index_sha256": "67a82e9cf12286bf2b8af30fe394b8346a0e904d7e8940ae311e5e3437cd8307",
+      "top_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+      "seconds": 7.80373560031876
+    },
+    {
+      "scope": "isolated-document-worker",
+      "knowledge_version": "project-knowledge-0.2.0",
+      "index_sha256": "b2cfdb2eedab0bfe7b857aac10803764e5a790ea65ffd7877a5d1d763a4a48b1",
+      "top_citation": "docs/policies/management-plane.md#telnet-must-be-disabled",
+      "seconds": 7.775737199932337
+    },
+    {
+      "scope": "authenticated-finding-semantic-context",
+      "knowledge_version": "project-knowledge-0.2.0",
+      "version": "finding-context-0.2.0",
+      "index_sha256": "b2cfdb2eedab0bfe7b857aac10803764e5a790ea65ffd7877a5d1d763a4a48b1",
+      "documents": [
+        "docs/policies/management-plane.md#ssh-must-be-enabled",
+        "docs/policies/management-plane.md#ssh-version-1-must-be-disabled",
+        "docs/policies/access-control.md#management-sources-must-be-restricted",
+        "docs/policies/management-plane.md#telnet-must-be-disabled"
+      ],
+      "seconds": 7.793691299855709,
+      "saved_analysis_unchanged": true,
+      "required_sources_retained": true
+    },
+    {
+      "scope": "real-document-retrieval-to-synthetic-instruct-wire",
+      "version": "model-explanation-0.2.0",
+      "actual_document_weights": true,
+      "actual_instruct_model": false,
+      "documents_sent": 4,
+      "supplement_citation_accepted": true,
+      "saved_analysis_unchanged": true,
+      "seconds": 7.934020400047302
+    }
+  ]
+}

@@ -403,9 +403,74 @@ const knowledgeReleaseByDetectorVersion: Record<string, string> = {
   "peer-baseline-0.1.0": "project-knowledge-0.1.0",
   "isolation-forest-0.1.0": "project-knowledge-0.1.0",
 };
+const embeddingIdentitySchema = z
+  .strictObject({
+    model_id: z.string().min(1).max(200),
+    revision: z.string().regex(/^[0-9a-f]{40}$/),
+    files_sha256: hash,
+    pipeline_version: z.string().min(1).max(100),
+    dimensions: z.number().int().min(1).max(1024),
+    runtime_versions: z.array(z.string().min(1).max(100)).min(1).max(8),
+  })
+  .refine((item) =>
+    [item.model_id, item.pipeline_version, ...item.runtime_versions].every(
+      (value) => !/[\p{C}\p{Zl}\p{Zp}]/u.test(value),
+    ),
+  );
+const semanticRetrievalSchema = z.strictObject({
+  index_sha256: hash,
+  encoder: embeddingIdentitySchema,
+  query_source: z.literal("public_detector_metadata"),
+  query_sha256: hash,
+  required_citations: z.array(z.string().min(1).max(330)).min(1).max(4),
+  matches: z
+    .array(
+      z.strictObject({
+        citation: z.string().min(1).max(330),
+        content_sha256: hash,
+        cosine_similarity: z.number().min(-1).max(1),
+      }),
+    )
+    .max(4),
+});
+function semanticBindings(bundle: {
+  version: string;
+  retrieval: "explicit_reference" | "semantic_supplement";
+  semantic_retrieval?: z.infer<typeof semanticRetrievalSchema> | null;
+  documents: { citation: string; content_sha256: string }[];
+  explanation: { citations: string[] };
+}) {
+  const metadata = bundle.semantic_retrieval;
+  if (bundle.retrieval === "explicit_reference")
+    return metadata == null && bundle.version.endsWith("0.1.0");
+  if (metadata == null || !bundle.version.endsWith("0.2.0")) return false;
+  const citations = [
+    ...metadata.required_citations,
+    ...metadata.matches.map((item) => item.citation),
+  ];
+  return (
+    new Set(citations).size === citations.length &&
+    JSON.stringify(citations) ===
+      JSON.stringify(bundle.documents.map((item) => item.citation)) &&
+    metadata.matches.every((match) =>
+      bundle.documents.some(
+        (chunk) =>
+          chunk.citation === match.citation &&
+          chunk.content_sha256 === match.content_sha256,
+      ),
+    ) &&
+    bundle.explanation.citations.every((citation) =>
+      metadata.required_citations.some((required) =>
+        citation.includes("#")
+          ? required === citation
+          : required.startsWith(`${citation}#`),
+      ),
+    )
+  );
+}
 export const explanationBundleSchema = z
   .strictObject({
-    version: z.literal("finding-context-0.1.0"),
+    version: z.enum(["finding-context-0.1.0", "finding-context-0.2.0"]),
     analysis_id: id,
     configuration_id: id,
     device_id: id,
@@ -417,7 +482,8 @@ export const explanationBundleSchema = z
       "project-knowledge-0.2.0",
     ]),
     knowledge_sha256: hash,
-    retrieval: z.literal("explicit_reference"),
+    retrieval: z.enum(["explicit_reference", "semantic_supplement"]),
+    semantic_retrieval: semanticRetrievalSchema.nullable().optional(),
     provider: z.literal("deterministic_local"),
     llm_status: z.literal("unavailable"),
     explanation: z.strictObject(explanation.shape),
@@ -427,6 +493,7 @@ export const explanationBundleSchema = z
   .refine((bundle) => {
     const item = bundle.explanation;
     return (
+      semanticBindings(bundle) &&
       item.finding_id === bundle.finding_id &&
       item.device_id === bundle.device_id &&
       item.source_sha256 === bundle.source_sha256 &&
@@ -468,7 +535,7 @@ export const modelDraftSchema = z
 export const modelExplanationSchema = z
   .strictObject({
     ...explanationBundleSchema.shape,
-    version: z.literal("model-explanation-0.1.0"),
+    version: z.enum(["model-explanation-0.1.0", "model-explanation-0.2.0"]),
     provider: z.literal("loopback_language_model"),
     llm_status: z.literal("draft"),
     privacy_version: z.literal("finding-context-redaction-0.1.0"),
@@ -479,6 +546,7 @@ export const modelExplanationSchema = z
   .refine((bundle) => {
     const item = bundle.explanation;
     return (
+      semanticBindings(bundle) &&
       item.finding_id === bundle.finding_id &&
       item.device_id === bundle.device_id &&
       item.source_sha256 === bundle.source_sha256 &&
@@ -494,11 +562,16 @@ export const modelExplanationSchema = z
   });
 export type ModelExplanation = z.infer<typeof modelExplanationSchema>;
 export const explanationCapabilitiesSchema = z.strictObject({
-  version: z.literal("explanation-capabilities-0.1.0"),
+  version: z.enum([
+    "explanation-capabilities-0.1.0",
+    "explanation-capabilities-0.2.0",
+  ]),
   local_model: z.enum(["disabled", "configured"]),
   model_health_checked: z.literal(false),
   transport: z.literal("literal_loopback_only"),
   explicit_request_permission_required: z.literal(true),
+  semantic_retrieval: z.enum(["disabled", "configured"]).default("disabled"),
+  retrieval_health_checked: z.literal(false).default(false),
 });
 export type ExplanationCapabilities = z.infer<
   typeof explanationCapabilitiesSchema
@@ -508,6 +581,7 @@ export type ExplainFinding = {
   finding_sha256: string;
   provider?: "local" | "llm";
   allow_local_model_context?: boolean;
+  retrieval?: "explicit_reference" | "semantic_supplement";
 };
 const snapshotBindingSchema = z.object({
   configuration_id: id,

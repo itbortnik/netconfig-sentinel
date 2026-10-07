@@ -28,6 +28,7 @@ export function ExplanationPanel({
   const [capabilities, setCapabilities] =
     useState<ExplanationCapabilities | null>(null);
   const [permission, setPermission] = useState(false);
+  const [semantic, setSemantic] = useState(false);
   const [loading, setLoading] = useState(false);
   const mounted = useRef(true);
   const sequence = useRef(0);
@@ -55,6 +56,15 @@ export function ExplanationPanel({
   }, [client, onError]);
   async function load(model = false) {
     if (busy || loading) return;
+    if (semantic && capabilities?.semantic_retrieval !== "configured") {
+      onError(
+        new ApiError(
+          503,
+          "Семантический поиск недоступен. Выберите явные ссылки отдельно.",
+        ),
+      );
+      return;
+    }
     if (
       model &&
       (!client.permits("model_explanation") ||
@@ -74,6 +84,9 @@ export function ExplanationPanel({
       const options = {
         analysis_id: analysis.analysis_id,
         finding_sha256: saved.finding_sha256,
+        retrieval: semantic
+          ? ("semantic_supplement" as const)
+          : ("explicit_reference" as const),
       };
       const result = model
         ? await client.explainModel(finding.finding_id, {
@@ -86,7 +99,10 @@ export function ExplanationPanel({
             provider: "local",
           });
       if (!current()) return;
-      if (!(await explanationMatches(result, analysis, finding)))
+      if (
+        result.retrieval !== options.retrieval ||
+        !(await explanationMatches(result, analysis, finding))
+      )
         throw new ApiError(
           0,
           "Источники или объяснение не соответствуют выбранной находке.",
@@ -108,6 +124,23 @@ export function ExplanationPanel({
         Доступны локальные документы проекта. Это не документация вендора и не
         утверждённый эталон.
       </p>
+      {capabilities?.semantic_retrieval === "configured" && (
+        <label>
+          <input
+            type="checkbox"
+            checked={semantic}
+            disabled={busy || loading}
+            onChange={(event) => setSemantic(event.target.checked)}
+          />{" "}
+          Дополнить источники локальным семантическим поиском
+          <span className="hint">
+            {" "}
+            — обязательные ссылки сохраняются; модель поиска получает только
+            публичное описание правила, без конфигурации. Это не проверка
+            истинности.
+          </span>
+        </label>
+      )}
       <button
         className="button secondary"
         disabled={busy || loading}
@@ -148,9 +181,11 @@ export function ExplanationPanel({
       {bundle && (
         <>
           <p className="hint">
-            Подбор по явным ссылкам детектора · {bundle.knowledge_version}.
-            Источники закреплены за версией детектора. Оценки и сохранённое
-            объяснение не изменены.
+            {bundle.retrieval === "semantic_supplement"
+              ? "Явные ссылки детектора + локальный семантический контекст"
+              : "Подбор по явным ссылкам детектора"}{" "}
+            · {bundle.knowledge_version}. Источники закреплены за версией
+            детектора. Оценки и сохранённое объяснение не изменены.
           </p>
           {"answer" in bundle && (
             <div aria-label="Черновик объяснения модели">
@@ -204,6 +239,19 @@ export function ExplanationPanel({
               <summary>{chunk.section_title}</summary>
               <p>{chunk.document_title}</p>
               <p className="mono small">{chunk.citation}</p>
+              {bundle.semantic_retrieval && (
+                <p className="hint">
+                  {bundle.semantic_retrieval.required_citations.includes(
+                    chunk.citation,
+                  )
+                    ? "Обязательный источник детектора."
+                    : `Дополнительный контекст · cosine ${bundle.semantic_retrieval.matches
+                        .find((item) => item.citation === chunk.citation)
+                        ?.cosine_similarity.toFixed(
+                          3,
+                        )} · не confidence детектора.`}
+                </p>
+              )}
               <pre className="knowledge-content">{chunk.content}</pre>
               <p className="hash">SHA-256 документа: {chunk.document_sha256}</p>
               <p className="hash">SHA-256 раздела: {chunk.content_sha256}</p>
@@ -213,6 +261,20 @@ export function ExplanationPanel({
             <summary>Привязка источников и ограничения</summary>
             <p className="hash">Каталог: {bundle.knowledge_sha256}</p>
             <p className="hash">Находка: {bundle.finding_sha256}</p>
+            {bundle.semantic_retrieval && (
+              <>
+                <p>
+                  Document encoder: {bundle.semantic_retrieval.encoder.model_id}
+                </p>
+                <p className="hash">
+                  Индекс: {bundle.semantic_retrieval.index_sha256}
+                </p>
+                <p className="hash">
+                  Публичный query: {bundle.semantic_retrieval.query_sha256}
+                </p>
+                <p>{bundle.semantic_retrieval.encoder.pipeline_version}</p>
+              </>
+            )}
             <ul>
               {bundle.limitations.map((item, index) => (
                 <li key={index}>{item}</li>

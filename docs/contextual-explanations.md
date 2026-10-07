@@ -36,7 +36,8 @@ Content-Type: application/json
 версии из `backend/app/knowledge/versions/`. ТЗ, пользовательские файлы,
 конфигурации и произвольные URL не импортируются. Нет runtime-загрузки документов
 через API или crawling. Отдельный [офлайн векторный индекс](document-vector-retrieval.md)
-с настоящими локальными embeddings реализован, но не включён в HTTP ranking/context.
+с настоящими локальными embeddings реализован; [explicit opt-in semantic context](semantic-explanation-context.md)
+подключает его к HTTP/UI, сохраняя mandatory references. Default остаётся explicit.
 Подбор следует явной ссылке policy rule; для reference/peer/forest выбраны
 конкретные разделы интерпретации и ограничений с проверкой версии детектора.
 

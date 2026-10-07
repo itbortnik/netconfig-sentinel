@@ -18,10 +18,12 @@ from app.api.health import router as health_router
 from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
+from app.core.document_retrieval import DocumentRetrievalSettings
 from app.core.local_model import LocalModelSettings
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
 from app.explanation.local_model import LocalModelRuntime
+from app.explanation.retrieval_runtime import DocumentRetrievalRuntime
 from app.web import UI_CONTENT_SECURITY_POLICY, mount_frontend
 
 
@@ -30,8 +32,9 @@ def create_app(
     *,
     frontend_dir: Path | None = None,
     local_model: LocalModelSettings | None = None,
+    document_retrieval: DocumentRetrievalSettings | None = None,
 ) -> FastAPI:
-    if local_model is not None and settings is None:
+    if (local_model is not None or document_retrieval is not None) and settings is None:
         raise ValueError("local model requires an authenticated persistent API")
     store = Store(settings) if settings is not None else None
 
@@ -52,6 +55,9 @@ def create_app(
     application.state.api_settings = settings
     application.state.analysis_service = AnalysisService(store) if store is not None else None
     application.state.local_model = LocalModelRuntime(local_model) if local_model else None
+    application.state.document_retrieval = (
+        DocumentRetrievalRuntime(document_retrieval) if document_retrieval else None
+    )
 
     @application.exception_handler(RequestValidationError)
     async def invalid_request(_: Request, __: RequestValidationError) -> JSONResponse:
@@ -87,4 +93,8 @@ def create_app(
     return application
 
 
-app = create_app(ApiSettings.from_environment(), local_model=LocalModelSettings.from_environment())
+app = create_app(
+    ApiSettings.from_environment(),
+    local_model=LocalModelSettings.from_environment(),
+    document_retrieval=DocumentRetrievalSettings.from_environment(),
+)

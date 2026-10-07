@@ -124,8 +124,8 @@ String pseudonyms and omission of evidence prose do not establish anonymity:
 numeric facts, hashes and line anchors can still be confidential. Remote addresses,
 redirects and environment proxies are prohibited, but the local server's own logging,
 storage and outgoing network access require operator control. Worker termination
-does not prove remote computation was cancelled. No actual model or quality test
-of an instruct-language model has been completed. See [contextual explanations](contextual-explanations.md) and
+does not prove remote computation was cancelled. No actual instruct-language
+weights or explanation quality have been validated. See [contextual explanations](contextual-explanations.md) and
 [local-model limits](local-model-explanations.md).
 
 ## Offline prediction and calibration artifacts
@@ -145,8 +145,13 @@ pipeline/runtime and complete sealed-source bindings reject incompatible inputs;
 finite unit-vector validation does not prove that a privileged artifact author
 computed vectors honestly. An optional externally recorded index hash can pin
 the artifact beyond its own manifest. Query rankings cannot approve patches,
-change detector scores, or make retrieved prose authoritative. Current HTTP
-explanations retain explicit references. Six authored diagnostic queries do not
+change detector scores, or make retrieved prose authoritative. Opt-in HTTP
+retrieval uses an isolated deadline-bound worker with stripped environment and
+public detector metadata only, never customer values/source text. Parent validates
+the returned release/model/index/query/source bindings, mandatory references stay
+in context and a failed semantic request never silently becomes explicit-only.
+The worker runs trusted local code; it is not an OS sandbox or network firewall.
+Six authored diagnostic queries do not
 establish independent retrieval quality or prompt-injection robustness.
 
 Local prediction files must not contain configuration text or secrets. Opaque

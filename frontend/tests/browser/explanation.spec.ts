@@ -6,6 +6,10 @@ const TOKEN = "browser-tests-service-token-32-characters-001";
 const headers = { Authorization: `Bearer ${TOKEN}` };
 const panel = (page: Page) =>
   page.getByRole("region", { name: "Объяснение с источниками" });
+const semanticCheckbox = (page: Page) =>
+  page.getByRole("checkbox", {
+    name: /Дополнить источники локальным семантическим поиском/,
+  });
 async function analyze(page: Page, partial = false): Promise<AnalysisResult> {
   await page.goto("/ui/");
   await page.getByLabel("API-токен", { exact: true }).fill(TOKEN);
@@ -379,4 +383,159 @@ test("default disabled adapter does not expose model request controls", async ({
   );
   await expect(modelButton(page)).toHaveCount(0);
   await expect(permission(page)).toHaveCount(0);
+  await expect(semanticCheckbox(page)).toHaveCount(0);
+});
+
+async function configuredSemantic(page: Page) {
+  await page.route("**/api/v1/explanation-capabilities", async (route) => {
+    await route.fulfill({
+      json: {
+        version: "explanation-capabilities-0.2.0",
+        local_model: "disabled",
+        model_health_checked: false,
+        transport: "literal_loopback_only",
+        explicit_request_permission_required: true,
+        semantic_retrieval: "configured",
+        retrieval_health_checked: false,
+      },
+    });
+  });
+}
+async function syntheticSemanticBody(page: Page, route: Route) {
+  const options = route.request().postDataJSON();
+  expect(options.retrieval).toBe("semantic_supplement");
+  expect(options).not.toHaveProperty("query");
+  const response = await route.fetch({
+    postData: JSON.stringify({ ...options, retrieval: "explicit_reference" }),
+  });
+  const context = await response.json();
+  const content =
+    "Synthetic supplemental context, not measured real model output.";
+  const digest = await page.evaluate(
+    async (value) =>
+      Array.from(
+        new Uint8Array(
+          await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(value),
+          ),
+        ),
+        (byte) => byte.toString(16).padStart(2, "0"),
+      ).join(""),
+    content,
+  );
+  const extra = {
+    ...context.documents[0],
+    section: "telnet-must-be-disabled",
+    section_title: "Telnet must be disabled",
+    citation: "docs/policies/management-plane.md#telnet-must-be-disabled",
+    content,
+    content_sha256: digest,
+  };
+  return {
+    ...context,
+    version: "finding-context-0.2.0",
+    retrieval: "semantic_supplement",
+    documents: [...context.documents, extra],
+    semantic_retrieval: {
+      index_sha256: "a".repeat(64),
+      encoder: {
+        model_id: "synthetic-browser-document-encoder",
+        revision: "b".repeat(40),
+        files_sha256: "c".repeat(64),
+        pipeline_version: "test-only",
+        dimensions: 384,
+        runtime_versions: ["fixture=1"],
+      },
+      query_source: "public_detector_metadata",
+      query_sha256: "d".repeat(64),
+      required_citations: context.documents.map(
+        (item: { citation: string }) => item.citation,
+      ),
+      matches: [
+        {
+          citation: extra.citation,
+          content_sha256: digest,
+          cosine_similarity: 0.7,
+        },
+      ],
+    },
+  };
+}
+test("synthetic semantic UI is opt-in, marks supplemental similarity and resets on finding change", async ({
+  page,
+}) => {
+  await configuredSemantic(page);
+  let calls = 0;
+  await page.route("**/api/v1/findings/*/explain", async (route) => {
+    calls++;
+    await route.fulfill({ json: await syntheticSemanticBody(page, route) });
+  });
+  const result = await analyze(page);
+  await expect(semanticCheckbox(page)).not.toBeChecked();
+  expect(calls).toBe(0);
+  await semanticCheckbox(page).check();
+  await sources(page);
+  await expect(panel(page).locator(".knowledge-source")).toHaveCount(2);
+  await expect(panel(page)).toContainText("локальный семантический контекст");
+  await panel(page).locator(".knowledge-source summary").nth(1).click();
+  await expect(panel(page)).toContainText("cosine 0.700");
+  await expect(panel(page)).toContainText("не confidence детектора");
+  expect(
+    await (
+      await page.request.get(`/api/v1/analyses/${result.analysis_id}`, {
+        headers,
+      })
+    ).json(),
+  ).toEqual(result);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.locator(".finding-button").nth(1).click();
+  await expect(semanticCheckbox(page)).not.toBeChecked();
+  await expect(panel(page).locator(".knowledge-source")).toHaveCount(0);
+});
+test("invalid semantic source binding and failed request never silently show explicit-only sources", async ({
+  page,
+}) => {
+  await configuredSemantic(page);
+  let attempt = 0;
+  await page.route("**/api/v1/findings/*/explain", async (route) => {
+    if (++attempt === 1) {
+      const body = await syntheticSemanticBody(page, route);
+      body.semantic_retrieval.matches[0].content_sha256 = "0".repeat(64);
+      await route.fulfill({ json: body });
+    } else if (attempt === 2)
+      await route.fulfill({
+        status: 503,
+        json: { detail: "Document retrieval is unavailable." },
+      });
+    else {
+      const options = route.request().postDataJSON();
+      const response = await route.fetch({
+        postData: JSON.stringify({
+          ...options,
+          retrieval: "explicit_reference",
+        }),
+      });
+      await route.fulfill({ response, json: await response.json() });
+    }
+  });
+  await analyze(page);
+  await semanticCheckbox(page).check();
+  for (let index = 0; index < 3; index++) {
+    await sources(page);
+    await expect.poll(() => attempt).toBe(index + 1);
+    await expect(
+      page.getByRole("button", {
+        name: "Показать источники объяснения",
+        exact: true,
+      }),
+    ).toBeEnabled();
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(panel(page).locator(".knowledge-source")).toHaveCount(0);
+    await expect(semanticCheckbox(page)).toBeChecked();
+  }
 });

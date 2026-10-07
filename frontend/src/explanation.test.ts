@@ -99,6 +99,148 @@ const modelBundle = {
   answer,
 };
 
+const supplement = {
+  ...bundle.documents[0]!,
+  section: "telnet-must-be-disabled",
+  section_title: "Telnet must be disabled",
+  citation: "docs/policies/management-plane.md#telnet-must-be-disabled",
+};
+const semanticBundle = {
+  ...bundle,
+  version: "finding-context-0.2.0",
+  retrieval: "semantic_supplement",
+  documents: [...bundle.documents, supplement],
+  semantic_retrieval: {
+    index_sha256: "a".repeat(64),
+    encoder: {
+      model_id: "test-only-document-encoder",
+      revision: "b".repeat(40),
+      files_sha256: "c".repeat(64),
+      pipeline_version: "test-only",
+      dimensions: 384,
+      runtime_versions: ["fixture=1"],
+    },
+    query_source: "public_detector_metadata",
+    query_sha256: "d".repeat(64),
+    required_citations: [bundle.documents[0]!.citation],
+    matches: [
+      {
+        citation: supplement.citation,
+        content_sha256: supplement.content_sha256,
+        cosine_similarity: 0.7,
+      },
+    ],
+  },
+};
+it("accepts only bound v2 supplemental context and still matches the unchanged finding", async () => {
+  const parsed = explanationBundleSchema.parse(semanticBundle);
+  expect(await explanationMatches(parsed, analysis, finding)).toBe(true);
+  expect(
+    modelExplanationSchema.safeParse({
+      ...modelBundle,
+      ...semanticBundle,
+      version: "model-explanation-0.2.0",
+      provider: "loopback_language_model",
+      llm_status: "draft",
+    }).success,
+  ).toBe(true);
+});
+it.each([
+  { version: "finding-context-0.1.0" },
+  { retrieval: "explicit_reference" },
+  { semantic_retrieval: null },
+  { documents: [supplement] },
+  { documents: [supplement, ...bundle.documents] },
+])("rejects semantic mode/version/source substitution %j", (changes) => {
+  expect(
+    explanationBundleSchema.safeParse({ ...semanticBundle, ...changes })
+      .success,
+  ).toBe(false);
+});
+it.each([
+  { query_source: "raw_configuration" },
+  { required_citations: [] },
+  { required_citations: [supplement.citation] },
+  {
+    required_citations: [
+      bundle.documents[0]!.citation,
+      bundle.documents[0]!.citation,
+    ],
+  },
+  {
+    matches: [
+      {
+        ...semanticBundle.semantic_retrieval.matches[0],
+        content_sha256: "0".repeat(64),
+      },
+    ],
+  },
+  {
+    matches: [
+      {
+        ...semanticBundle.semantic_retrieval.matches[0],
+        cosine_similarity: 1.1,
+      },
+    ],
+  },
+  {
+    matches: [
+      {
+        ...semanticBundle.semantic_retrieval.matches[0],
+        cosine_similarity: NaN,
+      },
+    ],
+  },
+  { index_sha256: "wrong" },
+  {
+    encoder: { ...semanticBundle.semantic_retrieval.encoder, dimensions: 1.5 },
+  },
+  {
+    encoder: {
+      ...semanticBundle.semantic_retrieval.encoder,
+      pipeline_version: "hidden\u202e",
+    },
+  },
+])("rejects unbound or misleading retrieval metadata %j", (changes) => {
+  const metadata = { ...semanticBundle.semantic_retrieval, ...changes };
+  expect(
+    explanationBundleSchema.safeParse({
+      ...semanticBundle,
+      semantic_retrieval: metadata,
+    }).success,
+  ).toBe(false);
+  expect(
+    modelExplanationSchema.safeParse({
+      ...modelBundle,
+      ...semanticBundle,
+      version: "model-explanation-0.2.0",
+      provider: "loopback_language_model",
+      llm_status: "draft",
+      semantic_retrieval: metadata,
+    }).success,
+  ).toBe(false);
+});
+it("capability v2 distinguishes configured retrieval from verified health", () => {
+  const capabilities = {
+    version: "explanation-capabilities-0.2.0",
+    local_model: "disabled",
+    model_health_checked: false,
+    transport: "literal_loopback_only",
+    explicit_request_permission_required: true,
+    semantic_retrieval: "configured",
+    retrieval_health_checked: false,
+  };
+  expect(explanationCapabilitiesSchema.safeParse(capabilities).success).toBe(
+    true,
+  );
+  expect(
+    explanationCapabilitiesSchema.safeParse({
+      ...capabilities,
+      retrieval_health_checked: true,
+    }).success,
+  ).toBe(false);
+});
+
 it("accepts only bound model drafts without changing the original deterministic explanation", async () => {
   const parsed = modelExplanationSchema.parse(modelBundle);
   expect(await explanationMatches(parsed, analysis, finding)).toBe(true);
