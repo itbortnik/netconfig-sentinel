@@ -6,10 +6,18 @@ import copy
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal, Self
 
 import torch
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    TypeAdapter,
+    model_validator,
+)
 from torch import Tensor
 
 from ml.datasets import DatasetSplit, DatasetSplitResult, ImportedDatasetRecord
@@ -28,7 +36,17 @@ from ml.training.multitask import (
     SupervisedTargets,
     multitask_loss,
 )
-from ml.training.transformer import TrainingResult
+from ml.training.pretraining import PretrainingResult, load_pretraining, save_pretraining
+from ml.training.pretraining_data import SemanticPair
+from ml.training.pretraining_transfer import (
+    ObjectiveSourceBinding,
+    validate_objective_model,
+    validate_objective_source,
+    verify_objective_binding,
+)
+from ml.training.transformer import ConfigEncoderMLM, TrainingResult
+
+type PretrainedEncoder = TrainingResult | PretrainingResult
 
 
 class SupervisedAnnotation(BaseModel):
@@ -111,9 +129,8 @@ class SupervisedEpoch(BaseModel):
     validation_components: dict[str, float | None]
 
 
-class MultiTaskReport(BaseModel):
+class _MultiTaskReportFields(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
-    version: Literal["multitask-training-0.1.0"] = "multitask-training-0.1.0"
     head_policy: HeadPolicy
     training_policy: FineTunePolicy
     loss_weights: LossWeights
@@ -137,7 +154,7 @@ class MultiTaskReport(BaseModel):
     torch_version: str
 
     @model_validator(mode="after")
-    def consistent(self) -> MultiTaskReport:
+    def consistent(self) -> Self:
         if tuple(item.epoch for item in self.losses) != tuple(
             range(1, self.training_policy.epochs + 1)
         ):
@@ -182,11 +199,46 @@ class MultiTaskReport(BaseModel):
         return self
 
 
+class MultiTaskReport(_MultiTaskReportFields):
+    """Legacy MLM-backed format, unchanged."""
+
+    version: Literal["multitask-training-0.1.0"] = "multitask-training-0.1.0"
+
+
+class MultiTaskTransferReport(_MultiTaskReportFields):
+    """Objective-backed format with explicit source identity and reviewed label exposure."""
+
+    version: Literal["multitask-training-0.2.0"] = "multitask-training-0.2.0"
+    pretraining: ObjectiveSourceBinding
+
+
+_REPORT: TypeAdapter[MultiTaskReport | MultiTaskTransferReport] = TypeAdapter(
+    Annotated[MultiTaskReport | MultiTaskTransferReport, Field(discriminator="version")]
+)
+
+
+def _encoder_model(pretrained: PretrainedEncoder) -> ConfigEncoderMLM:
+    return (
+        pretrained.model.encoder if isinstance(pretrained, PretrainingResult) else pretrained.model
+    )
+
+
 @dataclass
 class MultiTaskResult:
-    pretrained: TrainingResult
+    pretrained: PretrainedEncoder
     heads: MultiTaskHeads
-    report: MultiTaskReport
+    report: MultiTaskReport | MultiTaskTransferReport
+
+
+def _verified_report(result: MultiTaskResult) -> MultiTaskReport | MultiTaskTransferReport:
+    report = _REPORT.validate_python(result.report.model_dump())
+    if isinstance(report, MultiTaskTransferReport):
+        if not isinstance(result.pretrained, PretrainingResult):
+            raise ValueError("objective-backed report cannot use legacy MLM weights")
+        verify_objective_binding(result.pretrained, report.pretraining)
+    elif not isinstance(result.pretrained, TrainingResult):
+        raise ValueError("legacy MLM report cannot use objective-backed weights")
+    return report
 
 
 class MultiTaskPrediction(BaseModel):
@@ -205,7 +257,7 @@ class MultiTaskPrediction(BaseModel):
 
 def extract_aligned_features(
     record: ImportedDatasetRecord,
-    pretrained: TrainingResult,
+    pretrained: PretrainedEncoder,
     *,
     max_windows: int,
     max_feature_values: int = 4000000,
@@ -213,6 +265,10 @@ def extract_aligned_features(
     """Content-only block/line means; no role/site/vendor/identity features or truncation."""
     if pretrained.model.training:
         raise ValueError("feature extraction requires encoder evaluation mode")
+    if isinstance(pretrained, PretrainingResult):
+        validate_objective_model(pretrained)
+        if any(module.training for module in pretrained.model.modules()):
+            raise ValueError("feature extraction requires all objective modules in evaluation mode")
     record = ImportedDatasetRecord.model_validate(record.model_dump())
     total_lines = len(record.sanitized_text.splitlines())
     hidden_size = pretrained.report.encoder_policy.hidden_size
@@ -235,7 +291,7 @@ def extract_aligned_features(
             for window in windows:
                 ids = torch.tensor([window.input_ids])
                 mask = torch.tensor([window.attention_mask])
-                hidden = pretrained.model.encode(ids, mask)[0]
+                hidden = _encoder_model(pretrained).encode(ids, mask)[0]
                 for index, anchors in enumerate(window.source_lines):
                     if (
                         not anchors
@@ -281,9 +337,10 @@ def _fingerprint(examples: tuple[SupervisedExample, ...]) -> str:
 
 def _rows(
     splits: DatasetSplitResult,
-    pretrained: TrainingResult,
+    pretrained: PretrainedEncoder,
     examples: tuple[SupervisedExample, ...],
     policy: HeadPolicy,
+    semantic_pairs: tuple[SemanticPair, ...] = (),
 ) -> dict[DatasetSplit, tuple[SupervisedExample, ...]]:
     splits = DatasetSplitResult.model_validate(splits.model_dump())
     _validate_split_entities(splits)
@@ -294,7 +351,12 @@ def _rows(
         for part in splits.partitions
         if part.split is not DatasetSplit.TEST
     }
-    validate_pretrained_corpus(originals, pretrained)
+    if isinstance(pretrained, PretrainingResult):
+        validate_objective_source(splits, pretrained, semantic_pairs)
+    else:
+        if semantic_pairs:
+            raise ValueError("legacy MLM transfer cannot silently ignore semantic labels")
+        validate_pretrained_corpus(originals, pretrained)
     parents = {
         (record.source_id, record.record_id): (part.split, record)
         for part in splits.partitions
@@ -412,18 +474,19 @@ def _targets(
 
 def train_multitask(
     splits: DatasetSplitResult,
-    pretrained: TrainingResult,
+    pretrained: PretrainedEncoder,
     examples: tuple[SupervisedExample, ...],
     *,
     head_policy: HeadPolicy,
     training_policy: FineTunePolicy | None = None,
     loss_weights: LossWeights | None = None,
+    semantic_pairs: tuple[SemanticPair, ...] = (),
 ) -> MultiTaskResult:
     """Train residual feature adapter/heads; select epoch on validation, never test labels."""
     head_policy = HeadPolicy.model_validate(head_policy.model_dump())
     policy = FineTunePolicy.model_validate((training_policy or FineTunePolicy()).model_dump())
     weights = LossWeights.model_validate((loss_weights or LossWeights()).model_dump())
-    rows = _rows(splits, pretrained, examples, head_policy)
+    rows = _rows(splits, pretrained, examples, head_policy, semantic_pairs)
     encoder_hash = _encoder_hash(pretrained.model)
     encoder = copy.deepcopy(pretrained)
     encoder.model.eval().requires_grad_(False)
@@ -542,6 +605,12 @@ def train_multitask(
         best_epoch=selected_epoch,
         torch_version=torch.__version__,
     )
+    if isinstance(encoder, PretrainingResult):
+        transfer_report = MultiTaskTransferReport(
+            **report.model_dump(exclude={"version"}),
+            pretraining=validate_objective_source(splits, encoder, semantic_pairs),
+        )
+        return MultiTaskResult(encoder, heads, transfer_report)
     return MultiTaskResult(encoder, heads, report)
 
 
@@ -562,7 +631,7 @@ def predict_multitask(
 ) -> MultiTaskPrediction:
     if result.heads.training or result.pretrained.model.training:
         raise ValueError("prediction requires model evaluation mode")
-    report = MultiTaskReport.model_validate(result.report.model_dump())
+    report = _verified_report(result)
     if (
         _encoder_hash(result.pretrained.model) != report.encoder_sha256
         or (result.pretrained.tokenizer.tokenizer_sha256 != report.tokenizer_sha256)
@@ -614,7 +683,7 @@ def predict_multitask(
 
 
 def save_multitask(result: MultiTaskResult, path: Path) -> None:
-    report = MultiTaskReport.model_validate(result.report.model_dump())
+    report = _verified_report(result)
     if (
         report.head_policy != result.heads.policy
         or report.encoder_sha256 != _encoder_hash(result.pretrained.model)
@@ -627,7 +696,10 @@ def save_multitask(result: MultiTaskResult, path: Path) -> None:
     path.mkdir(exist_ok=False)
     marker = path / ".incomplete"
     marker.write_text("supervised bundle writing\n", encoding="utf-8")
-    save_checkpoint(result.pretrained, path / "encoder")
+    if isinstance(result.pretrained, PretrainingResult):
+        save_pretraining(result.pretrained, path / "encoder")
+    else:
+        save_checkpoint(result.pretrained, path / "encoder")
     payload = {
         "report": result.report.model_dump(mode="json"),
         "weights": {
@@ -664,8 +736,12 @@ def load_multitask(path: Path) -> MultiTaskResult:
     payload = json.loads(text, object_pairs_hook=_unique_pairs)
     if not isinstance(payload, dict) or set(payload) != {"report", "weights"}:
         raise ValueError("supervised bundle payload fields differ")
-    report = MultiTaskReport.model_validate(payload["report"])
-    encoder = load_checkpoint(path / "encoder")
+    report = _REPORT.validate_python(payload["report"])
+    encoder: PretrainedEncoder = (
+        load_pretraining(path / "encoder")
+        if isinstance(report, MultiTaskTransferReport)
+        else load_checkpoint(path / "encoder")
+    )
     if _encoder_hash(encoder.model) != report.encoder_sha256 or (
         encoder.tokenizer.tokenizer_sha256 != report.tokenizer_sha256
     ):
@@ -681,4 +757,6 @@ def load_multitask(path: Path) -> MultiTaskResult:
     ):
         raise ValueError("supervised bundle weights or parameter counts are invalid")
     encoder.model.eval().requires_grad_(False)
-    return MultiTaskResult(encoder, heads.eval(), report)
+    result = MultiTaskResult(encoder, heads.eval(), report)
+    _verified_report(result)
+    return result

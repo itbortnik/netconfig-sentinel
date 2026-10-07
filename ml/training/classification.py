@@ -19,7 +19,7 @@ from ml.mutation import MutationNotApplicableError, MutationType, mutate_configu
 from ml.preprocessing.blocks import digest, segment_configuration
 from ml.preprocessing.tokenization import TokenizerArtifact, _validate_split_entities, encode_block
 from ml.training.checkpoint import load_checkpoint, save_checkpoint
-from ml.training.transformer import ConfigEncoderMLM, TrainingReport, TrainingResult
+from ml.training.transformer import TrainingReport, TrainingResult
 
 REFERENCE_CLASS = "no_injected_mutation"
 
@@ -182,7 +182,7 @@ def _fingerprint(rows: list[ProbeExample]) -> str:
     )
 
 
-def _encoder_hash(model: ConfigEncoderMLM) -> str:
+def _encoder_hash(model: nn.Module) -> str:
     checksum = hashlib.sha256()
     for name, value in sorted(model.state_dict().items()):
         checksum.update(name.encode())

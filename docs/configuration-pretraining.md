@@ -113,8 +113,10 @@ manifest. Loading checks complete inventory, no symlinks, bounded files, duplica
 JSON keys, hashes, report/architecture/tokenizer/parameter bindings, strict tensor
 shapes and finite values. An incomplete marker and non-overwriting directory
 creation protect partial outputs. Checksums identify content, not publishers.
-Only load trusted local artifacts. Optimizer resume and import into the existing
-supervised MLM-checkpoint path are not included in this format.
+Only load trusted local artifacts. Optimizer resume and conversion into the
+legacy MLM-checkpoint format are not included. The separate
+[Stage A -> B transfer](pretraining-transfer.md) retains this native objective
+bundle and report, instead of relabeling the run as MLM-only training.
 
 ```powershell
 python -m ml.training.pretraining_smoke --output artifacts/pretraining-objectives-v1 --epochs 10

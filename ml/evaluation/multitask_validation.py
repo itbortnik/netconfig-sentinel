@@ -26,13 +26,17 @@ from ml.training.classification_smoke import classification_fixtures
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
     MultiTaskResult,
+    MultiTaskTransferReport,
     SupervisedExample,
     _fingerprint,
     _rows,
+    _verified_report,
     load_multitask,
     multitask_identity,
     predict_multitask,
 )
+from ml.training.pretraining_data import SemanticPair
+from ml.training.pretraining_transfer import objective_split_identity
 
 
 def build_multitask_validation(
@@ -40,7 +44,13 @@ def build_multitask_validation(
     splits: DatasetSplitResult,
     examples: tuple[SupervisedExample, ...],
 ) -> EvaluationBatch:
-    rows = _rows(splits, result.pretrained, examples, result.report.head_policy)
+    bound_report = _verified_report(result)
+    pairs: tuple[SemanticPair, ...] = ()
+    if isinstance(bound_report, MultiTaskTransferReport):
+        if objective_split_identity(splits) != (bound_report.pretraining.source_manifest_sha256):
+            raise ValueError("evaluation source manifest binding differs from transferred corpus")
+        pairs = bound_report.pretraining.semantic_pairs
+    rows = _rows(splits, result.pretrained, examples, result.report.head_policy, pairs)
     if _fingerprint(rows[DatasetSplit.TRAIN]) != result.report.train_fingerprint or (
         _fingerprint(rows[DatasetSplit.VALIDATION]) != result.report.validation_fingerprint
     ):
@@ -54,7 +64,9 @@ def build_multitask_validation(
         model_version=result.report.version,
         model_sha256=multitask_identity(result),
         tokenizer_sha256=result.report.tokenizer_sha256,
-        dataset_manifest_sha256=canonical_hash(splits.model_dump(mode="json")),
+        dataset_manifest_sha256=objective_split_identity(splits)
+        if isinstance(bound_report, MultiTaskTransferReport)
+        else canonical_hash(splits.model_dump(mode="json")),
         threshold_policy_sha256=canonical_hash("recorded-strict-0.5-supervised-head-thresholds-1"),
         classes=result.report.head_policy.classes,
         category_thresholds=(0.5,) * len(result.report.head_policy.classes),

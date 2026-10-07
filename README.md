@@ -254,6 +254,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/configuration-pretraining.md`](docs/configuration-pretraining.md).
 Совместные обучаемые выходы модели, привязка меток к строкам и настраиваемые веса
 описаны в [`docs/multitask-training.md`](docs/multitask-training.md).
+Связанный путь многозадачного предобучения → замороженный encoder → выходные головы,
+его проверяемое происхождение и синтетический запуск описаны в
+[`docs/pretraining-transfer.md`](docs/pretraining-transfer.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

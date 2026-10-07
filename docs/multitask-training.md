@@ -71,9 +71,11 @@ category/severity/line labels require an explicit positive anomaly label.
 The encoder and tokenizer must match the original train/validation fingerprints
 of the supplied split. This prevents accidentally using a checkpoint selected on
 a different validation corpus while describing this run as isolated. It also
-means this path currently accepts the project's trusted MLM checkpoints, **not**
-arbitrary third-party pretrained encoders. A general pretrained/transfer path
-with explicit pretraining exposure and compatible tokenizer is still required.
+means the legacy format accepts the project's trusted MLM checkpoints, **not**
+arbitrary third-party pretrained encoders. The separately versioned
+[joint Stage A -> B path](pretraining-transfer.md) now also accepts the project's
+six-objective checkpoints with regenerated exposure and retained semantic labels.
+External foundation transfer with compatible tokenizer is still required.
 The compact synthetic smoke is not evidence for training from scratch at scale.
 
 `injected_mutation` and `confirmed_anomaly` semantics cannot be mixed in one

@@ -1,0 +1,616 @@
+{
+  "head_policy": {
+    "version": "multitask-heads-0.1.0",
+    "classes": [
+      "telnet_enabled"
+    ],
+    "embedding_size": 64,
+    "adapter_rank": 16,
+    "contrastive_margin": 0.2,
+    "max_examples": 128,
+    "max_blocks_per_configuration": 1024,
+    "max_lines_per_configuration": 100000,
+    "max_feature_values": 2000000
+  },
+  "training_policy": {
+    "seed": 17,
+    "epochs": 20,
+    "learning_rate": 0.01,
+    "weight_decay": 0.01,
+    "gradient_clip": 1.0,
+    "max_total_windows": 10000,
+    "max_feature_values": 4000000
+  },
+  "loss_weights": {
+    "anomaly": 1.0,
+    "category": 1.0,
+    "localization": 1.0,
+    "severity": 0.0,
+    "contrastive": 0.1
+  },
+  "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+  "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+  "train_fingerprint": "db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51",
+  "validation_fingerprint": "95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0",
+  "target_semantics": "injected_mutation",
+  "origin_counts": {
+    "synthetic": 60
+  },
+  "train_examples": 48,
+  "validation_examples": 12,
+  "trainable_parameters": 3993,
+  "parameter_count": 56718,
+  "supervised_counts": {
+    "anomaly": 48,
+    "category": 48,
+    "localization": 392,
+    "severity": 0,
+    "contrastive": 1128
+  },
+  "validation_supervised_counts": {
+    "anomaly": 12,
+    "category": 12,
+    "localization": 98,
+    "severity": 0,
+    "contrastive": 66
+  },
+  "losses": [
+    {
+      "epoch": 1,
+      "train_total": 2.3211703300476074,
+      "validation_total": 2.0922367572784424,
+      "train_components": {
+        "anomaly": 0.6554054021835327,
+        "category": 0.6960275173187256,
+        "localization": 0.9333773255348206,
+        "severity": null,
+        "contrastive": 0.36360087990760803
+      },
+      "validation_components": {
+        "anomaly": 0.6401789784431458,
+        "category": 0.6566942930221558,
+        "localization": 0.7565586566925049,
+        "severity": null,
+        "contrastive": 0.38804757595062256
+      }
+    },
+    {
+      "epoch": 2,
+      "train_total": 2.0871658325195312,
+      "validation_total": 1.8971060514450073,
+      "train_components": {
+        "anomaly": 0.639866054058075,
+        "category": 0.6571372151374817,
+        "localization": 0.7538352608680725,
+        "severity": null,
+        "contrastive": 0.36327454447746277
+      },
+      "validation_components": {
+        "anomaly": 0.6384888291358948,
+        "category": 0.6362388730049133,
+        "localization": 0.5835849046707153,
+        "severity": null,
+        "contrastive": 0.3879343271255493
+      }
+    },
+    {
+      "epoch": 3,
+      "train_total": 1.8920226097106934,
+      "validation_total": 1.744949460029602,
+      "train_components": {
+        "anomaly": 0.6387434601783752,
+        "category": 0.6363384127616882,
+        "localization": 0.5806244015693665,
+        "severity": null,
+        "contrastive": 0.36316338181495667
+      },
+      "validation_components": {
+        "anomaly": 0.6407639384269714,
+        "category": 0.6328728795051575,
+        "localization": 0.43252384662628174,
+        "severity": null,
+        "contrastive": 0.38788795471191406
+      }
+    },
+    {
+      "epoch": 4,
+      "train_total": 1.7398635149002075,
+      "validation_total": 1.6312299966812134,
+      "train_components": {
+        "anomaly": 0.6412026286125183,
+        "category": 0.6327272057533264,
+        "localization": 0.42962199449539185,
+        "severity": null,
+        "contrastive": 0.36311691999435425
+      },
+      "validation_components": {
+        "anomaly": 0.638516366481781,
+        "category": 0.6392436623573303,
+        "localization": 0.3146834075450897,
+        "severity": null,
+        "contrastive": 0.3878655731678009
+      }
+    },
+    {
+      "epoch": 5,
+      "train_total": 1.6261756420135498,
+      "validation_total": 1.5471071004867554,
+      "train_components": {
+        "anomaly": 0.6387519240379333,
+        "category": 0.6389172673225403,
+        "localization": 0.31219711899757385,
+        "severity": null,
+        "contrastive": 0.3630933165550232
+      },
+      "validation_components": {
+        "anomaly": 0.634279191493988,
+        "category": 0.6415073275566101,
+        "localization": 0.23253534734249115,
+        "severity": null,
+        "contrastive": 0.3878520131111145
+      }
+    },
+    {
+      "epoch": 6,
+      "train_total": 1.5421462059020996,
+      "validation_total": 1.4935894012451172,
+      "train_components": {
+        "anomaly": 0.6340801119804382,
+        "category": 0.6410499811172485,
+        "localization": 0.23070845007896423,
+        "severity": null,
+        "contrastive": 0.36307746171951294
+      },
+      "validation_components": {
+        "anomaly": 0.6329030394554138,
+        "category": 0.6359828114509583,
+        "localization": 0.18591952323913574,
+        "severity": null,
+        "contrastive": 0.38784074783325195
+      }
+    },
+    {
+      "epoch": 7,
+      "train_total": 1.4887566566467285,
+      "validation_total": 1.4707430601119995,
+      "train_components": {
+        "anomaly": 0.6321852803230286,
+        "category": 0.6354365944862366,
+        "localization": 0.18482854962348938,
+        "severity": null,
+        "contrastive": 0.3630627989768982
+      },
+      "validation_components": {
+        "anomaly": 0.6340185403823853,
+        "category": 0.6288831830024719,
+        "localization": 0.16905847191810608,
+        "severity": null,
+        "contrastive": 0.387828528881073
+      }
+    },
+    {
+      "epoch": 8,
+      "train_total": 1.4661333560943604,
+      "validation_total": 1.4702038764953613,
+      "train_components": {
+        "anomaly": 0.6329135894775391,
+        "category": 0.6283507347106934,
+        "localization": 0.16856448352336884,
+        "severity": null,
+        "contrastive": 0.36304569244384766
+      },
+      "validation_components": {
+        "anomaly": 0.63161700963974,
+        "category": 0.6285263895988464,
+        "localization": 0.1712792068719864,
+        "severity": null,
+        "contrastive": 0.3878125250339508
+      }
+    },
+    {
+      "epoch": 9,
+      "train_total": 1.4659963846206665,
+      "validation_total": 1.4799959659576416,
+      "train_components": {
+        "anomaly": 0.6303948760032654,
+        "category": 0.6281639933586121,
+        "localization": 0.1711353063583374,
+        "severity": null,
+        "contrastive": 0.36302265524864197
+      },
+      "validation_components": {
+        "anomaly": 0.6273347735404968,
+        "category": 0.6322102546691895,
+        "localization": 0.18167196214199066,
+        "severity": null,
+        "contrastive": 0.3877885639667511
+      }
+    },
+    {
+      "epoch": 10,
+      "train_total": 1.4761213064193726,
+      "validation_total": 1.4862666130065918,
+      "train_components": {
+        "anomaly": 0.6262248754501343,
+        "category": 0.631951630115509,
+        "localization": 0.1816459745168686,
+        "severity": null,
+        "contrastive": 0.36298808455467224
+      },
+      "validation_components": {
+        "anomaly": 0.626524031162262,
+        "category": 0.6286625266075134,
+        "localization": 0.19230520725250244,
+        "severity": null,
+        "contrastive": 0.3877488076686859
+      }
+    },
+    {
+      "epoch": 11,
+      "train_total": 1.4821860790252686,
+      "validation_total": 1.4858583211898804,
+      "train_components": {
+        "anomaly": 0.6255146861076355,
+        "category": 0.6281387209892273,
+        "localization": 0.1922396421432495,
+        "severity": null,
+        "contrastive": 0.3629308342933655
+      },
+      "validation_components": {
+        "anomaly": 0.6253717541694641,
+        "category": 0.6229591965675354,
+        "localization": 0.19875963032245636,
+        "severity": null,
+        "contrastive": 0.38767722249031067
+      }
+    },
+    {
+      "epoch": 12,
+      "train_total": 1.4809248447418213,
+      "validation_total": 1.4809901714324951,
+      "train_components": {
+        "anomaly": 0.6241397261619568,
+        "category": 0.6219342947006226,
+        "localization": 0.19856809079647064,
+        "severity": null,
+        "contrastive": 0.3628276586532593
+      },
+      "validation_components": {
+        "anomaly": 0.6214732527732849,
+        "category": 0.6214569211006165,
+        "localization": 0.19930613040924072,
+        "severity": null,
+        "contrastive": 0.3875388205051422
+      }
+    },
+    {
+      "epoch": 13,
+      "train_total": 1.4748687744140625,
+      "validation_total": 1.4730712175369263,
+      "train_components": {
+        "anomaly": 0.6197185516357422,
+        "category": 0.6199337244033813,
+        "localization": 0.19895361363887787,
+        "severity": null,
+        "contrastive": 0.36262816190719604
+      },
+      "validation_components": {
+        "anomaly": 0.6188207268714905,
+        "category": 0.6210944056510925,
+        "localization": 0.19442951679229736,
+        "severity": null,
+        "contrastive": 0.3872653841972351
+      }
+    },
+    {
+      "epoch": 14,
+      "train_total": 1.4657899141311646,
+      "validation_total": 1.460578441619873,
+      "train_components": {
+        "anomaly": 0.616488516330719,
+        "category": 0.6191644072532654,
+        "localization": 0.19391371309757233,
+        "severity": null,
+        "contrastive": 0.36223262548446655
+      },
+      "validation_components": {
+        "anomaly": 0.6177129149436951,
+        "category": 0.6185416579246521,
+        "localization": 0.18564967811107635,
+        "severity": null,
+        "contrastive": 0.38674286007881165
+      }
+    },
+    {
+      "epoch": 15,
+      "train_total": 1.4523043632507324,
+      "validation_total": 1.4436453580856323,
+      "train_components": {
+        "anomaly": 0.6148903965950012,
+        "category": 0.6162869930267334,
+        "localization": 0.18497996032238007,
+        "severity": null,
+        "contrastive": 0.3614714741706848
+      },
+      "validation_components": {
+        "anomaly": 0.6151866316795349,
+        "category": 0.6148146390914917,
+        "localization": 0.17506104707717896,
+        "severity": null,
+        "contrastive": 0.38583189249038696
+      }
+    },
+    {
+      "epoch": 16,
+      "train_total": 1.4344894886016846,
+      "validation_total": 1.426318645477295,
+      "train_components": {
+        "anomaly": 0.6119397878646851,
+        "category": 0.6122978329658508,
+        "localization": 0.17423929274082184,
+        "severity": null,
+        "contrastive": 0.3601251244544983
+      },
+      "validation_components": {
+        "anomaly": 0.6109734177589417,
+        "category": 0.6115977764129639,
+        "localization": 0.1653062403202057,
+        "severity": null,
+        "contrastive": 0.38441339135169983
+      }
+    },
+    {
+      "epoch": 17,
+      "train_total": 1.4162373542785645,
+      "validation_total": 1.413573980331421,
+      "train_components": {
+        "anomaly": 0.6072807908058167,
+        "category": 0.6088426113128662,
+        "localization": 0.1643131822347641,
+        "severity": null,
+        "contrastive": 0.3580085337162018
+      },
+      "validation_components": {
+        "anomaly": 0.606696605682373,
+        "category": 0.6088113188743591,
+        "localization": 0.159827321767807,
+        "severity": null,
+        "contrastive": 0.3823867738246918
+      }
+    },
+    {
+      "epoch": 18,
+      "train_total": 1.402309775352478,
+      "validation_total": 1.4083346128463745,
+      "train_components": {
+        "anomaly": 0.6024585366249084,
+        "category": 0.6057595610618591,
+        "localization": 0.15859664976596832,
+        "severity": null,
+        "contrastive": 0.35495030879974365
+      },
+      "validation_components": {
+        "anomaly": 0.6033471822738647,
+        "category": 0.6053938865661621,
+        "localization": 0.16160064935684204,
+        "severity": null,
+        "contrastive": 0.3799278438091278
+      }
+    },
+    {
+      "epoch": 19,
+      "train_total": 1.3954033851623535,
+      "validation_total": 1.404455304145813,
+      "train_components": {
+        "anomaly": 0.5984027981758118,
+        "category": 0.6018714308738708,
+        "localization": 0.1600179374217987,
+        "severity": null,
+        "contrastive": 0.35111162066459656
+      },
+      "validation_components": {
+        "anomaly": 0.6000897288322449,
+        "category": 0.6010369658470154,
+        "localization": 0.16575336456298828,
+        "severity": null,
+        "contrastive": 0.37575259804725647
+      }
+    },
+    {
+      "epoch": 20,
+      "train_total": 1.3893183469772339,
+      "validation_total": 1.394736409187317,
+      "train_components": {
+        "anomaly": 0.5942734479904175,
+        "category": 0.5968331694602966,
+        "localization": 0.1638038009405136,
+        "severity": null,
+        "contrastive": 0.34407979249954224
+      },
+      "validation_components": {
+        "anomaly": 0.5954338908195496,
+        "category": 0.5963008403778076,
+        "localization": 0.1645835041999817,
+        "severity": null,
+        "contrastive": 0.3841816782951355
+      }
+    }
+  ],
+  "best_epoch": 20,
+  "encoder_frozen": true,
+  "test_evaluated": false,
+  "production_quality_proven": false,
+  "torch_version": "2.14.0+cpu",
+  "version": "multitask-training-0.2.0",
+  "pretraining": {
+    "version": "objective-source-binding-0.1.0",
+    "pretraining_sha256": "fd87a896456d93d5ac153832e1ac35b357e2b3598a1483d9e58776044b3c6001",
+    "report_sha256": "0d68d38822f1d7285b9fce86e2339c77f1e5af39554490729e0900cfb0ffbbf5",
+    "source_manifest_sha256": "4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd",
+    "semantic_pairs_sha256": "5b0adba8a16fe6b7ece8098507d3e6ffefe0ef27c2ce5b0f2e5027be6c26ceca",
+    "semantic_pairs": [
+      {
+        "left_sha256": "5e641cf0872c3a330a5f5a88b23d2feb1e95de7292120521dac2bd2bd3fd4d26",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "10a3055c375a18594e20494ae3a822e68bb347ad79bf1bce64de93389676f85c",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "5e641cf0872c3a330a5f5a88b23d2feb1e95de7292120521dac2bd2bd3fd4d26",
+        "right_sha256": "6271cd89e61576a3f16a4b3c9f4dcc1adea71a592c7f15631e77d6ab17926839",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "afd6694b1691649bc2bd7dbcc905151e9c8e49217eec953407438f827b814efe",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "c1c95271bdd7611257483e6ebde5f5e5fab491ee26e9652824574c6c4bd9bb9d",
+        "right_sha256": "6271cd89e61576a3f16a4b3c9f4dcc1adea71a592c7f15631e77d6ab17926839",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "9c3a59c337b25e9d19c7c98f7ffbc67767fb0e499777c820fbab52ee1c6dd5b4",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "c1c95271bdd7611257483e6ebde5f5e5fab491ee26e9652824574c6c4bd9bb9d",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "05f8a6f2c90d94db348786c1478312b3429d7915b5a3a13d8dace42884880f2b",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "1f201f9db4f3df3ff2243f65dbc332105cc9948584f26f094761f1273815cae1",
+        "right_sha256": "45a5544579d9bee80f67bd21de634265d9c62b5431efc4e08368a1a879022b4a",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "b18e0601bf617fcad72c3f3e17ce13ca7998ce41d1ee4079ed968f9d014a06dd",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "1f201f9db4f3df3ff2243f65dbc332105cc9948584f26f094761f1273815cae1",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "d6d85ef7ebbbd2cc86551e10a0440c8537d39cb866ce5b6eef8144a261d6f024",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "20736f89bbe290e7ee2834986d95616b1dd6a26792f1d8229b73ee1e3812dadb",
+        "right_sha256": "8c59b55592d94cb5ab7c3f0ae2b142f19fddd9fe9d8d94185dfa396dac83601f",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "06e4b29bee019e278370175d7ace8786f7611e6530a0676ba35678b91b88d1c8",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "20736f89bbe290e7ee2834986d95616b1dd6a26792f1d8229b73ee1e3812dadb",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "85941951f6f2b8cd96536185689083494a9e8cbb05c93c0f2b4a29041114edf3",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "7ae4492d1d927fbd78c66ec076deffd8a732e60a5a9f947761f5e71ab71c739d",
+        "right_sha256": "14cb58cb33d0fb50149a20a115db702035bc4c5dc24e2878d5a43f320b1a9b10",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "b48c6eea7c8b9acfc8d599f111538ed3e88056b138a1813c5b992cf3b598ea16",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "7ae4492d1d927fbd78c66ec076deffd8a732e60a5a9f947761f5e71ab71c739d",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "bed646de318df140f5970f7d179d8523203ddf2844e6fa0b063fbce5624fce77",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "ac53e09cfa928de7a19a2ac83ed6ab386a1c237fbd1588aed1218931c7f0c076",
+        "right_sha256": "0f67c71ecdc9f2d12b0560248374f50a5a3a7224c1804b2743523ec9019af876",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "555ec7708c501a565787ede0d187219468df830f9b58cf6d27b5720e4c1a6e57",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "ac53e09cfa928de7a19a2ac83ed6ab386a1c237fbd1588aed1218931c7f0c076",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "54f957415e1ef15d44e032360e921086b38915f078f10a2ae2e09b78f4a4c4f9",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "a9543321823335efc7854fd869a472d8d714c01b8c3140aa1bf931dfd7a08fc2",
+        "right_sha256": "27d53a99df40df3baeb095b3d8e30ded819052519bb0531c92c448d064a2a5bf",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "4b3eb49769f1e27c44fb63aecc4e58971e4cb550f95ba4b1601ee484c718df57",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "a9543321823335efc7854fd869a472d8d714c01b8c3140aa1bf931dfd7a08fc2",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "d19615f478cb31f05c1dbd14b7f92cc018b30894bad0133e9df05437c132d149",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "2c2fbc4d29629ff23aecf886088ca4bdaa805210b07e50911dcd84139bba5d54",
+        "right_sha256": "258e58d1273a7e97996027edda82a238da555b912a539a3af50524c051b8d312",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "aef166b69f1c1877bf6e02ccdeafaee67acf64f57ded8d24603f69419714593b",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "2c2fbc4d29629ff23aecf886088ca4bdaa805210b07e50911dcd84139bba5d54",
+        "right_sha256": "d33580b44e48e1486b324eb2774a1b48af6f88d0cae2328d6fbb5eb48a774805",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "9e087cd4eef5a95be922793120c1fbd0cb918255f36bffd2fc1f5f7c9633c6cb",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "2158dbf66b0ebcd7a3aaf30a32822b769d1f731f4ccb356e0a35ca2a7c3d75ab",
+        "right_sha256": "d514c8d56c281cb5a6a0acd7455582f6730d252ea776161e47181a1a24a0ed94",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "39c2e2ee0864d2b12872129700b63db86b3f81be716a84e0792b449809d3bdb6",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "2158dbf66b0ebcd7a3aaf30a32822b769d1f731f4ccb356e0a35ca2a7c3d75ab",
+        "right_sha256": "612c9ceca7651989215b283e1214e9856ba5129def2a46b75802d670ab169a9b",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "1a2d1e6cdc566fbceea1836b9345a479798eae34c76d7b8448d821005b1de63e",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "994571732f803198c5c2f59153d27ca4d6099be81e42900daa322d0e3a278f99",
+        "right_sha256": "612c9ceca7651989215b283e1214e9856ba5129def2a46b75802d670ab169a9b",
+        "equivalent": true,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "b1c3ef088d1475865bf8e238d40ffb0e94987eb5784d608a108d61f636c446b4",
+        "origin": "synthetic"
+      },
+      {
+        "left_sha256": "994571732f803198c5c2f59153d27ca4d6099be81e42900daa322d0e3a278f99",
+        "right_sha256": "d514c8d56c281cb5a6a0acd7455582f6730d252ea776161e47181a1a24a0ed94",
+        "equivalent": false,
+        "scope": "ipv4_static_route_destinations_and_next_hops",
+        "review_sha256": "452903a5c88e92c3c8ac6df0fc4c6a7ff215a6d920d4189046e71ed5dc5b80f7",
+        "origin": "synthetic"
+      }
+    ],
+    "external_foundation_model": false,
+    "test_targets_used": false
+  }
+}
