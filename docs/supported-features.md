@@ -68,6 +68,12 @@ Both hierarchical and `set` syntax are supported for:
 
 ## Current limitations
 
+Source-preserving [native patch drafts](vendor-patch-drafts.md) are a separate,
+inspection-only subset: explicit SSH+Telnet VTY lines or SSH version statements
+on IOS, and exact flat-set Telnet/SSH version statements on JunOS. Hierarchical
+JunOS parsing does not imply hierarchical patch generation. Local parser checks
+do not qualify syntax, management access, formal safety, or device application.
+
 - VRF/routing-instance assignment, aggregation, tunnel parameters, and
   operational state beyond the commands listed above remain unparsed;
 - VTP, private VLANs, Q-in-Q, JunOS `vlan-id-list`, and incremental IOS trunk

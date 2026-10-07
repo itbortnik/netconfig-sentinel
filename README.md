@@ -257,6 +257,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Связанный путь многозадачного предобучения → замороженный encoder → выходные головы,
 его проверяемое происхождение и синтетический запуск описаны в
 [`docs/pretraining-transfer.md`](docs/pretraining-transfer.md).
+Ограниченные Cisco/JunOS черновики по точным исходным строкам, их private lifecycle
+и обязательные проверки перед любым применением описаны в
+[`docs/vendor-patch-drafts.md`](docs/vendor-patch-drafts.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,
