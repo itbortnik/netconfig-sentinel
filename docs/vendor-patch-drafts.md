@@ -87,7 +87,12 @@ python -m app.patching.vendor_cli check --before private-before.cfg --artifact p
   без автоматического перехода в режим, сохранения/commit или подключения.
 - `local-review.json` — тот же `PatchReview` в существующем формате артефакта,
   пригодный для явного `--patch-review` offline Batfish CLI; сам экспорт не
-  запускает движок и не является формальным результатом.
+запускает движок и не является формальным результатом.
+
+Для exact original/candidate можно отдельно выполнить
+[ML-перепроверку выбранной native модели](ml-change-review.md). Она использует
+`local-review.json`, обезличивает входы в памяти и сохраняет отдельные numeric
+diagnostics; local review/formal/status не повышаются и файлы draft не меняются.
 
 При сбое записи может остаться неполный каталог с `.incomplete`: загрузчик его
 отклоняет. Для повторной генерации нужен новый путь; автоматической очистки нет.

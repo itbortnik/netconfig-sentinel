@@ -233,6 +233,13 @@ does not activate an HTTP Transformer detector or replace verification. The
 general external-pretrained/transfer path and large-corpus training remain open;
 see [joint training boundaries](multitask-training.md).
 
+An explicit [private pre/post ML review](ml-change-review.md) recomputes the exact
+offline patch's local review, sanitizes both raw sides in memory and repeats CPU
+inference of one independently pinned trusted native multitask bundle. Numeric
+diagnostics bind each side separately; partial parsing suppresses both outputs.
+They never rewrite the local policy/reference risk, raise patch/formal status,
+activate HTTP inference, apply commands, or establish independent model quality.
+
 Offline evaluation consumes bounded prediction/annotation artifacts, not raw
 configuration or online findings. It enforces recorded entity exposure gates,
 reports origin/vendor/role/unseen-site slices without pooling synthetic and real
