@@ -1,0 +1,78 @@
+{
+  "version": "owned-actual-instruct-http-0.1.0",
+  "identity": {
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+    "publisher_license_declaration": "Apache-2.0",
+    "external_training_exposure": "unknown",
+    "parameter_count": 4022468096,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "attention_implementation": "sdpa",
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "automatic_activation": false,
+    "production_quality_proven": false
+  },
+  "operator_environment_activated": false,
+  "customer_data_used": false,
+  "semantic_truth_proven": false,
+  "production_quality_proven": false,
+  "formal_verification": "not_run",
+  "http_deadline_seconds": 20,
+  "gateway_scope": "four_exact_owned_contexts_only",
+  "observations": [
+    {
+      "vendor": "cisco",
+      "category": "management.telnet_enabled",
+      "status": 200,
+      "consent_denied_before_model": true,
+      "saved_analysis_unchanged": true
+    },
+    {
+      "vendor": "cisco",
+      "category": "management.ssh_version_1",
+      "status": 200,
+      "consent_denied_before_model": true,
+      "saved_analysis_unchanged": true
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.telnet_enabled",
+      "status": 200,
+      "consent_denied_before_model": true,
+      "saved_analysis_unchanged": true
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.ssh_version_1",
+      "status": 200,
+      "consent_denied_before_model": true,
+      "saved_analysis_unchanged": true
+    }
+  ],
+  "gateway": {
+    "requests": 4,
+    "responses": [
+      {
+        "response_status": 200
+      },
+      {
+        "response_status": 200
+      },
+      {
+        "response_status": 200
+      },
+      {
+        "response_status": 200
+      }
+    ]
+  }
+}

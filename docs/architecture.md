@@ -73,6 +73,12 @@ greedy bounded generation and existing answer validation apply. Failed baseline
 runs remain in the numeric report; later schema-valid drafts still contain
 unsupported claims. This does not activate the HTTP model service, prove semantic
 truth or qualify explanation quality, load, management access or patch generation.
+An [owned installed-wheel HTTP round trip](evaluation/owned-instruct-http.json)
+also exercised the real model through a transient four-context-only loopback
+gateway, the existing isolated transport worker, authenticated API and consent
+gates. Saved analyses remained unchanged. Its explicit 20-second deadline is not
+the operator default or a server installation; semantic and deployment gates
+remain open.
 See [contextual explanations](contextual-explanations.md) and
 [local-model transport](local-model-explanations.md).
 

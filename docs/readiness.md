@@ -102,3 +102,10 @@ owned generations в четырёх source/installed runs отражены в
 запуски. Последние schema-valid 4/4 + 4/4 не доказывают factual/citation quality:
 принятые drafts всё ещё содержат unsupported claims. Online model activation,
 MVP acceptance, vendor patch generation и production quality не заявлены.
+
+Отдельный [actual owned HTTP report](evaluation/owned-instruct-http.json) фиксирует
+четыре ответа настоящей модели через установленный пакет, четыре отказа без
+consent до модели и неизменность сохранённых analysis. Временный gateway принимал
+только точные owned contexts; deadline 20 секунд был явным параметром диагностики,
+не изменением default 10 секунд или активацией сервиса оператора. Это functional
+evidence простого explanation пути, не semantic quality или полного patch workflow.

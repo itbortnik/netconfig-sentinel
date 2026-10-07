@@ -116,11 +116,31 @@ access/rollback. Это реальные наблюдённые ограниче
 Schema/citation membership не проверяет поддержку каждого утверждения источником.
 Ни один из этих drafts не принимается как проверенная эксплуатационная рекомендация.
 
-## Открытые требования
+## Фактический owned HTTP round trip
+
+[Отдельный численный отчёт](evaluation/owned-instruct-http.json) фиксирует четыре
+ответа настоящего checkpoint через установленный wheel и временный loopback
+gateway. Gateway разрешал только четыре точных authored contexts; модель не могла
+создавать исходящие соединения. Два независимых owned SQLite stores сохраняли
+историю каждого вендора отдельно, без ослабления проверки идентичности устройства.
+
+Каждый сценарий прошёл upload → настоящий policy analysis → отказ 403 без
+per-request consent → schema-valid model answer 200 → повторное чтение исходного
+analysis. Все четыре сохранённых analysis остались неизменны. Gateway получил
+ровно четыре запроса: отказы по consent происходили до обращения к модели.
+Использован существующий изолированный HTTP worker и authenticated API.
+
+Deadline 20 секунд задан явно только для этой диагностики; default 10 секунд и
+настройки оператора не изменены. Gateway завершён после проверки, сервис не
+установлен и не активирован автоматически. Этот результат не проверяет restart,
+deployment, нагрузку, semantic truth, patch lifecycle или безопасный access/rollback.
+
+## Оставшийся полный LLM workflow
 
 Этот runtime не завершает полный LLM workflow: действующая schema пока требует
 `patch_draft=null`. Vendor-specific candidate generation с safe diff/baseline/
-реальным verifier context, engineer approval и полный API round trip требуют
-отдельного этапа. Не закрыты independent/adversarial/semantic/citation quality,
+реальным verifier context, engineer approval и связанный patch API round trip
+требуют отдельного этапа. Проверка простого explanation HTTP пути выше не заменяет
+их. Не закрыты independent/adversarial/semantic/citation quality,
 vendor/internal corpus, реальные конфигурации, нагрузка, production deployment и
 access/rollback. Model prose не меняет risk/history/formal status и не применяется.
