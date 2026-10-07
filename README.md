@@ -265,6 +265,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Связанный путь многозадачного предобучения → замороженный encoder → выходные головы,
 его проверяемое происхождение и синтетический запуск описаны в
 [`docs/pretraining-transfer.md`](docs/pretraining-transfer.md).
+Отдельный путь настоящих внешних замороженных весов → конфигурационный адаптер и
+головы, с неизвестной external pretraining exposure и измеренными diagnostics,
+описан в [`docs/foundation-config-transfer.md`](docs/foundation-config-transfer.md).
 Ограниченные Cisco/JunOS черновики по точным исходным строкам, их private lifecycle
 и обязательные проверки перед любым применением описаны в
 [`docs/vendor-patch-drafts.md`](docs/vendor-patch-drafts.md).

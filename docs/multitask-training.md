@@ -75,7 +75,9 @@ means the legacy format accepts the project's trusted MLM checkpoints, **not**
 arbitrary third-party pretrained encoders. The separately versioned
 [joint Stage A -> B path](pretraining-transfer.md) now also accepts the project's
 six-objective checkpoints with regenerated exposure and retained semantic labels.
-External foundation transfer with compatible tokenizer is still required.
+The separately versioned [external foundation path](foundation-config-transfer.md)
+uses a fixed reviewed publisher tokenizer/weights and explicitly unknown external
+pretraining exposure, not a fabricated native pretraining report.
 The compact synthetic smoke is not evidence for training from scratch at scale.
 
 `injected_mutation` and `confirmed_anomaly` semantics cannot be mixed in one

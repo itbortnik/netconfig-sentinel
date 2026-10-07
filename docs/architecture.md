@@ -230,9 +230,13 @@ the trusted encoder. A residual feature adapter and block-attention pooler train
 anomaly, category, localization, severity and similar-case projection heads with
 explicit objective weights. Unknown labels are masked, untrained outputs remain
 unavailable, and test parents cannot enter the train/selection corpus. This path
-does not activate an HTTP Transformer detector or replace verification. The
-general external-pretrained/transfer path and large-corpus training remain open;
-see [joint training boundaries](multitask-training.md).
+does not activate an HTTP Transformer detector or replace verification.
+Large-corpus training and qualified HTTP activation remain open;
+see [joint training boundaries](multitask-training.md). A separate optional
+[external-source transfer](foundation-config-transfer.md) uses actual frozen
+publisher token features with the same configuration adapter/heads and explicit
+unknown external pretraining exposure. It does not substitute document vectors
+for configuration inputs or prove independent anomaly quality.
 
 An explicit [private pre/post ML review](ml-change-review.md) recomputes the exact
 offline patch's local review, sanitizes both raw sides in memory and repeats CPU

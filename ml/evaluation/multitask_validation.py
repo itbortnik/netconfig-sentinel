@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from pathlib import Path
 from time import perf_counter
 
@@ -10,7 +11,7 @@ import torch
 from app.domain import Vendor
 from app.parsers import parse_configuration
 
-from ml.datasets import DatasetSplit, DatasetSplitResult
+from ml.datasets import DatasetSplit, DatasetSplitResult, ImportedDatasetRecord
 from ml.evaluation.cli import write_report
 from ml.evaluation.contracts import (
     EvaluationBatch,
@@ -25,6 +26,7 @@ from ml.mutation import MutationType
 from ml.training.classification_smoke import classification_fixtures
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
+    MultiTaskPrediction,
     MultiTaskResult,
     MultiTaskTransferReport,
     SupervisedExample,
@@ -75,6 +77,22 @@ def build_multitask_validation(
             _identity(row.record, row.parent_sha256) for row in rows[DatasetSplit.VALIDATION]
         ),
     )
+    return build_aligned_validation(
+        protocol,
+        rows,
+        lambda record: predict_multitask(result, record),
+        localization_enabled=bool(result.report.loss_weights.localization),
+    )
+
+
+def build_aligned_validation(
+    protocol: EvaluationProtocol,
+    rows: dict[DatasetSplit, tuple[SupervisedExample, ...]],
+    predict: Callable[[ImportedDatasetRecord], MultiTaskPrediction],
+    *,
+    localization_enabled: bool,
+) -> EvaluationBatch:
+    """Shared metric case construction; caller checks exact trained source/label exposure."""
     cases = []
     threads = torch.get_num_threads()
     try:
@@ -87,12 +105,12 @@ def build_multitask_validation(
                 )
             started = perf_counter()
             config = parse_configuration(record.sanitized_text, filename="evaluated.cfg")
-            prediction = predict_multitask(result, record)
+            prediction = predict(record)
             elapsed = perf_counter() - started
             if prediction.category_scores is None or prediction.anomaly_score is None:
                 raise ValueError("required heads are unavailable")
             lines = None
-            if annotation.localization_reviewed and result.report.loss_weights.localization:
+            if annotation.localization_reviewed and localization_enabled:
                 ignored = set(annotation.ignored_lines)
                 lines = LineAnnotation(
                     total_lines=len(prediction.line_scores),

@@ -13,7 +13,7 @@
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted manifests, actual numeric scoring; [demo](demo-runbook.md) | Synthetic functional checks не измеряют эксплуатационные false positives |
-| Transformer pipeline и контрольные сравнения | Train-only tokenizer, joint objectives/heads, source binding/save/load; [измеренный transfer](pretraining-transfer.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, внешний pretrained path, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
+| Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual optional document encoder, schema/citation-constrained provider transport | Настоящая instruct-модель и её качество не проверены; vendor/internal source library требует прав и отбора |
 | Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; no status promotion without formal inputs | Live Batfish не подтверждён; безопасный management access/device syntax/engineer approval не реализованы как квалифицированный end-to-end переход |
@@ -41,8 +41,11 @@ Measured anomaly/category F1 и line recall равны **0** на selection diag
 loss; нет оправдания переносить scores в production risk или считать их calibrated.
 
 Multilingual MiniLM фактически загружен и используется для **документного** поиска.
-Он не выдается за Config Transformer, instruct LLM или pretrained config foundation.
-Общий external pretrained/parameter-efficient transfer путь остаётся открытым.
+Он не выдается за Config Transformer, instruct LLM или config-pretrained foundation.
+Отдельный external transfer использует настоящие hidden token features этих
+замороженных весов для конфигурационных adapter/heads: 114521 trainable,
+20 epochs, F1/line recall=0. Это не документные cosine vectors, attention LoRA
+или независимое качество; внешняя pretraining exposure явно неизвестна.
 Раздельный temperature/threshold fitting реализован, но нужен независимый
 размеченный calibration cohort, а не epoch-selection validation.
 
@@ -73,9 +76,9 @@ production-команд не входит в этот workflow и не доба�
 точной модели/корпуса/thresholds и источников. Артефакты/checksums — evidence
 целостности, не издательская подпись, label truth или успешная внешняя проверка.
 
-Для текущего published ML-review этапа
-[CI всех трёх jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37636385255)
-успешен. Local baseline этого этапа: 1279 backend tests passed, live Batfish и
+Для published demo этапа
+[CI всех трёх jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37639134290)
+успешен. Local baseline этого этапа: 1282 backend tests passed, live Batfish и
 explicit local PostgreSQL test skipped; PostgreSQL/Compose проверены отдельно
 этим CI. Local full suite с новым demo: 1282 passed, те же два explicit skips;
 ruff и mypy на обеих платформах чистые, десять installed-wheel сценариев пройдены.

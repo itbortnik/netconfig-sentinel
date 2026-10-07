@@ -357,6 +357,21 @@ def _rows(
         if semantic_pairs:
             raise ValueError("legacy MLM transfer cannot silently ignore semantic labels")
         validate_pretrained_corpus(originals, pretrained)
+    return validate_supervised_rows(splits, examples, policy)
+
+
+def validate_supervised_rows(
+    splits: DatasetSplitResult,
+    examples: tuple[SupervisedExample, ...],
+    policy: HeadPolicy,
+) -> dict[DatasetSplit, tuple[SupervisedExample, ...]]:
+    """Original-parent and annotation checks independent of encoder provenance.
+
+    External pretraining exposure cannot be proven by these local split checks.
+    """
+    splits = DatasetSplitResult.model_validate(splits.model_dump())
+    policy = HeadPolicy.model_validate(policy.model_dump())
+    _validate_split_entities(splits)
     parents = {
         (record.source_id, record.record_id): (part.split, record)
         for part in splits.partitions
@@ -472,6 +487,85 @@ def _targets(
     )
 
 
+@dataclass(frozen=True)
+class FittedHeads:
+    heads: MultiTaskHeads
+    losses: tuple[SupervisedEpoch, ...]
+    best_epoch: int
+    supervised_counts: dict[str, int]
+    validation_supervised_counts: dict[str, int]
+
+
+def fit_aligned_heads(
+    rows: dict[DatasetSplit, tuple[SupervisedExample, ...]],
+    features: dict[DatasetSplit, tuple[AlignedFeatures, ...]],
+    hidden_size: int,
+    head_policy: HeadPolicy,
+    policy: FineTunePolicy,
+    weights: LossWeights,
+) -> FittedHeads:
+    """Shared numerical fit; caller binds provenance, budgets and RNG/runtime state."""
+    targets = {split: _targets(rows[split], feature) for split, feature in features.items()}
+    heads = MultiTaskHeads(hidden_size, head_policy)
+    optimizer = torch.optim.AdamW(
+        heads.parameters(), lr=policy.learning_rate, weight_decay=policy.weight_decay
+    )
+    losses, best, selected_epoch = [], float("inf"), 0
+    selected_state = {}
+    for epoch in range(1, policy.epochs + 1):
+        heads.train()
+        train_features = features[DatasetSplit.TRAIN]
+        train_output = heads(
+            tuple(item.blocks for item in train_features),
+            tuple(item.lines for item in train_features),
+        )
+        train_loss = multitask_loss(train_output, targets[DatasetSplit.TRAIN], weights)
+        optimizer.zero_grad(set_to_none=True)
+        train_loss.total.backward()  # type: ignore[no-untyped-call]
+        torch.nn.utils.clip_grad_norm_(
+            heads.parameters(), policy.gradient_clip, error_if_nonfinite=True
+        )
+        optimizer.step()
+        heads.eval()
+        validation_features = features[DatasetSplit.VALIDATION]
+        with torch.no_grad():
+            validation_output = heads(
+                tuple(item.blocks for item in validation_features),
+                tuple(item.lines for item in validation_features),
+            )
+            val_loss = multitask_loss(validation_output, targets[DatasetSplit.VALIDATION], weights)
+        val = float(val_loss.total)
+        losses.append(
+            SupervisedEpoch(
+                epoch=epoch,
+                train_total=float(train_loss.total.detach()),
+                validation_total=val,
+                train_components={
+                    name: float(value.detach()) if value is not None else None
+                    for name, value in train_loss.components.items()
+                },
+                validation_components={
+                    name: float(value) if value is not None else None
+                    for name, value in val_loss.components.items()
+                },
+            )
+        )
+        if val < best:
+            best, selected_epoch = val, epoch
+            selected_state = {
+                name: value.detach().clone() for name, value in heads.state_dict().items()
+            }
+    heads.load_state_dict(selected_state)
+    heads.eval()
+    return FittedHeads(
+        heads,
+        tuple(losses),
+        selected_epoch,
+        train_loss.supervised_counts,
+        val_loss.supervised_counts,
+    )
+
+
 def train_multitask(
     splits: DatasetSplitResult,
     pretrained: PretrainedEncoder,
@@ -517,60 +611,14 @@ def train_multitask(
                         raise ValueError("supervised feature/window budget exceeded")
                     aligned.append(feature)
                 features[split] = tuple(aligned)
-            targets = {split: _targets(rows[split], feature) for split, feature in features.items()}
-            heads = MultiTaskHeads(encoder.report.encoder_policy.hidden_size, head_policy)
-            optimizer = torch.optim.AdamW(
-                heads.parameters(), lr=policy.learning_rate, weight_decay=policy.weight_decay
+            fitted = fit_aligned_heads(
+                rows,
+                features,
+                encoder.report.encoder_policy.hidden_size,
+                head_policy,
+                policy,
+                weights,
             )
-            losses, best, selected_epoch = [], float("inf"), 0
-            selected_state = {}
-            for epoch in range(1, policy.epochs + 1):
-                heads.train()
-                train_features = features[DatasetSplit.TRAIN]
-                train_output = heads(
-                    tuple(item.blocks for item in train_features),
-                    tuple(item.lines for item in train_features),
-                )
-                train_loss = multitask_loss(train_output, targets[DatasetSplit.TRAIN], weights)
-                optimizer.zero_grad(set_to_none=True)
-                train_loss.total.backward()  # type: ignore[no-untyped-call]
-                torch.nn.utils.clip_grad_norm_(
-                    heads.parameters(), policy.gradient_clip, error_if_nonfinite=True
-                )
-                optimizer.step()
-                heads.eval()
-                validation_features = features[DatasetSplit.VALIDATION]
-                with torch.no_grad():
-                    validation_output = heads(
-                        tuple(item.blocks for item in validation_features),
-                        tuple(item.lines for item in validation_features),
-                    )
-                    val_loss = multitask_loss(
-                        validation_output, targets[DatasetSplit.VALIDATION], weights
-                    )
-                val = float(val_loss.total)
-                losses.append(
-                    SupervisedEpoch(
-                        epoch=epoch,
-                        train_total=float(train_loss.total.detach()),
-                        validation_total=val,
-                        train_components={
-                            name: float(value.detach()) if value is not None else None
-                            for name, value in train_loss.components.items()
-                        },
-                        validation_components={
-                            name: float(value) if value is not None else None
-                            for name, value in val_loss.components.items()
-                        },
-                    )
-                )
-                if val < best:
-                    best, selected_epoch = val, epoch
-                    selected_state = {
-                        name: value.detach().clone() for name, value in heads.state_dict().items()
-                    }
-            heads.load_state_dict(selected_state)
-            heads.eval()
     finally:
         torch.use_deterministic_algorithms(deterministic, warn_only=warn)
         torch.set_num_threads(previous_threads)
@@ -596,13 +644,13 @@ def train_multitask(
         },
         train_examples=len(rows[DatasetSplit.TRAIN]),
         validation_examples=len(rows[DatasetSplit.VALIDATION]),
-        trainable_parameters=sum(parameter.numel() for parameter in heads.parameters()),
-        parameter_count=sum(parameter.numel() for parameter in heads.parameters())
+        trainable_parameters=sum(parameter.numel() for parameter in fitted.heads.parameters()),
+        parameter_count=sum(parameter.numel() for parameter in fitted.heads.parameters())
         + encoder.report.parameter_count,
-        supervised_counts=train_loss.supervised_counts,
-        validation_supervised_counts=val_loss.supervised_counts,
-        losses=tuple(losses),
-        best_epoch=selected_epoch,
+        supervised_counts=fitted.supervised_counts,
+        validation_supervised_counts=fitted.validation_supervised_counts,
+        losses=fitted.losses,
+        best_epoch=fitted.best_epoch,
         torch_version=torch.__version__,
     )
     if isinstance(encoder, PretrainingResult):
@@ -610,8 +658,8 @@ def train_multitask(
             **report.model_dump(exclude={"version"}),
             pretraining=validate_objective_source(splits, encoder, semantic_pairs),
         )
-        return MultiTaskResult(encoder, heads, transfer_report)
-    return MultiTaskResult(encoder, heads, report)
+        return MultiTaskResult(encoder, fitted.heads, transfer_report)
+    return MultiTaskResult(encoder, fitted.heads, report)
 
 
 def multitask_identity(result: MultiTaskResult) -> str:
@@ -644,40 +692,53 @@ def predict_multitask(
         max_windows=report.training_policy.max_total_windows,
         max_feature_values=report.training_policy.max_feature_values,
     )
+    return prediction_from_aligned_features(
+        result.heads,
+        features,
+        report.loss_weights,
+        record.sanitized_sha256,
+        multitask_identity(result),
+    )
+
+
+def prediction_from_aligned_features(
+    heads: MultiTaskHeads,
+    features: AlignedFeatures,
+    weights: LossWeights,
+    source_sha256: str,
+    model_sha256: str,
+) -> MultiTaskPrediction:
+    """Numerical outputs only; caller verifies full source/model/provenance bindings."""
     with torch.no_grad():
-        output = result.heads((features.blocks,), (features.lines,))
+        output = heads((features.blocks,), (features.lines,))
         scores: list[float | None] = [None] * features.total_lines
-        if report.loss_weights.localization:
+        if weights.localization:
             for line, score in zip(
                 features.line_numbers, output.line_logits.sigmoid().tolist(), strict=True
             ):
                 scores[line - 1] = float(score)
         return MultiTaskPrediction(
-            source_sha256=record.sanitized_sha256,
-            model_sha256=multitask_identity(result),
-            anomaly_score=float(output.anomaly_logits.sigmoid()[0])
-            if report.loss_weights.anomaly
-            else None,
+            source_sha256=source_sha256,
+            model_sha256=model_sha256,
+            anomaly_score=float(output.anomaly_logits.sigmoid()[0]) if weights.anomaly else None,
             category_scores=dict(
                 zip(
-                    report.head_policy.classes,
+                    heads.policy.classes,
                     output.category_logits.sigmoid()[0].tolist(),
                     strict=True,
                 )
             )
-            if report.loss_weights.category
+            if weights.category
             else None,
             severity_scores=dict(
                 zip(
                     SEVERITY_CLASSES, output.severity_logits.softmax(dim=1)[0].tolist(), strict=True
                 )
             )
-            if report.loss_weights.severity
+            if weights.severity
             else None,
             line_scores=tuple(scores),
-            embedding=tuple(output.embeddings[0].tolist())
-            if report.loss_weights.contrastive
-            else None,
+            embedding=tuple(output.embeddings[0].tolist()) if weights.contrastive else None,
             block_attention=tuple(output.block_attention[0].tolist()),
         )
 
