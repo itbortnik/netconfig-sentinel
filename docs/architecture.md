@@ -98,7 +98,8 @@ Peer comparison is a separate deterministic detector:
 The [versioned policy catalog](policy-catalog.md) has 30 distinct review
 requirements. Its 20-rule predecessor remains available for recomputing/explaining
 recorded findings; old histories are not rescored. Current document retrieval is
-hash-bound but does not claim full historic document archiving.
+hash-bound; the two supported historic source releases are sealed and packaged,
+not an archive of arbitrary past vendor/internal documentation.
 
 ```text
 explicit peer inventory -> consensus profile -> target comparison -> Finding[]

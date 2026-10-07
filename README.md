@@ -6,6 +6,9 @@
 Неподдержанные команды сохраняются с provenance. Готовность к production,
 формальная проверка достижимости и автоматическое применение не заявляются.
 
+Сквозной owned-fixture сценарий — в [демонстрационном runbook](docs/demo-runbook.md).
+Подтверждённые возможности и незакрытые gates — в [карте готовности](docs/readiness.md).
+
 ## Реализовано
 
 - FastAPI с `GET /health`, `GET /ready` и защищённым API конфигураций и анализов;
@@ -194,19 +197,21 @@ backend/app/
   db/                  SQLAlchemy, шифрование, миграции, история и аудит записей
   domain/              канонические публичные контракты
   parsers/             определение вендора и независимые адаптеры
-  ingestion/           будущий безопасный приём конфигураций
+  ingestion/           bounded text validation и локальные входы
   normalization/       будущая нормализация расширенных объектов
   policies/            декларативный версионированный каталог политик
-  detection/           policy engine, будущие детекторы и risk fusion
-  verification/        будущая формальная проверка
+  detection/           policy/reference/peer/forest, risk fusion и topology interface
+  verification/        local preflight и experimental explicit Batfish adapter
   explanation/         локальные объяснения, источники и строгая граница LLM
-  patching/            будущие предложения патчей
+  patching/            source-bound native drafts и persistent normalized reviews
+  demo/                owned-fixture ASGI/SQLite workflow без production claims
   audit/               encrypted receipt/completion, bindings и keyset history
 ml/
   datasets/            импорт, дедупликация, разбиение, качество и артефакты
   mutation/            обратимые синтетические аномалии и разметка
   training/            маскирование, encoder, CPU-обучение и checkpoint
   retrieval/           pinned local document encoder и offline vector diagnostics
+  inference/           private pinned-model pre/post diagnostics, без risk/status mutation
   preprocessing/       детерминированное обезличивание конфигураций
 frontend/              React + TypeScript, контракты ответов и браузерные тесты
 ```

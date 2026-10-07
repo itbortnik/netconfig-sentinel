@@ -103,7 +103,8 @@ analysis, snapshot, device, source/finding hashes и открытые metadata �
 Audit `finding.feedback_recorded` хранит ID оценки, action и timestamp, не comment
 или verdict. SQL UUID, связи и время открыты. Шифрование не защищает от владельца
 токена, компрометации ключа/процесса или удаления/сокрытия строк DB-admin.
-Нет внешнего append-only аудита, RBAC, независимой верификации эксперта,
+Есть service RBAC и отдельный [operation journal](operation-audit.md), но нет
+внешнего WORM-аудита, индивидуальной identity, независимой верификации эксперта,
 rate limit, retention policy или общей квоты истории.
 
 Unit/API/browser tests проверяют строгие контракты, привязки, конфликт/повтор ID,
