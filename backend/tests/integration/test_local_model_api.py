@@ -7,9 +7,10 @@ from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
+from app.audit.contracts import metadata_hash
 from app.core.local_model import LocalModelSettings
 from app.core.settings import ApiSettings
 from app.db.migrate import upgrade_database
@@ -209,6 +210,17 @@ def test_model_draft_uses_redacted_wire_and_never_changes_saved_scores(model_api
     response = explain(client, result)
     assert response.status_code == 200, response.text
     bundle = response.json()
+    operation = client.app.state.operation_journal.get(UUID(response.headers["X-Operation-Id"]))
+    audit = operation.completion.result
+    assert audit.context_sha256 == bundle["context_sha256"]
+    assert audit.model_alias_sha256 == metadata_hash(model.model)
+    assert bundle["privacy_version"] in audit.versions
+    assert {item.permission for item in operation.completion.permissions} == {
+        "read",
+        "model_explanation",
+    }
+    assert MODEL_KEY not in operation.model_dump_json()
+    assert "Synthetic model draft" not in operation.model_dump_json()
     assert bundle["llm_status"] == "draft"
     assert bundle["explanation"] == result["explanations"][0]
     assert bundle["answer"]["requires_human_review"] is True

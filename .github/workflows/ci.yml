@@ -48,7 +48,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -e ".[dev]"
-      - run: pytest -q backend/tests/integration/test_postgres_api.py backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py
+      - run: pytest -q backend/tests/integration/test_postgres_api.py backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py backend/tests/integration/test_operation_audit.py
 
   frontend:
     runs-on: ubuntu-latest

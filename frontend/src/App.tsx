@@ -25,6 +25,7 @@ import { statisticalOptions, trainingOptions } from "./models";
 import { DiffPanel } from "./DiffPanel";
 import { diffSelection } from "./diff";
 import type { DiffSelection } from "./diff";
+import { AuditPanel } from "./AuditPanel";
 
 function Login({
   busy,
@@ -485,6 +486,13 @@ export function App() {
               . Все сохранённые устройства доступны для чтения; личность
               владельца ключа не подтверждается.
             </p>
+            {session.permits("read_audit") && (
+              <AuditPanel
+                key={sessionEpoch}
+                client={session}
+                onError={failure}
+              />
+            )}
             <div
               className={
                 tab === "configurations" && session.permits("upload")

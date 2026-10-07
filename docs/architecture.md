@@ -16,6 +16,10 @@ must depend on the domain contracts rather than on vendor parser internals.
 Fixed [service-key roles](service-roles.md) enforce read/upload/analyze/engineer/train
 permissions before write-body processing. UI validates `/session` before enabling
 operations; all roles still share access to saved devices, without individual identity.
+The encrypted [operation journal](operation-audit.md) writes a durable receipt before
+dispatch and an independently bound response completion. Admin-only keyset history
+covers reads and denials without bodies/model prose; missing completion stays pending.
+It is separate from atomic domain events, not proof of delivery or external completeness.
 
 The current persistent HTTP path is deliberately narrower than the offline tooling:
 

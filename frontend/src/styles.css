@@ -870,3 +870,24 @@ footer {
     position: static;
   }
 }
+.audit-panel {
+  margin-bottom: 1.5rem;
+}
+.audit-records {
+  display: grid;
+  gap: 0.5rem;
+}
+.audit-record {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+.audit-detail {
+  margin-top: 1rem;
+}
+.audit-panel code,
+.audit-panel p,
+.audit-record {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}

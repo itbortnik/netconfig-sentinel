@@ -3,11 +3,12 @@
 import json
 import subprocess
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import numpy as np
 import pytest
 from app.api.explanation_contracts import ExplanationBundle
+from app.audit.contracts import metadata_hash
 from app.core.document_retrieval import DocumentRetrievalSettings
 from app.core.settings import ApiSettings
 from app.db.migrate import upgrade_database
@@ -167,6 +168,13 @@ def test_semantic_sources_preserve_required_references_scores_history_and_reader
     assert bundle["explanation"] == result["explanations"][0]
     assert PRIVATE not in response.text
     metadata = bundle["semantic_retrieval"]
+    operation = app.state.operation_journal.get(UUID(response.headers["X-Operation-Id"]))
+    audit = operation.completion.result
+    assert audit.document_index_sha256 == metadata["index_sha256"]
+    assert audit.document_encoder_sha256 == metadata_hash(metadata["encoder"])
+    assert audit.retrieval == "semantic_supplement"
+    assert metadata["encoder"]["pipeline_version"] in audit.versions
+    assert PRIVATE not in operation.model_dump_json()
     assert metadata["query_source"] == "public_detector_metadata"
     assert metadata["required_citations"] == result["explanations"][0]["citations"]
     assert bundle["documents"][0]["citation"] in metadata["required_citations"]

@@ -66,7 +66,7 @@ def test_session_has_exact_permissions_without_credentials_or_identity_claim(rol
     response = client.get("/api/v1/session", headers=headers(role))
     assert response.status_code == 200
     assert response.json() == {
-        "version": "service-access-0.1.0",
+        "version": "service-access-0.2.0",
         "role": role,
         "permissions": list(PERMISSIONS[role]),
         "individual_identity_verified": False,

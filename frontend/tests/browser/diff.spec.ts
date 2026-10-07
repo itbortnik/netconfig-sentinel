@@ -317,4 +317,6 @@ test("logout ignores a delayed comparison response and clears selected IDs", asy
   ).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
   await expect(page.getByRole("alert")).toHaveCount(0);
+  // Await the released intercepted request before closing its browser context.
+  await page.unrouteAll({ behavior: "wait" });
 });

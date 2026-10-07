@@ -170,5 +170,9 @@ CI повторяет браузерный сценарий
 против настоящего Compose backend/PostgreSQL. `NETCONFIG_E2E_BASE_URL` допустим
 только для явного `http://127.0.0.1:<port>` с тестовым токеном; не указывайте рабочий API.
 
-Firefox/Safari, специализированный accessibility audit, TLS/RBAC и production
+Admin имеет отдельный [журнал](operation-audit.md): роли/permissions/outcomes,
+versions/hashes, keyset paging и явный неподтверждённый итог. Browser checks
+проверяют недоступность для остальных ролей и неверную SHA-привязку.
+
+Firefox/Safari, специализированный accessibility audit, TLS и production
 нагрузка пока не проверены. Успех unit/browser tests не означает готовность всего MVP.

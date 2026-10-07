@@ -25,6 +25,7 @@ from app.api.patch_contracts import (
     VerifyPatch,
 )
 from app.api.service import AnalysisService
+from app.audit.results import capture_result
 from app.comparison.snapshots import DiffConflict, DiffLimitExceeded
 from app.db.patch_records import PatchConflict
 from app.patching.persistent import FormalVerificationUnavailable, PatchNotFound, PatchWorkflow
@@ -73,29 +74,36 @@ async def create_patch(request: Request, response: Response, service: DraftServi
     except (PatchNotFound, PatchConflict, DiffConflict, DiffLimitExceeded) as exception:
         raise _error(exception) from None
     response.status_code = 201 if created else 200
-    return result
+    return capture_result(request, result)
 
 
 @router.get("", response_model=list[PatchSummary])
 def list_patches(
-    after_configuration_id: UUID, service: Service, limit: Limit = 20, offset: Offset = 0
+    after_configuration_id: UUID,
+    request: Request,
+    service: Service,
+    limit: Limit = 20,
+    offset: Offset = 0,
 ) -> list[PatchSummary]:
     if service.store.get_configuration(after_configuration_id) is None:
         raise _error(PatchNotFound())
-    return [
-        PatchSummary.from_draft(item)
-        for item in PatchWorkflow(service.store).records.list_drafts(
-            after_id=after_configuration_id,
-            limit=limit,
-            offset=offset,
-        )
-    ]
+    return capture_result(
+        request,
+        [
+            PatchSummary.from_draft(item)
+            for item in PatchWorkflow(service.store).records.list_drafts(
+                after_id=after_configuration_id,
+                limit=limit,
+                offset=offset,
+            )
+        ],
+    )
 
 
 @router.get("/{patch_id}", response_model=PatchDraft)
-def get_patch(patch_id: UUID, service: Service) -> PatchDraft:
+def get_patch(patch_id: UUID, request: Request, service: Service) -> PatchDraft:
     try:
-        return PatchWorkflow(service.store).draft(patch_id)
+        return capture_result(request, PatchWorkflow(service.store).draft(patch_id))
     except PatchNotFound as exception:
         raise _error(exception) from None
 
@@ -139,26 +147,31 @@ async def verify_patch(
     ) as exception:
         raise _error(exception) from None
     response.status_code = 201 if created else 200
-    return result
+    return capture_result(request, result)
 
 
 @router.get("/{patch_id}/verifications", response_model=list[VerificationSummary])
 def list_verifications(
-    patch_id: UUID, service: Service, limit: Limit = 20, offset: Offset = 0
+    patch_id: UUID, request: Request, service: Service, limit: Limit = 20, offset: Offset = 0
 ) -> list[VerificationSummary]:
     workflow = PatchWorkflow(service.store)
     try:
         draft = workflow.draft(patch_id)
     except PatchNotFound as exception:
         raise _error(exception) from None
-    return [
-        VerificationSummary.from_run(run)
-        for run in workflow.records.list_reviews(draft, limit=limit, offset=offset)
-    ]
+    return capture_result(
+        request,
+        [
+            VerificationSummary.from_run(run)
+            for run in workflow.records.list_reviews(draft, limit=limit, offset=offset)
+        ],
+    )
 
 
 @router.get("/{patch_id}/verifications/{verification_id}", response_model=VerificationRun)
-def get_verification(patch_id: UUID, verification_id: UUID, service: Service) -> VerificationRun:
+def get_verification(
+    patch_id: UUID, verification_id: UUID, request: Request, service: Service
+) -> VerificationRun:
     workflow = PatchWorkflow(service.store)
     try:
         workflow.draft(patch_id)
@@ -167,4 +180,4 @@ def get_verification(patch_id: UUID, verification_id: UUID, service: Service) ->
     run = workflow.records.get_review(verification_id)
     if run is None or run.patch_id != patch_id:
         raise _error(PatchNotFound())
-    return run
+    return capture_result(request, run)

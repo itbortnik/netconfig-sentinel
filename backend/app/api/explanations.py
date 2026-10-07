@@ -16,6 +16,7 @@ from app.api.explanation_contracts import (
     ModelExplanationBundle,
 )
 from app.api.service import AnalysisService, FeedbackTargetNotFound
+from app.audit.results import capture_result
 from app.db.store import StorageIntegrityError
 from app.domain.fingerprints import finding_fingerprint
 from app.explanation.knowledge import (
@@ -166,10 +167,13 @@ def _explain(
 
 @router.get("/explanation-capabilities", response_model=ExplanationCapabilities)
 def explanation_capabilities(request: Request, service: Service) -> ExplanationCapabilities:
-    return ExplanationCapabilities(
-        local_model="configured" if request.app.state.local_model is not None else "disabled",
-        semantic_retrieval=(
-            "configured" if request.app.state.document_retrieval is not None else "disabled"
+    return capture_result(
+        request,
+        ExplanationCapabilities(
+            local_model="configured" if request.app.state.local_model is not None else "disabled",
+            semantic_retrieval=(
+                "configured" if request.app.state.document_retrieval is not None else "disabled"
+            ),
         ),
     )
 
@@ -197,13 +201,16 @@ async def explain_finding(
     try:
         if options.provider == "llm":
             authorize(request, "model_explanation")
-        return await run_in_threadpool(
-            _explain,
-            service,
-            finding_id,
-            options,
-            request.app.state.local_model,
-            request.app.state.document_retrieval,
+        return capture_result(
+            request,
+            await run_in_threadpool(
+                _explain,
+                service,
+                finding_id,
+                options,
+                request.app.state.local_model,
+                request.app.state.document_retrieval,
+            ),
         )
     except FeedbackTargetNotFound:
         raise HTTPException(status_code=404, detail="Analysis finding not found.") from None

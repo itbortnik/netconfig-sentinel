@@ -53,6 +53,9 @@ class Store:
         self.engine.dispose()
 
     def ready(self) -> bool:
+        return self.schema_ready()
+
+    def schema_ready(self) -> bool:
         try:
             with self.engine.connect() as connection:
                 revisions = (
@@ -71,6 +74,8 @@ class Store:
                     "finding_feedback",
                     "patch_proposals",
                     "verification_runs",
+                    "operation_receipts",
+                    "operation_completions",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True

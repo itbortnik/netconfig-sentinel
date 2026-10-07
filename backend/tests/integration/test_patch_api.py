@@ -352,8 +352,9 @@ def test_record_and_audit_rollback_together(patch_api, kind):
 
     event.listen(service.store.engine, "before_cursor_execute", reject_audit)
     try:
-        with pytest.raises(RuntimeError, match="synthetic audit failure"):
-            verify(client, draft) if draft else create(client, body)
+        response = verify(client, draft) if draft else create(client, body)
+        assert response.status_code == 500
+        assert "synthetic audit failure" not in response.text
     finally:
         event.remove(service.store.engine, "before_cursor_execute", reject_audit)
     table = "verification_runs" if kind == "review" else "patch_proposals"
@@ -412,6 +413,9 @@ def test_upgrade_from_feedback_revision_preserves_existing_history(patch_api):
     ).json()
     # Represent an actual pre-draft database without deleting any existing records.
     with service.store.engine.begin() as connection:
+        # These two new-schema tables did not exist at the represented historical revision.
+        connection.exec_driver_sql("DROP TABLE operation_completions")
+        connection.exec_driver_sql("DROP TABLE operation_receipts")
         connection.exec_driver_sql("DROP TABLE verification_runs")
         connection.exec_driver_sql("DROP TABLE patch_proposals")
         connection.execute(text("UPDATE alembic_version SET version_num='0003_finding_feedback'"))

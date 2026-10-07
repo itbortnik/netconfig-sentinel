@@ -5,7 +5,15 @@ from typing import Literal
 
 Role = Literal["reader", "analyst", "engineer", "admin"]
 Permission = Literal[
-    "read", "upload", "analyze", "train_model", "feedback", "draft", "verify", "model_explanation"
+    "read",
+    "upload",
+    "analyze",
+    "train_model",
+    "feedback",
+    "draft",
+    "verify",
+    "model_explanation",
+    "read_audit",
 ]
 ROLE_PERMISSIONS: dict[Role, tuple[Permission, ...]] = {
     "reader": ("read",),
@@ -20,6 +28,7 @@ ROLE_PERMISSIONS: dict[Role, tuple[Permission, ...]] = {
         "draft",
         "verify",
         "model_explanation",
+        "read_audit",
     ),
 }
 PERMISSIONS = MappingProxyType(ROLE_PERMISSIONS)

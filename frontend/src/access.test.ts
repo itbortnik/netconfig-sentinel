@@ -4,7 +4,7 @@ import { rolePermissions, sessionAccessSchema } from "./contracts";
 
 const token = "synthetic-access-unit-token-000000001";
 const session = (role: keyof typeof rolePermissions) => ({
-  version: "service-access-0.1.0",
+  version: "service-access-0.2.0",
   role,
   permissions: [...rolePermissions[role]],
   individual_identity_verified: false,
@@ -71,4 +71,28 @@ it("never defaults to administrator on an unavailable session endpoint", async (
 });
 it("rejects oversized credentials before any request", () => {
   expect(() => new ApiClient("x".repeat(513))).toThrow();
+});
+it("accepts legacy administrator without granting access to the operation journal", async () => {
+  const legacy = {
+    ...session("admin"),
+    version: "service-access-0.1.0",
+    permissions: rolePermissions.admin.filter(
+      (permission) => permission !== "read_audit",
+    ),
+  };
+  const api = new ApiClient(
+    token,
+    vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify(legacy))),
+  );
+  await api.access();
+  expect(api.permits("read_audit")).toBe(false);
+  expect(
+    sessionAccessSchema.safeParse({
+      ...legacy,
+      permissions: rolePermissions.admin,
+    }).success,
+  ).toBe(false);
+  api.close();
 });

@@ -18,6 +18,7 @@ from app.api.configurations import (
 )
 from app.api.feedback_contracts import FeedbackRecord, SubmitFeedback
 from app.api.service import AnalysisService, FeedbackTargetNotFound
+from app.audit.results import capture_result
 from app.db.store import FeedbackConflict
 
 router = APIRouter(prefix="/api/v1", tags=["feedback"])
@@ -59,17 +60,25 @@ async def submit_feedback(
             status_code=409, detail="Feedback identity or finding binding conflicts."
         ) from None
     response.status_code = 201 if created else 200
-    return record
+    return capture_result(request, record)
 
 
 @router.get("/findings/{finding_id}/feedback", response_model=list[FeedbackRecord])
 def list_feedback(
-    finding_id: UUID, analysis_id: UUID, service: Service, limit: Limit = 20, offset: Offset = 0
+    finding_id: UUID,
+    analysis_id: UUID,
+    request: Request,
+    service: Service,
+    limit: Limit = 20,
+    offset: Offset = 0,
 ) -> list[FeedbackRecord]:
     try:
         analysis, _ = service.feedback_target(analysis_id, finding_id)
     except FeedbackTargetNotFound:
         raise HTTPException(status_code=404, detail="Analysis finding not found.") from None
-    return service.store.list_feedback(
-        analysis=analysis, finding_id=finding_id, limit=limit, offset=offset
+    return capture_result(
+        request,
+        service.store.list_feedback(
+            analysis=analysis, finding_id=finding_id, limit=limit, offset=offset
+        ),
     )

@@ -22,6 +22,7 @@ from app.api.contracts import (
     UploadConfiguration,
 )
 from app.api.service import AnalysisService, ModelTrainingBusy
+from app.audit.results import capture_result
 from app.db.store import DeviceIdentityConflict
 from app.domain import Finding
 
@@ -133,7 +134,7 @@ async def train_model(request: Request, service: TrainingService) -> ModelSummar
     except (ValueError, RecursionError):
         raise HTTPException(status_code=400, detail="Invalid training options.") from None
     try:
-        return await run_in_threadpool(service.train_model, options)
+        result = await run_in_threadpool(service.train_model, options)
     except ModelTrainingBusy:
         raise HTTPException(
             status_code=429,
@@ -144,23 +145,27 @@ async def train_model(request: Request, service: TrainingService) -> ModelSummar
         raise HTTPException(
             status_code=400, detail="Training inputs are unavailable or incompatible."
         ) from None
+    return capture_result(request, result)
 
 
 @router.get("/models", response_model=list[ModelSummary])
 def list_models(
+    request: Request,
     service: Service,
     limit: Annotated[int, Query(ge=1, le=20)] = 20,
     offset: Offset = 0,
 ) -> list[ModelSummary]:
-    return [item.summary for item in service.store.list_models(limit=limit, offset=offset)]
+    return capture_result(
+        request, [item.summary for item in service.store.list_models(limit=limit, offset=offset)]
+    )
 
 
 @router.get("/models/{model_id}", response_model=ModelSummary)
-def get_model(model_id: UUID, service: Service) -> ModelSummary:
+def get_model(model_id: UUID, request: Request, service: Service) -> ModelSummary:
     model = service.store.get_model(model_id)
     if model is None:
         raise HTTPException(status_code=404, detail="Model not found.")
-    return model.summary
+    return capture_result(request, model.summary)
 
 
 @router.post(
@@ -177,7 +182,7 @@ def get_model(model_id: UUID, service: Service) -> ModelSummary:
 async def upload_configuration(request: Request, service: UploadService) -> ConfigurationSnapshot:
     upload = await _upload_body(request)
     try:
-        return await run_in_threadpool(service.upload, upload)
+        result = await run_in_threadpool(service.upload, upload)
     except DeviceIdentityConflict:
         raise HTTPException(
             status_code=409, detail="Device identity conflicts with stored history."
@@ -186,38 +191,48 @@ async def upload_configuration(request: Request, service: UploadService) -> Conf
         raise HTTPException(
             status_code=400, detail="Configuration text is invalid or unsupported."
         ) from None
+    return capture_result(request, result)
 
 
 @router.get("/configurations", response_model=list[ConfigurationSummary])
 def list_configurations(
-    service: Service, device_id: UUID | None = None, limit: Limit = 20, offset: Offset = 0
+    request: Request,
+    service: Service,
+    device_id: UUID | None = None,
+    limit: Limit = 20,
+    offset: Offset = 0,
 ) -> list[ConfigurationSummary]:
-    return [
-        ConfigurationSummary(
-            configuration_id=item.configuration_id,
-            device_id=item.device_id,
-            created_at=item.created_at,
-            filename=item.canonical.source.filename,
-            source_sha256=item.canonical.source.sha256,
-            hostname=item.canonical.device.hostname,
-            vendor=item.canonical.device.vendor.value,
-            platform=item.canonical.device.platform,
-            parser_confidence=item.canonical.parser_confidence,
-            warning_count=len(item.canonical.parse_warnings),
-            unparsed_count=len(item.canonical.unparsed_fragments),
-        )
-        for item in service.store.list_configurations(
-            device_id=device_id, limit=limit, offset=offset
-        )
-    ]
+    return capture_result(
+        request,
+        [
+            ConfigurationSummary(
+                configuration_id=item.configuration_id,
+                device_id=item.device_id,
+                created_at=item.created_at,
+                filename=item.canonical.source.filename,
+                source_sha256=item.canonical.source.sha256,
+                hostname=item.canonical.device.hostname,
+                vendor=item.canonical.device.vendor.value,
+                platform=item.canonical.device.platform,
+                parser_confidence=item.canonical.parser_confidence,
+                warning_count=len(item.canonical.parse_warnings),
+                unparsed_count=len(item.canonical.unparsed_fragments),
+            )
+            for item in service.store.list_configurations(
+                device_id=device_id, limit=limit, offset=offset
+            )
+        ],
+    )
 
 
 @router.get("/configurations/{configuration_id}", response_model=ConfigurationSnapshot)
-def get_configuration(configuration_id: UUID, service: Service) -> ConfigurationSnapshot:
+def get_configuration(
+    configuration_id: UUID, request: Request, service: Service
+) -> ConfigurationSnapshot:
     item = service.store.get_configuration(configuration_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Configuration not found.")
-    return item
+    return capture_result(request, item)
 
 
 @router.post(
@@ -243,37 +258,45 @@ async def analyze_configuration(
         ) from None
     if result is None:
         raise HTTPException(status_code=404, detail="Configuration not found.")
-    return result
+    return capture_result(request, result)
 
 
 @router.get("/analyses", response_model=list[AnalysisSummary])
 def list_analyses(
-    service: Service, configuration_id: UUID | None = None, limit: Limit = 20, offset: Offset = 0
+    request: Request,
+    service: Service,
+    configuration_id: UUID | None = None,
+    limit: Limit = 20,
+    offset: Offset = 0,
 ) -> list[AnalysisSummary]:
-    return [
-        AnalysisSummary(
-            analysis_id=item.analysis_id,
-            configuration_id=item.configuration_id,
-            device_id=item.device_id,
-            created_at=item.created_at,
-            status=item.status,
-            finding_count=len(item.findings),
-            policy_catalog_version=item.policy_catalog_version,
-        )
-        for item in service.store.list_analyses(
-            configuration_id=configuration_id, limit=limit, offset=offset
-        )
-    ]
+    return capture_result(
+        request,
+        [
+            AnalysisSummary(
+                analysis_id=item.analysis_id,
+                configuration_id=item.configuration_id,
+                device_id=item.device_id,
+                created_at=item.created_at,
+                status=item.status,
+                finding_count=len(item.findings),
+                policy_catalog_version=item.policy_catalog_version,
+            )
+            for item in service.store.list_analyses(
+                configuration_id=configuration_id, limit=limit, offset=offset
+            )
+        ],
+    )
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisResult)
-def get_analysis(analysis_id: UUID, service: Service) -> AnalysisResult:
+def get_analysis(analysis_id: UUID, request: Request, service: Service) -> AnalysisResult:
     item = service.store.get_analysis(analysis_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Analysis not found.")
-    return item
+    return capture_result(request, item)
 
 
 @router.get("/analyses/{analysis_id}/findings", response_model=list[Finding])
-def get_findings(analysis_id: UUID, service: Service) -> list[Finding]:
-    return list(get_analysis(analysis_id, service).findings)
+def get_findings(analysis_id: UUID, request: Request, service: Service) -> list[Finding]:
+    analysis = get_analysis(analysis_id, request, service)
+    return capture_result(request, list(analysis.findings))

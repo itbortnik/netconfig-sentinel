@@ -27,6 +27,11 @@ import {
   verificationSummarySchema,
 } from "./patches";
 import type { CreatePatch, VerifyPatch } from "./patches";
+import {
+  operationPageSchema,
+  operationRecordSchema,
+  verifyReceiptBinding,
+} from "./audit";
 
 export class ApiError extends Error {
   constructor(
@@ -47,7 +52,7 @@ const messages: Record<number, string> = {
   415: "Неподдерживаемый формат запроса.",
   422: "Параметры запроса не приняты.",
   429: "Операция уже выполняется. Дождитесь завершения и повторите запрос.",
-  503: "Сервис или источники недоступны. Проверьте настройки API, миграции и ключ шифрования.",
+  503: "Сервис недоступен или итог операции не подтверждён. Проверьте сохранённую историю перед повтором, настройки API, миграции и ключ шифрования.",
 };
 
 export class ApiClient {
@@ -67,6 +72,37 @@ export class ApiClient {
     )
       throw new ApiError(401, messages[401]!);
     this.token = token;
+  }
+  async operationAudit(before?: string) {
+    const query = new URLSearchParams({ limit: "20" });
+    if (before) query.set("before", before);
+    const page = await this.request(
+      `/operation-audit?${query}`,
+      operationPageSchema,
+    );
+    if (
+      !(await Promise.all(page.records.map(verifyReceiptBinding))).every(
+        Boolean,
+      )
+    )
+      throw new ApiError(0, "Привязка записи журнала не подтверждена.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return page;
+  }
+  async operation(id: string) {
+    const record = await this.request(
+      `/operation-audit/${encodeURIComponent(id)}`,
+      operationRecordSchema,
+    );
+    if (
+      record.receipt.operation_id !== id ||
+      !(await verifyReceiptBinding(record))
+    )
+      throw new ApiError(0, "Привязка записи журнала не подтверждена.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return record;
   }
   close() {
     this.token = "";

@@ -13,6 +13,7 @@ service credentials, **не** индивидуальные пользовате�
 | Feedback, создание черновика, локальная проверка | нет | нет | да | да |
 | Явный запрос настроенной локальной LLM | нет | нет | да | да |
 | Обучение Isolation Forest и добавление модели в registry | нет | нет | нет | да |
+| Журнал операций, роли/отказы и версии результата | нет | нет | нет | да |
 
 Доступ не включает применение, patch approval или formal pass: таких операций
 по-прежнему нет. Разрешение роли на LLM **не заменяет** отдельную настройку
@@ -48,7 +49,9 @@ Logout очищает только browser session и не отзывает са
 ## Серверная граница
 
 Каждый protected endpoint проверяет bearer и право до чтения write body и
-доступа к хранилищу. Отсутствующий/неверный key — 401; действующий key без
+доступа к предметным записям. Отдельный [журнал](operation-audit.md) читает только
+schema metadata и записывает receipt до endpoint, включая отказы.
+Отсутствующий/неверный key — 401; действующий key без
 разрешения — общий 403, без раскрытия существования указанной записи.
 Все configured keys сравниваются через constant-time digest comparison;
 credentials не пишутся в request state, ответы или собственные логи.
@@ -57,7 +60,7 @@ credentials не пишутся в request state, ответы или собст
 не принимаются и не могут повысить права.
 
 Авторизованный `GET /api/v1/session` возвращает только контракт
-`service-access-0.1.0`: role, точный список permissions,
+`service-access-0.2.0`: role, точный список permissions (admin включает `read_audit`),
 `individual_identity_verified=false`, `device_scope=all_saved_devices`.
 Ни key, ни список настроенных keys, ни identity оператора не возвращаются.
 Схема storage должна быть актуальной, как для других protected reads.
@@ -72,8 +75,10 @@ UI не является механизмом авторизации: прямо
 ## Ограничения и проверки
 
 Reader key даёт доступ ко всем устройствам; device-scoped policy, tenants,
-индивидуальная attribution и полноценный access/failed-attempt audit пока не
-реализованы. Существующий append-only audit фиксирует успешные creations;
+индивидуальная attribution пока не реализованы. Operation journal отдельно
+фиксирует API reads/denials/outcomes с ролью/permissions и версиями результата;
+domain audit — успешные creations в одной транзакции с записью. Это не внешний
+WORM log и не доказательство полноты истории;
 feedback `actor=shared_service_token` не превращается в идентифицированного
 инженера из-за имени роли. TLS, OS permissions, backup и protection от кражи
 bearer по-прежнему нужны. Это не production security certification.

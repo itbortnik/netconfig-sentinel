@@ -41,6 +41,21 @@ class AuditRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
+class OperationReceiptRow(Base):
+    __tablename__ = "operation_receipts"
+    __table_args__ = (Index("ix_operation_receipts_created_at", "created_at", "id"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)
+
+
+class OperationCompletionRow(Base):
+    __tablename__ = "operation_completions"
+    operation_id: Mapped[str] = mapped_column(ForeignKey("operation_receipts.id"), primary_key=True)
+    completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)
+
+
 class ModelRow(Base):
     __tablename__ = "models"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

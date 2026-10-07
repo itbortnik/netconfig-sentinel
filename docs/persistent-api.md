@@ -31,10 +31,13 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0004_patch_reviews`; перед обновлением существующей БД
+Текущая revision — `0005_operation_journal`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).
+Новая revision включает [журнал операций](operation-audit.md) без raw text/промптов.
+Прошлым запросам receipt не приписывается; сбой completion может оставить уже
+сохранённое изменение.
 SQLite покрыта интеграционными тестами. PostgreSQL 17 проверен отдельным
 [успешным CI job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/36924852321)
 со свежим контейнером: миграции, encrypted history, анализ и перезапуск приложения.

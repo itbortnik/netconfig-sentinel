@@ -15,7 +15,10 @@ async function connect(page: Page) {
     page.getByText("Сессия подключена", { exact: true }),
   ).toBeVisible();
 }
-async function analyze(page: Page): Promise<AnalysisResult> {
+async function analyze(
+  page: Page,
+  waitForHistory = true,
+): Promise<AnalysisResult> {
   await page
     .getByLabel("Текст конфигурации")
     .fill(`hostname feedback-${test.info().project.name}-${Date.now()}\n`);
@@ -31,9 +34,28 @@ async function analyze(page: Page): Promise<AnalysisResult> {
     (item) =>
       item.request().method() === "POST" && item.url().endsWith("/analyze"),
   );
+  // Capture the actual initial history read, not the pre-effect empty render.
+  const history = waitForHistory
+    ? page.waitForResponse(
+        (item) =>
+          item.request().method() === "GET" &&
+          /\/api\/v1\/findings\/[^/]+\/feedback\?/.test(item.url()),
+      )
+    : null;
   await ready.click();
   const analysis = (await (await response).json()) as AnalysisResult;
   await expect(panel(page)).toBeVisible();
+  if (history) {
+    const initial = await history;
+    expect(initial.status()).toBe(200);
+    await initial.finished();
+    await expect(
+      panel(page).getByRole("button", {
+        name: "Обновить историю оценок",
+        exact: true,
+      }),
+    ).toBeEnabled();
+  }
   return analysis;
 }
 const feedbackURL = (analysis: AnalysisResult, index = 0) =>
@@ -124,6 +146,16 @@ test("a lost save response can be retried with exactly the same ID without dupli
   await connect(page);
   const analysis = await analyze(page);
   const requests: FeedbackSubmission[] = [];
+  // Finish the initial read: a late initial history response can legitimately recover the write.
+  await expect(
+    panel(page).getByText("На этой странице оценок нет."),
+  ).toBeVisible();
+  await expect(
+    panel(page).getByRole("button", {
+      name: "Обновить историю оценок",
+      exact: true,
+    }),
+  ).toBeEnabled();
   await page.route("**/api/v1/findings/*/feedback", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
     requests.push(route.request().postDataJSON() as FeedbackSubmission);
@@ -154,6 +186,15 @@ test("history recovery clears only the unchanged saved draft after an uncertain 
 }) => {
   await connect(page);
   await analyze(page);
+  await expect(
+    panel(page).getByText("На этой странице оценок нет."),
+  ).toBeVisible();
+  await expect(
+    panel(page).getByRole("button", {
+      name: "Обновить историю оценок",
+      exact: true,
+    }),
+  ).toBeEnabled();
   let posts = 0;
   await page.route("**/api/v1/findings/*/feedback", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
@@ -205,25 +246,46 @@ test("switching finding drops drafts and ignores a delayed history response", as
     release = resolve;
   });
   let first = true;
+  let fetched!: () => void;
+  let finished!: () => void;
+  const firstFetched = new Promise<void>((resolve) => {
+    fetched = resolve;
+  });
+  const firstFinished = new Promise<void>((resolve) => {
+    finished = resolve;
+  });
   await page.route("**/api/v1/findings/*/feedback?**", async (route) => {
+    const delayed = first;
+    first = false;
     const response = await route.fetch();
-    if (first) {
-      first = false;
+    if (delayed) {
+      fetched();
       await hold;
     }
     await route.fulfill({ response });
+    if (delayed) finished();
   });
-  await analyze(page);
+  await analyze(page, false);
+  await firstFetched;
   await page
     .getByLabel("Комментарий к оценке")
     .fill("Draft for the first finding only.");
   await page.locator(".finding-button").nth(1).click();
   await expect(page.getByLabel("Комментарий к оценке")).toHaveValue("");
   release!();
+  await firstFinished;
   await expect(
     panel(page).getByText("На этой странице оценок нет."),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(
+    panel(page).getByRole("button", {
+      name: "Обновить историю оценок",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  // The old finding's intercepted fetch has settled before removing any routes.
+  await page.unrouteAll({ behavior: "wait" });
 });
 
 test("a valid record from another finding is rejected rather than shown as its history", async ({

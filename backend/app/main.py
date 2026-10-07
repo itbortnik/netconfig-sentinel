@@ -15,9 +15,12 @@ from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
 from app.api.health import router as health_router
+from app.api.operation_audit import router as operation_audit_router
 from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
+from app.audit.http import journal_response
+from app.audit.journal import OperationJournal
 from app.core.document_retrieval import DocumentRetrievalSettings
 from app.core.local_model import LocalModelSettings
 from app.core.settings import ApiSettings
@@ -54,6 +57,21 @@ def create_app(
     )
     application.state.api_settings = settings
     application.state.analysis_service = AnalysisService(store) if store is not None else None
+    application.state.operation_journal = OperationJournal(store) if store is not None else None
+    # Original public router routes retain names even when the framework wraps included routers.
+    application.state.operation_routes = tuple(
+        route
+        for router in (
+            access_router,
+            configuration_router,
+            feedback_router,
+            snapshot_diff_router,
+            explanation_router,
+            patch_router,
+            operation_audit_router,
+        )
+        for route in router.routes
+    )
     application.state.local_model = LocalModelRuntime(local_model) if local_model else None
     application.state.document_retrieval = (
         DocumentRetrievalRuntime(document_retrieval) if document_retrieval else None
@@ -73,7 +91,12 @@ def create_app(
     async def private_responses(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        response = await call_next(request)
+        response = await journal_response(
+            request,
+            call_next,
+            application.state.operation_journal,
+            settings,
+        )
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
@@ -89,6 +112,7 @@ def create_app(
     application.include_router(snapshot_diff_router)
     application.include_router(explanation_router)
     application.include_router(patch_router)
+    application.include_router(operation_audit_router)
     mount_frontend(application, frontend_dir)
     return application
 
