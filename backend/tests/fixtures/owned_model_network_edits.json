@@ -1,0 +1,63 @@
+{
+  "version": "owned-network-model-edit-projection-0.1.0",
+  "purpose": "owned_functional_replay_not_quality_or_authenticated_model_execution",
+  "private_receipt_sha256": "fa67eeeb0ed4f219e922f6c09fcf51be9f4e957c9dd80f8cacffed86b8fda20a",
+  "instruct_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+  "model_revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+  "raw_answers_disclosed": false,
+  "actual_generations": 2,
+  "cases": [
+    {
+      "vendor": "cisco",
+      "category": "management.ssh_version_1",
+      "status": "locally_checked_draft",
+      "source_sha256": "f93c1b258b35885d38c3cc7034b08ea4a7795787195c3cbc891b49ba26b7e70e",
+      "context_sha256": "67b79d2d2eb09b1e5eced3f0b25b5f0465570e3634200ec7e239d3486db8d0fa",
+      "finding_sha256": "7c74f197b8dd0f96d8af602ed30b515065d0d45191c2f035e96d079d7dd2fa25",
+      "candidate_sha256": "ac1cd723584fc9d831bdf4633ba9f2891588b83a76faeac8fa552b820df77ad7",
+      "before_snapshot_sha256": "dedf13598cf403fc683bfcc28066c88aba96abb7d313112e9ab5c4b9ecaf3b7b",
+      "after_snapshot_sha256": "27d5500a6dce2a65c535197f4f4576084c21f5295d1803e3848e948e5087ca11",
+      "normalized_answer_sha256": "8e3b6487cf5dc6dd8e60db5e8850280a1c48fa8f2724a826a9c31e3eb908b6e9",
+      "generation": {
+        "prompt_tokens": 1802,
+        "generated_tokens": 274,
+        "seconds": 18.844033900182694,
+        "context_sha256": "67b79d2d2eb09b1e5eced3f0b25b5f0465570e3634200ec7e239d3486db8d0fa",
+        "completed": true,
+        "rejection": null
+      },
+      "patch_draft": {
+        "edits": [
+          {
+            "source_line": 3,
+            "replacement": "ip ssh version 2"
+          }
+        ]
+      }
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.ssh_version_1",
+      "status": "no_candidate",
+      "source_sha256": "c697482d6c40da1884eb5dfb4fd6fdd6caca0d9dbd979ab29aefff2f30417be1",
+      "context_sha256": "576080be15c963a8fcc197c8e8acc4d59e37b7af74d0412b95f39b8a7676adc3",
+      "finding_sha256": "62bcb1d986a4cec3947998012b9c08b668245f2d23fae788d36a65034afd97b4",
+      "candidate_sha256": null,
+      "before_snapshot_sha256": "2cb73f14176e0c69c8315be1297d943f241ded0c7ce10d6fc10e1fd2e9963309",
+      "after_snapshot_sha256": null,
+      "normalized_answer_sha256": "9205d5a5ae811b0ccf1c57d3affdc8ab9817901c6859524490c9bb7eba262f05",
+      "generation": {
+        "prompt_tokens": 1794,
+        "generated_tokens": 240,
+        "seconds": 5.945132300257683,
+        "context_sha256": "576080be15c963a8fcc197c8e8acc4d59e37b7af74d0412b95f39b8a7676adc3",
+        "completed": true,
+        "rejection": null
+      },
+      "patch_draft": null
+    }
+  ],
+  "semantic_truth_proven": false,
+  "independent_test": false,
+  "requires_human_review": true
+}

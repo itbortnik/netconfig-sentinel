@@ -120,6 +120,12 @@ ML evidence не меняет исходный `not_run` в local review и не
 
 ## Незакрытый полный workflow
 
+Отдельный [exact candidate → scoped network review](model-patch-network-review.md)
+добавляет fresh source/answer binding и строит before/after network, не изменяя
+исторический review. Есть два новых actual owned model requests на заранее
+подготовленных полных toy sources: Cisco candidate, JunOS decline, плюс четыре
+actual ML review/check процесса. Это не independent quality или SSH access proof.
+
 Этот slice не заменяет arbitrary vendor patches, полный baseline/previous-config
 diff, actual candidate-specific Batfish inputs/results, ML pre/post, engineer
 approval transition или связанный API/UI round trip. Приватный candidate можно

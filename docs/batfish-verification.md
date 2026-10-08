@@ -212,3 +212,10 @@ Scope не считается полным набором критериев п�
 Для завершённых запросов обязательна версия движка и целочисленные счётчики
 (boolean не принимается за число). Некорректный JSON-ответ worker, в том числе
 `null` или массив, даёт `error/worker_failed` без traceback и исходных данных.
+
+Для untrusted source-bound model answers есть отдельный
+[exact model candidate → network review](model-patch-network-review.md):
+fresh replay original answer/metadata, exact source in supplied full snapshot,
+только одна замена и сохранение остальных устройств. Opt-in и status не меняются.
+Raw model prose/receipt не передаются движку; передаются только explicit network
+snapshots. Записанный decline не получает substitute candidate.

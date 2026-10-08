@@ -34,7 +34,7 @@ jobs:
           - 127.0.0.1:9996:9996
         options: --memory=4g --cpus=2
     env:
-      # Only the six explicitly authored Cisco/JunOS test cases upload here.
+      # Only explicit authored fixtures/recorded own candidate edits upload here.
       NETCONFIG_LIVE_BATFISH: "1"
       NO_PROXY: "*"
     steps:
@@ -66,7 +66,8 @@ jobs:
       - name: Check real owned reachability and cleanup
         run: >-
           pytest backend/tests/integration/test_live_batfish.py
-          backend/tests/integration/test_batfish_sdk_transport.py -q -s
+          backend/tests/integration/test_batfish_sdk_transport.py
+          backend/tests/integration/test_live_model_patch_batfish.py -q -s
           --junitxml=owned-batfish-junit.xml
       - uses: actions/upload-artifact@v4
         if: always()

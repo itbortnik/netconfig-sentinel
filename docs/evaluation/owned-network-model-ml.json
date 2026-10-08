@@ -1,0 +1,54 @@
+{
+  "version": "owned-network-model-ml-0.1.0",
+  "private_receipt_sha256": "fa67eeeb0ed4f219e922f6c09fcf51be9f4e957c9dd80f8cacffed86b8fda20a",
+  "new_llm_generations": 0,
+  "actual_ml_review_check_processes": 4,
+  "actual_candidates": 1,
+  "declined_candidates_not_substituted": 1,
+  "customer_data_used": false,
+  "independent_test": false,
+  "production_quality_proven": false,
+  "formal_verification": "not_run",
+  "operator_activation": false,
+  "observations": [
+    {
+      "vendor": "cisco",
+      "status": "actual_ml_completed",
+      "models": [
+        {
+          "model_kind": "native",
+          "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+          "status": "completed",
+          "before_anomaly_score": 0.31801679730415344,
+          "after_anomaly_score": 0.31543850898742676,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_ssh_policy_covered": false,
+          "calibrated": false,
+          "risk_fused": false,
+          "review_unchanged": true
+        },
+        {
+          "model_kind": "foundation",
+          "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76",
+          "status": "completed",
+          "before_anomaly_score": 0.2557557225227356,
+          "after_anomaly_score": 0.2548251748085022,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_ssh_policy_covered": false,
+          "calibrated": false,
+          "risk_fused": false,
+          "review_unchanged": true
+        }
+      ]
+    },
+    {
+      "vendor": "juniper",
+      "status": "not_run_no_candidate",
+      "models": []
+    }
+  ]
+}

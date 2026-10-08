@@ -1,0 +1,26 @@
+{
+  "version": "owned-network-model-installed-0.1.0",
+  "wheel_sha256": "438aed380a9e737cb3217184e1a01ac5e60b21148eb64d747a1aaaad87f4186e",
+  "source_runtime_files_byte_equal": true,
+  "new_llm_generations": 0,
+  "actual_engine_queries": 0,
+  "default_upload_refused": true,
+  "private_instruct_receipt_sha256": "fa67eeeb0ed4f219e922f6c09fcf51be9f4e957c9dd80f8cacffed86b8fda20a",
+  "cases": [
+    {
+      "vendor": "cisco",
+      "status": "needs_review",
+      "engine_reason": "upload_not_authorized",
+      "engine_queries": 0,
+      "exact_candidate_bound": true,
+      "historical_review_unchanged": true
+    },
+    {
+      "vendor": "juniper",
+      "status": "no_candidate",
+      "engine_queries": 0
+    }
+  ],
+  "production_quality_proven": false,
+  "operator_activation": false
+}

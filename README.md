@@ -285,6 +285,8 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 Ограниченные Cisco/JunOS черновики по точным исходным строкам, их private lifecycle
 и обязательные проверки перед любым применением описаны в
 [`docs/vendor-patch-drafts.md`](docs/vendor-patch-drafts.md).
+Привязка фактического model candidate к точной полной сети и отдельному
+scoped review описана в [`docs/model-patch-network-review.md`](docs/model-patch-network-review.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

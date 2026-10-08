@@ -18,6 +18,7 @@ from app.explanation.patch_provider import (
     PreparedPatchPrompt,
     build_patch_prompt,
     generate_patch_draft,
+    validate_patch_answer,
 )
 from app.explanation.provider import InvalidProviderAnswer
 from app.parsers import parse_configuration
@@ -149,6 +150,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--expected-source-sha256", required=True)
     parser.add_argument("--allow-owned-context", action="store_true", required=True)
+    parser.add_argument("--network-context", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     arguments = parser.parse_args(argv)
     try:
@@ -159,7 +161,14 @@ def main(argv: list[str] | None = None) -> int:
             or not arguments.output.parent.is_dir()
         ):
             raise ValueError("output must be a new JSON file")
-        cases = authored_patch_cases()
+        networks = None
+        if arguments.network_context:
+            from ml.instruct.network_cases import authored_network_patch_cases
+
+            networks = authored_network_patch_cases()
+            cases = tuple(case.patch for case in networks)
+        else:
+            cases = authored_patch_cases()
         limits = GenerationLimits()
         provider = LocalInstructProvider(
             arguments.source,
@@ -169,6 +178,21 @@ def main(argv: list[str] | None = None) -> int:
             limits=limits,
         )
         results = run_patch_cases(provider, cases)
+        if networks is not None:
+            from app.verification.model_patch import prepare_model_patch_snapshots
+
+            for network, row in zip(networks, results, strict=True):
+                row["before_snapshot_sha256"] = network.before.digest
+                row["after_snapshot_sha256"] = None
+                if row["answer"] is not None:
+                    normalized = json.dumps(row["answer"], sort_keys=True, separators=(",", ":"))
+                    row["normalized_answer_sha256"] = text_sha256(normalized)
+                    generated = validate_patch_answer(normalized.encode(), network.patch.prepared)
+                    if generated.candidate_text is not None:
+                        pair = prepare_model_patch_snapshots(
+                            generated, prepared=network.patch.prepared, before=network.before
+                        )
+                        row["after_snapshot_sha256"] = pair.after.digest
         report = {
             "version": "owned-model-patch-diagnostic-0.1.0",
             "purpose": "owned_functional_check_not_quality_benchmark",
@@ -186,6 +210,8 @@ def main(argv: list[str] | None = None) -> int:
             "formal_verification": "not_run",
             "requires_human_review": True,
         }
+        if networks is not None:
+            report["network_authored_before_generation"] = True
         encoded = (
             json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
         ).encode()
