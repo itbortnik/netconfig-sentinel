@@ -1,8 +1,12 @@
 """SDK call-shape tests with a fake client, not live formal verification."""
 
+import io
+import json
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from app.verification import batfish_worker
 from app.verification.batfish_worker import evaluate_session
 
 
@@ -16,6 +20,55 @@ class Frame:
     def to_dict(self, *, orient: str) -> list[dict[str, Any]]:
         assert orient == "records"
         return self.rows
+
+
+def test_sdk_session_uses_fixed_local_transport_without_redirects(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def session_type(**kwargs: Any) -> object:
+        captured.update(kwargs)
+        return object()
+
+    modules = {
+        "pybatfish.client.session": SimpleNamespace(Session=session_type),
+        "pybatfish.datamodel.flow": SimpleNamespace(HeaderConstraints=dict, PathConstraints=dict),
+    }
+    monkeypatch.setattr(batfish_worker.importlib, "import_module", modules.__getitem__)
+    monkeypatch.setattr(batfish_worker.sys, "stdin", io.StringIO("{}"))
+    monkeypatch.setattr(
+        batfish_worker,
+        "evaluate_session",
+        lambda *args: {"status": "error", "reason": "engine_error"},
+    )
+    batfish_worker.main()
+    assert json.loads(capsys.readouterr().out) == {"status": "error", "reason": "engine_error"}
+    assert captured == {
+        "host": "127.0.0.1",
+        "port": 9996,
+        "ssl": False,
+        "proxies": {"http": None, "https": None},
+        "request_kwargs": {
+            "allow_redirects": False,
+            "hooks": {"response": batfish_worker._reject_redirect},
+        },
+    }
+
+
+@pytest.mark.parametrize("status", [200, 201, 204, 400, 500])
+def test_response_hook_keeps_nonredirect_responses(status: int) -> None:
+    response = SimpleNamespace(status_code=status)
+    assert batfish_worker._reject_redirect(response) is response
+
+
+@pytest.mark.parametrize("status", [300, 301, 302, 303, 307, 308, 399])
+def test_response_hook_refuses_all_redirects_without_private_data(status: int) -> None:
+    response = SimpleNamespace(status_code=status, text="private-secret")
+    with pytest.raises(
+        batfish_worker.BatfishRedirectRefused, match="Local Batfish redirect refused"
+    ):
+        batfish_worker._reject_redirect(response)
 
 
 class Question:

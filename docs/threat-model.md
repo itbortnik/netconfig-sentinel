@@ -61,6 +61,12 @@
   formal/device/access/approval gate. Извлечение official JAR с проверкой digests
   не доказывает подпись издателя или безопасность ОС; Windows диагностический
   запуск возвращал initialization error и был завершён, без установленной службы.
+  Python SDK привязан literal `127.0.0.1:9996`; following redirects отключён,
+  весь HTTP 3xx отвергается callback до разбора. Перенаправленный ответ не
+  подтверждает upload/delete; отказ очистки сохраняется как false/unknown.
+  Двенадцать actual SDK transport fixtures проверяют GET/POST/PUT/DELETE с
+  302/307/308; это не formal network verification. Шесть Linux Batfish запросов
+  подтверждают только собственные двухузловые IPv4 fixtures, не полный security gate.
 - Reference/peer inputs выбираются только по сохранённым IDs, до анализа
   проверяются identity, группа, distinct devices, порядок приёма и полнота
   парсинга. Результат хранит профиль/версии/hashes внутри encrypted payload.

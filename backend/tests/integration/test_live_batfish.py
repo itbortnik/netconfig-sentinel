@@ -10,7 +10,9 @@ from app.verification.batfish import ReachabilityScope, check_with_batfish
 from app.verification.snapshots import NetworkSnapshot, prepare_snapshot
 
 
-def _snapshot_pair(vendor: str = "cisco") -> tuple[NetworkSnapshot, NetworkSnapshot]:
+def _snapshot_pair(
+    vendor: str = "cisco", *, undefined_acl: bool = False
+) -> tuple[NetworkSnapshot, NetworkSnapshot]:
     edge = (
         "version 17.9\nhostname edge\ninterface GigabitEthernet0/0\n"
         " ip address 192.0.2.1 255.255.255.252\n no shutdown\n!\n"
@@ -38,6 +40,11 @@ def _snapshot_pair(vendor: str = "cisco") -> tuple[NetworkSnapshot, NetworkSnaps
         discard = "set routing-options static route 198.51.100.0/24 discard"
     elif vendor != "cisco":
         raise ValueError("unknown owned fixture vendor")
+    if undefined_acl:
+        if vendor == "cisco":
+            edge = edge.replace(" no shutdown\n", " no shutdown\n ip access-group MISSING in\n")
+        else:
+            edge += "set interfaces ge-0/0/0 unit 0 family inet filter input MISSING\n"
     before = prepare_snapshot({UUID(int=1): edge, UUID(int=2): core})
     after = prepare_snapshot(
         {
@@ -49,8 +56,15 @@ def _snapshot_pair(vendor: str = "cisco") -> tuple[NetworkSnapshot, NetworkSnaps
 
 
 @pytest.mark.parametrize("vendor", ["cisco", "juniper"])
-def test_live_fixture_is_locally_parseable_without_engine(vendor: str) -> None:
-    before, after = _snapshot_pair(vendor)
+@pytest.mark.parametrize("undefined_acl", [False, True])
+def test_live_fixture_is_locally_parseable_without_engine(vendor: str, undefined_acl: bool) -> None:
+    if undefined_acl:
+        # Unsupported references are rejected locally, never bypassed to get an
+        # engine result. This is not claimed as a live initialization-issue case.
+        with pytest.raises(ValueError, match="complete local parsing"):
+            _snapshot_pair(vendor, undefined_acl=True)
+        return
+    before, after = _snapshot_pair(vendor, undefined_acl=undefined_acl)
     assert len(before.configs) == len(after.configs) == 2
     assert before.digest != after.digest
 
@@ -80,7 +94,7 @@ def test_live_static_route_regression(vendor: str, scenario: str, expected_statu
         allow_local_upload=True,
         timeout_seconds=120,
     )
-    # These are six owned diagnostic queries, not independent production networks.
+    # These are owned diagnostic queries, not independent production networks.
     print(
         "OWNED_BATFISH_RESULT="
         + json.dumps(

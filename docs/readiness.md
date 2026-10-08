@@ -16,7 +16,7 @@
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md) | Schema-valid outputs всё ещё содержат unsupported claims; полноценный vendor-patch/model API workflow и independent quality не закрыты; vendor/internal library требует прав и отбора |
-| Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; fixed optional Batfish container/live CI; no status promotion without formal inputs | Windows JAR стартовал loopback-only, но SDK initialization отказал; live Linux job пока не подтверждён. Management access/device syntax/engineer approval не реализованы как квалифицированный end-to-end переход |
+| Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; [six actual owned Linux Batfish queries](evaluation/owned-batfish.json); no status promotion without complete formal inputs | Linux diagnostic покрывает только две игрушечные сети/explicit IPv4 scope. Windows-native initialization отказал; model-candidate formal/access/device syntax/engineer approval end-to-end переход не квалифицирован |
 | Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/e2e` | Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
 | Секреты/access/audit | Sanitization, encrypted at-rest API payload, service RBAC, receipt/completion journal, bounded uploads | Не доказательство отсутствия всех секретов; production secret scan/pentest/SSO/tenant/TLS/backup квалификация открыты |
 | Запуск и демонстрация | README, [API](persistent-api.md), [UI](web-interface.md), [автоматический demo](demo-runbook.md) | Local demo — ASGI/SQLite, не production deploy или live network test |
@@ -56,8 +56,10 @@ Multilingual MiniLM фактически загружен и используе�
 - Квалифицированный instruct service, independent/adversarial/semantic/citation
   evaluation actual outputs: pinned checkpoint уже выбран и 16 owned генераций
   выполнены, но schema validity не устраняет наблюдённые неподтверждённые утверждения.
-- Доверенный Batfish engine и разрешение явно выбранных loopback uploads;
-  поддержанные network inputs/scope, actual before/after results и failure coverage.
+- Доверенный deployment Batfish engine и разрешение явно выбранных loopback uploads;
+  полные реальные network inputs/scope, candidate-specific before/after results
+  и representative failure coverage. Шесть owned Linux queries подтверждены,
+  но не заменяют эти условия.
 - Разрешённая vendor/internal документация и reviewed ingestion, retrieval quality
   на независимых queries; project policies не заменяют vendor corpus.
 - Representative model/baseline evaluation, неизвестные площадки, обе платформы,

@@ -1,0 +1,114 @@
+{
+  "evidence_kind": "actual_installed_owned_sdk_transport",
+  "sdk_version": "2026.8.19.3660",
+  "wheel_sha256": "8809b7dbd3e4b9059dcbfe183fd0398710868aa887a06a5fbaa7ca7f0e12e600",
+  "installed_source_byte_identity": true,
+  "cases": [
+    {
+      "method": "get",
+      "http_redirect_status": 302,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "post",
+      "http_redirect_status": 302,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "put",
+      "http_redirect_status": 302,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "delete",
+      "http_redirect_status": 302,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "get",
+      "http_redirect_status": 307,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "post",
+      "http_redirect_status": 307,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "put",
+      "http_redirect_status": 307,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "delete",
+      "http_redirect_status": 307,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "get",
+      "http_redirect_status": 308,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "post",
+      "http_redirect_status": 308,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "put",
+      "http_redirect_status": 308,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    },
+    {
+      "method": "delete",
+      "http_redirect_status": 308,
+      "source_endpoint_requests": 1,
+      "collector_requests": 0,
+      "redirect_refused": true,
+      "owned_server_threads_reaped": true
+    }
+  ],
+  "default_upload_refused": true,
+  "batfish_engine_queries": 0,
+  "customer_inputs": 0,
+  "raw_upload_payload": "fixed owned-laboratory-only bytes",
+  "formal_or_device_security_qualification": false,
+  "limitations": [
+    "Owned transport servers, not a real Batfish engine.",
+    "This checks the pinned SDK's four request paths and three redirect statuses.",
+    "No customer configuration, operator key, TLS/SSO/device access or application."
+  ]
+}

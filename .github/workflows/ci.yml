@@ -65,7 +65,8 @@ jobs:
           PY
       - name: Check real owned reachability and cleanup
         run: >-
-          pytest backend/tests/integration/test_live_batfish.py -q -s
+          pytest backend/tests/integration/test_live_batfish.py
+          backend/tests/integration/test_batfish_sdk_transport.py -q -s
           --junitxml=owned-batfish-junit.xml
       - uses: actions/upload-artifact@v4
         if: always()

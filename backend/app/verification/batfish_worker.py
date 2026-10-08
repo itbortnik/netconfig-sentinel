@@ -99,15 +99,35 @@ def evaluate_session(
     return result
 
 
+class BatfishRedirectRefused(RuntimeError):
+    """A local engine cannot delegate transport or acknowledge a redirect as cleanup."""
+
+
+def _reject_redirect(response: Any, **kwargs: Any) -> Any:
+    if 300 <= response.status_code < 400:
+        raise BatfishRedirectRefused("Local Batfish redirect refused.")
+    return response
+
+
+def _session() -> Any:
+    session_type = importlib.import_module("pybatfish.client.session").Session
+    return session_type(
+        host="127.0.0.1",
+        port=9996,
+        ssl=False,
+        proxies={"http": None, "https": None},
+        request_kwargs={"allow_redirects": False, "hooks": {"response": _reject_redirect}},
+    )
+
+
 def main() -> None:
     try:
         request = json.loads(sys.stdin.read(65_536))
         with open(os.devnull, "w", encoding="utf-8") as quiet:
             with contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
-                session_type = importlib.import_module("pybatfish.client.session").Session
                 flow = importlib.import_module("pybatfish.datamodel.flow")
                 result = evaluate_session(
-                    session_type(host="127.0.0.1"),
+                    _session(),
                     request,
                     flow.HeaderConstraints,
                     flow.PathConstraints,
