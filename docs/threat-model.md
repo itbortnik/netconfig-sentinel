@@ -207,3 +207,10 @@ bindings and local replay, parser, scope and policy checks; invalid output has n
 repair/template fallback. Raw candidate and untrusted prose stay private, excluded
 from container repr. Passing these checks is not device syntax, access/rollback,
 formal verification, approval or permission to apply a command.
+
+The separate [private model receipt](model-patch-receipts.md) uses authenticated
+encryption with an explicitly supplied key, never a plaintext fallback. It binds
+the recorded output/identity/measurement to exact locally replayed inputs; it
+does not authenticate a GPU process, publisher, engineer or semantic claims.
+Key storage/backup/rotation and directory/memory access remain operator duties.
+Only an ephemeral diagnostic key was exercised in the owned artifact check.

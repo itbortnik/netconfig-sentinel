@@ -126,3 +126,20 @@ SSH drafts + 2/4 `no_candidate`. Все четыре cases повторяютс�
 unsupported claims сохраняются; локально проверенный edit не равен semantic truth.
 Published actual explanation HTTP evidence имеет
 [успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37687171335).
+Published source-bound model patch также имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37732025615).
+
+Для двух actual SSH candidates выполнены восемь native/external ML review/check
+процессов ([отчёт](evaluation/owned-model-patch-ml.json)); scores не калиброваны,
+SSH category отсутствует в этих trained heads. Это functional pre/post evidence,
+не ML repair verdict. Два Telnet-отказа не заменены патчами.
+
+[Encrypted private model receipts](model-patch-receipts.md) сохраняют exact
+answer/candidate/context/model bindings и обязательный `needs_review` либо отказ.
+Есть [installed four-output round trip](evaluation/owned-encrypted-model-receipts.json)
+без нового inference и с отказом по неверному ключу; key был diagnostic ephemeral,
+не production backup. Local full suite: 1520 passed, прежние два explicit skips;
+ruff/mypy на обеих платформах чистые. API activation, identity authentication,
+semantic truth, engineer approval и production key management не заявлены.
+Все 17 installed-wheel сценариев этого этапа пройдены: 16 регрессионных и
+encrypted receipt round trip; они не заменяют оставшиеся quality/external gates.

@@ -1,0 +1,112 @@
+{
+  "version": "owned-model-patch-ml-numeric-0.1.0",
+  "purpose": "owned_functional_check_not_quality_benchmark",
+  "instruct_receipt_sha256": "1df57c3b1fb19f739cb8295de1933498d63486bd1b601e9226b191601739e6ae",
+  "new_llm_generations": 0,
+  "actual_instruct_candidates_replayed": 2,
+  "declined_candidates_not_substituted": 2,
+  "actual_ml_review_check_processes": 8,
+  "customer_data_used": false,
+  "independent_test": false,
+  "semantic_truth_proven": false,
+  "production_quality_proven": false,
+  "formal_verification": "not_run",
+  "operator_activation": false,
+  "scope_limitation": "Both ML checkpoints have only a telnet_enabled category head; SSHv1 is not covered or qualified.",
+  "observations": [
+    {
+      "vendor": "cisco",
+      "category": "management.telnet_enabled",
+      "status": "not_run_no_candidate",
+      "models": []
+    },
+    {
+      "vendor": "cisco",
+      "category": "management.ssh_version_1",
+      "status": "actual_ml_pre_post_completed",
+      "models": [
+        {
+          "model_kind": "native",
+          "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+          "training_format": "multitask-training-0.2.0",
+          "before_anomaly_score": 0.3247847855091095,
+          "after_anomaly_score": 0.319865882396698,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_policy_category_covered_by_head": false,
+          "severity_enabled": false,
+          "status": "completed",
+          "review_unchanged": true,
+          "risk_fused": false,
+          "calibrated": false,
+          "quality_proven": false
+        },
+        {
+          "model_kind": "foundation",
+          "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76",
+          "training_format": "foundation-config-transfer-0.1.0",
+          "before_anomaly_score": 0.2672717571258545,
+          "after_anomaly_score": 0.269336074590683,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_policy_category_covered_by_head": false,
+          "severity_enabled": false,
+          "status": "completed",
+          "review_unchanged": true,
+          "risk_fused": false,
+          "calibrated": false,
+          "quality_proven": false
+        }
+      ]
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.telnet_enabled",
+      "status": "not_run_no_candidate",
+      "models": []
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.ssh_version_1",
+      "status": "actual_ml_pre_post_completed",
+      "models": [
+        {
+          "model_kind": "native",
+          "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+          "training_format": "multitask-training-0.2.0",
+          "before_anomaly_score": 0.33175984025001526,
+          "after_anomaly_score": 0.33625906705856323,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_policy_category_covered_by_head": false,
+          "severity_enabled": false,
+          "status": "completed",
+          "review_unchanged": true,
+          "risk_fused": false,
+          "calibrated": false,
+          "quality_proven": false
+        },
+        {
+          "model_kind": "foundation",
+          "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76",
+          "training_format": "foundation-config-transfer-0.1.0",
+          "before_anomaly_score": 0.3085121214389801,
+          "after_anomaly_score": 0.3099254071712494,
+          "category_heads": [
+            "telnet_enabled"
+          ],
+          "selected_policy_category_covered_by_head": false,
+          "severity_enabled": false,
+          "status": "completed",
+          "review_unchanged": true,
+          "risk_fused": false,
+          "calibrated": false,
+          "quality_proven": false
+        }
+      ]
+    }
+  ]
+}

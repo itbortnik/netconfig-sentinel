@@ -61,6 +61,9 @@ policy engine и before/after review. Любая лишняя смена, нов
 
 `GeneratedModelPatch` возвращает непроверенный prose, private candidate отдельно
 и существующий `VendorDraft/PatchReview`. Confidential поля исключены из repr.
+Для сохранения есть отдельный [encrypted model receipt](model-patch-receipts.md)
+с completed observation и model/context bindings. `validate_patch_answer` выполняет
+только replay уже полученного output, без нового inference/transport permission.
 Status остаётся `draft/needs_review`; formal и ML — `not_run`, device syntax/access/
 application flags — false. Исчезновение выбранной policy category не доказывает
 безопасность доступа или успешное исправление на устройстве.
@@ -105,6 +108,15 @@ baseline называется обязательной политикой, яв�
 Strict schema и exact local edits не устраняют эти реальные семантические ошибки.
 Raw answers/context/entity hashes остаются приватными; публичны только численные
 observations, contract/model identity и SHA приватных reports.
+
+[Actual ML pre/post supplement](evaluation/owned-model-patch-ml.json) проверил
+оба ранее полученных SSH candidates настоящими native/external checkpoint weights:
+восемь изолированных review/check процессов, exact source/candidate hashes и
+неизменный local review. Новых LLM-вызовов нет: сохранённый actual answer только
+локально replay-validated. Два Telnet-отказа остались без candidate/ML supplement.
+Оба checkpoint имеют только `telnet_enabled` category head, **не SSHv1**; их
+uncalibrated before/after scores не подтверждают качество исправления SSH.
+ML evidence не меняет исходный `not_run` в local review и не повышает status.
 
 ## Незакрытый полный workflow
 

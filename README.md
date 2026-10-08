@@ -86,6 +86,9 @@
 - [отдельный source-bound model patch](docs/model-patch-drafts.md): явный offline
   opt-in, минимальный baseline/affected-block контекст и строгая перепроверка
   предложенных моделью edits; без применения или повышения formal status;
+- [зашифрованная private запись model patch](docs/model-patch-receipts.md):
+  source/model/context bindings, exact local replay, новый файл без overwrite;
+  не доказательство истины модели, approval или активация API;
   online service и качество его объяснений не квалифицированы;
 - [явная offline instruct-модель](docs/local-instruct-runtime.md): pinned Qwen3-4B,
   реальные генерации в исходной/установленной сборках, сохранённые отказы и

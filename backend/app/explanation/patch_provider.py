@@ -338,13 +338,7 @@ def _candidate(before: str, patch: ModelLinePatch) -> str:
     return "".join(lines)
 
 
-def generate_patch_draft(
-    provider: ExplanationProvider,
-    prepared: PreparedPatchPrompt,
-    *,
-    allow_local_context: bool,
-) -> GeneratedModelPatch:
-    """No hidden retries, repairs, template substitution, status changes or execution."""
+def _recheck_prepared(prepared: PreparedPatchPrompt, *, allow_local_context: bool) -> None:
     fresh = build_patch_prompt(
         prepared.before,
         finding=prepared.finding,
@@ -356,10 +350,26 @@ def generate_patch_draft(
     )
     if fresh != prepared:
         raise ValueError("patch prompt binding differs")
+
+
+def generate_patch_draft(
+    provider: ExplanationProvider,
+    prepared: PreparedPatchPrompt,
+    *,
+    allow_local_context: bool,
+) -> GeneratedModelPatch:
+    """No hidden retries, repairs, template substitution, status changes or execution."""
+    _recheck_prepared(prepared, allow_local_context=allow_local_context)
     try:
         raw = provider.generate(prepared.prompt)
     except Exception:
         raise InvalidProviderAnswer("Language model provider failed.") from None
+    return validate_patch_answer(raw, prepared)
+
+
+def validate_patch_answer(raw: bytes, prepared: PreparedPatchPrompt) -> GeneratedModelPatch:
+    """Local-only replay of an existing output, not generation or transport permission."""
+    _recheck_prepared(prepared, allow_local_context=True)
     try:
         if not isinstance(raw, bytes) or len(raw) > MAX_ANSWER_BYTES:
             raise ValueError("patch answer exceeds budget")

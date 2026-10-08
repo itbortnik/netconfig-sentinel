@@ -1,0 +1,67 @@
+{
+  "version": "owned-encrypted-model-receipt-check-0.1.0",
+  "purpose": "owned_functional_check_not_quality_benchmark",
+  "actual_instruct_receipt_sha256": "1df57c3b1fb19f739cb8295de1933498d63486bd1b601e9226b191601739e6ae",
+  "new_llm_generations": 0,
+  "customer_data_used": false,
+  "diagnostic_key_persisted": false,
+  "production_key_management_proven": false,
+  "model_identity_authenticated": false,
+  "semantic_truth_proven": false,
+  "production_quality_proven": false,
+  "api_activated": false,
+  "observations": [
+    {
+      "vendor": "cisco",
+      "category": "management.telnet_enabled",
+      "status": "no_candidate",
+      "encrypted_round_trip": true,
+      "exact_candidate_replayed": true,
+      "no_plaintext_fragment_in_file": true,
+      "wrong_key_refused": true,
+      "formal_verification": "not_run",
+      "application_supported": false,
+      "model_identity_authenticated": false,
+      "semantic_truth_proven": false
+    },
+    {
+      "vendor": "cisco",
+      "category": "management.ssh_version_1",
+      "status": "needs_review",
+      "encrypted_round_trip": true,
+      "exact_candidate_replayed": true,
+      "no_plaintext_fragment_in_file": true,
+      "wrong_key_refused": true,
+      "formal_verification": "not_run",
+      "application_supported": false,
+      "model_identity_authenticated": false,
+      "semantic_truth_proven": false
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.telnet_enabled",
+      "status": "no_candidate",
+      "encrypted_round_trip": true,
+      "exact_candidate_replayed": true,
+      "no_plaintext_fragment_in_file": true,
+      "wrong_key_refused": true,
+      "formal_verification": "not_run",
+      "application_supported": false,
+      "model_identity_authenticated": false,
+      "semantic_truth_proven": false
+    },
+    {
+      "vendor": "juniper",
+      "category": "management.ssh_version_1",
+      "status": "needs_review",
+      "encrypted_round_trip": true,
+      "exact_candidate_replayed": true,
+      "no_plaintext_fragment_in_file": true,
+      "wrong_key_refused": true,
+      "formal_verification": "not_run",
+      "application_supported": false,
+      "model_identity_authenticated": false,
+      "semantic_truth_proven": false
+    }
+  ]
+}
