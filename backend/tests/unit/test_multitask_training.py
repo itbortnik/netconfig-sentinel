@@ -5,6 +5,7 @@ from dataclasses import replace
 
 import pytest
 import torch
+from pydantic import ValidationError
 
 from ml.datasets import DatasetSplit
 from ml.mutation import MutationType
@@ -25,6 +26,23 @@ from ml.training.multitask_training import (
     train_multitask,
 )
 from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_language_model
+
+
+@pytest.mark.parametrize(
+    "payload,error",
+    [
+        ({}, "union_tag_not_found"),
+        ({"version": "multitask-training-0.3.0"}, "union_tag_invalid"),
+        ({"version": None}, "union_tag_invalid"),
+        ({"version": 1}, "union_tag_invalid"),
+    ],
+)
+def test_report_union_requires_explicit_known_version_even_with_named_alias(payload, error):
+    from ml.training.multitask_training import _REPORT
+
+    with pytest.raises(ValidationError) as failure:
+        _REPORT.validate_python(payload)
+    assert failure.value.errors()[0]["type"] == error
 
 
 @pytest.fixture(scope="module")

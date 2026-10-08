@@ -72,15 +72,30 @@ JunOS decline не заполнялся и не проверялся как ка
 есть только `telnet_enabled` head, не SSHv1; некалиброванные scores не являются
 вердиктом о качестве исправления SSH. Никакой risk fusion/approval не выполнен.
 
-Live candidate-specific engine tests добавлены отдельно: reachable и empty
-scope для записанного Cisco edit. До завершения соответствующего CI run это
-только проверяемые tests, **не evidence выполненной формальной проверки**.
+Два candidate-specific queries уже выполнены настоящим Linux Batfish:
+[измеренный job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37797853650/job/113381879171)
+и [численный отчёт](evaluation/owned-network-model-batfish.json). Для записанного
+Cisco edit reachable scope дал 1→1 reachable rows / diff=0
+(`no_differences_in_scope`), empty scope — 0→0 / diff=0 (`inconclusive`).
+Обе own сети удалены, `needs_review` сохранён. В job прошли 26 tests,
+включая эти два queries, прежние шесть engine queries и SDK transport cases.
+Это один actual candidate, не два независимых патча. JunOS decline остался
+без candidate-specific engine/ML проверки.
+
+Общий CI run этого commit **не был успешным**: отдельное основное задание
+остановилось на static type checking с вновь установленной Pydantic 2.14.0.
+Успех engine job не подменяет статус всего run. Конструктор tagged training-report
+union переведён на named type alias без отключения checking/discriminator и без
+смены формата артефактов. Exact issue воспроизведён отдельно на 2.14; исправленный
+тип проверен там же, а два actual train/save/load round trips и четыре invalid-tag
+cases проходят на новом runtime. Основное локальное окружение 2.13.5 не изменено.
 
 [Installed-wheel replay](evaluation/owned-network-model-installed.json) проверил
 оба ранее полученных фактических ответа: exact source/context/candidate bindings,
 неизменный review, default upload refusal и отсутствие подстановки JunOS candidate.
 Пять runtime files byte-equal исходникам. Новых model/engine calls нет.
-Local full suite: **1575 passed, 21 skipped**, четыре dependency deprecation warnings;
+После compatibility fix local full suite: **1579 passed, 21 skipped**, четыре
+dependency deprecation warnings;
 24 binding/outcome tests входят в этот набор. Пропуски — 12 optional SDK,
 8 live engine queries и один explicit PostgreSQL test. Ruff/mypy чистые,
 187 typed source files на обеих платформах. Пропущенные queries не считаются pass.

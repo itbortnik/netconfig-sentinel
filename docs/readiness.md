@@ -51,6 +51,13 @@ Multilingual MiniLM фактически загружен и используе�
 
 ## Какие evidence ещё нужны
 
+Actual model candidate теперь имеет [отдельный bound network review](model-patch-network-review.md):
+два свежих owned Qwen requests (Cisco candidate/JunOS decline), четыре actual ML
+review/check процесса и два actual Linux Batfish queries именно Cisco edit.
+Data-plane scope не подтверждает SSH security/access, device syntax или approval;
+full API/UI handoff и independent quality остаются открытыми. Успешный engine job
+не скрывает отдельный type-check failure общего run, приведённый в отчёте.
+
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.
 - Квалифицированный instruct service, independent/adversarial/semantic/citation

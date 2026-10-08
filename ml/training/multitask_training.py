@@ -212,8 +212,12 @@ class MultiTaskTransferReport(_MultiTaskReportFields):
     pretraining: ObjectiveSourceBinding
 
 
+type MultiTaskReportPayload = Annotated[
+    MultiTaskReport | MultiTaskTransferReport, Field(discriminator="version")
+]
+
 _REPORT: TypeAdapter[MultiTaskReport | MultiTaskTransferReport] = TypeAdapter(
-    Annotated[MultiTaskReport | MultiTaskTransferReport, Field(discriminator="version")]
+    MultiTaskReportPayload
 )
 
 
