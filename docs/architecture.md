@@ -297,3 +297,11 @@ The insert and audit event are atomic; a racing identical intent is replayed,
 while a changed intent under the same UUID conflicts. The UI checks all bindings,
 keeps uncertain retry IDs only in memory and ignores stale responses. The shared
 service token does not identify an individual engineer or approve a patch.
+
+A separate [candidate facts review](candidate-review.md) joins freshly replayed
+source-bound local checks with explicitly supplied, independently pinned ML and
+scoped network results. Missing checks are derived and status stays needs-review;
+the library does not run providers, authenticate execution or approve a change.
+An independently opted-in null-only explanation receives explicit before/after
+facts, never the earlier untrusted model prose. Its structural/citation validation
+cannot prove semantics and its failure does not erase the deterministic report.

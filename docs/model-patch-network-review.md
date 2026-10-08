@@ -99,3 +99,7 @@ dependency deprecation warnings;
 24 binding/outcome tests входят в этот набор. Пропуски — 12 optional SDK,
 8 live engine queries и один explicit PostgreSQL test. Ruff/mypy чистые,
 187 typed source files на обеих платформах. Пропущенные queries не считаются pass.
+
+Объединение уже полученных ML/formal supplements с exact source replay и
+отдельным null-only explanation описано в [candidate review](candidate-review.md).
+Проверка целостности общего отчёта не аутентифицирует движок или model execution.

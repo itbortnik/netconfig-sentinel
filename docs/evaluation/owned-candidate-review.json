@@ -1,0 +1,194 @@
+{
+  "version": "owned-candidate-review-observation-0.1.0",
+  "evidence_date": "2026-10-08",
+  "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+  "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+  "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+  "parameter_count": 4022468096,
+  "dtype": "bfloat16",
+  "limits": {
+    "max_prompt_tokens": 4096,
+    "max_new_tokens": 1024,
+    "timeout_seconds": 20
+  },
+  "unique_actual_candidates": 1,
+  "candidate_after_ssh_version": "2",
+  "candidate_remaining_policy_findings": 4,
+  "review_generations": 4,
+  "new_patch_generations": 0,
+  "new_engine_queries": 0,
+  "new_ml_inferences": 0,
+  "prior_actual_candidate_receipt_sha256": "fa67eeeb0ed4f219e922f6c09fcf51be9f4e957c9dd80f8cacffed86b8fda20a",
+  "prior_actual_engine_job_log_sha256": "67df84048dc2d9541b79a8b788b23e878fd3492c9765490975c9245b8854e5bf",
+  "prior_ml_review_artifact_sha256s": [
+    "15bb5f7e8d8b8fca7eacacdf89d2e8e896cf05cfd804de258e58068799d1252d",
+    "ba8027af9411d9729422db868598b52e15faef62fe74bef07435b159bbc7ede1"
+  ],
+  "declined_junos_candidate_not_substituted": true,
+  "cohorts": [
+    {
+      "cohort": "source_1",
+      "private_report_sha256": "ed9aa9dc13006ac39fbae81dc92d9bfa9952a7b09154ab8219e18b520fadb869",
+      "context_version": "candidate-review-context-0.1.0",
+      "actual_review_generations": 2,
+      "schema_valid": 1,
+      "rejected": 1,
+      "cases": [
+        {
+          "scenario": "reachable",
+          "status": "schema_valid_untrusted_review",
+          "generation": {
+            "prompt_tokens": 2447,
+            "generated_tokens": 292,
+            "seconds": 19.689941000193357,
+            "context_sha256": "817daed9d291e1325f0179b0f8a0923f24fd55a68ca45946c2e51a3f2f72eaaa",
+            "completed": true,
+            "rejection": null
+          },
+          "review_sha256": "e5769780fce2767c52ed32343de59b6ee49bde2a39195935e78c9f451adcd102",
+          "context_sha256": "817daed9d291e1325f0179b0f8a0923f24fd55a68ca45946c2e51a3f2f72eaaa",
+          "formal_status": "no_differences_in_scope",
+          "ml_reviews_supplied": 2,
+          "requires_human_review": true,
+          "semantic_truth_proven": false,
+          "approved": false,
+          "applied": false,
+          "rejected_raw_bytes_retained": false,
+          "rejection_cause": null,
+          "observed_semantic_errors": [
+            "candidate_SSH_version_confused_with_before_source",
+            "SSH_category_support_invented_for_telnet_only_heads"
+          ]
+        },
+        {
+          "scenario": "empty_scope",
+          "status": "rejected",
+          "generation": {
+            "prompt_tokens": 2435,
+            "generated_tokens": 424,
+            "seconds": 11.068688600324094,
+            "context_sha256": "2214b5f97449a4147cdf881c5f176f8847330a445c85f0361bb4c47c4ce2aa0f",
+            "completed": true,
+            "rejection": null
+          },
+          "review_sha256": "bcd9e5f012f7bb528da477fb2ea10fe078ddb2b32654ca3ded025918ef96d596",
+          "context_sha256": "2214b5f97449a4147cdf881c5f176f8847330a445c85f0361bb4c47c4ce2aa0f",
+          "formal_status": "inconclusive",
+          "ml_reviews_supplied": 2,
+          "requires_human_review": true,
+          "semantic_truth_proven": false,
+          "approved": false,
+          "applied": false,
+          "rejected_raw_bytes_retained": false,
+          "rejection_cause": "not_recorded",
+          "observed_semantic_errors": []
+        }
+      ]
+    },
+    {
+      "cohort": "source_2",
+      "private_report_sha256": "bec64d59215bf8673873f332f3290c1532abd6be330c7697ca1dca1d13d95a0b",
+      "context_version": "candidate-review-context-0.2.0",
+      "actual_review_generations": 2,
+      "schema_valid": 0,
+      "rejected": 2,
+      "cases": [
+        {
+          "scenario": "reachable",
+          "status": "rejected",
+          "generation": {
+            "prompt_tokens": 2543,
+            "generated_tokens": 288,
+            "seconds": 19.291176999919116,
+            "context_sha256": "dba910f6c27a49108791b5b649772ade1be10c2035e666fbb3443eb87629ee54",
+            "completed": true,
+            "rejection": null
+          },
+          "review_sha256": "e5769780fce2767c52ed32343de59b6ee49bde2a39195935e78c9f451adcd102",
+          "context_sha256": "dba910f6c27a49108791b5b649772ade1be10c2035e666fbb3443eb87629ee54",
+          "formal_status": "no_differences_in_scope",
+          "ml_reviews_supplied": 2,
+          "requires_human_review": true,
+          "semantic_truth_proven": false,
+          "approved": false,
+          "applied": false,
+          "raw_answer_sha256": "aea1cc280f1c8dda2e81a4ebe7ba76d1c48f76155a61d4897b54f1bf5fb6e765",
+          "rejected_raw_bytes_retained": true,
+          "rejection_observation": {
+            "kind": "review_schema",
+            "errors": [
+              {
+                "location": [
+                  "missing_information"
+                ],
+                "type": "too_long"
+              }
+            ]
+          },
+          "whitespace_delimited_word_count": 169,
+          "missing_information_items": 3,
+          "word_limit": 120,
+          "list_item_limit": 2,
+          "semantic_quality_qualified": false
+        },
+        {
+          "scenario": "empty_scope",
+          "status": "rejected",
+          "generation": {
+            "prompt_tokens": 2531,
+            "generated_tokens": 249,
+            "seconds": 6.3911728002130985,
+            "context_sha256": "6447983cda1fc3164d9074920db48f59d2ea24aeeae724c96312b8afdf4bace8",
+            "completed": true,
+            "rejection": null
+          },
+          "review_sha256": "bcd9e5f012f7bb528da477fb2ea10fe078ddb2b32654ca3ded025918ef96d596",
+          "context_sha256": "6447983cda1fc3164d9074920db48f59d2ea24aeeae724c96312b8afdf4bace8",
+          "formal_status": "inconclusive",
+          "ml_reviews_supplied": 2,
+          "requires_human_review": true,
+          "semantic_truth_proven": false,
+          "approved": false,
+          "applied": false,
+          "raw_answer_sha256": "2abcff9353916430079dfd3eb8dd7b5be748f48376edd030b0dbcd05c3217fb3",
+          "rejected_raw_bytes_retained": true,
+          "rejection_observation": {
+            "kind": "review_schema",
+            "errors": [
+              {
+                "location": [
+                  "missing_information"
+                ],
+                "type": "too_long"
+              }
+            ]
+          },
+          "whitespace_delimited_word_count": 141,
+          "missing_information_items": 4,
+          "word_limit": 120,
+          "list_item_limit": 2,
+          "semantic_quality_qualified": false
+        }
+      ]
+    }
+  ],
+  "patch_status": "needs_review",
+  "requires_human_review": true,
+  "execution_authenticated_by_report": false,
+  "semantic_truth_proven": false,
+  "production_quality_proven": false,
+  "independent_test": false,
+  "operator_activation": false,
+  "approved": false,
+  "applied": false,
+  "limitations": [
+    "One existing owned Cisco candidate, two scopes, two prompt-development cohorts; not independent quality.",
+    "First schema-valid text contradicts candidate facts and ML coverage; validity is not truth.",
+    "First rejected raw answer was not retained: exact rejection cause is unknown.",
+    "Both revised-context answers violate the review-only list/word bounds and are rejected without repair/retry.",
+    "Revised text distinguishes before/after but still asserts policy compliance without approved baseline/all-checks evidence.",
+    "An unchanged IPv4 scope does not prove SSH access/security, vendor syntax, rollback or approval.",
+    "Existing ML checkpoints only have telnet heads; uncalibrated scores do not qualify SSH remediation.",
+    "Raw answers/prompts/reports remain private; this is a numeric reviewed projection, not a reusable receipt."
+  ]
+}

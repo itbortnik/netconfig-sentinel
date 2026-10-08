@@ -287,6 +287,9 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/vendor-patch-drafts.md`](docs/vendor-patch-drafts.md).
 Привязка фактического model candidate к точной полной сети и отдельному
 scoped review описана в [`docs/model-patch-network-review.md`](docs/model-patch-network-review.md).
+Единый source-bound отчёт local/ML/formal facts и отдельное необязательное
+объяснение без нового патча описаны в
+[`docs/candidate-review.md`](docs/candidate-review.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

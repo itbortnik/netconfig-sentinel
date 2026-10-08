@@ -229,3 +229,13 @@ the recorded output/identity/measurement to exact locally replayed inputs; it
 does not authenticate a GPU process, publisher, engineer or semantic claims.
 Key storage/backup/rotation and directory/memory access remain operator duties.
 Only an ephemeral diagnostic key was exercised in the owned artifact check.
+
+The [unified candidate review](candidate-review.md) replays exact source and
+binds each supplied network scope/model selection before preparing any context.
+Full-report hashing also detects mutations of numeric facts omitted from the
+prompt. Consistency is not execution authentication; do not treat self-declared
+results as a verifier certificate. Review objects/prompts/hashes remain private.
+Before/after labels and strict null-only word/list/citation bounds reduce ambiguity
+but cannot authenticate free-text claims. Actual accepted diagnostic prose has
+contradicted supplied facts. Keep all explanation drafts visibly untrusted and
+separate from detector/verifier facts, approval and application authority.

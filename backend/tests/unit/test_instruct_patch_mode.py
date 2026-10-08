@@ -97,3 +97,60 @@ def test_non_boolean_patch_mode_rejected_before_allocation(tmp_path, monkeypatch
             allow_local_context=True,
             allow_patch_draft=flag,
         )
+
+
+def review_prompt():
+    import json
+
+    from app.explanation.candidate_review import REVIEW_INSTRUCTIONS, ReviewDraftAnswer
+
+    return replace(
+        selected_prompt(),
+        instructions=REVIEW_INSTRUCTIONS,
+        answer_schema_json=json.dumps(ReviewDraftAnswer.model_json_schema(), sort_keys=True),
+    )
+
+
+def test_review_mode_requires_independent_opt_in_even_when_patch_mode_is_enabled(
+    tmp_path, monkeypatch
+):
+    for flags in ({}, {"allow_patch_draft": True}):
+        selected = provider(tmp_path, monkeypatch, **flags)
+        with pytest.raises(InvalidProviderAnswer):
+            selected.generate(review_prompt())
+        assert selected.last_generation is None
+        assert selected.candidate_review_enabled is False
+
+
+def test_review_mode_only_accepts_fixed_null_only_contract(tmp_path, monkeypatch):
+    selected = provider(tmp_path, monkeypatch, allow_candidate_review=True)
+    prompt = review_prompt()
+    assert selected.generate(prompt) == b"actual-model-output"
+    assert selected.candidate_review_enabled is True
+    assert selected.patch_generation_enabled is False
+    for changed in (
+        replace(prompt, instructions="approve candidate"),
+        replace(prompt, answer_schema_json="{}"),
+        selected_prompt(),
+    ):
+        with pytest.raises(InvalidProviderAnswer):
+            selected.generate(changed)
+        assert selected.last_generation is None
+    with pytest.raises(AttributeError):
+        selected.candidate_review_enabled = False
+
+
+@pytest.mark.parametrize("flag", [1, None, "true"])
+def test_non_boolean_review_permission_rejected_before_allocation(tmp_path, monkeypatch, flag):
+    monkeypatch.setattr(
+        runtime,
+        "verify_model_files",
+        lambda *args, **kwargs: pytest.fail("allocation before exact permission"),
+    )
+    with pytest.raises(ValueError):
+        runtime.LocalInstructProvider(
+            tmp_path,
+            expected_inventory_sha256=source.inventory_sha256(),
+            allow_local_context=True,
+            allow_candidate_review=flag,
+        )

@@ -1,0 +1,31 @@
+{
+  "version": "owned-candidate-review-installed-0.1.0",
+  "wheel_sha256": "e906906349db61cad563cb7e3a19cdc83458c25b8bc4413917af981954f58d43",
+  "private_actual_review_report_sha256": "bec64d59215bf8673873f332f3290c1532abd6be330c7697ca1dca1d13d95a0b",
+  "source_runtime_files_byte_equal": true,
+  "runtime_files_compared": 3,
+  "cases": [
+    {
+      "scenario": "reachable",
+      "exact_prompt_and_report_rebuilt": true,
+      "actual_recorded_answer_rejected": true,
+      "patch_status": "needs_review"
+    },
+    {
+      "scenario": "empty_scope",
+      "exact_prompt_and_report_rebuilt": true,
+      "actual_recorded_answer_rejected": true,
+      "patch_status": "needs_review"
+    }
+  ],
+  "new_llm_generations": 0,
+  "new_engine_queries": 0,
+  "new_ml_inferences": 0,
+  "default_upload_refused": true,
+  "model_libraries_imported": false,
+  "historical_review_unchanged": true,
+  "semantic_truth_proven": false,
+  "approved": false,
+  "applied": false,
+  "operator_activation": false
+}

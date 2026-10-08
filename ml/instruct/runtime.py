@@ -189,6 +189,7 @@ class LocalInstructProvider:
         expected_inventory_sha256: str,
         allow_local_context: bool,
         allow_patch_draft: bool = False,
+        allow_candidate_review: bool = False,
         limits: GenerationLimits | None = None,
     ) -> None:
         if allow_local_context is not True:
@@ -196,6 +197,9 @@ class LocalInstructProvider:
         if type(allow_patch_draft) is not bool:
             raise ValueError("unsupported instruct patch permission")
         self._patch_generation_enabled = allow_patch_draft
+        if type(allow_candidate_review) is not bool:
+            raise ValueError("unsupported instruct candidate review permission")
+        self._candidate_review_enabled = allow_candidate_review
         limits = limits or GenerationLimits()
         self._limits = GenerationLimits(
             limits.max_prompt_tokens,
@@ -220,6 +224,10 @@ class LocalInstructProvider:
     def patch_generation_enabled(self) -> bool:
         return self._patch_generation_enabled
 
+    @property
+    def candidate_review_enabled(self) -> bool:
+        return self._candidate_review_enabled
+
     def generate(self, prompt: ProviderPrompt) -> bytes:
         if not self._lock.acquire(blocking=False):
             raise InvalidProviderAnswer("Local instruct generation is unavailable.")
@@ -235,6 +243,15 @@ class LocalInstructProvider:
                     (
                         PATCH_INSTRUCTIONS,
                         json.dumps(PatchDraftAnswer.model_json_schema(), sort_keys=True),
+                    )
+                )
+            if self._candidate_review_enabled:
+                from app.explanation.candidate_review import REVIEW_INSTRUCTIONS, ReviewDraftAnswer
+
+                contracts.add(
+                    (
+                        REVIEW_INSTRUCTIONS,
+                        json.dumps(ReviewDraftAnswer.model_json_schema(), sort_keys=True),
                     )
                 )
             if (prompt.instructions, prompt.answer_schema_json) not in contracts:
