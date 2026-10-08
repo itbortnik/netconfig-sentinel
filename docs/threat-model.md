@@ -195,3 +195,15 @@ is explicit: a match in a narrow routing slice cannot establish full-config
 equivalence, management safety or reachability. Synthetic replacement labels do
 not certify anomalies or syntax validity. Offline bundle integrity, construction
 budgets and tensor-only loading do not establish source consent or model quality.
+
+## Offline model patch boundary
+
+The opt-in [source-bound model patch](model-patch-drafts.md) exports only a
+whitelisted management slice, not the original snapshot or its unrelated secrets.
+Numeric anchors/hashes and management facts can still be confidential. A local
+context flag is not authorization for external transport. The existing HTTP schema
+remains null-only. Model edits require exact current source/finding/document
+bindings and local replay, parser, scope and policy checks; invalid output has no
+repair/template fallback. Raw candidate and untrusted prose stay private, excluded
+from container repr. Passing these checks is not device syntax, access/rollback,
+formal verification, approval or permission to apply a command.

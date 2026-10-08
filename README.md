@@ -83,6 +83,9 @@
 - [экспериментальный локальный LLM transport](docs/local-model-explanations.md):
   по умолчанию выключен, только loopback и отдельное разрешение на
   псевдонимизированный контекст; непроверенный черновик не меняет риск/историю;
+- [отдельный source-bound model patch](docs/model-patch-drafts.md): явный offline
+  opt-in, минимальный baseline/affected-block контекст и строгая перепроверка
+  предложенных моделью edits; без применения или повышения formal status;
   online service и качество его объяснений не квалифицированы;
 - [явная offline instruct-модель](docs/local-instruct-runtime.md): pinned Qwen3-4B,
   реальные генерации в исходной/установленной сборках, сохранённые отказы и

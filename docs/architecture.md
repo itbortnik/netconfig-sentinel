@@ -79,6 +79,12 @@ gateway, the existing isolated transport worker, authenticated API and consent
 gates. Saved analyses remained unchanged. Its explicit 20-second deadline is not
 the operator default or a server installation; semantic and deployment gates
 remain open.
+A separate [source-bound offline model-patch contract](model-patch-drafts.md)
+requires independent patch opt-in. It includes current supported anchors,
+minimal actual baseline commands, a scoped safe diff, sealed documents and
+explicit missing checks. Model edits are rejected unless exact replay and the
+existing vendor/local review agree; no template substitutes a model refusal.
+The HTTP answer schema remains null-only, with no application or formal promotion.
 See [contextual explanations](contextual-explanations.md) and
 [local-model transport](local-model-explanations.md).
 

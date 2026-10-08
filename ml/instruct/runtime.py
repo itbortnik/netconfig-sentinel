@@ -188,10 +188,14 @@ class LocalInstructProvider:
         *,
         expected_inventory_sha256: str,
         allow_local_context: bool,
+        allow_patch_draft: bool = False,
         limits: GenerationLimits | None = None,
     ) -> None:
         if allow_local_context is not True:
             raise ValueError("explicit local context permission is required")
+        if type(allow_patch_draft) is not bool:
+            raise ValueError("unsupported instruct patch permission")
+        self._patch_generation_enabled = allow_patch_draft
         limits = limits or GenerationLimits()
         self._limits = GenerationLimits(
             limits.max_prompt_tokens,
@@ -212,14 +216,28 @@ class LocalInstructProvider:
     def limits(self) -> GenerationLimits:
         return self._limits
 
+    @property
+    def patch_generation_enabled(self) -> bool:
+        return self._patch_generation_enabled
+
     def generate(self, prompt: ProviderPrompt) -> bytes:
         if not self._lock.acquire(blocking=False):
             raise InvalidProviderAnswer("Local instruct generation is unavailable.")
         self.last_generation = None
         try:
-            if prompt.instructions != SYSTEM_INSTRUCTIONS or prompt.answer_schema_json != (
-                json.dumps(DraftAnswer.model_json_schema(), sort_keys=True)
-            ):
+            contracts = {
+                (SYSTEM_INSTRUCTIONS, json.dumps(DraftAnswer.model_json_schema(), sort_keys=True))
+            }
+            if self._patch_generation_enabled:
+                from app.explanation.patch_provider import PATCH_INSTRUCTIONS, PatchDraftAnswer
+
+                contracts.add(
+                    (
+                        PATCH_INSTRUCTIONS,
+                        json.dumps(PatchDraftAnswer.model_json_schema(), sort_keys=True),
+                    )
+                )
+            if (prompt.instructions, prompt.answer_schema_json) not in contracts:
                 raise ValueError("instruct instructions or answer schema differs")
             ids = frame_prompt(self._tokenizer, prompt, self._limits)
             generated, seconds = _generate(self._model, ids, self._limits)

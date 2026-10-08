@@ -1,0 +1,299 @@
+{
+  "version": "owned-model-patch-numeric-0.1.0",
+  "purpose": "owned_functional_check_not_quality_benchmark",
+  "identity": {
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+    "publisher_license_declaration": "Apache-2.0",
+    "external_training_exposure": "unknown",
+    "parameter_count": 4022468096,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "attention_implementation": "sdpa",
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "automatic_activation": false,
+    "production_quality_proven": false
+  },
+  "limits": {
+    "max_prompt_tokens": 4096,
+    "max_new_tokens": 1024,
+    "timeout_seconds": 20
+  },
+  "scope": "two_management_policies_four_owned_cases",
+  "actual_generations": 12,
+  "independent_test": false,
+  "customer_data_used": false,
+  "semantic_truth_proven": false,
+  "production_quality_proven": false,
+  "automatic_activation": false,
+  "patch_api_activated": false,
+  "formal_verification": "not_run",
+  "runs": [
+    {
+      "artifact_kind": "source",
+      "phase": "initial_context",
+      "private_report_sha256": "1d0efbfeae4ab8796b1915a04463ad6391c6920f4ed6b3274b03f890cf50e005",
+      "system_instructions_sha256": "8a2e014922d043d8b5fe885e80c5eaab784fca9ec8d0e059b0a800b816647f26",
+      "answer_schema_sha256": "45d4bb92e26381cd13f3f3e3ce47b70a1bb2d7cf4f9033ec93d5acf182b4dd95",
+      "locally_checked_drafts": 0,
+      "no_candidate": 3,
+      "rejected": 1,
+      "cases": [
+        {
+          "vendor": "cisco",
+          "category": "management.telnet_enabled",
+          "status": "rejected",
+          "generation": {
+            "prompt_tokens": 1699,
+            "generated_tokens": 307,
+            "seconds": 20.020689900033176,
+            "completed": false,
+            "rejection": "deadline"
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "cisco",
+          "category": "management.ssh_version_1",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1732,
+            "generated_tokens": 282,
+            "seconds": 7.608622900210321,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.telnet_enabled",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1703,
+            "generated_tokens": 294,
+            "seconds": 7.962734299711883,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.ssh_version_1",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1730,
+            "generated_tokens": 326,
+            "seconds": 8.754876300226897,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        }
+      ]
+    },
+    {
+      "artifact_kind": "source",
+      "phase": "ssh_and_baseline_context",
+      "private_report_sha256": "3020e3521a2defb5089dea9160cfd9ecdedec2ffac23ac290498f66cfed056ac",
+      "system_instructions_sha256": "3f60192d6550eb96d2071fe1ce88203d5204e168f8f637de37b95b52a8b5a969",
+      "answer_schema_sha256": "45d4bb92e26381cd13f3f3e3ce47b70a1bb2d7cf4f9033ec93d5acf182b4dd95",
+      "locally_checked_drafts": 2,
+      "no_candidate": 2,
+      "rejected": 0,
+      "cases": [
+        {
+          "vendor": "cisco",
+          "category": "management.telnet_enabled",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1808,
+            "generated_tokens": 255,
+            "seconds": 18.64493970014155,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "cisco",
+          "category": "management.ssh_version_1",
+          "status": "locally_checked_draft",
+          "generation": {
+            "prompt_tokens": 1801,
+            "generated_tokens": 272,
+            "seconds": 7.169771200045943,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": {
+            "before_complete": true,
+            "after_complete": true,
+            "selected_category_absent_after": true,
+            "introduced_policy_findings": 0,
+            "review_status": "needs_review",
+            "validation_blockers": [
+              "formal_verification_not_run",
+              "human_review_required",
+              "current_policy_findings"
+            ],
+            "device_syntax_verified": false,
+            "management_access_verified": false,
+            "ml_status": "not_run",
+            "application_supported": false
+          }
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.telnet_enabled",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1788,
+            "generated_tokens": 258,
+            "seconds": 6.765924000181258,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.ssh_version_1",
+          "status": "locally_checked_draft",
+          "generation": {
+            "prompt_tokens": 1802,
+            "generated_tokens": 294,
+            "seconds": 7.83984600007534,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": {
+            "before_complete": true,
+            "after_complete": true,
+            "selected_category_absent_after": true,
+            "introduced_policy_findings": 0,
+            "review_status": "needs_review",
+            "validation_blockers": [
+              "formal_verification_not_run",
+              "human_review_required",
+              "current_policy_findings"
+            ],
+            "device_syntax_verified": false,
+            "management_access_verified": false,
+            "ml_status": "not_run",
+            "application_supported": false
+          }
+        }
+      ]
+    },
+    {
+      "artifact_kind": "installed_wheel",
+      "phase": "ssh_and_baseline_context",
+      "private_report_sha256": "1df57c3b1fb19f739cb8295de1933498d63486bd1b601e9226b191601739e6ae",
+      "system_instructions_sha256": "3f60192d6550eb96d2071fe1ce88203d5204e168f8f637de37b95b52a8b5a969",
+      "answer_schema_sha256": "45d4bb92e26381cd13f3f3e3ce47b70a1bb2d7cf4f9033ec93d5acf182b4dd95",
+      "locally_checked_drafts": 2,
+      "no_candidate": 2,
+      "rejected": 0,
+      "cases": [
+        {
+          "vendor": "cisco",
+          "category": "management.telnet_enabled",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1808,
+            "generated_tokens": 255,
+            "seconds": 18.782884899992496,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "cisco",
+          "category": "management.ssh_version_1",
+          "status": "locally_checked_draft",
+          "generation": {
+            "prompt_tokens": 1801,
+            "generated_tokens": 272,
+            "seconds": 8.151347999926656,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": {
+            "before_complete": true,
+            "after_complete": true,
+            "selected_category_absent_after": true,
+            "introduced_policy_findings": 0,
+            "review_status": "needs_review",
+            "validation_blockers": [
+              "formal_verification_not_run",
+              "human_review_required",
+              "current_policy_findings"
+            ],
+            "device_syntax_verified": false,
+            "management_access_verified": false,
+            "ml_status": "not_run",
+            "application_supported": false
+          }
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.telnet_enabled",
+          "status": "no_candidate",
+          "generation": {
+            "prompt_tokens": 1788,
+            "generated_tokens": 258,
+            "seconds": 7.993322900030762,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": null
+        },
+        {
+          "vendor": "juniper",
+          "category": "management.ssh_version_1",
+          "status": "locally_checked_draft",
+          "generation": {
+            "prompt_tokens": 1802,
+            "generated_tokens": 294,
+            "seconds": 8.106241200119257,
+            "completed": true,
+            "rejection": null
+          },
+          "local_checks": {
+            "before_complete": true,
+            "after_complete": true,
+            "selected_category_absent_after": true,
+            "introduced_policy_findings": 0,
+            "review_status": "needs_review",
+            "validation_blockers": [
+              "formal_verification_not_run",
+              "human_review_required",
+              "current_policy_findings"
+            ],
+            "device_syntax_verified": false,
+            "management_access_verified": false,
+            "ml_status": "not_run",
+            "application_supported": false
+          }
+        }
+      ]
+    }
+  ],
+  "observed_prose_limitations": [
+    "Unapproved selected baseline described as mandatory policy.",
+    "Explicit SSH version contradicted by a claim that no override is present.",
+    "Missing explicit JunOS SSH version treated as proof of inadequate security.",
+    "Unsupported attack/compliance assertions; citation membership is not claim-level support."
+  ]
+}

@@ -109,3 +109,20 @@ consent до модели и неизменность сохранённых ana
 только точные owned contexts; deadline 20 секунд был явным параметром диагностики,
 не изменением default 10 секунд или активацией сервиса оператора. Это functional
 evidence простого explanation пути, не semantic quality или полного patch workflow.
+Published instruct runtime имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37686408823).
+
+Отдельный [offline model patch slice](model-patch-drafts.md) добавляет actual
+affected command context, выбранный baseline и строгую проверку model-generated
+edits. Он не меняет null-only HTTP schema и не закрывает полный patch workflow,
+semantic quality, actual ML/formal recheck или engineer approval.
+
+Local full suite этого slice: 1497 passed, два explicit skips; ruff и mypy на
+обеих платформах чистые. [12 actual model-patch generations](evaluation/owned-model-patches.json)
+и все 16 installed-wheel сценариев проверены на той же сборке. Measured runs
+содержат исходный deadline/отказы и два final source/installed runs по 2/4 accepted
+SSH drafts + 2/4 `no_candidate`. Все четыре cases повторяются при разработке
+контекста, не являются independent test. Наблюдённые prose contradictions и
+unsupported claims сохраняются; локально проверенный edit не равен semantic truth.
+Published actual explanation HTTP evidence имеет
+[успешные три CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37687171335).

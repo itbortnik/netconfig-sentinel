@@ -137,8 +137,10 @@ deployment, нагрузку, semantic truth, patch lifecycle или безоп�
 
 ## Оставшийся полный LLM workflow
 
-Этот runtime не завершает полный LLM workflow: действующая schema пока требует
-`patch_draft=null`. Vendor-specific candidate generation с safe diff/baseline/
+Этот runtime не завершает полный LLM workflow: действующая HTTP schema требует
+`patch_draft=null`. Отдельный [offline source-bound model patch](model-patch-drafts.md)
+имеет самостоятельный opt-in и ограниченный management context; это не activation
+patch API. Полный vendor-specific workflow с safe diff/baseline/
 реальным verifier context, engineer approval и связанный patch API round trip
 требуют отдельного этапа. Проверка простого explanation HTTP пути выше не заменяет
 их. Не закрыты independent/adversarial/semantic/citation quality,
