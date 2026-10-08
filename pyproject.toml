@@ -25,7 +25,7 @@ dependencies = [
 training = ["torch==2.14.0"]
 retrieval = ["torch==2.14.0", "transformers==5.19.0", "safetensors==0.8.0"]
 instruct = ["torch==2.14.0", "transformers==5.19.0", "safetensors==0.8.0"]
-verification = ["pybatfish==0.36.0"]
+verification = ["pybatfish==2026.8.19.3660"]
 dev = [
   "httpx>=0.28,<1.0",
   "mypy>=1.15,<2.0",

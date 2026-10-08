@@ -52,6 +52,15 @@
   чтение пересчитывает diff из родителей, но не переоценивает исторический
   отчёт новым каталогом. Локальная проверка не может стать formal pass:
   `mode=batfish` в HTTP возвращает 503 без fallback.
+  Opt-in SDK worker использует isolated Python и минимальное OS environment:
+  API/model credentials и import/startup overrides не передаются. Upload consent
+  — boolean, deadline — integer 1–300. Отдельный pinned Compose verification
+  profile требует решения оператора; volume `/data` может сохранять сырые снимки
+  при сбое. CI live job загружает только явно написанные проектом игрушечные
+  конфигурации, не inputs оператора. Прошедший такой тест не является полным
+  formal/device/access/approval gate. Извлечение official JAR с проверкой digests
+  не доказывает подпись издателя или безопасность ОС; Windows диагностический
+  запуск возвращал initialization error и был завершён, без установленной службы.
 - Reference/peer inputs выбираются только по сохранённым IDs, до анализа
   проверяются identity, группа, distinct devices, порядок приёма и полнота
   парсинга. Результат хранит профиль/версии/hashes внутри encrypted payload.

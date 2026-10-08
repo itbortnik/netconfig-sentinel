@@ -31,14 +31,24 @@ def test_worker_is_bounded_and_temp_inputs_are_cleaned(
     scope = ReachabilityScope(start_node="edge", destination="192.0.2.0/24")
     monkeypatch.setattr(batfish.importlib.util, "find_spec", lambda _: object())
     monkeypatch.setenv("HTTP_PROXY", "http://outside.invalid:8080")
+    monkeypatch.setenv("NETCONFIG_API_TOKEN", "private-service-token")
+    monkeypatch.setenv("HF_TOKEN", "private-model-token")
+    monkeypatch.setenv("PYTHONPATH", "untrusted-import-directory")
+    monkeypatch.setenv("PYTHONSTARTUP", "untrusted-startup-file")
     directories = []
 
     def run(*args: Any, **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        assert args[0][1] == "-I"
+        assert Path(args[0][2]).name == "batfish_worker.py"
         request = json.loads(kwargs["input"])
         directories.append(Path(request["before"]).parent)
         assert directories[-1].exists()
         assert kwargs["timeout"] == 7
         assert "HTTP_PROXY" not in kwargs["env"]
+        assert "NETCONFIG_API_TOKEN" not in kwargs["env"]
+        assert "HF_TOKEN" not in kwargs["env"]
+        assert "PYTHONPATH" not in kwargs["env"]
+        assert "PYTHONSTARTUP" not in kwargs["env"]
         assert kwargs["env"]["NO_PROXY"] == "*"
         assert request["scope"]["start_node"] == "edge"
         if behavior == "timeout":
@@ -70,6 +80,29 @@ def test_worker_is_bounded_and_temp_inputs_are_cleaned(
     assert result.status == ("no_differences_in_scope" if behavior == "success" else "error")
     assert all(not directory.exists() for directory in directories)
     assert "private-secret" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize("consent", [None, 0, 1, "true", "false", object()])
+def test_upload_permission_is_an_explicit_boolean(
+    monkeypatch: pytest.MonkeyPatch, consent: Any
+) -> None:
+    snapshot = prepare_snapshot({UUID(int=1): "hostname edge\n"})
+    scope = ReachabilityScope(start_node="edge", destination="192.0.2.0/24")
+
+    def no_sdk_access(*args: Any, **kwargs: Any) -> None:
+        raise AssertionError("SDK lookup must not precede consent validation")
+
+    monkeypatch.setattr(batfish.importlib.util, "find_spec", no_sdk_access)
+    with pytest.raises(ValueError, match="permission must be a boolean"):
+        check_with_batfish(snapshot, snapshot, scope, allow_local_upload=consent)
+
+
+@pytest.mark.parametrize("timeout", [True, False, 1.0, "60", None, 0, 301])
+def test_worker_timeout_is_a_bounded_integer(timeout: Any) -> None:
+    snapshot = prepare_snapshot({UUID(int=1): "hostname edge\n"})
+    scope = ReachabilityScope(start_node="edge", destination="192.0.2.0/24")
+    with pytest.raises(ValueError, match="timeout must"):
+        check_with_batfish(snapshot, snapshot, scope, timeout_seconds=timeout)
 
 
 def test_empty_scope_cannot_claim_success() -> None:

@@ -1,4 +1,17 @@
 services:
+  batfish:
+    profiles: ["verification"]
+    image: batfish/batfish@sha256:7909378197c5a3974f2e8180af58cef0ca17b74d1cd9ba39f2d1fddb64737e55
+    ports:
+      - "127.0.0.1:9996:9996"
+    volumes:
+      - batfish_data:/data
+    mem_limit: 4g
+    cpus: 2
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g
+
   database:
     image: postgres:17-alpine
     environment:
@@ -57,4 +70,5 @@ services:
       retries: 3
 
 volumes:
+  batfish_data:
   database_data:

@@ -110,7 +110,9 @@ def check_with_batfish(
     scope = ReachabilityScope.model_validate(scope.model_dump())
     if scope.start_node not in {config.hostname for config in before.configs}:
         raise ValueError("start node is absent from the supplied snapshots")
-    if not 1 <= timeout_seconds <= 300:
+    if type(allow_local_upload) is not bool:
+        raise ValueError("local upload permission must be a boolean")
+    if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 300:
         raise ValueError("timeout must be between 1 and 300 seconds")
     common = {"before_sha256": before.digest, "after_sha256": after.digest, "scope": scope}
 
@@ -138,17 +140,23 @@ def check_with_batfish(
             environment = {
                 key: value
                 for key, value in os.environ.items()
-                if key.upper() not in {"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY"}
+                if key.upper() in {"SYSTEMROOT", "WINDIR", "PATH", "TMP", "TEMP", "LANG", "LC_ALL"}
             }
             environment["NO_PROXY"] = "*"
+            environment["PYTHONNOUSERSITE"] = "1"
             run = subprocess.run(
-                [sys.executable, "-m", "app.verification.batfish_worker"],
+                [sys.executable, "-I", str(Path(__file__).with_name("batfish_worker.py"))],
                 input=json.dumps(request),
                 capture_output=True,
                 encoding="utf-8",
                 timeout=timeout_seconds,
                 check=False,
                 env=environment,
+                creationflags=(
+                    int(getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                    if sys.platform == "win32"
+                    else 0
+                ),
             )
             if run.returncode != 0 or len(run.stdout) > 32_768:
                 return failure("error", "worker_failed")
