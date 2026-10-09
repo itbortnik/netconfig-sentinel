@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { parserCoverageSchema } from "./parserCoverage";
 import { makeExpandedComparisonSchema } from "./expandedComparisons";
+import { makeMeasuredComparisonSchema } from "./measuredComparisons";
 
 export const rolePermissions = {
   reader: ["read"],
@@ -442,6 +443,7 @@ const knowledgeReleaseByDetectorVersion: Record<string, string> = {
   "peer-baseline-0.1.0": "project-knowledge-0.1.0",
   "expected-config-0.2.0": "project-knowledge-0.3.0",
   "peer-baseline-0.2.0": "project-knowledge-0.3.0",
+  "peer-baseline-0.3.0": "project-knowledge-0.4.0",
   "isolation-forest-0.1.0": "project-knowledge-0.1.0",
 };
 const embeddingIdentitySchema = z
@@ -522,6 +524,7 @@ export const explanationBundleSchema = z
       "project-knowledge-0.1.0",
       "project-knowledge-0.2.0",
       "project-knowledge-0.3.0",
+      "project-knowledge-0.4.0",
     ]),
     knowledge_sha256: hash,
     retrieval: z.enum(["explicit_reference", "semantic_supplement"]),
@@ -775,6 +778,7 @@ export const analysisSchema = z
       "analysis-api-0.2.0",
       "analysis-api-0.3.0",
       "analysis-api-0.4.0",
+      "analysis-api-0.5.0",
     ]),
     analysis_id: id,
     configuration_id: id,
@@ -817,6 +821,7 @@ export const analysisSchema = z
       .union([
         comparisonSchema,
         makeExpandedComparisonSchema(snapshotBindingSchema, findingSchema),
+        makeMeasuredComparisonSchema(snapshotBindingSchema, findingSchema),
       ])
       .nullable()
       .optional(),
@@ -826,15 +831,26 @@ export const analysisSchema = z
     const comparison = result.comparison;
     const statistical = result.statistical;
     const expanded = comparison && "version" in comparison ? comparison : null;
-    if ((result.version === "analysis-api-0.4.0") !== !!expanded) return false;
+    if (
+      (result.version === "analysis-api-0.4.0") !==
+      (expanded?.version === "comparison-context-0.2.0")
+    )
+      return false;
+    if (
+      (result.version === "analysis-api-0.5.0") !==
+      (expanded?.version === "comparison-context-0.3.0")
+    )
+      return false;
     if (
       result.version !== "analysis-api-0.3.0" &&
       result.version !== "analysis-api-0.4.0" &&
+      result.version !== "analysis-api-0.5.0" &&
       (result.version === "analysis-api-0.2.0") !== !!comparison
     )
       return false;
     if (
       result.version !== "analysis-api-0.4.0" &&
+      result.version !== "analysis-api-0.5.0" &&
       (result.version === "analysis-api-0.3.0") !== !!statistical
     )
       return false;
@@ -1014,7 +1030,7 @@ export type Upload = {
   retain_original_source?: boolean;
 };
 export type AnalysisOptions = {
-  comparison_version?: "0.1.0" | "0.2.0";
+  comparison_version?: "0.1.0" | "0.2.0" | "0.3.0";
   reference_configuration_id?: string;
   peer_configuration_ids?: string[];
   statistical_model_id?: string;

@@ -11,8 +11,8 @@ export function ComparisonSelection({
 }: {
   reference: SelectedSnapshot | null;
   peers: SelectedSnapshot[];
-  version: "0.1.0" | "0.2.0";
-  onVersion: (value: "0.1.0" | "0.2.0") => void;
+  version: "0.1.0" | "0.2.0" | "0.3.0";
+  onVersion: (value: "0.1.0" | "0.2.0" | "0.3.0") => void;
   busy: boolean;
   onClearReference: () => void;
   onRemovePeer: (id: string) => void;
@@ -37,19 +37,37 @@ export function ComparisonSelection({
         disabled={busy}
         value={version}
         onChange={(event) =>
-          onVersion(event.target.value === "0.2.0" ? "0.2.0" : "0.1.0")
+          onVersion(
+            event.target.value === "0.3.0"
+              ? "0.3.0"
+              : event.target.value === "0.2.0"
+                ? "0.2.0"
+                : "0.1.0",
+          )
         }
       >
         <option value="0.1.0">0.1 — прежний набор признаков</option>
         <option value="0.2.0">
           0.2 — значения management, VLAN, ACL и routing
         </option>
+        <option value="0.3.0">
+          0.3 — те же свойства и измеренная доля неразобранных строк
+        </option>
       </select>
-      {version === "0.2.0" && (
+      {version !== "0.1.0" && (
         <p className="hint">
           При неполном разборе текущего снимка сравнение свойств peers
           пропускается целиком. Отсутствие находок не означает, что эти свойства
           проверены.
+        </p>
+      )}
+      {version === "0.3.0" && (
+        <p className="hint">
+          Для peers нужны сохранённые измерения с ненулевым знаменателем.
+          Считаются исходные строки адаптера, не универсальные команды. Форматы
+          set и blocks могут иметь разные знаменатели; это не проверка
+          синтаксиса или безопасности. Эталонное сравнение остаётся версией 0.2
+          и не требует отчёта покрытия.
         </p>
       )}
       {reference && (

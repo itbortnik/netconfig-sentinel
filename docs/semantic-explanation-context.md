@@ -34,12 +34,18 @@ model/index mounts оператором. Оно здесь не выдаётся
 не задан, semantic request новой находки даёт 503 до чтения индекса/запуска worker.
 Явные references доступны без encoder. Старые pins не используются для 0.3.
 
+Для `peer-baseline-0.3.0` отдельно постройте knowledge 0.4 index и задайте
+`NETCONFIG_DOCUMENT_INDEX_SHA256_0_4`. Первые четыре параметра по-прежнему
+обязательны; optional pins 0.3/0.4 независимы. Без pin 0.4 measured semantic
+request даёт 503 до чтения индекса/запуска worker, без fallback к старому release.
+Reference 0.2 в том же анализе использует knowledge 0.3 и его pin.
+
 ```powershell
 .venv\Scripts\python.exe -m ml.retrieval.smoke --model-root artifacts/minilm-public --output-root artifacts/expanded-document-search --knowledge-version project-knowledge-0.3.0
 ```
 
 Каталог output должен быть новым. При общей index root можно явно повторить
-`--knowledge-version` для всех трёх releases. Без этого параметра CLI сохраняет
+`--knowledge-version` для всех четырёх releases. Без этого параметра CLI сохраняет
 прежний двухрелизный диагностический сценарий. Полученный hash переносится в
 настройку оператором; команда не активирует runtime и не меняет environment.
 

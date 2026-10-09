@@ -10,6 +10,7 @@ from app.api.contracts import (
     ComparisonContext,
     ConfigurationSnapshot,
     ExpandedComparisonContext,
+    MeasuredComparisonContext,
     ModelSummary,
     RegisteredModel,
     SnapshotBinding,
@@ -24,15 +25,19 @@ from app.detection.baseline import (
     ExpandedPeerEvaluation,
     ExpandedReference,
     ExpectedConfiguration,
+    MeasuredPeerBaseline,
+    MeasuredPeerEvaluation,
     PeerBaseline,
     PeerGroupKey,
     build_expanded_peer_baseline,
+    build_measured_peer_baseline,
     build_peer_baseline,
     compare_expanded_reference,
     compare_expected_configuration,
     create_expanded_reference,
     create_expected_configuration,
     evaluate_expanded_peer_baseline,
+    evaluate_measured_peer_baseline,
     evaluate_peer_baseline,
 )
 from app.detection.fusion import RiskSource, fuse_risk
@@ -47,7 +52,7 @@ from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
 from app.explanation.local import explain_finding
 from app.ingestion.local import validate_configuration_text
-from app.parsers.coverage import parse_configuration_with_coverage
+from app.parsers.coverage import ParsedConfiguration, parse_configuration_with_coverage
 from app.policies import POLICY_CATALOG_VERSION
 
 
@@ -57,6 +62,12 @@ class ModelTrainingBusy(Exception):
 
 class FeedbackTargetNotFound(Exception):
     """The selected analysis/finding pair is unavailable."""
+
+
+def _measured_input(snapshot: ConfigurationSnapshot) -> ParsedConfiguration:
+    if snapshot.parser_coverage is None:
+        raise ValueError("measured comparison requires saved source accounting")
+    return ParsedConfiguration(snapshot.canonical, snapshot.parser_coverage)
 
 
 class AnalysisService:
@@ -196,11 +207,12 @@ class AnalysisService:
         )
         findings = evaluate_policies(config, device_id=snapshot.device_id)
         options = options or AnalysisOptions()
-        expanded = options.comparison_version == "0.2.0"
+        measured = options.comparison_version == "0.3.0"
+        expanded = options.comparison_version in {"0.2.0", "0.3.0"}
         reference: ExpectedConfiguration | ExpandedReference | None = None
         reference_binding = None
-        baseline: PeerBaseline | ExpandedPeerBaseline | None = None
-        peer_evaluation: ExpandedPeerEvaluation | None = None
+        baseline: PeerBaseline | ExpandedPeerBaseline | MeasuredPeerBaseline | None = None
+        peer_evaluation: ExpandedPeerEvaluation | MeasuredPeerEvaluation | None = None
         statistical = None
         statistical_model = None
         peers: list[ConfigurationSnapshot] = []
@@ -259,7 +271,15 @@ class AnalysisService:
                 peer.canonical.device.hostname is None for peer in peers
             ):
                 raise ValueError("peer comparisons require explicit device hostnames")
-            if expanded:
+            if measured:
+                baseline = build_measured_peer_baseline([_measured_input(peer) for peer in peers])
+                peer_evaluation = evaluate_measured_peer_baseline(
+                    _measured_input(snapshot),
+                    baseline,
+                    device_id=snapshot.device_id,
+                )
+                findings.extend(peer_evaluation.findings)
+            elif expanded:
                 baseline = build_expanded_peer_baseline([peer.canonical for peer in peers])
                 peer_evaluation = evaluate_expanded_peer_baseline(
                     config, baseline, device_id=snapshot.device_id
@@ -270,10 +290,26 @@ class AnalysisService:
                 findings.extend(
                     evaluate_peer_baseline(config, baseline, device_id=snapshot.device_id)
                 )
-        comparison: ComparisonContext | ExpandedComparisonContext | None = None
+        comparison: (
+            ComparisonContext | ExpandedComparisonContext | MeasuredComparisonContext | None
+        ) = None
         if reference_binding is not None or peers:
-            if expanded:
+            if measured:
+                assert baseline is None or isinstance(baseline, MeasuredPeerBaseline)
+                assert peer_evaluation is None or isinstance(
+                    peer_evaluation, MeasuredPeerEvaluation
+                )
+                comparison = MeasuredComparisonContext(
+                    reference=reference_binding,
+                    peers=tuple(SnapshotBinding.from_snapshot(peer) for peer in peers),
+                    peer_baseline=baseline,
+                    peer_evaluation=peer_evaluation,
+                )
+            elif expanded:
                 assert baseline is None or isinstance(baseline, ExpandedPeerBaseline)
+                assert peer_evaluation is None or isinstance(
+                    peer_evaluation, ExpandedPeerEvaluation
+                )
                 comparison = ExpandedComparisonContext(
                     reference=reference_binding,
                     peers=tuple(SnapshotBinding.from_snapshot(peer) for peer in peers),
@@ -323,7 +359,9 @@ class AnalysisService:
             )
             completed.append(RiskSource.STATISTICAL)
         result = AnalysisResult(
-            version="analysis-api-0.4.0"
+            version="analysis-api-0.5.0"
+            if isinstance(comparison, MeasuredComparisonContext)
+            else "analysis-api-0.4.0"
             if isinstance(comparison, ExpandedComparisonContext)
             else "analysis-api-0.3.0"
             if statistical is not None
@@ -343,6 +381,7 @@ class AnalysisService:
                     reference=reference,
                     peer_baseline=baseline,
                     statistical_model=statistical_model,
+                    parser_coverage=snapshot.parser_coverage,
                 )
                 for finding in findings
             ),

@@ -146,8 +146,10 @@ export function AnalysisView({
             {"version" in result.comparison && (
               <div>
                 <p>
-                  Расширенное сравнение 0.2.0. Версия сохранена для этого
-                  анализа.
+                  {result.comparison.version === "comparison-context-0.3.0"
+                    ? "Измеренное сравнение 0.3.0."
+                    : "Расширенное сравнение 0.2.0."}{" "}
+                  Версия сохранена для этого анализа.
                 </p>
                 {result.comparison.peer_evaluation && (
                   <>
@@ -168,18 +170,48 @@ export function AnalysisView({
                           .length
                       }
                       . Без консенсуса:{" "}
-                      {result.comparison.peer_baseline?.omitted_features
-                        .length ?? 0}
+                      {(result.comparison.version === "comparison-context-0.3.0"
+                        ? result.comparison.peer_baseline?.properties
+                        : result.comparison.peer_baseline
+                      )?.omitted_features.length ?? 0}
                       .
                     </p>
-                    <p className="hint">
-                      Дефицит доверия парсера:{" "}
-                      {percent(
-                        result.comparison.peer_evaluation.unsupported_ratio,
-                      )}
-                      . Это не точный подсчёт неизвестных команд и не
-                      вероятность ошибки.
-                    </p>
+                    {result.comparison.peer_evaluation.version ===
+                    "peer-comparison-report-0.3.0" ? (
+                      <p className="hint">
+                        Измеренная доля неразобранных строк:{" "}
+                        {percent(
+                          result.comparison.peer_evaluation.coverage
+                            .unparsed_fraction!,
+                        )}
+                        . Неразобранных:{" "}
+                        {
+                          result.comparison.peer_evaluation.coverage
+                            .unparsed_units
+                        }{" "}
+                        из{" "}
+                        {
+                          result.comparison.peer_evaluation.coverage
+                            .command_units
+                        }{" "}
+                        учитываемых строк. Порог группы:{" "}
+                        {percent(
+                          result.comparison.peer_evaluation
+                            .unparsed_fraction_limit,
+                        )}
+                        . Это не доверие парсера, не вероятность ошибки и не
+                        доказательство безопасности.
+                      </p>
+                    ) : (
+                      <p className="hint">
+                        Дефицит доверия парсера:{" "}
+                        {percent(
+                          result.comparison.peer_evaluation.unsupported_ratio,
+                        )}
+                        . Это не точный подсчёт неизвестных команд и не
+                        вероятность ошибки.
+                      </p>
+                    )}
                   </>
                 )}
               </div>

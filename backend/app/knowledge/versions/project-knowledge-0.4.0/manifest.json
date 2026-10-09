@@ -1,0 +1,15 @@
+{
+  "version": "project-knowledge-0.4.0",
+  "source_commit": "5cb7cd1fa1ad7d26b156526ad0e978418aeb8962",
+  "authority": "internal_project_document",
+  "documents": {
+    "docs/policies/management-plane.md": "f1418aafd7ea11799e56f2def4c1af8b827a596b78b703ba1d6565310978b5b8",
+    "docs/policies/observability.md": "1f99a2f91da825d92048f0bdcc0457fb657a6a602c1cf9ec61b4f3ad59cde17f",
+    "docs/policies/access-control.md": "f4891ac5fa16e30f67dea85977c52b37cfa824d8029a6be5c3845814b16f3c50",
+    "docs/policies/routing.md": "3b819a006f954176c24151e5c21485768da80231892f32d2cdcac25db31b85c3",
+    "docs/policies/layer2.md": "0dc02c775184f10508a5899d65da2a6fb5ce7a2e7d707c8f42676bd2133ff8e0",
+    "docs/expected-configuration.md": "adc5e62171e11ee17bd0594e02b2f3c6af146da16e229476f5a3b7c3a268d007",
+    "docs/baseline.md": "00414247b62dfd15aea68f61dc4444c92a42975e639c14fb02212ff733ee7247",
+    "docs/statistical-baseline.md": "44765c0384b7ef61d0a8920896ce44ab8312242db88bfd54673b264c53b9e174"
+  }
+}

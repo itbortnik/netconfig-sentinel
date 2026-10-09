@@ -7,7 +7,7 @@ activation is needed. The library entry point is
 `app.parsers.coverage.parse_configuration_with_coverage`: it validates the existing
 2 MiB UTF-8/10,000-line budgets, parses once, and returns the unchanged canonical
 configuration plus coverage. The opt-in
-[measured peer detector/CLI](baseline.md#measured-parser-coverage) compares the
+[measured peer detector/CLI/API/UI](baseline.md#measured-parser-coverage) compares the
 actual unknown fraction separately; it does not replace historical peer versions.
 
 ## Unit and denominator
@@ -67,8 +67,11 @@ field. History is not reparsed or silently upgraded. The interface shows
 the per-line array. Canonical schemas 1.0/1.1, parser golden bytes, forest features,
 existing reference/peer fingerprints and saved analysis/explanation bindings are
 unchanged. Peer-baseline 0.1/0.2 still use their documented confidence-deficit
-proxy. Explicit peer 0.3 uses the measured fraction in the library/local CLI;
-its persistent API/UI and explanation integration remain open.
+proxy. Explicit peer 0.3 uses the measured fraction in the library/CLI and saved
+API/UI analysis. The selected target and every peer must have valid saved
+coverage with a nonzero denominator; unavailable historical reports are refused
+without reparsing. The full report/profile are encrypted and survive restart.
+Sources bind to the exact detector's sealed release, not mutable current docs.
 
 ## Checks and limits
 

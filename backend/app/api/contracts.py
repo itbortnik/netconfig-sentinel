@@ -15,7 +15,13 @@ from pydantic import (
     model_validator,
 )
 
-from app.detection.baseline import ExpandedPeerBaseline, ExpandedPeerEvaluation, PeerBaseline
+from app.detection.baseline import (
+    ExpandedPeerBaseline,
+    ExpandedPeerEvaluation,
+    MeasuredPeerBaseline,
+    MeasuredPeerEvaluation,
+    PeerBaseline,
+)
 from app.detection.baseline.expanded import encoded_value
 from app.detection.fusion import RiskAssessment, RiskSource, fuse_risk
 from app.detection.statistical.artifact import ForestArtifact
@@ -105,7 +111,7 @@ class AnalysisOptions(BaseModel):
     reference_configuration_id: UUID | None = None
     peer_configuration_ids: tuple[UUID, ...] = Field(default=(), max_length=20)
     statistical_model_id: UUID | None = None
-    comparison_version: Literal["0.1.0", "0.2.0"] = "0.1.0"
+    comparison_version: Literal["0.1.0", "0.2.0", "0.3.0"] = "0.1.0"
 
     @model_validator(mode="after")
     def distinct_selections(self) -> "AnalysisOptions":
@@ -267,6 +273,49 @@ class TrainModelOptions(BaseModel):
         return self
 
 
+class MeasuredComparisonContext(BaseModel):
+    """Separate saved contract; historical confidence proxies are never reinterpreted."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["comparison-context-0.3.0"] = "comparison-context-0.3.0"
+    reference: SnapshotBinding | None = None
+    peers: tuple[SnapshotBinding, ...] = Field(default=(), max_length=20)
+    peer_baseline: MeasuredPeerBaseline | None = None
+    peer_evaluation: MeasuredPeerEvaluation | None = None
+
+    @model_validator(mode="after")
+    def bound_measured_inputs(self) -> "MeasuredComparisonContext":
+        if self.reference is None and not self.peers:
+            raise ValueError("comparison requires selected inputs")
+        if bool(self.peers) != (self.peer_baseline is not None) or (
+            bool(self.peers) != (self.peer_evaluation is not None)
+        ):
+            raise ValueError("measured peer inputs, profile and report must be present together")
+        if self.peers:
+            if not 3 <= len(self.peers) <= 20:
+                raise ValueError("invalid measured peer count")
+            for values in (
+                [item.configuration_id for item in self.peers],
+                [item.device_id for item in self.peers],
+                [item.source_sha256 for item in self.peers],
+            ):
+                if len(values) != len(set(values)):
+                    raise ValueError("measured peers require distinct snapshots and devices")
+            baseline, report = self.peer_baseline, self.peer_evaluation
+            assert baseline is not None and report is not None
+            indexed = {item.source_sha256: item for item in self.peers}
+            if baseline.sample_count != len(self.peers) or (
+                set(indexed) != {item.source_sha256 for item in baseline.samples}
+                or any(
+                    item.collected_at > indexed[item.source_sha256].created_at
+                    for item in baseline.samples
+                )
+            ):
+                raise ValueError("measured profile differs from the selected peer snapshots")
+            report.validate_profile(baseline)
+        return self
+
+
 class ModelSummary(BaseModel):
     """An immutable experimental model, not a production approval or quality report."""
 
@@ -346,7 +395,11 @@ class StatisticalContext(BaseModel):
 class AnalysisResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: Literal[
-        "analysis-api-0.1.0", "analysis-api-0.2.0", "analysis-api-0.3.0", "analysis-api-0.4.0"
+        "analysis-api-0.1.0",
+        "analysis-api-0.2.0",
+        "analysis-api-0.3.0",
+        "analysis-api-0.4.0",
+        "analysis-api-0.5.0",
     ] = "analysis-api-0.1.0"
     analysis_id: UUID
     configuration_id: UUID
@@ -359,19 +412,31 @@ class AnalysisResult(BaseModel):
     explanations: tuple[FindingExplanation, ...]
     risk: RiskAssessment | None
     limitations: tuple[str, ...]
-    comparison: ComparisonContext | ExpandedComparisonContext | None = None
+    comparison: ComparisonContext | ExpandedComparisonContext | MeasuredComparisonContext | None = (
+        None
+    )
     statistical: StatisticalContext | None = None
 
     @model_validator(mode="after")
     def bound_results(self) -> "AnalysisResult":
-        expanded = isinstance(self.comparison, ExpandedComparisonContext)
-        if (self.version == "analysis-api-0.4.0") != expanded:
-            raise ValueError("expanded comparisons require their own API version")
-        if self.version not in {"analysis-api-0.3.0", "analysis-api-0.4.0"} and (
-            (self.version == "analysis-api-0.2.0") != (self.comparison is not None)
+        expanded = isinstance(
+            self.comparison, (ExpandedComparisonContext, MeasuredComparisonContext)
+        )
+        if (self.version == "analysis-api-0.4.0") != isinstance(
+            self.comparison, ExpandedComparisonContext
         ):
+            raise ValueError("expanded comparisons require their own API version")
+        if (self.version == "analysis-api-0.5.0") != isinstance(
+            self.comparison, MeasuredComparisonContext
+        ):
+            raise ValueError("measured comparisons require their own API version")
+        if self.version not in {
+            "analysis-api-0.3.0",
+            "analysis-api-0.4.0",
+            "analysis-api-0.5.0",
+        } and ((self.version == "analysis-api-0.2.0") != (self.comparison is not None)):
             raise ValueError("comparison context requires the extended API version")
-        if self.version != "analysis-api-0.4.0" and (
+        if self.version not in {"analysis-api-0.4.0", "analysis-api-0.5.0"} and (
             (self.version == "analysis-api-0.3.0") != (self.statistical is not None)
         ):
             raise ValueError("statistical context requires the model API version")
@@ -411,7 +476,7 @@ class AnalysisResult(BaseModel):
                 if any(item.device_id == self.device_id for item in self.comparison.peers):
                     raise ValueError("target device cannot be its own peer")
                 versions["peer_baseline"] = self.comparison.peer_baseline.model_version
-            if isinstance(self.comparison, ExpandedComparisonContext):
+            if isinstance(self.comparison, (ExpandedComparisonContext, MeasuredComparisonContext)):
                 report = self.comparison.peer_evaluation
                 if report is not None and (
                     (report.device_id, report.source_sha256, report.status)

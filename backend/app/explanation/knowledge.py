@@ -16,7 +16,10 @@ from app.domain import Finding
 from app.policies import POLICY_CATALOGS
 
 type KnowledgeVersion = Literal[
-    "project-knowledge-0.1.0", "project-knowledge-0.2.0", "project-knowledge-0.3.0"
+    "project-knowledge-0.1.0",
+    "project-knowledge-0.2.0",
+    "project-knowledge-0.3.0",
+    "project-knowledge-0.4.0",
 ]
 KNOWLEDGE_VERSION: KnowledgeVersion = "project-knowledge-0.2.0"
 ARCHIVE_MANIFESTS = MappingProxyType(
@@ -30,6 +33,9 @@ ARCHIVE_MANIFESTS = MappingProxyType(
         "project-knowledge-0.3.0": (
             "aace5e74c6fe85ee55f576e1b632cac51fbaa7659606cb4ec3b3add2f4808edd"
         ),
+        "project-knowledge-0.4.0": (
+            "f3984a518463c70af9b5455e8788af782ed95f55936aa6d64ba39f49333d0baf"
+        ),
     }
 )
 RELEASE_BY_DETECTOR_VERSION: MappingProxyType[str, KnowledgeVersion] = MappingProxyType(
@@ -40,6 +46,7 @@ RELEASE_BY_DETECTOR_VERSION: MappingProxyType[str, KnowledgeVersion] = MappingPr
         "peer-baseline-0.1.0": "project-knowledge-0.1.0",
         "expected-config-0.2.0": "project-knowledge-0.3.0",
         "peer-baseline-0.2.0": "project-knowledge-0.3.0",
+        "peer-baseline-0.3.0": "project-knowledge-0.4.0",
         "isolation-forest-0.1.0": "project-knowledge-0.1.0",
     }
 )
@@ -189,6 +196,9 @@ class KnowledgeCatalog:
                     "docs/baseline.md#expanded-peer-templates",
                     "docs/baseline.md#limitations",
                 ),
+                ("peer_baseline", "peer-baseline-0.3.0"): (
+                    "docs/baseline.md#measured-parser-coverage",
+                ),
                 ("isolation_forest", "isolation-forest-0.1.0"): (
                     "docs/statistical-baseline.md#finding-interpretation",
                     "docs/statistical-baseline.md#current-limitations",
@@ -226,6 +236,8 @@ def knowledge_version_for_finding(finding: Finding) -> KnowledgeVersion:
         ("peer_baseline", "peer-baseline-0.2.0"),
     }:
         return "project-knowledge-0.3.0"
+    elif (finding.detector, finding.model_version) == ("peer_baseline", "peer-baseline-0.3.0"):
+        return "project-knowledge-0.4.0"
     raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
 
 

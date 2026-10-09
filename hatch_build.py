@@ -24,6 +24,7 @@ class FrontendAssetsHook(BuildHookInterface):
                 "project-knowledge-0.1.0",
                 "project-knowledge-0.2.0",
                 "project-knowledge-0.3.0",
+                "project-knowledge-0.4.0",
             ):
                 for source in (*sources, "manifest.json"):
                     relative = f"knowledge/versions/{release}/{source}"

@@ -11,10 +11,12 @@ from app.detection.baseline import (
     ExpandedPeerBaseline,
     ExpandedReference,
     ExpectedConfiguration,
+    MeasuredPeerBaseline,
     PeerBaseline,
     compare_expanded_reference,
     compare_expected_configuration,
     evaluate_expanded_peer_baseline,
+    evaluate_measured_peer_baseline,
     evaluate_peer_baseline,
 )
 from app.detection.policy_engine import evaluate_policies
@@ -24,6 +26,7 @@ from app.detection.statistical.isolation_forest import (
 )
 from app.domain import CanonicalConfig, Finding, Severity
 from app.domain.fingerprints import finding_fingerprint
+from app.parsers.coverage import ParsedConfiguration, ParserCoverage
 from app.policies import POLICY_CATALOGS
 
 
@@ -62,8 +65,9 @@ def explain_finding(
     config: CanonicalConfig,
     *,
     reference: ExpectedConfiguration | ExpandedReference | None = None,
-    peer_baseline: PeerBaseline | ExpandedPeerBaseline | None = None,
+    peer_baseline: PeerBaseline | ExpandedPeerBaseline | MeasuredPeerBaseline | None = None,
     statistical_model: FittedIsolationForest | None = None,
+    parser_coverage: ParserCoverage | None = None,
 ) -> FindingExplanation:
     """Require a finding to match a fresh detector run before generating prose."""
     finding = Finding.model_validate(finding.model_dump())
@@ -106,7 +110,17 @@ def explain_finding(
     elif finding.detector == "peer_baseline":
         if peer_baseline is None:
             raise ValueError("peer findings require the selected consensus profile")
-        if isinstance(peer_baseline, ExpandedPeerBaseline):
+        if isinstance(peer_baseline, MeasuredPeerBaseline):
+            if parser_coverage is None:
+                raise ValueError("measured peer findings require explicit source accounting")
+            candidates = list(
+                evaluate_measured_peer_baseline(
+                    ParsedConfiguration(config, parser_coverage),
+                    peer_baseline,
+                    device_id=finding.device_id,
+                ).findings
+            )
+        elif isinstance(peer_baseline, ExpandedPeerBaseline):
             peer_baseline = ExpandedPeerBaseline.model_validate(peer_baseline.model_dump())
             candidates = list(
                 evaluate_expanded_peer_baseline(
@@ -132,8 +146,23 @@ def explain_finding(
                 "All property comparisons were skipped because parsing is incomplete. "
                 "Unknown command counts and configuration safety were not established."
             )
+        if isinstance(peer_baseline, MeasuredPeerBaseline) and (
+            finding.category == "baseline.parser.unparsed_fraction_high"
+        ):
+            summary = (
+                "Measured unsupported source-line fraction exceeds the selected peer tolerance."
+            )
+            technical = (
+                f"Final source accounting records {finding.observed['unparsed_units']} unparsed "
+                f"of {finding.observed['command_units']} command units. The measured fraction "
+                "exceeds the explicit profile limit; all property comparisons were skipped. "
+                "Confidence describes exact counting, not fault probability. "
+                "Adapter acceptance is not full semantics, vendor syntax or network safety."
+            )
         citations = (
-            "docs/baseline.md#expanded-peer-templates"
+            "docs/baseline.md#measured-parser-coverage"
+            if isinstance(peer_baseline, MeasuredPeerBaseline)
+            else "docs/baseline.md#expanded-peer-templates"
             if isinstance(peer_baseline, ExpandedPeerBaseline)
             else "docs/baseline.md",
         )

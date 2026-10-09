@@ -10,7 +10,7 @@
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
-| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; saved-analysis/API/UI/объяснения для 0.3 ещё открыты |
+| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI/API/UI и сохраняет полный report/profile и версионные объяснения | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; независимое реальное качество не подтверждено |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [saved-analysis inference](configuration-model-inference.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified operational inference не закрыты |
@@ -58,13 +58,31 @@ backend passes/23 skips/5 warnings, 416 frontend unit checks, 134 обычных
 synthetic-model browser cases; installed wheel — четыре upload/analysis/restart
 сценария, один legacy snapshot и четыре неизменных golden canonical пары.
 Принятость адаптером не равна полной семантике или vendor syntax validation.
-Явная peer 0.3 реализация сравнивает эту долю в library/CLI, сохраняя 19 property
-templates и partial skips. Saved-analysis/API/UI/объяснения ещё не подключены;
+Явная peer 0.3 реализация сравнивает эту долю в library/CLI/API/UI, сохраняя 19 property
+templates, partial skips и полный source-bound report/profile в encrypted history;
 корректный подсчёт строк не доказывает качество на независимом реальном корпусе.
 [Отдельный local report](evaluation/owned-measured-peer-local.json): 2113 full
 backend passes/23 skips/5 warnings, 82 связанных проверки, 28 actual installed
 CLI процессов с проверкой imports в каждом child. UI regression: 416 unit checks,
 typecheck/format/build; browser не перезапускался для library/CLI изменения.
+
+[Отдельный API/UI report](evaluation/owned-measured-api-comparisons.json): 2175 full
+backend passes/23 skips/5 warnings, 37 связанных API checks, 135 focused Pydantic
+2.14 checks, 478 frontend unit tests и 154 regular browser scenarios. Отдельные
+22 model-browser cases используют synthetic provider, не настоящую LLM.
+Installed wheel проверяет 12 analysis/restart scenarios, legacy refusal без
+переразбора, reference-only без coverage и шесть исторических explanation replays.
+Knowledge 0.4 запечатан из published 5cb7cd1; старые 24 документа не меняются.
+Три actual installed API → CPU document-worker requests используют настоящий
+44-row индекс. Шесть повторно использованных authored queries дают hit@1/hit@4
+5/6, не independent retrieval quality. Diagnostic deadline 40 s не квалифицирует
+default 20 s или SLA; child import introspection не выполнялся. Эти local checks
+не заменяют PostgreSQL/Compose/live-engine прогон точной новой поставки.
+
+Предыдущий library/CLI commit `5cb7cd1fa1ad7d26b156526ad0e978418aeb8962` имеет
+[все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37995756443),
+включая PostgreSQL, Compose/browser и owned live-engine scope. Это evidence этого
+точного предыдущего commit, не новых API/UI изменений или полной реальной сети.
 
 Поставка coverage `216e785afe0a8d553e175231c0a05ec182db642e` имеет неуспешный
 [CI run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37993422878):

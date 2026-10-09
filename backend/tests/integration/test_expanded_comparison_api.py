@@ -264,7 +264,7 @@ def test_expanded_saved_contract_rejects_rebound_context(expanded_api, case):
         AnalysisResult.model_validate(altered)
 
 
-@pytest.mark.parametrize("version", [None, "0.3.0", 2, "private marker"])
+@pytest.mark.parametrize("version", [None, "0.4.0", 2, "private marker"])
 def test_unknown_comparison_versions_are_sanitized_without_saved_run(expanded_api, version):
     client, store, _ = expanded_api
     target = upload(client, source("cisco", "target"))

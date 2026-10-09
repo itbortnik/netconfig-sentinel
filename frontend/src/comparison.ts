@@ -8,6 +8,7 @@ export type SelectedSnapshot = {
   created: string;
   group: string | null;
   complete: boolean;
+  measured?: boolean;
 };
 
 export function selectedSnapshot(
@@ -35,6 +36,7 @@ export function selectedSnapshot(
       config.parser_confidence === 1 &&
       config.parse_warnings.length === 0 &&
       config.unparsed_fragments.length === 0,
+    measured: !!snapshot.parser_coverage?.command_units,
   };
 }
 
@@ -42,7 +44,7 @@ export function comparisonOptions(
   current: SelectedSnapshot,
   reference: SelectedSnapshot | null,
   peers: SelectedSnapshot[],
-  version: "0.1.0" | "0.2.0" = "0.1.0",
+  version: "0.1.0" | "0.2.0" | "0.3.0" = "0.1.0",
 ): AnalysisOptions | undefined {
   if (!reference && peers.length === 0) return undefined;
   if (
@@ -57,6 +59,13 @@ export function comparisonOptions(
       "Эталон должен быть более ранним, полностью разобранным снимком того же устройства. Текущий снимок тоже должен быть разобран полностью.",
     );
   if (peers.length > 0) {
+    if (
+      version === "0.3.0" &&
+      (!current.measured || peers.some((peer) => !peer.measured))
+    )
+      throw new Error(
+        "Для сравнения 0.3 нужны сохранённые измерения с ненулевым знаменателем у текущего снимка и всех peers. Исторические снимки не пересчитываются автоматически.",
+      );
     if (peers.length < 3 || peers.length > 20)
       throw new Error("Выберите 3–20 разных устройств для группы сравнения.");
     if (
@@ -67,7 +76,7 @@ export function comparisonOptions(
           !peer.complete ||
           peer.group !== current.group ||
           !peer.hostname ||
-          (version === "0.2.0"
+          (version !== "0.1.0"
             ? peer.hostname.toLowerCase() === current.hostname?.toLowerCase()
             : peer.hostname === current.hostname) ||
           peer.device === current.device ||
@@ -82,17 +91,17 @@ export function comparisonOptions(
       new Set(peers.map((peer) => peer.hash)).size !== peers.length ||
       new Set(
         peers.map((peer) =>
-          version === "0.2.0" ? peer.hostname?.toLowerCase() : peer.hostname,
+          version !== "0.1.0" ? peer.hostname?.toLowerCase() : peer.hostname,
         ),
       ).size !== peers.length ||
-      (version === "0.2.0" && peers.some((peer) => peer.hash === current.hash))
+      (version !== "0.1.0" && peers.some((peer) => peer.hash === current.hash))
     )
       throw new Error(
         "Нельзя считать несколько версий или копий одного устройства разными peers.",
       );
   }
   return {
-    ...(version === "0.2.0" ? { comparison_version: version } : {}),
+    ...(version !== "0.1.0" ? { comparison_version: version } : {}),
     ...(reference ? { reference_configuration_id: reference.id } : {}),
     ...(peers.length
       ? { peer_configuration_ids: peers.map((peer) => peer.id) }

@@ -86,10 +86,10 @@ See [full signatures and limits](expanded-comparisons.md#peer-templates).
 
 Explicit `peer-baseline-0.3.0` uses actual
 [adapter source-line coverage](parser-coverage.md), not the historical
-`1 - parser_confidence` proxy. It is available through the library, local CLI and
-explicit saved-analysis API/UI selection. The API records `analysis-api-0.5.0`
-and `comparison-context-0.3.0`, including the full profile and measured report.
-Existing profiles, findings, canonical schemas and defaults are unchanged.
+`1 - parser_confidence` proxy. It is available through the library and local CLI.
+The persistent API/UI currently select 0.1/0.2 only; selecting measured comparison
+there, saving its report and binding explanation sources are still integration
+work. Existing profiles, findings, canonical schemas and defaults are unchanged.
 
 `build_measured_peer_baseline` consumes 3–20 `ParsedConfiguration` inputs. Each
 contains the canonical configuration and its explicit `ParserCoverage`, from
@@ -152,16 +152,6 @@ real-corpus evaluation or an operational false-positive measurement.
 [The measured local report](evaluation/owned-measured-peer-local.json) records
 2113 full backend passes/23 skips/5 warnings, 82 related checks, focused Pydantic
 2.14 compatibility and 28 actual installed CLI processes with per-child import
-verification. That historical report covers library/CLI only. The separate
-[API/UI report](evaluation/owned-measured-api-comparisons.json) covers explicit
-selection, encrypted history, strict UI contracts, actual uploads in both JunOS
-forms and IOS, and installed-package round trips. Legacy snapshots without
-coverage are refused for measured peers, not reparsed or assigned a zero fraction.
-Reference-only selection still uses `expected-config-0.2.0` and does not require
-peer coverage. Neither path implicitly retains original text.
-
-Saved explanations recompute the exact measured finding before persistence.
-Sources for `peer-baseline-0.3.0` use sealed `project-knowledge-0.4.0`; reference,
-policy and forest findings retain their own historical releases, even in one
-analysis. Optional semantic retrieval needs its separate 0.4 index pin. No
-language model or formal engine is enabled by comparison/source selection.
+verification. The interface regression suite passed but measured comparison is
+not yet wired to saved analysis or its UI. Historical coverage CI outcomes are
+recorded separately; they do not verify this new detector's external environments.

@@ -132,9 +132,9 @@ export function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [reference, setReference] = useState<SelectedSnapshot | null>(null);
   const [peers, setPeers] = useState<SelectedSnapshot[]>([]);
-  const [comparisonVersion, setComparisonVersion] = useState<"0.1.0" | "0.2.0">(
-    "0.1.0",
-  );
+  const [comparisonVersion, setComparisonVersion] = useState<
+    "0.1.0" | "0.2.0" | "0.3.0"
+  >("0.1.0");
   const [training, setTraining] = useState<SelectedSnapshot[]>([]);
   const [models, setModels] = useState<ModelSummary[]>([]);
   const [model, setModel] = useState<ModelSummary | null>(null);

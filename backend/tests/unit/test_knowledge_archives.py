@@ -64,7 +64,7 @@ def archive_copy(tmp_path, monkeypatch):
     return target
 
 
-@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0"])
+@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0", "project-knowledge-0.4.0"])
 @pytest.mark.parametrize("case", ["missing", "changed", "extra", "manifest", "rehash", "oversized"])
 def test_changed_or_missing_historical_sources_never_fall_back(archive_copy, case, release):
     root = archive_copy / "versions" / release
@@ -98,7 +98,7 @@ def test_unversioned_and_current_document_overlays_are_not_retrieval_sources(arc
 
 
 @pytest.mark.parametrize("kind", ["is_symlink", "is_junction"])
-@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0"])
+@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0", "project-knowledge-0.4.0"])
 @pytest.mark.parametrize(
     "relative", [".", "docs", "docs/policies", "manifest.json", "docs/policies/management-plane.md"]
 )

@@ -101,9 +101,11 @@ An empty partial finding list is still partial, never a successful comparison.
 New uploads now have a separate [measured source-line coverage report](parser-coverage.md).
 It is not substituted into these released detector contracts: their saved
 fingerprints and historical findings retain the original deficit semantics.
-An explicit [peer 0.3 library/CLI selection](baseline.md#measured-parser-coverage)
-now compares the measured fraction while reusing these property templates. Its
-persistent API/UI and explanation integration remain open; 0.2 is unchanged.
+An explicit [peer 0.3 library/CLI/API/UI selection](baseline.md#measured-parser-coverage)
+compares the measured fraction while reusing these property templates. Its saved
+profile/report and sealed explanation sources have separate versions; 0.2 and
+historical snapshots remain unchanged. A 0.3 reference-only request still uses
+the released 0.2 reference detector, not a new reference grammar.
 
 ```powershell
 .venv\Scripts\python.exe -m app.detection.baseline.peer_compare_cli --peer peer-1.cfg --peer peer-2.cfg --peer peer-3.cfg --current candidate.cfg --device-id f6156954-3f3b-4aa2-b693-5a710fe35d44 --device-role edge-router --site-class lab --service-profile transit

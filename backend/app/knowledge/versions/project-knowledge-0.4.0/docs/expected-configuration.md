@@ -1,0 +1,103 @@
+# Явный эталон конфигурации устройства
+
+Модуль `app.detection.baseline.expected` сравнивает текущую конфигурацию с
+выбранным вызывающей стороной снимком того же устройства. Это отдельный
+детектор: он не заменяет peer-baseline и не использует обученную модель.
+
+Ниже описана сохранённая версия `expected-config-0.1.0`, используемая API/UI.
+Расширенная opt-in версия 0.2 для локальных запусков описана в
+[отдельном workflow](expanded-comparisons.md); прежние результаты не пересчитываются.
+
+## Контракт
+
+`create_expected_configuration(config, device_id=..., reference_id=...)`
+сохраняет значения поддерживаемых параметров, идентичность устройства,
+SHA-256 исходного файла и происхождение фактов. Результат — Pydantic-модель
+`ExpectedConfiguration`, пригодная для JSON-сериализации.
+
+`compare_expected_configuration(current, reference, device_id=...)` возвращает
+детерминированный список `Finding` для добавленных, изменённых и удалённых
+фактов. Неизменные значения не создают находок, даже если строки сдвинулись.
+UUID устройства, vendor, platform и hostname должны совпадать с эталоном.
+UUID передаёт вызывающая сторона: это проверка привязки, не аутентификация
+устройства. Изменение hostname требует отдельного рассмотрения.
+
+Сравниваются только:
+
+- remote AS соседа BGP, ключ — адрес соседа;
+- режим интерфейса, access VLAN и набор IP-адресов, ключ — имя и unit;
+- область OSPF, ключ — process ID и сеть либо имя интерфейса.
+
+Повторяющиеся ключи фактов отклоняются как неоднозначные. Конфигурации с
+предупреждениями парсера, неразобранными фрагментами или уверенностью парсера
+ниже 1 отклоняются целиком. Полностью разобранный файл всё равно не означает,
+что все его параметры входят в перечисленную область сравнения.
+
+## Доказательства и ограничения
+
+`observed` содержит фактическое значение и hash текущего файла; `expected` —
+ожидаемое значение, ID/hash эталона и отдельные `reference_lines`.
+`affected_lines` и source locations доказательств относятся только к текущему
+файлу. При удалении факта текущие строки не выдумываются: список пуст.
+Изменение ключа объекта может давать пару «удаление + добавление».
+
+Эталон не объявляется безопасным автоматически. Его выбор и утверждение —
+ответственность вызывающей стороны. Severity MEDIUM означает приоритет
+ручной проверки, а значения confidence/anomaly_score 1 — точное различие
+извлечённых фактов, не вероятность неисправности и не оценку сетевого ущерба.
+Автоматическое исправление отсутствует. Детектор подключён к постоянному
+[API/UI по явному выбору снимка](api-comparisons.md), но эталонные различия
+не входят в risk fusion: запланированное изменение не объявляется неисправностью.
+
+Модуль проверяется на шести видах синтетических изменений для двух вендоров,
+включая удаление BGP-соседа. Это функциональные тесты на лабораторных данных,
+не оценка качества на реальных сетях. Наличие выбранного эталона даёт
+дополнительную информацию: результаты нельзя напрямую сравнивать с
+локализатором, который получает только текущую конфигурацию.
+
+## Локальная команда сравнения
+
+После установки проекта в виртуальное окружение:
+
+```powershell
+.venv\Scripts\python.exe -m app.detection.baseline.compare_cli --reference previous.cfg --current candidate.cfg --device-id f6156954-3f3b-4aa2-b693-5a710fe35d44 --reference-id reviewed-snapshot-v1
+```
+
+Оба пути явно выбирает оператор. Команда только читает локальные файлы и
+выводит JSON в stdout: сеть, изменение файлов и применение конфигурации
+не используются. Отчёт содержит hashes обоих входов, ID эталона, статус,
+количество находок и сами находки. Абсолютные пути и исходный текст в отчёт
+не включаются. Адреса и значения параметров не обезличиваются: вывод следует
+хранить как закрытый артефакт, не публиковать и не пересылать внешним сервисам.
+
+Коды завершения:
+
+- `0`: различий в поддерживаемых фактах нет; это не заключение о безопасности;
+- `1`: найдены различия, JSON-отчёт сформирован;
+- `2`: вход отклонён или некорректны аргументы; отчёт не сформирован.
+
+Принимаются обычные файлы `.cfg`, `.conf`, `.txt` в UTF-8 (допустим BOM),
+не более 2 MiB и 10 000 строк каждый. Пустой текст, управляющие символы
+кроме табуляции/перевода строки, неизвестный синтаксис и несовпадающая
+идентичность устройства отклоняются. Ошибки чтения и парсинга сообщаются
+обобщённо в stderr без значений из конфигурации. Эти ограничения относятся
+к данной локальной команде, не являются контрактом будущей HTTP-загрузки.
+
+## Expanded supported facts
+
+`expected-config-0.2.0` is an explicit library/CLI/API/UI selection, not a silent
+upgrade of saved analyses. It compares supported management values (including
+actual NTP/Syslog servers), local-user privilege/class/UID/authentication metadata,
+interface presence/enabled/mode/access/native/allowed VLANs/address sets, VLAN
+inventory, ordered ACL/prefix-list rules, BGP process/neighbor parameters, OSPFv2
+process/network/interface parameters and destination-keyed static-route targets.
+Credential values and descriptions are not compared. Both inputs require
+complete parsing and matching declared device/vendor/platform/hostname identity.
+Null IR properties are not interpreted as effective vendor defaults.
+
+Current evidence and reference lines stay separate; a removed object does not
+borrow the old object's source lines. Findings bind both sources and the exact
+reference-facts fingerprint. This proves an exact supported-IR difference, not
+approved reference selection, network impact, syntax/access safety or a repair.
+MEDIUM and scores are uncalibrated review indicators. No configuration is applied.
+See [the complete local contract](expanded-comparisons.md#same-device-reference).

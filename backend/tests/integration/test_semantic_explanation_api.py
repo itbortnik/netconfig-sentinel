@@ -407,6 +407,7 @@ def test_runtime_releases_lock_after_unavailable_index(tmp_path):
         ("peer_baseline", "peer-baseline-0.1.0"),
         ("expected_configuration", "expected-config-0.2.0"),
         ("peer_baseline", "peer-baseline-0.2.0"),
+        ("peer_baseline", "peer-baseline-0.3.0"),
         ("isolation_forest", "isolation-forest-0.1.0"),
     ],
 )
@@ -420,7 +421,10 @@ def test_nonpolicy_query_uses_public_constant_not_customer_facts(semantic_api, d
     )
 
 
-def test_expanded_semantic_release_never_reuses_an_older_external_pin(tmp_path, monkeypatch):
+@pytest.mark.parametrize("release", ["project-knowledge-0.3.0", "project-knowledge-0.4.0"])
+def test_expanded_semantic_release_never_reuses_an_older_external_pin(
+    tmp_path, monkeypatch, release
+):
     runtime = DocumentRetrievalRuntime(
         DocumentRetrievalSettings(tmp_path / "model", tmp_path / "index", "a" * 64, "b" * 64)
     )
@@ -432,7 +436,7 @@ def test_expanded_semantic_release_never_reuses_an_older_external_pin(tmp_path, 
 
     monkeypatch.setattr("app.explanation.retrieval_runtime.load_document_index", unexpected)
     with pytest.raises(RetrievalUnavailable):
-        runtime.search(load_knowledge_catalog("project-knowledge-0.3.0"), "public query")
+        runtime.search(load_knowledge_catalog(release), "public query")
 
 
 def test_unsupported_detector_version_or_policy_category_has_no_semantic_query(semantic_api):

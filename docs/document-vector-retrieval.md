@@ -1,7 +1,7 @@
 # Локальный векторный поиск по запечатанным документам
 
 Реализован отдельный ограниченный cosine index для approved внутренних разделов
-knowledge 0.1.0, 0.2.0 и 0.3.0. Его библиотека не импортирует PyTorch/Transformers и
+knowledge 0.1.0, 0.2.0, 0.3.0 и 0.4.0. Его библиотека не импортирует PyTorch/Transformers и
 не меняет findings, risk, confidence, feedback, patches или сохранённые анализы.
 HTTP `explain` по умолчанию использует `explicit_reference`; отдельный
 [opt-in semantic context](semantic-explanation-context.md) подключает индекс
@@ -94,6 +94,8 @@ CLI строит оба release indexes, сохраняет их, загружа
 Этот повторяемый параметр выбирает точные releases; default двухрелизный run и
 исторические отчёты не меняются. Knowledge 0.3 содержит 43 sections; собственный
 pin для HTTP описан в [настройке semantic context](semantic-explanation-context.md).
+Для measured peer 0.3 используйте `--knowledge-version project-knowledge-0.4.0`:
+44 sections и отдельный pin 0.4. Старые индексы и CLI default не заменяются.
 
 Библиотечный поиск можно вызвать так:
 
@@ -123,3 +125,9 @@ Expected citations и queries написаны вместе с реализац�
 качеством или production acceptance. [API/workflow integration](semantic-explanation-context.md)
 реализована отдельно; ещё нужны независимые query labels и проверенные разрешённые vendor sources. Реальный
 локальный instruct-LLM и его explanations этой моделью не заменяются.
+
+Отдельный [measured API/UI diagnostic](evaluation/owned-measured-api-comparisons.json)
+использует настоящий 44-row CPU index и три installed API → isolated worker
+запроса IOS/set/blocks. На тех же шести повторно использованных authored queries
+hit@1 и hit@4 равны 5/6. Это не независимая retrieval evaluation; обязательный
+measured источник сохраняется независимо от semantic ranking.

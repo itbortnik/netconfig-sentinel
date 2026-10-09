@@ -51,6 +51,10 @@ def public_retrieval_query(finding: Finding) -> str:
             ("peer_baseline", "peer-baseline-0.2.0"): (
                 "Expanded peer templates: value consensus, omitted features and partial parsing."
             ),
+            ("peer_baseline", "peer-baseline-0.3.0"): (
+                "Measured parser coverage: source-line fraction, explicit denominator, "
+                "peer tolerance and partial property skips. Counting is not network safety."
+            ),
             ("isolation_forest", "isolation-forest-0.1.0"): (
                 "Experimental Isolation Forest outlier finding interpretation and limitations."
             ),
@@ -81,6 +85,7 @@ class DocumentRetrievalRuntime:
             "project-knowledge-0.1.0": self.settings.legacy_index_sha256,
             "project-knowledge-0.2.0": self.settings.current_index_sha256,
             "project-knowledge-0.3.0": self.settings.expanded_index_sha256,
+            "project-knowledge-0.4.0": self.settings.measured_index_sha256,
         }
         pin = pins.get(catalog.version)
         if pin is None:

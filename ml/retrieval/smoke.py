@@ -59,7 +59,12 @@ def main() -> None:
     parser.add_argument(
         "--knowledge-version",
         action="append",
-        choices=("project-knowledge-0.1.0", "project-knowledge-0.2.0", "project-knowledge-0.3.0"),
+        choices=(
+            "project-knowledge-0.1.0",
+            "project-knowledge-0.2.0",
+            "project-knowledge-0.3.0",
+            "project-knowledge-0.4.0",
+        ),
         help="Explicit releases to build; omission preserves the original two-release diagnostic.",
     )
     arguments = parser.parse_args()

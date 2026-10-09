@@ -1,0 +1,2698 @@
+{
+  "scope": "Owned raw IOS API responses for software-contract checks; not independent data or detection quality",
+  "completed": {
+    "version": "analysis-api-0.5.0",
+    "analysis_id": "6d41c5db-1e2c-4542-944d-04b64127c2cc",
+    "configuration_id": "f71ac1db-0c81-4d81-a6d7-ada082098293",
+    "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+    "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+    "created_at": "2026-10-09T22:09:51.485440Z",
+    "status": "completed",
+    "policy_catalog_version": "policy-rules-0.7.0",
+    "findings": [
+      {
+        "finding_id": "a82c6079-6e03-5cef-8f84-1d1028dd1768",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "detector": "policy_engine",
+        "category": "management.aaa_disabled",
+        "title": "Centralized AAA is not enabled",
+        "severity": "high",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported centralized AAA enablement statement was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.aaa_enabled": false
+        },
+        "expected": {
+          "management.aaa_enabled": true
+        },
+        "remediation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "references": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "8e6d6df5-5da8-56d6-9467-d249b1e413d4",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "detector": "policy_engine",
+        "category": "management.snmp_not_configured",
+        "title": "SNMP monitoring is not configured",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported SNMP configuration was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.snmp_versions": []
+        },
+        "expected": {
+          "management.snmp_versions": "At least one approved SNMP version"
+        },
+        "remediation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "references": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "d86e93a8-deac-510f-b573-62c99eba3659",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "detector": "policy_engine",
+        "category": "management.syslog_not_configured",
+        "title": "Remote Syslog is not configured",
+        "severity": "high",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported remote Syslog destination was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.syslog_servers": []
+        },
+        "expected": {
+          "management.syslog_servers": "At least one approved remote Syslog server"
+        },
+        "remediation": "Send security and operational events to approved remote collectors.",
+        "references": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "3156b6ce-68d6-524a-9a3e-c5a8df6d329b",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "detector": "peer_baseline",
+        "category": "baseline.management.ntp_servers_deviation",
+        "title": "Expanded peer deviation: baseline.management.ntp_servers_deviation",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 1,
+        "affected_lines": [3],
+        "evidence": [
+          {
+            "kind": "peer_group_difference",
+            "message": "Supported normalized value differs from 3 of 3 selected peers.",
+            "source_location": {
+              "source_lines": [3],
+              "raw_text_hash": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "parser_confidence": 1
+            }
+          }
+        ],
+        "observed": {
+          "value": ["192.0.2.99"],
+          "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+          "coverage_report_sha256": "6df0f204c0f6ed1cd1999b542dc34ebffddefe3aaad6ef6f3aed63bb6f4b540d"
+        },
+        "expected": {
+          "value": ["192.0.2.10"],
+          "peer_support_count": 3,
+          "peer_sample_count": 3,
+          "feature": "management.ntp_servers",
+          "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3"
+        },
+        "remediation": "Review the explicit peer sources and intended network design before taking action.",
+        "references": ["docs/baseline.md#measured-parser-coverage"],
+        "limitations": [
+          "Exact peer consensus is not an approved security baseline or proof of incorrect network behavior.",
+          "Support and deviation scores are not calibrated fault probabilities; MEDIUM is a review priority.",
+          "Declared hostnames, source hashes and inventory labels do not independently verify device or network identity.",
+          "Unsupported commands, effective vendor defaults and credential values are outside property comparison.",
+          "No network simulation, ML evaluation or device change was run."
+        ],
+        "model_version": "peer-baseline-0.3.0"
+      }
+    ],
+    "explanations": [
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "a82c6079-6e03-5cef-8f84-1d1028dd1768",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "finding_sha256": "89724b9d6075a5200b06afa628f769248dde82f1383597568335eee9ab0a623a",
+        "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "summary": "Centralized AAA is not enabled",
+        "technical_explanation": "No supported centralized AAA enablement statement was found.",
+        "recommendation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "8e6d6df5-5da8-56d6-9467-d249b1e413d4",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "finding_sha256": "187ac110a53fafc0552a28075ce171abd4386c701c615bf48d9b136efe058087",
+        "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "summary": "SNMP monitoring is not configured",
+        "technical_explanation": "No supported SNMP configuration was found.",
+        "recommendation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "d86e93a8-deac-510f-b573-62c99eba3659",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "finding_sha256": "f6020f24e9d808ae90751a84e519c50c6f0e029d0cf4ae02e0d74fee7f05aa9a",
+        "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 1,
+        "anomaly_score": 0,
+        "summary": "Remote Syslog is not configured",
+        "technical_explanation": "No supported remote Syslog destination was found.",
+        "recommendation": "Send security and operational events to approved remote collectors.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "3156b6ce-68d6-524a-9a3e-c5a8df6d329b",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "finding_sha256": "df51ae332360354626ddd79c1ae8c32ef9c15f1fb94e13e469b1fe4fcd783256",
+        "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+        "detector_version": "peer-baseline-0.3.0",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 1,
+        "summary": "A supported value differs from the selected peer consensus.",
+        "technical_explanation": "The detector compared canonical values with an explicitly selected peer group. Support counts and the expected value are retained in the finding. Peer agreement is not proof of compliance or correct network behavior.",
+        "recommendation": "Review peer selection, inventory labels and intended configuration.",
+        "anchors": [
+          {
+            "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+            "lines": [3],
+            "statement_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4"
+          }
+        ],
+        "citations": ["docs/baseline.md#measured-parser-coverage"],
+        "limitations": [
+          "Exact peer consensus is not an approved security baseline or proof of incorrect network behavior.",
+          "Support and deviation scores are not calibrated fault probabilities; MEDIUM is a review priority.",
+          "Declared hostnames, source hashes and inventory labels do not independently verify device or network identity.",
+          "Unsupported commands, effective vendor defaults and credential values are outside property comparison.",
+          "No network simulation, ML evaluation or device change was run.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      }
+    ],
+    "risk": {
+      "assessment_id": "3933e940-96a0-5cf5-a52a-ad4c38b26ff2",
+      "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+      "score": 0.825,
+      "level": "critical",
+      "components": [
+        {
+          "source": "policy",
+          "status": "completed",
+          "raw_score": 0.75,
+          "configured_weight": 0.35,
+          "effective_weight": 0.7,
+          "finding_ids": [
+            "8e6d6df5-5da8-56d6-9467-d249b1e413d4",
+            "a82c6079-6e03-5cef-8f84-1d1028dd1768",
+            "d86e93a8-deac-510f-b573-62c99eba3659"
+          ]
+        },
+        {
+          "source": "peer_group",
+          "status": "completed",
+          "raw_score": 1,
+          "configured_weight": 0.15,
+          "effective_weight": 0.3,
+          "finding_ids": ["3156b6ce-68d6-524a-9a3e-c5a8df6d329b"]
+        },
+        {
+          "source": "statistical",
+          "status": "unavailable",
+          "raw_score": null,
+          "configured_weight": 0.1,
+          "effective_weight": 0,
+          "finding_ids": []
+        },
+        {
+          "source": "transformer",
+          "status": "unavailable",
+          "raw_score": null,
+          "configured_weight": 0.1,
+          "effective_weight": 0,
+          "finding_ids": []
+        },
+        {
+          "source": "verification",
+          "status": "unavailable",
+          "raw_score": null,
+          "configured_weight": 0.3,
+          "effective_weight": 0,
+          "finding_ids": []
+        }
+      ],
+      "guardrails": [],
+      "limitations": [
+        "statistical signal was not available and its weight was redistributed.",
+        "transformer signal was not available and its weight was redistributed.",
+        "verification signal was not available and its weight was redistributed."
+      ],
+      "model_version": "risk-fusion-0.1.0"
+    },
+    "limitations": [
+      "Only the recorded deterministic detectors were run; ML and formal verification were not run.",
+      "Reference differences are review information and are excluded from risk fusion.",
+      "Inventory labels and comparison inputs were explicitly selected by the operator; they are not independently verified or approved security baselines.",
+      "Scores are uncalibrated; the result requires engineer review."
+    ],
+    "comparison": {
+      "version": "comparison-context-0.3.0",
+      "reference": null,
+      "peers": [
+        {
+          "configuration_id": "1d8f5ec9-fe90-4909-9e87-a3774f7a2971",
+          "device_id": "280a4a96-1a43-4749-ba97-64e84c6a7228",
+          "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+          "created_at": "2026-10-09T22:09:51.413473Z"
+        },
+        {
+          "configuration_id": "60839cb0-7872-4123-8c90-9b7521c84e85",
+          "device_id": "2109044f-9e68-4223-8df1-bf60763be04d",
+          "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+          "created_at": "2026-10-09T22:09:51.448113Z"
+        },
+        {
+          "configuration_id": "74322ec3-1eb9-4567-845b-41e0f4479af0",
+          "device_id": "abe3b4de-3474-4e9d-8a2b-f62f4a3e1e43",
+          "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+          "created_at": "2026-10-09T22:09:51.432998Z"
+        }
+      ],
+      "peer_baseline": {
+        "model_version": "peer-baseline-0.3.0",
+        "properties": {
+          "model_version": "peer-baseline-0.2.0",
+          "group": {
+            "vendor": "cisco",
+            "platform": "ios",
+            "device_role": "edge",
+            "site_class": "branch",
+            "service_profile": "owned"
+          },
+          "sample_count": 3,
+          "samples": [
+            {
+              "hostname": "peer-1",
+              "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+              "collected_at": "2026-10-09T22:09:51.432890Z"
+            },
+            {
+              "hostname": "peer-2",
+              "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+              "collected_at": "2026-10-09T22:09:51.448012Z"
+            },
+            {
+              "hostname": "peer-0",
+              "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+              "collected_at": "2026-10-09T22:09:51.413146Z"
+            }
+          ],
+          "consensus_threshold": 0.75,
+          "features": [
+            {
+              "field": "acls.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.local_as",
+              "expected": null,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.neighbor_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.router_id_configured",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "interfaces.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "local_users.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.aaa_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ntp_servers",
+              "expected": ["192.0.2.10"],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.snmp_versions",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_enabled",
+              "expected": true,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_version",
+              "expected": "2",
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.syslog_servers",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.telnet_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.process_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "prefix_lists.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "static_routes.targets",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "vlans.set",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            }
+          ],
+          "omitted_features": [],
+          "unsupported_ratio_median": 0,
+          "unsupported_ratio_limit": 1
+        },
+        "coverage": [
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "89413244c447dcfdf73787dcb33b97d47dcd7973151bcdd729781eccc13857ae",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "88f832ab755f07817ed8a3784e3104e7713bf7dab9e8c55a7d07b066b8a310aa",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "f42a5f68fe68633b005305032979061085530226f270d7eb06c924efd7337a7d",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          }
+        ],
+        "unparsed_fraction_median": 0,
+        "unparsed_fraction_limit": 0.05
+      },
+      "peer_evaluation": {
+        "version": "peer-comparison-report-0.3.0",
+        "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+        "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+        "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3",
+        "status": "completed",
+        "coverage": {
+          "version": "parser-coverage-0.1.0",
+          "unit": "adapter_source_lines",
+          "adapter_version": "cisco-ios-source-lines-0.1.0",
+          "vendor": "cisco",
+          "platform": "ios",
+          "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+          "source_line_count": 4,
+          "accepted_units": 3,
+          "unparsed_units": 0,
+          "structural_units": 1,
+          "ignored_lines": 0,
+          "command_units": 3,
+          "unparsed_fraction": 0,
+          "proves_vendor_syntax": false,
+          "units": [
+            {
+              "source_line": 1,
+              "raw_text_sha256": "a0fdecc26f7d1e6aa5c79a751dd3bc4b389e710748ae5fd7656149205569f92a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 2,
+              "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 3,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 4,
+              "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+              "disposition": "structural"
+            }
+          ]
+        },
+        "unparsed_fraction_limit": 0.05,
+        "peer_fraction_median": 0,
+        "profile_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "compared_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "skipped_features": [],
+        "findings": [
+          {
+            "finding_id": "3156b6ce-68d6-524a-9a3e-c5a8df6d329b",
+            "device_id": "f31ab916-3c46-40a0-b241-35f10390ea38",
+            "detector": "peer_baseline",
+            "category": "baseline.management.ntp_servers_deviation",
+            "title": "Expanded peer deviation: baseline.management.ntp_servers_deviation",
+            "severity": "medium",
+            "confidence": 1,
+            "anomaly_score": 1,
+            "affected_lines": [3],
+            "evidence": [
+              {
+                "kind": "peer_group_difference",
+                "message": "Supported normalized value differs from 3 of 3 selected peers.",
+                "source_location": {
+                  "source_lines": [3],
+                  "raw_text_hash": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+                  "parser_confidence": 1
+                }
+              }
+            ],
+            "observed": {
+              "value": ["192.0.2.99"],
+              "source_sha256": "3aca981b4ba40dc3324e459b44248aaecf2ef7da58baa54e001ff206efcfbc4e",
+              "coverage_report_sha256": "6df0f204c0f6ed1cd1999b542dc34ebffddefe3aaad6ef6f3aed63bb6f4b540d"
+            },
+            "expected": {
+              "value": ["192.0.2.10"],
+              "peer_support_count": 3,
+              "peer_sample_count": 3,
+              "feature": "management.ntp_servers",
+              "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3"
+            },
+            "remediation": "Review the explicit peer sources and intended network design before taking action.",
+            "references": ["docs/baseline.md#measured-parser-coverage"],
+            "limitations": [
+              "Exact peer consensus is not an approved security baseline or proof of incorrect network behavior.",
+              "Support and deviation scores are not calibrated fault probabilities; MEDIUM is a review priority.",
+              "Declared hostnames, source hashes and inventory labels do not independently verify device or network identity.",
+              "Unsupported commands, effective vendor defaults and credential values are outside property comparison.",
+              "No network simulation, ML evaluation or device change was run."
+            ],
+            "model_version": "peer-baseline-0.3.0"
+          }
+        ],
+        "limitations": [
+          "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+          "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+          "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+          "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+          "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+          "No policy, ML, formal verification or device change was run by this detector."
+        ]
+      }
+    },
+    "statistical": null
+  },
+  "partial": {
+    "version": "analysis-api-0.5.0",
+    "analysis_id": "e18f3da2-7d5e-4c41-a43a-dd1f5d288fa6",
+    "configuration_id": "a7243bcb-a51a-4090-ac05-c3e9636b47a1",
+    "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+    "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+    "created_at": "2026-10-09T22:09:51.523347Z",
+    "status": "partial",
+    "policy_catalog_version": "policy-rules-0.7.0",
+    "findings": [
+      {
+        "finding_id": "3a0efaf2-79ce-5491-9f4f-d833d3c86b86",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "detector": "policy_engine",
+        "category": "management.aaa_disabled",
+        "title": "Centralized AAA is not enabled",
+        "severity": "high",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported centralized AAA enablement statement was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.aaa_enabled": false
+        },
+        "expected": {
+          "management.aaa_enabled": true
+        },
+        "remediation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "references": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "faef0169-dcb4-59e8-b419-60cd699bd78e",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "detector": "policy_engine",
+        "category": "management.snmp_not_configured",
+        "title": "SNMP monitoring is not configured",
+        "severity": "medium",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported SNMP configuration was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.snmp_versions": []
+        },
+        "expected": {
+          "management.snmp_versions": "At least one approved SNMP version"
+        },
+        "remediation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "references": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "0e99a404-3ca2-5851-9244-6ad6d75568d5",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "detector": "policy_engine",
+        "category": "management.syslog_not_configured",
+        "title": "Remote Syslog is not configured",
+        "severity": "high",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported remote Syslog destination was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.syslog_servers": []
+        },
+        "expected": {
+          "management.syslog_servers": "At least one approved remote Syslog server"
+        },
+        "remediation": "Send security and operational events to approved remote collectors.",
+        "references": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "8d8f79ed-3445-56b4-9152-c25c9ba23dba",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "detector": "peer_baseline",
+        "category": "baseline.parser.unparsed_fraction_high",
+        "title": "Measured unsupported source-line fraction exceeds peer tolerance",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 0.2105263157894737,
+        "affected_lines": [4],
+        "evidence": [
+          {
+            "kind": "measured_parser_coverage",
+            "message": "Final unsupported source units contribute to the measured numerator.",
+            "source_location": {
+              "source_lines": [4],
+              "raw_text_hash": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f",
+              "parser_confidence": 0
+            }
+          }
+        ],
+        "observed": {
+          "value": 0.25,
+          "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+          "coverage_report_sha256": "a8851bb425d2c9073b914d18c71878198c06f30fc8e8c48778936b2b6695101e",
+          "unit": "adapter_source_lines",
+          "adapter_version": "cisco-ios-source-lines-0.1.0",
+          "unparsed_units": 1,
+          "command_units": 4
+        },
+        "expected": {
+          "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3",
+          "maximum_unparsed_fraction": 0.05,
+          "peer_median": 0
+        },
+        "remediation": "Review unsupported statements and parser limitations before interpreting any property comparison.",
+        "references": ["docs/baseline.md#measured-parser-coverage"],
+        "limitations": [
+          "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+          "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+          "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+          "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+          "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+          "No policy, ML, formal verification or device change was run by this detector."
+        ],
+        "model_version": "peer-baseline-0.3.0"
+      }
+    ],
+    "explanations": [
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "3a0efaf2-79ce-5491-9f4f-d833d3c86b86",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "finding_sha256": "93693d46174a6ac2ade7c744e90fa5b513c0e4448468626f8e5c99625a3829a9",
+        "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "summary": "Centralized AAA is not enabled",
+        "technical_explanation": "No supported centralized AAA enablement statement was found.",
+        "recommendation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "faef0169-dcb4-59e8-b419-60cd699bd78e",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "finding_sha256": "c6827202e521eaf56479c70bacea3f8ea72fc091deeebed1267164fe306fa09f",
+        "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "medium",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "summary": "SNMP monitoring is not configured",
+        "technical_explanation": "No supported SNMP configuration was found.",
+        "recommendation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "0e99a404-3ca2-5851-9244-6ad6d75568d5",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "finding_sha256": "70582d2790b8a99200f2d4ec58834362cf7077ce0b61d619e60ccaf9fc7e6843",
+        "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 0.88,
+        "anomaly_score": 0,
+        "summary": "Remote Syslog is not configured",
+        "technical_explanation": "No supported remote Syslog destination was found.",
+        "recommendation": "Send security and operational events to approved remote collectors.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "8d8f79ed-3445-56b4-9152-c25c9ba23dba",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "finding_sha256": "5c247d18cfeb9ba8cbf503753b180871399da1cbbe3be7e1a0561f01d4e5b692",
+        "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+        "detector_version": "peer-baseline-0.3.0",
+        "severity": "medium",
+        "confidence": 1,
+        "anomaly_score": 0.2105263157894737,
+        "summary": "Measured unsupported source-line fraction exceeds the selected peer tolerance.",
+        "technical_explanation": "Final source accounting records 1 unparsed of 4 command units. The measured fraction exceeds the explicit profile limit; all property comparisons were skipped. Confidence describes exact counting, not fault probability. Adapter acceptance is not full semantics, vendor syntax or network safety.",
+        "recommendation": "Review peer selection, inventory labels and intended configuration.",
+        "anchors": [
+          {
+            "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+            "lines": [4],
+            "statement_sha256": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f"
+          }
+        ],
+        "citations": ["docs/baseline.md#measured-parser-coverage"],
+        "limitations": [
+          "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+          "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+          "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+          "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+          "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+          "No policy, ML, formal verification or device change was run by this detector.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      }
+    ],
+    "risk": null,
+    "limitations": [
+      "Only the recorded deterministic detectors were run; ML and formal verification were not run.",
+      "Reference differences are review information and are excluded from risk fusion.",
+      "Inventory labels and comparison inputs were explicitly selected by the operator; they are not independently verified or approved security baselines.",
+      "Scores are uncalibrated; the result requires engineer review.",
+      "Parsing is incomplete; findings are partial and risk is unavailable."
+    ],
+    "comparison": {
+      "version": "comparison-context-0.3.0",
+      "reference": null,
+      "peers": [
+        {
+          "configuration_id": "1d8f5ec9-fe90-4909-9e87-a3774f7a2971",
+          "device_id": "280a4a96-1a43-4749-ba97-64e84c6a7228",
+          "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+          "created_at": "2026-10-09T22:09:51.413473Z"
+        },
+        {
+          "configuration_id": "60839cb0-7872-4123-8c90-9b7521c84e85",
+          "device_id": "2109044f-9e68-4223-8df1-bf60763be04d",
+          "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+          "created_at": "2026-10-09T22:09:51.448113Z"
+        },
+        {
+          "configuration_id": "74322ec3-1eb9-4567-845b-41e0f4479af0",
+          "device_id": "abe3b4de-3474-4e9d-8a2b-f62f4a3e1e43",
+          "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+          "created_at": "2026-10-09T22:09:51.432998Z"
+        }
+      ],
+      "peer_baseline": {
+        "model_version": "peer-baseline-0.3.0",
+        "properties": {
+          "model_version": "peer-baseline-0.2.0",
+          "group": {
+            "vendor": "cisco",
+            "platform": "ios",
+            "device_role": "edge",
+            "site_class": "branch",
+            "service_profile": "owned"
+          },
+          "sample_count": 3,
+          "samples": [
+            {
+              "hostname": "peer-1",
+              "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+              "collected_at": "2026-10-09T22:09:51.432890Z"
+            },
+            {
+              "hostname": "peer-2",
+              "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+              "collected_at": "2026-10-09T22:09:51.448012Z"
+            },
+            {
+              "hostname": "peer-0",
+              "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+              "collected_at": "2026-10-09T22:09:51.413146Z"
+            }
+          ],
+          "consensus_threshold": 0.75,
+          "features": [
+            {
+              "field": "acls.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.local_as",
+              "expected": null,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.neighbor_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.router_id_configured",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "interfaces.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "local_users.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.aaa_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ntp_servers",
+              "expected": ["192.0.2.10"],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.snmp_versions",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_enabled",
+              "expected": true,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_version",
+              "expected": "2",
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.syslog_servers",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.telnet_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.process_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "prefix_lists.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "static_routes.targets",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "vlans.set",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            }
+          ],
+          "omitted_features": [],
+          "unsupported_ratio_median": 0,
+          "unsupported_ratio_limit": 1
+        },
+        "coverage": [
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "89413244c447dcfdf73787dcb33b97d47dcd7973151bcdd729781eccc13857ae",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "88f832ab755f07817ed8a3784e3104e7713bf7dab9e8c55a7d07b066b8a310aa",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "f42a5f68fe68633b005305032979061085530226f270d7eb06c924efd7337a7d",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          }
+        ],
+        "unparsed_fraction_median": 0,
+        "unparsed_fraction_limit": 0.05
+      },
+      "peer_evaluation": {
+        "version": "peer-comparison-report-0.3.0",
+        "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+        "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+        "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3",
+        "status": "partial",
+        "coverage": {
+          "version": "parser-coverage-0.1.0",
+          "unit": "adapter_source_lines",
+          "adapter_version": "cisco-ios-source-lines-0.1.0",
+          "vendor": "cisco",
+          "platform": "ios",
+          "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+          "source_line_count": 5,
+          "accepted_units": 3,
+          "unparsed_units": 1,
+          "structural_units": 1,
+          "ignored_lines": 0,
+          "command_units": 4,
+          "unparsed_fraction": 0.25,
+          "proves_vendor_syntax": false,
+          "units": [
+            {
+              "source_line": 1,
+              "raw_text_sha256": "a0fdecc26f7d1e6aa5c79a751dd3bc4b389e710748ae5fd7656149205569f92a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 2,
+              "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 3,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 4,
+              "raw_text_sha256": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f",
+              "disposition": "unparsed"
+            },
+            {
+              "source_line": 5,
+              "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+              "disposition": "structural"
+            }
+          ]
+        },
+        "unparsed_fraction_limit": 0.05,
+        "peer_fraction_median": 0,
+        "profile_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "compared_features": [],
+        "skipped_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "findings": [
+          {
+            "finding_id": "8d8f79ed-3445-56b4-9152-c25c9ba23dba",
+            "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+            "detector": "peer_baseline",
+            "category": "baseline.parser.unparsed_fraction_high",
+            "title": "Measured unsupported source-line fraction exceeds peer tolerance",
+            "severity": "medium",
+            "confidence": 1,
+            "anomaly_score": 0.2105263157894737,
+            "affected_lines": [4],
+            "evidence": [
+              {
+                "kind": "measured_parser_coverage",
+                "message": "Final unsupported source units contribute to the measured numerator.",
+                "source_location": {
+                  "source_lines": [4],
+                  "raw_text_hash": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f",
+                  "parser_confidence": 0
+                }
+              }
+            ],
+            "observed": {
+              "value": 0.25,
+              "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+              "coverage_report_sha256": "a8851bb425d2c9073b914d18c71878198c06f30fc8e8c48778936b2b6695101e",
+              "unit": "adapter_source_lines",
+              "adapter_version": "cisco-ios-source-lines-0.1.0",
+              "unparsed_units": 1,
+              "command_units": 4
+            },
+            "expected": {
+              "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3",
+              "maximum_unparsed_fraction": 0.05,
+              "peer_median": 0
+            },
+            "remediation": "Review unsupported statements and parser limitations before interpreting any property comparison.",
+            "references": ["docs/baseline.md#measured-parser-coverage"],
+            "limitations": [
+              "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+              "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+              "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+              "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+              "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+              "No policy, ML, formal verification or device change was run by this detector."
+            ],
+            "model_version": "peer-baseline-0.3.0"
+          }
+        ],
+        "limitations": [
+          "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+          "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+          "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+          "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+          "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+          "No policy, ML, formal verification or device change was run by this detector.",
+          "Parsing is incomplete: every property comparison was skipped; empty findings do not mean those properties were checked."
+        ]
+      }
+    },
+    "statistical": null
+  },
+  "bundle": {
+    "analysis_id": "e18f3da2-7d5e-4c41-a43a-dd1f5d288fa6",
+    "configuration_id": "a7243bcb-a51a-4090-ac05-c3e9636b47a1",
+    "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+    "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+    "finding_id": "8d8f79ed-3445-56b4-9152-c25c9ba23dba",
+    "finding_sha256": "5c247d18cfeb9ba8cbf503753b180871399da1cbbe3be7e1a0561f01d4e5b692",
+    "knowledge_version": "project-knowledge-0.4.0",
+    "knowledge_sha256": "218fdfa8d520b63c209644765bd1c4c05d64f043f0b09bdeab7f45bfb7f0e23e",
+    "retrieval": "explicit_reference",
+    "explanation": {
+      "version": "local-explanation-0.1.0",
+      "provider": "deterministic_local",
+      "finding_id": "8d8f79ed-3445-56b4-9152-c25c9ba23dba",
+      "device_id": "2dc0e4d0-19e7-4ec5-aee0-916d28b0d0c8",
+      "finding_sha256": "5c247d18cfeb9ba8cbf503753b180871399da1cbbe3be7e1a0561f01d4e5b692",
+      "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+      "detector_version": "peer-baseline-0.3.0",
+      "severity": "medium",
+      "confidence": 1,
+      "anomaly_score": 0.2105263157894737,
+      "summary": "Measured unsupported source-line fraction exceeds the selected peer tolerance.",
+      "technical_explanation": "Final source accounting records 1 unparsed of 4 command units. The measured fraction exceeds the explicit profile limit; all property comparisons were skipped. Confidence describes exact counting, not fault probability. Adapter acceptance is not full semantics, vendor syntax or network safety.",
+      "recommendation": "Review peer selection, inventory labels and intended configuration.",
+      "anchors": [
+        {
+          "source_sha256": "26a90f82d08c1fca84c239af53f4d0e79ef035efe2311270f985b7cf798b89a2",
+          "lines": [4],
+          "statement_sha256": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f"
+        }
+      ],
+      "citations": ["docs/baseline.md#measured-parser-coverage"],
+      "limitations": [
+        "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+        "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+        "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+        "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+        "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+        "No policy, ML, formal verification or device change was run by this detector.",
+        "This explanation uses local detector facts and catalog text; no language model was called.",
+        "Citations identify internal policies, not retrieved or independently validated documents.",
+        "Network impact was not simulated; any corrective action requires engineer review.",
+        "Parsing is incomplete; unsupported configuration may change the conclusion."
+      ],
+      "formal_verification": "not_run",
+      "patch_draft": null,
+      "requires_human_review": true
+    },
+    "documents": [
+      {
+        "document_id": "docs/baseline.md",
+        "document_title": "Peer-group baseline",
+        "section": "measured-parser-coverage",
+        "section_title": "Measured parser coverage",
+        "citation": "docs/baseline.md#measured-parser-coverage",
+        "document_sha256": "00414247b62dfd15aea68f61dc4444c92a42975e639c14fb02212ff733ee7247",
+        "content_sha256": "4e68c145ea305008e40f0ab316883f55f22c9498214770fc8d50fdff0b4884c2",
+        "content": "Explicit `peer-baseline-0.3.0` uses actual\n[adapter source-line coverage](parser-coverage.md), not the historical\n`1 - parser_confidence` proxy. It is available through the library and local CLI.\nThe persistent API/UI currently select 0.1/0.2 only; selecting measured comparison\nthere, saving its report and binding explanation sources are still integration\nwork. Existing profiles, findings, canonical schemas and defaults are unchanged.\n\n`build_measured_peer_baseline` consumes 3�20 `ParsedConfiguration` inputs. Each\ncontains the canonical configuration and its explicit `ParserCoverage`, from\n`parse_configuration_with_coverage`. The existing five-field group, complete\nparsing, distinct declared hostnames/hashes, target exclusion and non-future\ncollection-date gates apply unchanged. Missing, corrupt, differently bound or\nzero-denominator reports are refused, not reconstructed from parser confidence.\nThe selected peers must be completely parsed, so their measured fractions are\nzero by eligibility, **not** a learned distribution of real unsupported syntax.\n\nThe profile contains the unchanged 19-feature 0.2 property component with its\nold confidence-proxy limit pinned to 1 (inert), plus the full source-ordered\ncoverage reports. Property values, templates, consensus threshold (default .75),\nsupport counts and omissions retain their original meaning. The separate\n`unparsed_fraction_limit` is the peer median zero plus an explicit tolerance\n(default .05, range 0�1). Values strictly above the limit produce\n`baseline.parser.unparsed_fraction_high`; equality does not. Source lines, not\nuniversal vendor commands, are the unit. Hierarchical and set formats can have\ndifferent denominators; this does not establish equivalent-command recall.\n\n`evaluate_measured_peer_baseline` returns `peer-comparison-report-0.3.0`, including\nthe exact target coverage, threshold, baseline fingerprint, retained/compared/\nskipped features and findings. A partial target skips **every** property feature,\neven below the tolerance and even when its finding list is empty. Parser warnings\ncan also make the result partial without increasing the measured numerator.\nNo absence is inferred from incomplete parsing.\n\nEach finding binds its source, device, profile, full target-coverage SHA-256 and\nnew detector version in its deterministic UUID. Fraction evidence uses the final\nunparsed source anchors/hashes, without raw commands or credential values.\nObserved numerator/denominator/unit/adapter version are explicit. Confidence 1\ndescribes exact source accounting, not fault probability. MEDIUM is review\npriority; `(fraction - limit) / max(1 - limit, .01)`, capped at 1, is an\nuncalibrated deviation score, not network risk. Property findings retain their\nconsensus-based confidence/score. A shared group or peer agreement is not an\napproved security baseline, compliance result or independent device identity.\n\n```powershell\n.venv\\Scripts\\python.exe -m app.detection.baseline.peer_compare_cli --peer peer-1.cfg --peer peer-2.cfg --peer peer-3.cfg --current candidate.cfg --device-id f6156954-3f3b-4aa2-b693-5a710fe35d44 --device-role edge-router --site-class lab --service-profile transit --collected-at 2026-10-10T00:00:00+00:00 --comparison-version 0.3.0 --unparsed-fraction-tolerance 0.05\n```\n\nThe CLI default remains 0.2.0. `--unsupported-ratio-tolerance` belongs only to\nthat historical version; `--unparsed-fraction-tolerance` only to 0.3.0. A flag\nfor the wrong version, nonfinite threshold or invalid input is refused rather\nthan ignored. Exit 0 means completed/no differences, 1 completed/differences,\n2 refused, and 3 partial with JSON output. Inputs are explicit bounded UTF-8\nregular files; no directory discovery, implicit source retention or input writes\noccur. The full profile and evaluation each have an 8 MiB serialized limit,\nso the combined per-peer arrays can be refused even if each file meets its\nindividual 2 MiB/10,000-line limit. Output contains hashes and may include\nsensitive normalized values: keep it private.\n\nNeither this detector nor the CLI runs policy, ML, a language model, formal\nverification, vendor syntax validation or a device change. Accepted source lines\ndo not prove full semantics or safety. Authored IOS and both JunOS-form tests\nexercise raw-text comparisons, counts, thresholds, provenance, partial skips,\ncontract refusals and historical CLI behavior; they are not an independent\nreal-corpus evaluation or an operational false-positive measurement.\n\n[The measured local report](evaluation/owned-measured-peer-local.json) records\n2113 full backend passes/23 skips/5 warnings, 82 related checks, focused Pydantic\n2.14 compatibility and 28 actual installed CLI processes with per-child import\nverification. The interface regression suite passed but measured comparison is\nnot yet wired to saved analysis or its UI. Historical coverage CI outcomes are\nrecorded separately; they do not verify this new detector's external environments.",
+        "authority": "internal_project_document"
+      }
+    ],
+    "limitations": [
+      "The saved deterministic explanation and detector scores are unchanged.",
+      "Retrieval follows explicit detector references, not semantic search or a vector index.",
+      "Sources are internal project documents, not vendor guidance or an approved baseline.",
+      "Document and chunk hashes identify contents; they are not publisher signatures.",
+      "Retrieved text does not prove network impact, formal verification or safe remediation.",
+      "Unknown source fragments are not retrieved or sent to a provider; parser limitations remain in the original explanation."
+    ],
+    "version": "finding-context-0.1.0",
+    "provider": "deterministic_local",
+    "llm_status": "unavailable"
+  },
+  "emptyPartial": {
+    "version": "analysis-api-0.5.0",
+    "analysis_id": "55e5b9d0-1017-4f85-b77c-e876de4036b3",
+    "configuration_id": "fdf53caf-1d91-487f-9b93-4787692e3eeb",
+    "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+    "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+    "created_at": "2026-10-09T22:09:51.591536Z",
+    "status": "partial",
+    "policy_catalog_version": "policy-rules-0.7.0",
+    "findings": [
+      {
+        "finding_id": "237f81ac-f973-5802-8157-4b1aa0481479",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "detector": "policy_engine",
+        "category": "management.aaa_disabled",
+        "title": "Centralized AAA is not enabled",
+        "severity": "high",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported centralized AAA enablement statement was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.aaa_enabled": false
+        },
+        "expected": {
+          "management.aaa_enabled": true
+        },
+        "remediation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "references": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "f514e39e-e1bb-5280-a410-08e04219db71",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "detector": "policy_engine",
+        "category": "management.snmp_not_configured",
+        "title": "SNMP monitoring is not configured",
+        "severity": "medium",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported SNMP configuration was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.snmp_versions": []
+        },
+        "expected": {
+          "management.snmp_versions": "At least one approved SNMP version"
+        },
+        "remediation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "references": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      },
+      {
+        "finding_id": "9927af39-1e54-5b26-92e8-4af72d832989",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "detector": "policy_engine",
+        "category": "management.syslog_not_configured",
+        "title": "Remote Syslog is not configured",
+        "severity": "high",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "affected_lines": [],
+        "evidence": [
+          {
+            "kind": "policy_violation",
+            "message": "No supported remote Syslog destination was found.",
+            "source_location": null
+          }
+        ],
+        "observed": {
+          "management.syslog_servers": []
+        },
+        "expected": {
+          "management.syslog_servers": "At least one approved remote Syslog server"
+        },
+        "remediation": "Send security and operational events to approved remote collectors.",
+        "references": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax."
+        ],
+        "model_version": "policy-rules-0.7.0"
+      }
+    ],
+    "explanations": [
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "237f81ac-f973-5802-8157-4b1aa0481479",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "finding_sha256": "2d7d3e85cb9a8525b395ca8c53c65e64da5fa5e4bad3c6faedebd576099739c8",
+        "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "summary": "Centralized AAA is not enabled",
+        "technical_explanation": "No supported centralized AAA enablement statement was found.",
+        "recommendation": "Enable centralized AAA with an explicitly tested local fallback.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/management-plane.md#centralized-aaa-must-be-enabled"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "f514e39e-e1bb-5280-a410-08e04219db71",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "finding_sha256": "4ecb317b05c99c392c61407431bbade7f2584f0ebf622b40546c23e9f6742408",
+        "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "medium",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "summary": "SNMP monitoring is not configured",
+        "technical_explanation": "No supported SNMP configuration was found.",
+        "recommendation": "Configure SNMPv3 monitoring or document an approved alternative.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#monitoring-must-be-configured"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      },
+      {
+        "version": "local-explanation-0.1.0",
+        "provider": "deterministic_local",
+        "finding_id": "9927af39-1e54-5b26-92e8-4af72d832989",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "finding_sha256": "6ef1385c82a8e3f4664fb03a95f8ebe5e20b49a3024b0ba51dbabd536842f0fd",
+        "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+        "detector_version": "policy-rules-0.7.0",
+        "severity": "high",
+        "confidence": 0.9942,
+        "anomaly_score": 0,
+        "summary": "Remote Syslog is not configured",
+        "technical_explanation": "No supported remote Syslog destination was found.",
+        "recommendation": "Send security and operational events to approved remote collectors.",
+        "anchors": [],
+        "citations": [
+          "docs/policies/observability.md#remote-audit-logging-is-required"
+        ],
+        "limitations": [
+          "The violation is inferred from the absence of supported configuration syntax.",
+          "This explanation uses local detector facts and catalog text; no language model was called.",
+          "Citations identify internal policies, not retrieved or independently validated documents.",
+          "Network impact was not simulated; any corrective action requires engineer review.",
+          "No current source line proves an absent parameter; no line anchor was invented.",
+          "Parsing is incomplete; unsupported configuration may change the conclusion."
+        ],
+        "formal_verification": "not_run",
+        "patch_draft": null,
+        "requires_human_review": true
+      }
+    ],
+    "risk": null,
+    "limitations": [
+      "Only the recorded deterministic detectors were run; ML and formal verification were not run.",
+      "Reference differences are review information and are excluded from risk fusion.",
+      "Inventory labels and comparison inputs were explicitly selected by the operator; they are not independently verified or approved security baselines.",
+      "Scores are uncalibrated; the result requires engineer review.",
+      "Parsing is incomplete; findings are partial and risk is unavailable."
+    ],
+    "comparison": {
+      "version": "comparison-context-0.3.0",
+      "reference": null,
+      "peers": [
+        {
+          "configuration_id": "1d8f5ec9-fe90-4909-9e87-a3774f7a2971",
+          "device_id": "280a4a96-1a43-4749-ba97-64e84c6a7228",
+          "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+          "created_at": "2026-10-09T22:09:51.413473Z"
+        },
+        {
+          "configuration_id": "60839cb0-7872-4123-8c90-9b7521c84e85",
+          "device_id": "2109044f-9e68-4223-8df1-bf60763be04d",
+          "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+          "created_at": "2026-10-09T22:09:51.448113Z"
+        },
+        {
+          "configuration_id": "74322ec3-1eb9-4567-845b-41e0f4479af0",
+          "device_id": "abe3b4de-3474-4e9d-8a2b-f62f4a3e1e43",
+          "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+          "created_at": "2026-10-09T22:09:51.432998Z"
+        }
+      ],
+      "peer_baseline": {
+        "model_version": "peer-baseline-0.3.0",
+        "properties": {
+          "model_version": "peer-baseline-0.2.0",
+          "group": {
+            "vendor": "cisco",
+            "platform": "ios",
+            "device_role": "edge",
+            "site_class": "branch",
+            "service_profile": "owned"
+          },
+          "sample_count": 3,
+          "samples": [
+            {
+              "hostname": "peer-1",
+              "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+              "collected_at": "2026-10-09T22:09:51.432890Z"
+            },
+            {
+              "hostname": "peer-2",
+              "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+              "collected_at": "2026-10-09T22:09:51.448012Z"
+            },
+            {
+              "hostname": "peer-0",
+              "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+              "collected_at": "2026-10-09T22:09:51.413146Z"
+            }
+          ],
+          "consensus_threshold": 0.75,
+          "features": [
+            {
+              "field": "acls.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.local_as",
+              "expected": null,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.neighbor_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "bgp.router_id_configured",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "interfaces.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "local_users.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.aaa_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ntp_servers",
+              "expected": ["192.0.2.10"],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.snmp_versions",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_enabled",
+              "expected": true,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.ssh_version",
+              "expected": "2",
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.syslog_servers",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "management.telnet_enabled",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.present",
+              "expected": false,
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "ospf.process_patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "prefix_lists.patterns",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "static_routes.targets",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            },
+            {
+              "field": "vlans.set",
+              "expected": [],
+              "support_count": 3,
+              "sample_count": 3
+            }
+          ],
+          "omitted_features": [],
+          "unsupported_ratio_median": 0,
+          "unsupported_ratio_limit": 1
+        },
+        "coverage": [
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "2ea734b59b82fc867e1bd7853eb50c84a502f4d71ac284f8633d7fbcba48afa1",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "89413244c447dcfdf73787dcb33b97d47dcd7973151bcdd729781eccc13857ae",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "9c2a6b1bbed5ee42d9bb73254b71ba4e2e8a22cd1a9ee4a47356558fa23123ab",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "88f832ab755f07817ed8a3784e3104e7713bf7dab9e8c55a7d07b066b8a310aa",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          },
+          {
+            "version": "parser-coverage-0.1.0",
+            "unit": "adapter_source_lines",
+            "adapter_version": "cisco-ios-source-lines-0.1.0",
+            "vendor": "cisco",
+            "platform": "ios",
+            "source_sha256": "d05ebba568589730f8e6cb7589d2d06ac72a7bb1ddbe03da0ea9b78e63aca816",
+            "source_line_count": 4,
+            "accepted_units": 3,
+            "unparsed_units": 0,
+            "structural_units": 1,
+            "ignored_lines": 0,
+            "command_units": 3,
+            "unparsed_fraction": 0,
+            "proves_vendor_syntax": false,
+            "units": [
+              {
+                "source_line": 1,
+                "raw_text_sha256": "f42a5f68fe68633b005305032979061085530226f270d7eb06c924efd7337a7d",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 2,
+                "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 3,
+                "raw_text_sha256": "a20829b94941a523213d89316170d9f1c934afa0788f1305a5f29dd86d7c339c",
+                "disposition": "accepted"
+              },
+              {
+                "source_line": 4,
+                "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+                "disposition": "structural"
+              }
+            ]
+          }
+        ],
+        "unparsed_fraction_median": 0,
+        "unparsed_fraction_limit": 0.05
+      },
+      "peer_evaluation": {
+        "version": "peer-comparison-report-0.3.0",
+        "device_id": "3169a83d-9480-4d9e-8b73-075aa67b91b7",
+        "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+        "baseline_sha256": "84f68d52fed922d70b86159f676b60e4eff1086aa31e098b9a3dbfda856c7aa3",
+        "status": "partial",
+        "coverage": {
+          "version": "parser-coverage-0.1.0",
+          "unit": "adapter_source_lines",
+          "adapter_version": "cisco-ios-source-lines-0.1.0",
+          "vendor": "cisco",
+          "platform": "ios",
+          "source_sha256": "934ae308c619765f01943eb3ed02939cc9f958dc8ddd009e7ed7bf46838d3d6d",
+          "source_line_count": 104,
+          "accepted_units": 102,
+          "unparsed_units": 1,
+          "structural_units": 1,
+          "ignored_lines": 0,
+          "command_units": 103,
+          "unparsed_fraction": 0.009708737864077669,
+          "proves_vendor_syntax": false,
+          "units": [
+            {
+              "source_line": 1,
+              "raw_text_sha256": "a0fdecc26f7d1e6aa5c79a751dd3bc4b389e710748ae5fd7656149205569f92a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 2,
+              "raw_text_sha256": "33c3964de1156489b449ffdf1e5232356b439f525708b3370b3d24d9e5d36f6a",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 3,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 4,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 5,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 6,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 7,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 8,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 9,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 10,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 11,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 12,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 13,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 14,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 15,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 16,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 17,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 18,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 19,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 20,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 21,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 22,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 23,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 24,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 25,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 26,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 27,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 28,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 29,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 30,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 31,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 32,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 33,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 34,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 35,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 36,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 37,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 38,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 39,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 40,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 41,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 42,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 43,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 44,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 45,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 46,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 47,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 48,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 49,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 50,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 51,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 52,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 53,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 54,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 55,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 56,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 57,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 58,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 59,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 60,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 61,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 62,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 63,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 64,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 65,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 66,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 67,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 68,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 69,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 70,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 71,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 72,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 73,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 74,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 75,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 76,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 77,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 78,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 79,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 80,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 81,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 82,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 83,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 84,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 85,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 86,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 87,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 88,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 89,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 90,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 91,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 92,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 93,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 94,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 95,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 96,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 97,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 98,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 99,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 100,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 101,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 102,
+              "raw_text_sha256": "0268fdadf49403ed9802ae14bae4b64bb4eaf36d2451a276481b2b5e17797fe4",
+              "disposition": "accepted"
+            },
+            {
+              "source_line": 103,
+              "raw_text_sha256": "46b84f46b707d85a15effb3911ed2feb97c139684d7a2d11d08877c0b86d8a0f",
+              "disposition": "unparsed"
+            },
+            {
+              "source_line": 104,
+              "raw_text_sha256": "361e48d0308f20e32dba5fb56328baf18d72ef0ccb43b84f5c262d2a6a1fc6c8",
+              "disposition": "structural"
+            }
+          ]
+        },
+        "unparsed_fraction_limit": 0.05,
+        "peer_fraction_median": 0,
+        "profile_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "compared_features": [],
+        "skipped_features": [
+          "acls.patterns",
+          "bgp.local_as",
+          "bgp.neighbor_patterns",
+          "bgp.present",
+          "bgp.router_id_configured",
+          "interfaces.patterns",
+          "local_users.patterns",
+          "management.aaa_enabled",
+          "management.ntp_servers",
+          "management.snmp_versions",
+          "management.ssh_enabled",
+          "management.ssh_version",
+          "management.syslog_servers",
+          "management.telnet_enabled",
+          "ospf.present",
+          "ospf.process_patterns",
+          "prefix_lists.patterns",
+          "static_routes.targets",
+          "vlans.set"
+        ],
+        "findings": [],
+        "limitations": [
+          "Measured adapter source lines are not universal vendor commands; block/set formats have different denominators.",
+          "Accepted lines do not establish full semantic normalization, authoritative syntax, compliance or network safety.",
+          "Only completely parsed peers supply the property consensus; measured peer fractions are zero by this eligibility gate.",
+          "Peer identity, collection times and inventory labels are caller declarations, not independent attestations.",
+          "Confidence 1 describes exact source accounting, not fault probability; severity is review priority and scores are uncalibrated.",
+          "No policy, ML, formal verification or device change was run by this detector.",
+          "Parsing is incomplete: every property comparison was skipped; empty findings do not mean those properties were checked."
+        ]
+      }
+    },
+    "statistical": null
+  }
+}

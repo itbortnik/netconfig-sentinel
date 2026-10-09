@@ -14,6 +14,7 @@ class DocumentRetrievalSettings:
     current_index_sha256: str
     timeout_seconds: int = 20
     expanded_index_sha256: str | None = None
+    measured_index_sha256: str | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -31,10 +32,10 @@ class DocumentRetrievalSettings:
             or type(self.timeout_seconds) is not int
             or not 1 <= self.timeout_seconds <= 60
             or (
-                self.expanded_index_sha256 is not None
-                and (
-                    not isinstance(self.expanded_index_sha256, str)
-                    or not re.fullmatch(r"[0-9a-f]{64}", self.expanded_index_sha256)
+                any(
+                    pin is not None
+                    and (not isinstance(pin, str) or not re.fullmatch(r"[0-9a-f]{64}", pin))
+                    for pin in (self.expanded_index_sha256, self.measured_index_sha256)
                 )
             )
         ):
@@ -52,7 +53,8 @@ class DocumentRetrievalSettings:
             )
         ]
         expanded = os.environ.get("NETCONFIG_DOCUMENT_INDEX_SHA256_0_3", "")
-        if not any(values) and not expanded:
+        measured = os.environ.get("NETCONFIG_DOCUMENT_INDEX_SHA256_0_4", "")
+        if not any(values) and not expanded and not measured:
             return None
         if not all(values):
             raise ValueError("local document paths and both release index pins are required")
@@ -62,4 +64,5 @@ class DocumentRetrievalSettings:
             values[2],
             values[3],
             expanded_index_sha256=expanded or None,
+            measured_index_sha256=measured or None,
         )
