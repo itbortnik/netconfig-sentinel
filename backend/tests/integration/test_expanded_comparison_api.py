@@ -1,5 +1,6 @@
 """Expanded comparisons are explicit, encrypted, replayable and source-bound."""
 
+import os
 from collections.abc import Iterator
 from copy import deepcopy
 from pathlib import Path
@@ -9,11 +10,12 @@ import pytest
 from app.api.contracts import AnalysisResult, ExpandedComparisonContext
 from app.core.settings import ApiSettings
 from app.db.migrate import upgrade_database
-from app.db.store import Store
+from app.db.store import Store, make_engine
 from app.main import create_app
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+from sqlalchemy.engine import make_url
 
 TOKEN = "expanded-comparison-owned-service-token-001"
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
@@ -22,6 +24,43 @@ LABELS = {"device_role": "edge", "site_class": "branch", "service_profile": "own
 
 @pytest.fixture
 def expanded_api(tmp_path: Path) -> Iterator[tuple[TestClient, Store, ApiSettings]]:
+    configured = os.environ.get("NETCONFIG_TEST_DATABASE_URL", "")
+    if configured:
+        # The CI PostgreSQL job opts in explicitly. Never write into a deployment
+        # schema or accept a caller-selected database without the test-name gate.
+        url = make_url(configured)
+        if url.drivername != "postgresql+psycopg" or not (url.database or "").endswith("_test"):
+            pytest.fail("expanded comparisons require a postgresql+psycopg *_test database")
+        schema_id = uuid4()
+        schema = f"sentinel_expanded_test_{schema_id.hex}"
+        admin = make_engine(configured)
+        store = None
+        created = False
+        try:
+            with admin.begin() as connection:
+                connection.exec_driver_sql(f'CREATE SCHEMA "{schema}"')
+            created = True
+            selected = url.update_query_dict({"options": f"-csearch_path={schema}"})
+            settings = ApiSettings(
+                selected.render_as_string(hide_password=False),
+                TOKEN,
+                Fernet.generate_key().decode(),
+            )
+            application = create_app(settings)
+            store = application.state.analysis_service.store
+            upgrade_database(store.engine)
+            with TestClient(application) as client:
+                yield client, store, settings
+        finally:
+            if store is not None:
+                store.close()
+            # The exact target is generated here, never read from environment.
+            assert schema == f"sentinel_expanded_test_{schema_id.hex}"
+            if created:
+                with admin.begin() as connection:
+                    connection.exec_driver_sql(f'DROP SCHEMA "{schema}" CASCADE')
+            admin.dispose()
+        return
     settings = ApiSettings(
         f"sqlite:///{tmp_path / 'expanded.sqlite3'}", TOKEN, Fernet.generate_key().decode()
     )
@@ -30,6 +69,22 @@ def expanded_api(tmp_path: Path) -> Iterator[tuple[TestClient, Store, ApiSetting
     upgrade_database(store.engine)
     with TestClient(application) as client:
         yield client, store, settings
+
+
+@pytest.mark.parametrize(
+    "database",
+    [
+        "sqlite:///not-a-postgresql-test.sqlite3",
+        "postgresql+psycopg://localhost/sentinel",
+        "postgresql+psycopg://localhost/sentinel_test_backup",
+        "postgresql://localhost/sentinel_test",
+    ],
+)
+def test_expanded_test_database_rejects_non_test_targets(tmp_path, monkeypatch, database):
+    monkeypatch.setenv("NETCONFIG_TEST_DATABASE_URL", database)
+    fixture = expanded_api.__wrapped__(tmp_path)
+    with pytest.raises(pytest.fail.Exception, match=r"postgresql\+psycopg \*_test database"):
+        next(fixture)
 
 
 def source(vendor: str, host: str, address: str = "192.0.2.1") -> str:
