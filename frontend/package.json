@@ -3,14 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "format:check": "prettier --check src tests/browser vite.config.ts playwright.config.ts",
+    "format:check": "prettier --check src tests/browser vite.config.ts playwright*.config.ts",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:model-patches": "playwright test --config=playwright.model-patches.config.ts"
   },
   "dependencies": {
     "react": "19.3.0",

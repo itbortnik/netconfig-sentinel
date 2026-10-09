@@ -725,6 +725,7 @@ export function App() {
               <AnalysisView
                 key={result.analysis_id}
                 result={result}
+                snapshot={snapshot}
                 client={session}
                 busy={busy}
                 onError={failure}

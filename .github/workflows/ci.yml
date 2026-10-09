@@ -152,6 +152,14 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Check owned synthetic model-candidate browser workflow
+        run: npm run test:e2e:model-patches
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owned-model-candidate-browser-results
+          path: artifacts/browser-model-patches-junit.xml
+          retention-days: 14
       - run: docker compose up --build -d
         working-directory: .
       - run: >-

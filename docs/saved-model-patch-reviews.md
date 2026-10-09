@@ -135,8 +135,9 @@ production quality/operational topology и не применяет patch. Все
 decision/verification/proposal projections сохраняют `applied=false`.
 Rejection/needs-more-information допустимы с отсутствующими проверками; они не
 переписывают предыдущие решения. Не считайте latest UUID порядком решения:
-используйте saved timestamps и явно выбранный run. UI этого workflow — отдельный
-следующий этап; старый normalized patch viewer не отображает эту историю.
+используйте saved timestamps и явно выбранный run. Этот workflow доступен в
+[отдельной панели находки](model-patch-interface.md); normalized patch viewer
+сохраняет прежнюю область и не смешивает эти истории.
 
 ## Verification evidence and limits
 

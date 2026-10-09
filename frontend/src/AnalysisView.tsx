@@ -4,11 +4,13 @@ import type {
   FeedbackRecord,
   FeedbackSubmission,
   Finding,
+  ConfigurationSnapshot,
   Severity,
 } from "./contracts";
 import type { ApiClient } from "./api";
 import { FeedbackPanel } from "./FeedbackPanel";
 import { ExplanationPanel } from "./ExplanationPanel";
+import { ModelPatchPanel } from "./ModelPatchPanel";
 import {
   date,
   numericScore,
@@ -34,12 +36,14 @@ function JsonValues({
 
 export function AnalysisView({
   result,
+  snapshot,
   client,
   busy,
   onError,
   onFeedback,
 }: {
   result: AnalysisResult;
+  snapshot: ConfigurationSnapshot | null;
   client: ApiClient;
   busy: boolean;
   onError: (problem: unknown) => void;
@@ -341,6 +345,21 @@ export function AnalysisView({
                 key={`sources:${result.analysis_id}:${finding.finding_id}`}
                 analysis={result}
                 finding={finding}
+                client={client}
+                busy={busy}
+                onError={onError}
+              />
+              <ModelPatchPanel
+                key={`model-patch:${result.analysis_id}:${finding.finding_id}`}
+                analysis={result}
+                finding={finding}
+                snapshot={
+                  snapshot?.configuration_id === result.configuration_id &&
+                  snapshot.device_id === result.device_id &&
+                  snapshot.canonical.source.sha256 === result.source_sha256
+                    ? snapshot
+                    : null
+                }
                 client={client}
                 busy={busy}
                 onError={onError}

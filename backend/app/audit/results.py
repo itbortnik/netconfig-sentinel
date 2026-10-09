@@ -23,7 +23,7 @@ from app.api.explanation_contracts import (
     ModelExplanationBundle,
 )
 from app.api.feedback_contracts import FeedbackRecord
-from app.api.model_patch_contracts import ModelPatchProposal
+from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
@@ -75,6 +75,7 @@ _SUPPORTED = (
     VerificationRun,
     VerificationSummary,
     ModelPatchProposal,
+    ModelPatchCapabilities,
     SavedPatchVerification,
     SavedPatchDecision,
     Finding,
@@ -106,6 +107,11 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["model_alias_sha256"] = value.model_alias_sha256
         selected["proposal_sha256"] = value.proposal_sha256
         selected["candidate_sha256"] = value.candidate_sha256
+    if isinstance(value, ModelPatchCapabilities):
+        selected["generation"] = value.generation
+        selected["network_engine"] = value.network_engine
+        selected["transformer"] = value.transformer
+        selected["transformer_sha256"] = value.transformer_sha256
     if isinstance(value, SavedPatchVerification):
         selected["proposal_sha256"] = value.proposal_sha256
         selected["review_sha256"] = value.review_sha256

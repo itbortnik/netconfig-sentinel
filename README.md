@@ -300,6 +300,9 @@ scoped review описана в [`docs/model-patch-network-review.md`](docs/mode
 Отдельный opt-in API «сохранённая находка → точный исходник → одна модельная
 попытка», encrypted история и отказ от автоматического повторения описаны в
 [`docs/saved-model-patches.md`](docs/saved-model-patches.md).
+Сохранённые candidate-specific проверки и append-only решения инженера описаны в
+[`docs/saved-model-patch-reviews.md`](docs/saved-model-patch-reviews.md), отдельный
+браузерный workflow — в [`docs/model-patch-interface.md`](docs/model-patch-interface.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

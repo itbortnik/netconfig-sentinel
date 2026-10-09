@@ -100,6 +100,13 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Явно запросить source-bound model draft | `POST /api/v1/model-patches` |
 | История model attempts выбранного анализа | `GET /api/v1/model-patches?analysis_id=<UUID>` |
 | Сохранённый model attempt | `GET /api/v1/model-patches/<UUID>` |
+| Operator selection без вызова workers/readiness | `GET /api/v1/model-patches/capabilities` |
+| Проверить exact model candidate | `POST /api/v1/model-patches/<UUID>/verify` |
+| История проверок model candidate | `GET /api/v1/model-patches/<UUID>/verifications` |
+| Точная сохранённая проверка | `GET /api/v1/model-patches/<UUID>/verifications/<UUID>` |
+| Добавить решение engineer/admin | `POST /api/v1/model-patches/<UUID>/decisions` |
+| История reviewer decisions | `GET /api/v1/model-patches/<UUID>/decisions` |
+| Точное сохранённое решение | `GET /api/v1/model-patches/<UUID>/decisions/<UUID>` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; создание снимков,

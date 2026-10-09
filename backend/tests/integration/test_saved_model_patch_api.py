@@ -191,6 +191,85 @@ def generate(client, options):
     return client.post("/api/v1/model-patches", headers=HEADERS, json=options)
 
 
+def test_model_patch_capabilities_are_read_only_minimized_and_operator_bound(model_patch_api):
+    client, _, state, settings, _ = model_patch_api
+    result = client.get(
+        "/api/v1/model-patches/capabilities", headers={"Authorization": f"Bearer {READER}"}
+    )
+    assert result.status_code == 200, result.text
+    assert result.json() == {
+        "version": "model-patch-capabilities-0.1.0",
+        "generation": "configured",
+        "network_engine": "disabled",
+        "transformer": "disabled",
+        "transformer_sha256": None,
+        "individual_identity_verified": False,
+        "application_supported": False,
+    }
+    assert not state["requests"] and "127.0.0.1" not in result.text
+    with TestClient(create_app(settings)) as disabled:
+        value = disabled.get("/api/v1/model-patches/capabilities", headers=HEADERS).json()
+        assert value["generation"] == "disabled" and value["network_engine"] == "disabled"
+
+
+def test_configured_capabilities_are_not_readiness_and_do_not_expose_operator_paths(
+    model_patch_api, tmp_path
+):
+    from app.core.patch_verification import PatchVerificationSettings
+
+    client, _, state, settings, _ = model_patch_api
+    pin = "c" * 64
+    options = PatchVerificationSettings(
+        allow_engine_upload=True,
+        registry_root=tmp_path / "private-nonexistent-registry",
+        transformer_sha256=pin,
+        foundation_source=tmp_path / "private-nonexistent-foundation",
+    )
+    with TestClient(create_app(settings, patch_verification=options)) as configured:
+        response = configured.get("/api/v1/model-patches/capabilities", headers=HEADERS)
+        assert response.status_code == 200, response.text
+        assert response.json()["generation"] == "disabled"
+        assert response.json()["network_engine"] == "configured"
+        assert response.json()["transformer"] == "configured"
+        assert response.json()["transformer_sha256"] == pin
+        receipt = client.get(
+            f"/api/v1/operation-audit/{response.headers['X-Operation-Id']}", headers=HEADERS
+        )
+        assert receipt.status_code == 200, receipt.text
+        assert receipt.json()["receipt"]["operation"] == "model_patch_capabilities"
+        for value in (response.text, receipt.text):
+            assert "private-nonexistent" not in value
+            assert "127.0.0.1" not in value
+            assert "endpoint" not in value and "api_key" not in value
+        assert not state["requests"]
+
+
+@pytest.mark.parametrize(
+    "changed",
+    [
+        {"application_supported": True},
+        {"application_supported": 0},
+        {"individual_identity_verified": 0},
+        {"transformer": "configured"},
+        {"transformer_sha256": "d" * 64},
+        {"generation": "validated"},
+        {"endpoint": "http://127.0.0.1:1234"},
+    ],
+)
+def test_capability_contract_refuses_inferred_results_and_implicit_flags(changed):
+    from app.api.model_patch_contracts import ModelPatchCapabilities
+
+    with pytest.raises(ValueError):
+        ModelPatchCapabilities.model_validate(
+            {
+                "generation": "disabled",
+                "network_engine": "disabled",
+                "transformer": "disabled",
+                **changed,
+            }
+        )
+
+
 def test_saved_source_generation_is_bound_encrypted_restartable_and_not_promoted(model_patch_api):
     client, service, state, settings, _ = model_patch_api
     options, snapshot, analysis = selected_request(client)

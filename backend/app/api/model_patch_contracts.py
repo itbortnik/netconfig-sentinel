@@ -17,6 +17,30 @@ type Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 MAX_MODEL_PATCH_BYTES = 256 * 1024
 
 
+class ModelPatchCapabilities(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["model-patch-capabilities-0.1.0"] = "model-patch-capabilities-0.1.0"
+    generation: Literal["configured", "disabled"]
+    network_engine: Literal["configured", "disabled"]
+    transformer: Literal["configured", "disabled"]
+    transformer_sha256: Digest | None = None
+    individual_identity_verified: Literal[False] = False
+    application_supported: Literal[False] = False
+
+    @field_validator("individual_identity_verified", "application_supported", mode="before")
+    @classmethod
+    def exact_false(cls, value: object) -> bool:
+        if value is not False:
+            raise ValueError("capability flags must be false")
+        return value
+
+    @model_validator(mode="after")
+    def selected_model(self) -> Self:
+        if (self.transformer == "configured") != (self.transformer_sha256 is not None):
+            raise ValueError("configured Transformer requires an independent pin")
+        return self
+
+
 def fingerprint(value: BaseModel) -> str:
     return text_sha256(
         json.dumps(value.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))

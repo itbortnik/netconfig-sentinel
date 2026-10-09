@@ -16,7 +16,11 @@ from app.api.configurations import (
     _request_schema,
     _unique_keys,
 )
-from app.api.model_patch_contracts import GenerateModelPatch, ModelPatchProposal
+from app.api.model_patch_contracts import (
+    GenerateModelPatch,
+    ModelPatchCapabilities,
+    ModelPatchProposal,
+)
 from app.api.service import AnalysisService
 from app.audit.results import capture_result
 from app.db.model_patch_records import ModelPatchConflict
@@ -27,6 +31,7 @@ from app.patching.saved_model import (
     SavedModelPatchUnavailable,
     SavedModelPatchWorkflow,
 )
+from app.verification.patch_runtime import PatchVerificationRuntime
 
 router = APIRouter(prefix="/api/v1/model-patches", tags=["source-bound model patch drafts"])
 DraftService = Annotated[AnalysisService, Depends(require_access("draft"))]
@@ -105,6 +110,23 @@ def list_model_patches(
                 analysis_id=analysis_id, limit=limit, offset=offset
             )
         ],
+    )
+
+
+@router.get("/capabilities", response_model=ModelPatchCapabilities)
+def model_patch_capabilities(request: Request, service: Service) -> ModelPatchCapabilities:
+    runtime = cast(LocalModelRuntime | None, request.app.state.local_model)
+    verification = cast(PatchVerificationRuntime, request.app.state.patch_verification).settings
+    return capture_result(
+        request,
+        ModelPatchCapabilities(
+            generation="configured"
+            if runtime and runtime.settings.allow_patch_draft
+            else "disabled",
+            network_engine="configured" if verification.allow_engine_upload else "disabled",
+            transformer="configured" if verification.registry_root is not None else "disabled",
+            transformer_sha256=verification.transformer_sha256,
+        ),
     )
 
 

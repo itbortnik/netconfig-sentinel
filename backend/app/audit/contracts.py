@@ -34,6 +34,7 @@ type Operation = Literal[
     "generate_model_patch",
     "list_model_patches",
     "get_model_patch",
+    "model_patch_capabilities",
     "verify_model_patch",
     "list_model_patch_verifications",
     "get_model_patch_verification",
