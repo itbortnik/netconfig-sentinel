@@ -1,0 +1,109 @@
+{
+  "report_version": "owned-expanded-instruct-http-0.1.0",
+  "measured_on": "2026-10-09",
+  "scope": "four authored expanded reference/peer explanations through an installed API and exact-context loopback GPU gateway",
+  "application_source_commit": "37ee1192cd61070211c351a01c7e710f59760960",
+  "installed_wheel_sha256": "40923ffe1f5700497d71e62ea94744ed6bf749c8e69678642e563f715970d219",
+  "private_report_sha256": "7670fbb8a202c1f4e7f8e272c7209b68c7b0409566421d9f6dffd9edc217f6db",
+  "private_gateway_sha256": "6e6a550acb830de0a368fe07918b88872d1fb4efa2bb95ea7f0d4642385cd81d",
+  "independent_evaluation": false,
+  "real_configurations_or_confirmed_labels": false,
+  "semantic_quality_qualified": false,
+  "model": {
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+    "publisher_license_declaration": "Apache-2.0",
+    "external_training_exposure": "unknown",
+    "parameter_count": 4022468096,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "attention_implementation": "sdpa",
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "automatic_activation": false,
+    "production_quality_proven": false
+  },
+  "knowledge_version": "project-knowledge-0.3.0",
+  "knowledge_catalog_sha256": "86cbe60f544b431054e5f5aae7e973a1d08485a5a0e2806b1b431b614f019728",
+  "actual_requests": 4,
+  "schema_and_citation_membership_accepted": 4,
+  "consent_refusals_before_model": 4,
+  "saved_analyses_unchanged": 4,
+  "restart_round_trips": 4,
+  "http_deadline_seconds": 20,
+  "default_deadline_changed": false,
+  "automatic_retry": false,
+  "operator_activation": false,
+  "installed_application_import_verified": true,
+  "runtime_python_files_byte_equal": 209,
+  "strict_checkout_path_exclusion_verified": false,
+  "parent_imported_model_runtime": false,
+  "temporary_database_removed": true,
+  "gateway_reaped": true,
+  "new_weights_downloaded": false,
+  "new_ml_or_batfish_requests": 0,
+  "cases": [
+    {
+      "vendor": "cisco",
+      "detector": "expected_configuration",
+      "http_status": 200,
+      "http_seconds": 19.754135299939662,
+      "prompt_tokens": 1571,
+      "generated_tokens": 300,
+      "generation_seconds": 19.595526600256562,
+      "generation_completed": true
+    },
+    {
+      "vendor": "cisco",
+      "detector": "peer_baseline",
+      "http_status": 200,
+      "http_seconds": 8.647415299899876,
+      "prompt_tokens": 1822,
+      "generated_tokens": 325,
+      "generation_seconds": 8.510102399624884,
+      "generation_completed": true
+    },
+    {
+      "vendor": "juniper",
+      "detector": "expected_configuration",
+      "http_status": 200,
+      "http_seconds": 8.726588100194931,
+      "prompt_tokens": 1574,
+      "generated_tokens": 329,
+      "generation_seconds": 8.591187300160527,
+      "generation_completed": true
+    },
+    {
+      "vendor": "juniper",
+      "detector": "peer_baseline",
+      "http_status": 200,
+      "http_seconds": 8.476347299758345,
+      "prompt_tokens": 1833,
+      "generated_tokens": 317,
+      "generation_seconds": 8.33633519988507,
+      "generation_completed": true
+    }
+  ],
+  "observed_content_limitations": [
+    "Both peer answers describe the report as partial although both actual reports are completed.",
+    "The Cisco reference answer asserts no network impact or syntax-safety issues without corresponding verification.",
+    "Some assumptions invent absence of credential/description differences or absence of peer-selection bias; neither is established by these inputs.",
+    "These are direct qualitative observations on authored development cases, not an independent semantic accuracy estimate."
+  ],
+  "limitations": [
+    "The helper imports the application from the installed target, whose 209 Python runtime files match the checkout; editable checkout paths were still available through site initialization. This is not the earlier strict-path-excluded installed workflow.",
+    "Schema validity and citation membership do not prove that a cited source supports every claim.",
+    "The first actual HTTP request takes 19.75 seconds; the default ten-second service budget is not qualified or changed.",
+    "Only four explicitly allowlisted pseudonymized contexts reach the temporary gateway; outgoing socket connections are blocked in that owned helper, not asserted for arbitrary operator services.",
+    "Model alias and hashes alone do not authenticate weights; this diagnostic separately loads the fixed verified inventory.",
+    "No model prose changes scores, verification, approval, patch state or saved analyses; commands remain null and human review is mandatory.",
+    "Independent quality, vendor manuals, real configurations, load, deployment, device syntax, management access and rollback remain unqualified."
+  ]
+}

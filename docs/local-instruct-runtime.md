@@ -135,6 +135,31 @@ Deadline 20 секунд задан явно только для этой диа
 установлен и не активирован автоматически. Этот результат не проверяет restart,
 deployment, нагрузку, semantic truth, patch lifecycle или безопасный access/rollback.
 
+## Расширенные сравнения и knowledge 0.3
+
+[Отдельный diagnostic 2026-10-09](evaluation/owned-expanded-instruct-http.json)
+проверяет четыре новых authored contexts: reference и peers для Cisco/JunOS,
+detectors 0.2 и sealed knowledge 0.3. Настоящая pinned Qwen вернула четыре
+schema/citation-valid ответа через installed application и isolated HTTP worker;
+четыре запроса без consent отказали до модели. Исходные analyses/risk не менялись,
+четыре restart reads совпали. Новых ML/Batfish вызовов и загрузки weights нет.
+Gateway принимал только эти четыре exact contexts, затем был завершён; временная
+БД удалена. Defaults и environment оператора не менялись, hidden retry отсутствовал.
+
+HTTP latency составила 19.754/8.647/8.727/8.476 s при явном diagnostic deadline
+20 s. Первый запрос не укладывается в default 10 s. Импорт application проверен
+из installed target, все 209 Python runtime files совпали с исходниками; однако
+editable checkout paths оставались доступны через site initialization. Это не
+повтор отдельного strict-path-excluded package workflow и не deployment acceptance.
+
+Ошибки содержания не скрыты: оба peer-ответа называют фактически завершённый
+report частичным; Cisco reference prose без verifier утверждает отсутствие
+сетевого влияния/проблем syntax safety. В assumptions появляются недоказанные
+выводы об отсутствии credential differences или bias peers. Это качественные
+наблюдения на четырёх development cases, не independent accuracy metric.
+Schema-valid answer остаётся непроверенным черновиком; ссылки и hashes сами по
+себе не доказывают содержание. Нет нового semantic-quality или safety gate pass.
+
 ## Оставшийся полный LLM workflow
 
 Этот runtime не завершает полный LLM workflow: действующая HTTP schema требует

@@ -82,6 +82,17 @@ worker requests; новых instruct/Batfish вызовов в этом workflow
 даёт hit@1 и hit@4 по 5/6 на прежних authored queries, не independent quality.
 Production, реальные подтверждённые labels и calibration не закрыты.
 
+Поставка comparisons `37ee1192cd61070211c351a01c7e710f59760960` и PostgreSQL follow-up
+`67460e21823c7043c07201692282d8631bd460d2` имеют все четыре успешных CI jobs
+([comparison run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37984221007),
+[PostgreSQL run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37984627396)).
+Во втором отдельная PostgreSQL-задача включает expanded scenarios: 222 passes,
+два live-engine skips, два deselected native-worker cases; это не новое качество моделей.
+[Четыре actual Qwen comparison explanations](evaluation/owned-expanded-instruct-http.json)
+приняты структурно, но содержат неподтверждённые safety/partial-status утверждения.
+Модельные scores, semantic truth, стандартный десятисекундный deadline и production
+по этим authored cases не квалифицированы; анализы сохранены неизменными.
+
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.
 - Квалифицированный instruct service, independent/adversarial/semantic/citation
