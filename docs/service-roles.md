@@ -12,6 +12,7 @@ service credentials, **не** индивидуальные пользовате�
 | Загрузка снимков и запуск анализа | нет | да | да | да |
 | Feedback, создание черновика, локальная проверка | нет | нет | да | да |
 | Явный запрос настроенной локальной LLM | нет | нет | да | да |
+| Явный inference конфигурационной модели (`configuration_model`) | нет | нет | да | да |
 | Обучение Isolation Forest и добавление модели в registry | нет | нет | нет | да |
 | Журнал операций, роли/отказы и версии результата | нет | нет | нет | да |
 
@@ -60,10 +61,13 @@ credentials не пишутся в request state, ответы или собст
 не принимаются и не могут повысить права.
 
 Авторизованный `GET /api/v1/session` возвращает только контракт
-`service-access-0.2.0`: role, точный список permissions (admin включает `read_audit`),
+`service-access-0.3.0`: role, точный список permissions (admin включает `read_audit`),
 `individual_identity_verified=false`, `device_scope=all_saved_devices`.
 Ни key, ни список настроенных keys, ни identity оператора не возвращаются.
 Схема storage должна быть актуальной, как для других protected reads.
+UI принимает прежние 0.1/0.2 без выдачи нового `configuration_model`; 0.1 также
+не получает `read_audit`. Saved inference требует отдельной operator selection
+и strict request consent; разрешение роли само по себе модель не запускает.
 
 UI получает этот контракт при входе, проверяет фиксированную role/permission
 матрицу и отображает роль. Неизвестный/несогласованный ответ или ошибка endpoint

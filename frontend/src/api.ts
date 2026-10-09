@@ -43,6 +43,13 @@ import {
 import type { DecideModelPatch, VerifyModelPatch } from "./modelReviews";
 import { stableJson } from "./contracts";
 import {
+  configurationModelCapabilitiesSchema,
+  configurationModelRunSchema,
+  runConfigurationModelSchema,
+  configurationRunMatches,
+} from "./configurationModels";
+import type { RunConfigurationModel } from "./configurationModels";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -147,7 +154,8 @@ export class ApiClient {
       | VerifyPatch
       | GenerateModelPatch
       | VerifyModelPatch
-      | DecideModelPatch,
+      | DecideModelPatch
+      | RunConfigurationModel,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -199,6 +207,63 @@ export class ApiClient {
       `/configurations?${query}`,
       z.array(configurationSummarySchema),
     );
+  }
+  configurationModelCapabilities() {
+    return this.request(
+      "/configuration-model-runs/capabilities",
+      configurationModelCapabilitiesSchema,
+    );
+  }
+  async configurationModelRuns(analysis: string, offset = 0) {
+    const query = new URLSearchParams({
+      analysis_id: analysis,
+      limit: "20",
+      offset: String(offset),
+    });
+    const rows = await this.request(
+      `/configuration-model-runs?${query}`,
+      z.array(configurationModelRunSchema).max(20),
+    );
+    if (
+      rows.some((row) => row.analysis_id !== analysis) ||
+      new Set(rows.map((row) => row.inference_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "Привязка истории конфигурационной модели не подтверждена.",
+      );
+    return rows;
+  }
+  async configurationModelRun(id: string, expected?: RunConfigurationModel) {
+    const row = await this.request(
+      `/configuration-model-runs/${encodeURIComponent(id)}`,
+      configurationModelRunSchema,
+    );
+    if (
+      row.inference_id !== id ||
+      (expected && !configurationRunMatches(row, expected))
+    )
+      throw new ApiError(
+        0,
+        "Привязка запуска конфигурационной модели не подтверждена.",
+      );
+    return row;
+  }
+  async runConfigurationModel(options: RunConfigurationModel) {
+    const checked = runConfigurationModelSchema.parse(options);
+    if (!checked.allow_local_model_context)
+      throw new ApiError(403, messages[403]!);
+    const row = await this.request(
+      "/configuration-model-runs",
+      configurationModelRunSchema,
+      checked,
+    );
+    if (!configurationRunMatches(row, checked))
+      throw new ApiError(
+        0,
+        "Привязка запуска конфигурационной модели не подтверждена.",
+      );
+    return row;
   }
   analyses(offset = 0, configuration?: string) {
     const query = new URLSearchParams({ limit: "20", offset: String(offset) });

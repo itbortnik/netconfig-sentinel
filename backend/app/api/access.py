@@ -60,7 +60,7 @@ def require_access(permission: Permission) -> Callable[..., AnalysisService]:
 
 class SessionAccess(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    version: Literal["service-access-0.2.0"] = "service-access-0.2.0"
+    version: Literal["service-access-0.3.0"] = "service-access-0.3.0"
     role: Role
     permissions: tuple[Permission, ...]
     individual_identity_verified: Literal[False] = False

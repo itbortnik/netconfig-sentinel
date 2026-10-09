@@ -263,6 +263,7 @@ const side = z
       Math.abs(value.block_attention.reduce((a, b) => a + b, 0) - 1) <= 1e-5 &&
       Object.keys(value.replacement_counts).length <= 32,
   );
+export { side as configurationPredictionSchema };
 const transformer = z
   .strictObject({
     status: z.enum(["not_selected", "unavailable", "completed"]),

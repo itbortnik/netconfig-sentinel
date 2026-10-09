@@ -113,6 +113,7 @@ jobs:
           backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py
           backend/tests/integration/test_operation_audit.py backend/tests/integration/test_saved_model_patch_api.py
           backend/tests/integration/test_expanded_comparison_api.py
+          backend/tests/integration/test_configuration_model_api.py
           -k "not actual_isolated_native"
 
   frontend:

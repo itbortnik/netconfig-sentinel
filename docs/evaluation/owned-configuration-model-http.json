@@ -1,0 +1,33 @@
+{
+  "version": "owned-configuration-model-http-diagnostic-0.1.0",
+  "measured_on": "2026-10-09",
+  "scope": "Four authored installed-package single-source CPU inferences, not independent quality evaluation",
+  "actual_inferences": 4,
+  "consent_refusals_before_reservation": 4,
+  "replay_posts_without_inference": 8,
+  "restart_reads_without_model_configuration": 4,
+  "saved_analyses_unchanged": true,
+  "temporary_databases_removed": true,
+  "runtime_python_files_byte_equal": 220,
+  "installed_parent_import_verified": true,
+  "parent_torch_imported": false,
+  "worker_strict_checkout_path_exclusion_verified": false,
+  "wheel_sha256": "032f940d2749e07d7e5842269dcb1b4fe20c214b7de56a41ae8778d991032f10",
+  "runtime_torch_version": "2.14.0+cpu",
+  "quality_evaluated": false,
+  "calibrated": false,
+  "risk_fused": false,
+  "measurements": [
+    {"model_kind": "native", "vendor": "cisco", "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4", "http_seconds_including_worker_load": 4.666719799861312},
+    {"model_kind": "native", "vendor": "juniper", "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4", "http_seconds_including_worker_load": 6.497995599638671},
+    {"model_kind": "foundation", "vendor": "cisco", "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76", "http_seconds_including_worker_load": 22.855268099810928},
+    {"model_kind": "foundation", "vendor": "juniper", "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76", "http_seconds_including_worker_load": 21.038901099935174}
+  ],
+  "limitations": [
+    "Repeated owned recipes with existing single-Telnet-class checkpoints; no independent labels, quality rates or representative population",
+    "Severity head disabled; scores not promoted into findings, severity, risk, verification or approval",
+    "Concurrent regression was running; timings are not an operational latency qualification",
+    "No operator environment activation, production data, new weights or training; local offline sources only, network activity not independently instrumented",
+    "Default browser timeout remains 30 seconds; uncertain responses require GET reconciliation"
+  ]
+}

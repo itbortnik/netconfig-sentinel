@@ -8,6 +8,10 @@ from uuid import UUID
 from fastapi import Request
 from pydantic import BaseModel
 
+from app.api.configuration_model_contracts import (
+    ConfigurationModelCapabilities,
+    ConfigurationModelRun,
+)
 from app.api.contracts import (
     AnalysisResult,
     AnalysisSummary,
@@ -41,6 +45,7 @@ _IDENTIFIERS = (
     "patch_id",
     "verification_id",
     "decision_id",
+    "inference_id",
 )
 _HASHES = (
     "source_sha256",
@@ -82,6 +87,8 @@ _SUPPORTED = (
     FindingExplanation,
     OperationPage,
     OperationRecord,
+    ConfigurationModelCapabilities,
+    ConfigurationModelRun,
 )
 
 
@@ -100,6 +107,16 @@ def _selected(value: BaseModel) -> dict[str, object]:
     if isinstance(value, ConfigurationSnapshot):
         selected["source_sha256"] = value.canonical.source.sha256
         selected["version"] = f"canonical-schema-{value.canonical.schema_version}"
+    if isinstance(value, (ConfigurationModelCapabilities, ConfigurationModelRun)):
+        selected["model_sha256"] = value.model_sha256
+    if isinstance(value, ConfigurationModelCapabilities):
+        selected["inference"] = value.inference
+    if isinstance(value, ConfigurationModelRun):
+        selected["source"] = _selected(value.source)
+        selected["analysis_sha256"] = value.analysis_sha256
+        selected["intent_sha256"] = value.intent_sha256
+        selected["outcome_sha256"] = value.outcome_sha256
+        selected["status"] = value.status
     if isinstance(value, ModelPatchProposal):
         selected["source"] = _selected(value.source)
         if value.baseline is not None:

@@ -55,8 +55,10 @@ Domain `audit_events` и domain record по-прежнему commit/rollback в 
 ## Admin API/UI
 
 Только admin имеет `read_audit`; остальные роли — 403, неизвестный key — 401. Отказы
-фиксируются без чтения предметных записей/body. Session теперь `service-access-0.2.0`;
-UI принимает прежний 0.1, но не выдаёт ему новое право.
+фиксируются без чтения предметных записей/body. Session теперь `service-access-0.3.0`;
+UI принимает прежние 0.1/0.2 без повышения прав. Для конфигурационного inference
+журнал фиксирует analysis/source/model/intent/outcome hashes и статус, не scores,
+embedding, original/sanitized text или private model paths.
 
 | Операция | Путь |
 | --- | --- |

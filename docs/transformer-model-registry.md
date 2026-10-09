@@ -106,5 +106,7 @@ Static tests отдельно используют маленькие authored/�
 детекции или приемлемой operational latency. Counts 48 train/12 selection views
 относятся к прежним synthetic supervision; real/test/calibration cohort не появился.
 [Парное сравнение](paired-detection-comparison.md) по-прежнему имеет F1=0 на этих
-selection examples. Qualified HTTP inference, representative model evaluation и
-production deployment/security gates остаются открыты.
+selection examples. [Saved-analysis HTTP/UI inference](configuration-model-inference.md)
+теперь подключает эти модели отдельной opt-in диагностикой; representative model
+evaluation, qualified operational latency и production deployment/security gates
+остаются открыты.

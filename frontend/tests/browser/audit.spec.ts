@@ -49,7 +49,7 @@ test("administrator reads real encrypted operation bindings with stable paginati
   ).toContainText("Успешный ответ API");
   await expect(
     panel.getByRole("region", { name: "Детали операции" }),
-  ).toContainText("service-access-0.2.0");
+  ).toContainText("service-access-0.3.0");
   const secondResponse = page.waitForResponse(
     (response) =>
       response.url().includes("before=") &&

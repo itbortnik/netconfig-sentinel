@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.responses import Response
 
 from app.api.access import router as access_router
+from app.api.configuration_models import router as configuration_model_router
 from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
@@ -23,11 +24,13 @@ from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
 from app.audit.http import journal_response
 from app.audit.journal import OperationJournal
+from app.core.configuration_model import ConfigurationModelSettings
 from app.core.document_retrieval import DocumentRetrievalSettings
 from app.core.local_model import LocalModelSettings
 from app.core.patch_verification import PatchVerificationSettings
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
+from app.detection.config_model_runtime import ConfigurationModelRuntime
 from app.explanation.local_model import LocalModelRuntime
 from app.explanation.retrieval_runtime import DocumentRetrievalRuntime
 from app.verification.patch_runtime import PatchVerificationRuntime
@@ -41,9 +44,11 @@ def create_app(
     local_model: LocalModelSettings | None = None,
     document_retrieval: DocumentRetrievalSettings | None = None,
     patch_verification: PatchVerificationSettings | None = None,
+    configuration_model: ConfigurationModelSettings | None = None,
 ) -> FastAPI:
     if (
         local_model is not None or document_retrieval is not None or patch_verification is not None
+        or configuration_model is not None
     ) and settings is None:
         raise ValueError("local model requires an authenticated persistent API")
     store = Store(settings) if settings is not None else None
@@ -71,6 +76,7 @@ def create_app(
         for router in (
             access_router,
             configuration_router,
+            configuration_model_router,
             feedback_router,
             snapshot_diff_router,
             explanation_router,
@@ -82,6 +88,9 @@ def create_app(
         for route in router.routes
     )
     application.state.local_model = LocalModelRuntime(local_model) if local_model else None
+    application.state.configuration_model = ConfigurationModelRuntime(
+        configuration_model or ConfigurationModelSettings()
+    )
     application.state.patch_verification = PatchVerificationRuntime(
         patch_verification or PatchVerificationSettings()
     )
@@ -120,6 +129,7 @@ def create_app(
     application.include_router(health_router)
     application.include_router(access_router)
     application.include_router(configuration_router)
+    application.include_router(configuration_model_router)
     application.include_router(feedback_router)
     application.include_router(snapshot_diff_router)
     application.include_router(explanation_router)
@@ -136,4 +146,5 @@ app = create_app(
     local_model=LocalModelSettings.from_environment(),
     document_retrieval=DocumentRetrievalSettings.from_environment(),
     patch_verification=PatchVerificationSettings.from_environment(),
+    configuration_model=ConfigurationModelSettings.from_environment(),
 )

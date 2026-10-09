@@ -13,12 +13,22 @@ Permission = Literal[
     "draft",
     "verify",
     "model_explanation",
+    "configuration_model",
     "read_audit",
 ]
 ROLE_PERMISSIONS: dict[Role, tuple[Permission, ...]] = {
     "reader": ("read",),
     "analyst": ("read", "upload", "analyze"),
-    "engineer": ("read", "upload", "analyze", "feedback", "draft", "verify", "model_explanation"),
+    "engineer": (
+        "read",
+        "upload",
+        "analyze",
+        "feedback",
+        "draft",
+        "verify",
+        "model_explanation",
+        "configuration_model",
+    ),
     "admin": (
         "read",
         "upload",
@@ -28,6 +38,7 @@ ROLE_PERMISSIONS: dict[Role, tuple[Permission, ...]] = {
         "draft",
         "verify",
         "model_explanation",
+        "configuration_model",
         "read_audit",
     ),
 }

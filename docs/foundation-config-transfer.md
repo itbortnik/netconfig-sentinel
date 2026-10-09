@@ -110,5 +110,7 @@ independent test, unknown-anomaly evaluation, fitted calibration, baseline
 superiority or cross-vendor generalization is proven. An explicit
 [private pre/post patch supplement](ml-change-review.md) can select this checkpoint
 with its independent full pin and separate publisher source; native remains the
-default. It never substitutes the external source silently or enters HTTP risk fusion.
+default. [Saved-analysis diagnostics](configuration-model-inference.md) also support
+explicit operator-pinned selection. Neither path substitutes the external source
+silently or enters HTTP risk fusion.
 See [readiness](readiness.md) for remaining acceptance gates.

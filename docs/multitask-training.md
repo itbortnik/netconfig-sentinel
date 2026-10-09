@@ -6,7 +6,8 @@ logits, five declared severity logits and a learned similar-case embedding.
 A residual low-rank feature adapter and small attention pooler combine block
 embeddings. This is **not** LoRA inside transformer attention, full encoder
 fine-tuning, a pretrained general-purpose model download or an activated API
-detector. The HTTP analysis workflow does not yet consume these weights.
+detector. [Saved-analysis diagnostics](configuration-model-inference.md) can now
+explicitly select these weights without changing analysis findings or risk.
 
 ## Architecture and objective
 

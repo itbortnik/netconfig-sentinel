@@ -104,6 +104,9 @@
 - [экспериментальный реестр моделей](docs/model-registry.md): явное обучение
   Isolation Forest по 8–100 сохранённым снимкам, безопасный числовой JSON вместо
   pickle, зашифрованный паспорт и выбор модели в API/UI без повторного fit;
+- [конфигурационная модель сохранённого анализа](docs/configuration-model-inference.md):
+  operator-pinned native/foundation inference в отдельном CPU worker, request consent,
+  encrypted immutable history и UI; некалиброванные scores не меняют findings/risk;
 - прозрачный risk fusion v1 с явными весами, статусами доступности и
   ограничителями для критических формальных результатов;
 - строгий manifest происхождения, лицензии и разрешённых способов использования

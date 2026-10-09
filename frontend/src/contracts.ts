@@ -12,6 +12,7 @@ export const rolePermissions = {
     "draft",
     "verify",
     "model_explanation",
+    "configuration_model",
   ],
   admin: [
     "read",
@@ -22,23 +23,30 @@ export const rolePermissions = {
     "draft",
     "verify",
     "model_explanation",
+    "configuration_model",
     "read_audit",
   ],
 } as const;
 export type Permission = (typeof rolePermissions.admin)[number];
 export const sessionAccessSchema = z
   .strictObject({
-    version: z.enum(["service-access-0.1.0", "service-access-0.2.0"]),
+    version: z.enum([
+      "service-access-0.1.0",
+      "service-access-0.2.0",
+      "service-access-0.3.0",
+    ]),
     role: z.enum(["reader", "analyst", "engineer", "admin"]),
-    permissions: z.array(z.enum(rolePermissions.admin)).min(1).max(9),
+    permissions: z.array(z.enum(rolePermissions.admin)).min(1).max(10),
     individual_identity_verified: z.literal(false),
     device_scope: z.literal("all_saved_devices"),
   })
   .refine((access) => {
     const expected = rolePermissions[access.role].filter(
       (permission) =>
-        access.version !== "service-access-0.1.0" ||
-        permission !== "read_audit",
+        (access.version !== "service-access-0.1.0" ||
+          permission !== "read_audit") &&
+        (access.version === "service-access-0.3.0" ||
+          permission !== "configuration_model"),
     );
     return (
       new Set(access.permissions).size === access.permissions.length &&

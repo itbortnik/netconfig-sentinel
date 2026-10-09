@@ -11,6 +11,7 @@ import type { ApiClient } from "./api";
 import { FeedbackPanel } from "./FeedbackPanel";
 import { ExplanationPanel } from "./ExplanationPanel";
 import { ModelPatchPanel } from "./ModelPatchPanel";
+import { ConfigurationModelPanel } from "./ConfigurationModelPanel";
 import {
   date,
   numericScore,
@@ -247,6 +248,11 @@ export function AnalysisView({
           </ul>
         </details>
       </div>
+      <ConfigurationModelPanel
+        key={result.analysis_id}
+        client={client}
+        analysis={result}
+      />
       <div className="finding-workspace">
         <section className="panel findings-list" aria-label="Список находок">
           <div className="section-heading">
