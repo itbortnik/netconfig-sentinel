@@ -8,7 +8,13 @@ import sys
 from pathlib import Path
 from uuid import UUID
 
+from app.detection.baseline.expanded import (
+    ExpandedReference,
+    compare_expanded_reference,
+    create_expanded_reference,
+)
 from app.detection.baseline.expected import (
+    ExpectedConfiguration,
     compare_expected_configuration,
     create_expected_configuration,
 )
@@ -26,6 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--current", type=Path, required=True)
     parser.add_argument("--device-id", type=UUID, required=True)
     parser.add_argument("--reference-id", required=True)
+    parser.add_argument("--comparison-version", choices=("0.1.0", "0.2.0"), default="0.1.0")
     args = parser.parse_args(argv)
     try:
         reference_config = parse_configuration(
@@ -34,12 +41,21 @@ def main(argv: list[str] | None = None) -> int:
         current_config = parse_configuration(
             _read_configuration(args.current), filename=args.current.name
         )
-        reference = create_expected_configuration(
-            reference_config, device_id=args.device_id, reference_id=args.reference_id
-        )
-        findings = compare_expected_configuration(
-            current_config, reference, device_id=args.device_id
-        )
+        reference: ExpectedConfiguration | ExpandedReference
+        if args.comparison_version == "0.2.0":
+            reference = create_expanded_reference(
+                reference_config, device_id=args.device_id, reference_id=args.reference_id
+            )
+            findings = compare_expanded_reference(
+                current_config, reference, device_id=args.device_id
+            )
+        else:
+            reference = create_expected_configuration(
+                reference_config, device_id=args.device_id, reference_id=args.reference_id
+            )
+            findings = compare_expected_configuration(
+                current_config, reference, device_id=args.device_id
+            )
     except (OSError, ValueError):
         # Parser/validation errors can contain raw configuration values. Do not echo them.
         print(
@@ -49,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     report = {
-        "version": "expected-comparison-report-0.1.0",
+        "version": f"expected-comparison-report-{args.comparison_version}",
         "device_id": str(args.device_id),
         "reference_id": reference.reference_id,
         "reference_sha256": reference.source_sha256,
@@ -63,6 +79,9 @@ def main(argv: list[str] | None = None) -> int:
             "Report values may contain sensitive network addressing; keep output private.",
         ],
     }
+    if isinstance(reference, ExpandedReference):
+        report["reference_facts_sha256"] = reference.fingerprint()
+        report["comparison_model_version"] = reference.version
     print(json.dumps(report, indent=2, ensure_ascii=True))
     return 1 if findings else 0
 

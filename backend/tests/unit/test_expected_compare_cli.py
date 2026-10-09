@@ -103,3 +103,42 @@ def test_cli_rejects_unsupported_or_wrong_identity(
     result = capsys.readouterr()
     assert not result.out
     assert "secret-value" not in result.err
+
+
+@pytest.mark.parametrize("vendor", [Vendor.CISCO, Vendor.JUNIPER])
+def test_cli_opt_in_value_comparison_keeps_the_default_detector_unchanged(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], vendor: Vendor
+) -> None:
+    if vendor is Vendor.CISCO:
+        text = "hostname edge\nip ssh version 2\nntp server 192.0.2.10\n"
+    else:
+        text = (
+            "set system host-name edge\nset system services ssh\nset system ntp server 192.0.2.10\n"
+        )
+    reference, current = tmp_path / "reference.cfg", tmp_path / "current.cfg"
+    reference.write_text(text, encoding="utf-8")
+    current.write_text(text.replace("192.0.2.10", "192.0.2.11"), encoding="utf-8")
+    args = _args(reference, current)
+    assert compare_cli.main(args) == 0
+    original = json.loads(capsys.readouterr().out)
+    assert original["version"] == "expected-comparison-report-0.1.0"
+    assert "reference_facts_sha256" not in original
+    assert compare_cli.main([*args, "--comparison-version", "0.2.0"]) == 1
+    output = capsys.readouterr()
+    expanded = json.loads(output.out)
+    assert not output.err
+    assert expanded["version"] == "expected-comparison-report-0.2.0"
+    assert expanded["comparison_model_version"] == "expected-config-0.2.0"
+    assert len(expanded["reference_facts_sha256"]) == 64
+    assert expanded["finding_count"] == 1
+    finding = expanded["findings"][0]
+    assert finding["category"] == "baseline.expected.management.ntp_servers"
+    assert finding["affected_lines"] == [3]
+    assert finding["observed"]["value"] == ["192.0.2.11"]
+    assert finding["expected"]["value"] == ["192.0.2.10"]
+    assert compare_cli.main([*args, "--comparison-version", "0.2.0"]) == 1
+    assert capsys.readouterr().out == output.out
+    current.write_text(text + "unsupported secret-value\n", encoding="utf-8")
+    assert compare_cli.main([*args, "--comparison-version", "0.2.0"]) == 2
+    refused = capsys.readouterr()
+    assert not refused.out and "secret-value" not in refused.err

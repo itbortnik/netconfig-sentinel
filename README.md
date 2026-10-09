@@ -252,6 +252,10 @@ ACL — в [`docs/policies/access-control.md`](docs/policies/access-control.md).
 [`docs/baseline.md`](docs/baseline.md).
 Сравнение параметров с явно выбранным эталоном того же устройства описано в
 [`docs/expected-configuration.md`](docs/expected-configuration.md).
+Расширенная opt-in версия локального сравнения с эталоном и группой устройств
+(значения management, VLAN/ACL и маршрутизации, явное пропускание сравнений при
+неполном разборе) описана в [`docs/expanded-comparisons.md`](docs/expanded-comparisons.md).
+Её подключение к сохранённым API/UI-анализам ещё не выполнено; версия 0.1 не меняется.
 Статистическая контрольная модель описана в
 [`docs/statistical-baseline.md`](docs/statistical-baseline.md).
 Формула объединения риска описана в

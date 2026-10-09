@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-08 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-09 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -12,12 +12,12 @@
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
-| Reference/peers/Isolation Forest | Explicit inputs, persisted manifests, actual numeric scoring; [demo](demo-runbook.md) | Synthetic functional checks не измеряют эксплуатационные false positives |
+| Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 local comparisons](expanded-comparisons.md) добавляют management values/VLAN/ACL/routing и explicit partial skips | 0.2 API/UI/sealed explanation integration ещё не выполнена; synthetic functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
-| Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md) | Schema-valid outputs всё ещё содержат unsupported claims; полноценный vendor-patch/model API workflow и independent quality не закрыты; vendor/internal library требует прав и отбора |
-| Patch/formal gate | Native source-bound draft и normalized API draft; replayable local checks; [six actual owned Linux Batfish queries](evaluation/owned-batfish.json); no status promotion without complete formal inputs | Linux diagnostic покрывает только две игрушечные сети/explicit IPv4 scope. Windows-native initialization отказал; model-candidate formal/access/device syntax/engineer approval end-to-end переход не квалифицирован |
-| Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/e2e` | Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
+| Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md); [saved draft/review/decision API/UI](model-patch-interface.md) | Schema-valid outputs всё ещё содержат unsupported claims; independent semantic quality и квалификация полного реального candidate workflow не закрыты; vendor/internal library требует прав и отбора |
+| Patch/formal gate | Native/normalized/source-bound model drafts; persisted replayable reviews и append-only decisions; [six owned Linux queries](evaluation/owned-batfish.json) и [saved HTTP candidate live scope](evaluation/owned-saved-model-review-live.json); no promotion without complete formal/ML/attestation gates | Live evidence — игрушечные сети/explicit IPv4 scope с synthetic provider; отдельные actual ML workers — replay старого draft. Не полная топология, management access, device syntax, individual identity или approved real engineer workflow |
+| Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/tests/browser`; [owned model browser workflow](evaluation/owned-model-candidate-browser-workflow.json) | Browser provider — synthetic loopback, не real inference. Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
 | Секреты/access/audit | Sanitization, encrypted at-rest API payload, service RBAC, receipt/completion journal, bounded uploads | Не доказательство отсутствия всех секретов; production secret scan/pentest/SSO/tenant/TLS/backup квалификация открыты |
 | Запуск и демонстрация | README, [API](persistent-api.md), [UI](web-interface.md), [автоматический demo](demo-runbook.md) | Local demo — ASGI/SQLite, не production deploy или live network test |
 | Раздельные метрики | [Общий evaluator](offline-evaluation.md) и origin/vendor/role/unseen slices; measured synthetic reports | Real-confirmed/independent-test данные отсутствуют; `missing` не означает ноль ошибок или пройденный gate |
@@ -54,9 +54,26 @@ Multilingual MiniLM фактически загружен и используе�
 Actual model candidate теперь имеет [отдельный bound network review](model-patch-network-review.md):
 два свежих owned Qwen requests (Cisco candidate/JunOS decline), четыре actual ML
 review/check процесса и два actual Linux Batfish queries именно Cisco edit.
-Data-plane scope не подтверждает SSH security/access, device syntax или approval;
-full API/UI handoff и independent quality остаются открытыми. Успешный engine job
-не скрывает отдельный type-check failure общего run, приведённый в отчёте.
+Data-plane scope не подтверждает SSH security/access, device syntax или approval.
+Теперь есть отдельный [сохранённый API/UI workflow](model-patch-interface.md):
+выбор exact source/baseline/network, consent, durable local/formal/ML reports,
+replay и решения инженера. [Browser evidence](evaluation/owned-model-candidate-browser-workflow.json)
+использует synthetic provider, не новые Qwen/ML/Batfish вызовы; pending projection
+в одном сценарии также synthetic. [Saved HTTP live evidence](evaluation/owned-saved-model-review-live.json)
+проверяет настоящим Linux engine только два authored scopes с synthetic provider,
+а [installed ML evidence](evaluation/owned-installed-saved-patch-review.json) —
+два actual CPU workers на неизменном старом recorded answer. Это функциональные
+проверки разных частей, не совместная независимая квалификация реального патча,
+полной topology, approved baseline, личной identity или эксплуатационного доступа.
+Independent quality остаётся открытым. Исторический network-review report сохраняет
+type-check failure своего общего run отдельно от успешного engine job; последующие
+[четыре CI jobs UI-поставки](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37962285379)
+успешны для commit `acececd3a324e0fb5ad350e07c44977cbf1e729c`.
+
+[Expanded local comparison evidence](evaluation/owned-expanded-local-comparisons.json)
+фиксирует новую opt-in 0.2 реализацию management/VLAN/ACL/routing comparisons,
+1903 full local passes/23 skips/5 warnings и 12 actual installed CLI processes.
+Это не готовая 0.2 API/UI интеграция, независимые реальные labels или метрики качества.
 
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.

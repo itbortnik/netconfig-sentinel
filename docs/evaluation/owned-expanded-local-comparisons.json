@@ -1,0 +1,75 @@
+{
+  "version": "owned-expanded-local-comparisons-0.1.0",
+  "scope": "owned_local_reference_and_peer_functional_checks",
+  "reference_detector_version": "expected-config-0.2.0",
+  "peer_detector_version": "peer-baseline-0.2.0",
+  "reference_field_families": 45,
+  "eligible_peer_features": 19,
+  "vendors": ["cisco", "juniper"],
+  "local_runtime": {
+    "platform": "win32",
+    "python": "3.14.7",
+    "full_suite_pydantic": "2.13.5",
+    "compatibility_subset_pydantic": "2.14.0"
+  },
+  "tests": {
+    "full_passed": 1903,
+    "full_skipped": 23,
+    "full_warnings": 5,
+    "full_junit_seconds": 199.778,
+    "full_junit_sha256": "30aa960974e2314109bd4d69bce366481740793a438fb0805c9980d2d4717c40",
+    "focused_passed": 128,
+    "focused_junit_sha256": "a318b57ee19c1bb9ea7833a7ff7970a271a3a93c47fbdcb0fe1d738d4df056c3",
+    "compatibility_subset_passed": 128,
+    "compatibility_subset_junit_sha256": "54506efaaad0557c92fff4fa74c7e843328cb031dcc015a506566605a172683b",
+    "coverage_xml_sha256": "9852f6f47c843b98177863b159fcdfcadf76ddcffd6fd8d10ff29ede978c7b23",
+    "ruff_passed": true,
+    "changed_python_format_passed": true,
+    "mypy_source_files": 213,
+    "mypy_default_passed": true,
+    "mypy_win32_passed": true,
+    "mypy_pydantic_2_14_subset_environment_passed": true,
+    "skip_scope": {
+      "optional_batfish_sdk": 12,
+      "live_batfish": 6,
+      "live_model_patch_batfish": 2,
+      "explicit_postgres_database": 1,
+      "live_saved_model_candidate": 2
+    },
+    "limits": [
+      "Owned fixtures and direct IR contract mutations, not independently confirmed real anomalies.",
+      "The Pydantic 2.14.0 check is a focused subset, not a second full-suite run.",
+      "Test coverage is implementation evidence, not detection quality or network safety.",
+      "This delivery does not change frontend behavior; no new browser run is claimed."
+    ]
+  },
+  "installed_package": {
+    "wheel_sha256": "318eb3b68fd47d5e4828e42aa47c3291b77136e275ea50a8a60821cc3a03aca3",
+    "wheel_bytes": 616120,
+    "runtime_files_byte_equal": 5,
+    "actual_isolated_cli_processes": 12,
+    "complete_value_differences_checked": true,
+    "partial_status_exit_checked": true,
+    "reference_partial_refusal_checked": true,
+    "reference_and_peer_inputs_unchanged": true,
+    "temporary_inputs_removed": true,
+    "source_checkout_imported": false,
+    "parent_torch_transformers_not_imported": true,
+    "new_workflow_fresh_llm_calls": 0,
+    "new_workflow_ml_calls": 0,
+    "new_workflow_engine_calls": 0
+  },
+  "readiness": {
+    "local_cli_workflows_checked": true,
+    "old_comparison_detector_semantics_changed": false,
+    "historical_knowledge_archives_changed": false,
+    "new_version_persisted_api_integrated": false,
+    "new_version_browser_integrated": false,
+    "new_version_explanation_archive_integrated": false,
+    "independent_detection_quality_measured": false,
+    "security_baseline_approved": false,
+    "network_safety_verified": false,
+    "device_syntax_qualified": false,
+    "configuration_applied": false
+  }
+}

@@ -4,6 +4,10 @@
 выбранным вызывающей стороной снимком того же устройства. Это отдельный
 детектор: он не заменяет peer-baseline и не использует обученную модель.
 
+Ниже описана сохранённая версия `expected-config-0.1.0`, используемая API/UI.
+Расширенная opt-in версия 0.2 для локальных запусков описана в
+[отдельном workflow](expanded-comparisons.md); прежние результаты не пересчитываются.
+
 ## Контракт
 
 `create_expected_configuration(config, device_id=..., reference_id=...)`
@@ -78,3 +82,22 @@ UUID передаёт вызывающая сторона: это проверк
 идентичность устройства отклоняются. Ошибки чтения и парсинга сообщаются
 обобщённо в stderr без значений из конфигурации. Эти ограничения относятся
 к данной локальной команде, не являются контрактом будущей HTTP-загрузки.
+
+## Expanded supported facts
+
+`expected-config-0.2.0` is an explicit local-library/CLI selection, not a silent
+upgrade of saved API analyses. It compares supported management values (including
+actual NTP/Syslog servers), local-user privilege/class/UID/authentication metadata,
+interface presence/enabled/mode/access/native/allowed VLANs/address sets, VLAN
+inventory, ordered ACL/prefix-list rules, BGP process/neighbor parameters, OSPFv2
+process/network/interface parameters and destination-keyed static-route targets.
+Credential values and descriptions are not compared. Both inputs require
+complete parsing and matching declared device/vendor/platform/hostname identity.
+Null IR properties are not interpreted as effective vendor defaults.
+
+Current evidence and reference lines stay separate; a removed object does not
+borrow the old object's source lines. Findings bind both sources and the exact
+reference-facts fingerprint. This proves an exact supported-IR difference, not
+approved reference selection, network impact, syntax/access safety or a repair.
+MEDIUM and scores are uncalibrated review indicators. No configuration is applied.
+See [the complete local contract](expanded-comparisons.md#same-device-reference).
