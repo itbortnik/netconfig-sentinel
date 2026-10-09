@@ -21,6 +21,10 @@
   итог ответа, роль/permissions и версии, включая чтения и отказы; admin API/UI,
   keyset и неподтверждённый статус при сбое;
 - SQLAlchemy, явные миграции Alembic, локальная SQLite и конфигурация PostgreSQL;
+- [проверка сохранённого model candidate](docs/saved-model-patch-reviews.md):
+  exact retained network, durable attempt/result, отдельные Batfish/ML opt-ins,
+  повторный Isolation Forest и неизменяемые service-role решения инженера;
+  без применения и без заявления production quality;
 - React + TypeScript интерфейс: загрузка, история, находки, доказательства,
   объяснения и явные статусы неполного разбора/незапущенных проверок;
 - [обратная связь по находке](docs/finding-feedback.md): три вердикта,

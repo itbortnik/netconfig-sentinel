@@ -141,3 +141,12 @@ contain narrow whitelisted line edits; rejected provider bytes are not retained.
 projection, not a normalized `PatchDraft` or verification certificate. Absence of
 completion remains generating; generation statuses never approve/apply a change.
 See [durable generation semantics](saved-model-patches.md).
+
+`SavedPatchReviewIntent`/`SavedPatchReviewOutcome` bind one immutable verification
+request to the saved proposal, selected retained network and scoped worker checks.
+`SavedPatchVerification` hashes the complete read projection, remains needs-review
+and never applies a change. `StatisticalRecheck` uses the original selected forest,
+not a newly trained model. `SavedPatchDecision` binds a terminal review hash to
+an explicit engineer/admin service-role verdict and acknowledged limitations;
+it does not authenticate individual identity. Migration `0008_model_patch_reviews`
+adds three encrypted append-only tables. See [checks and decision gates](saved-model-patch-reviews.md).

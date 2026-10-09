@@ -81,6 +81,28 @@ it("checks a complete receipt fingerprint and leaves pending outcomes unconfirme
   expect(await verifyReceiptBinding(pending)).toBe(true);
 });
 it.each([
+  "generate_model_patch",
+  "list_model_patches",
+  "get_model_patch",
+  "verify_model_patch",
+  "list_model_patch_verifications",
+  "get_model_patch_verification",
+  "decide_model_patch",
+  "list_model_patch_decisions",
+  "get_model_patch_decision",
+])(
+  "reads an immutable saved model workflow audit receipt: %s",
+  async (operation) => {
+    const selected = { ...receipt, operation };
+    const value = operationRecordSchema.parse({
+      ...record,
+      receipt: selected,
+      completion: { ...completion, receipt_sha256: sha(selected) },
+    });
+    expect(await verifyReceiptBinding(value)).toBe(true);
+  },
+);
+it.each([
   { outcome: "pending" },
   { authorization: "denied" },
   { approved: true },

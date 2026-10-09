@@ -15,6 +15,7 @@ from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
 from app.api.health import router as health_router
+from app.api.model_patch_reviews import router as model_patch_review_router
 from app.api.model_patches import router as model_patch_router
 from app.api.operation_audit import router as operation_audit_router
 from app.api.patches import router as patch_router
@@ -24,10 +25,12 @@ from app.audit.http import journal_response
 from app.audit.journal import OperationJournal
 from app.core.document_retrieval import DocumentRetrievalSettings
 from app.core.local_model import LocalModelSettings
+from app.core.patch_verification import PatchVerificationSettings
 from app.core.settings import ApiSettings
 from app.db.store import StorageIntegrityError, Store
 from app.explanation.local_model import LocalModelRuntime
 from app.explanation.retrieval_runtime import DocumentRetrievalRuntime
+from app.verification.patch_runtime import PatchVerificationRuntime
 from app.web import UI_CONTENT_SECURITY_POLICY, mount_frontend
 
 
@@ -37,8 +40,11 @@ def create_app(
     frontend_dir: Path | None = None,
     local_model: LocalModelSettings | None = None,
     document_retrieval: DocumentRetrievalSettings | None = None,
+    patch_verification: PatchVerificationSettings | None = None,
 ) -> FastAPI:
-    if (local_model is not None or document_retrieval is not None) and settings is None:
+    if (
+        local_model is not None or document_retrieval is not None or patch_verification is not None
+    ) and settings is None:
         raise ValueError("local model requires an authenticated persistent API")
     store = Store(settings) if settings is not None else None
 
@@ -70,11 +76,15 @@ def create_app(
             explanation_router,
             patch_router,
             model_patch_router,
+            model_patch_review_router,
             operation_audit_router,
         )
         for route in router.routes
     )
     application.state.local_model = LocalModelRuntime(local_model) if local_model else None
+    application.state.patch_verification = PatchVerificationRuntime(
+        patch_verification or PatchVerificationSettings()
+    )
     application.state.document_retrieval = (
         DocumentRetrievalRuntime(document_retrieval) if document_retrieval else None
     )
@@ -115,6 +125,7 @@ def create_app(
     application.include_router(explanation_router)
     application.include_router(patch_router)
     application.include_router(model_patch_router)
+    application.include_router(model_patch_review_router)
     application.include_router(operation_audit_router)
     mount_frontend(application, frontend_dir)
     return application
@@ -124,4 +135,5 @@ app = create_app(
     ApiSettings.from_environment(),
     local_model=LocalModelSettings.from_environment(),
     document_retrieval=DocumentRetrievalSettings.from_environment(),
+    patch_verification=PatchVerificationSettings.from_environment(),
 )

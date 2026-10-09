@@ -24,6 +24,7 @@ from app.api.explanation_contracts import (
 )
 from app.api.feedback_contracts import FeedbackRecord
 from app.api.model_patch_contracts import ModelPatchProposal
+from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
 from app.domain import Finding
@@ -39,6 +40,7 @@ _IDENTIFIERS = (
     "model_id",
     "patch_id",
     "verification_id",
+    "decision_id",
 )
 _HASHES = (
     "source_sha256",
@@ -73,6 +75,8 @@ _SUPPORTED = (
     VerificationRun,
     VerificationSummary,
     ModelPatchProposal,
+    SavedPatchVerification,
+    SavedPatchDecision,
     Finding,
     FindingExplanation,
     OperationPage,
@@ -102,6 +106,20 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["model_alias_sha256"] = value.model_alias_sha256
         selected["proposal_sha256"] = value.proposal_sha256
         selected["candidate_sha256"] = value.candidate_sha256
+    if isinstance(value, SavedPatchVerification):
+        selected["proposal_sha256"] = value.proposal_sha256
+        selected["review_sha256"] = value.review_sha256
+        selected["network"] = [_selected(row) for row in value.network]
+        selected["transformer_sha256"] = value.request.transformer_sha256
+        if value.statistical_recheck is not None:
+            selected["statistical_model_id"] = str(value.statistical_recheck.model_id)
+            selected["statistical_artifact_sha256"] = value.statistical_recheck.artifact_sha256
+    if isinstance(value, SavedPatchDecision):
+        selected["decision_id"] = str(value.request.decision_id)
+        selected["verification_id"] = str(value.request.verification_id)
+        selected["proposal_sha256"] = value.request.proposal_sha256
+        selected["review_sha256"] = value.request.review_sha256
+        selected["decision_content_sha256"] = metadata_hash(value.model_dump(mode="json"))
     if isinstance(value, Finding):
         selected["finding_sha256"] = finding_fingerprint(value)
     if isinstance(value, ModelSummary):

@@ -322,3 +322,11 @@ accepted, declined and failed attempts are not automatically retried. Completion
 is an independent atomic record. Readers receive minimized untrusted answer and
 hash bindings, never full source/candidate or prompt. Existing null-only explanations
 and normalized object proposals are not broadened or reinterpreted.
+
+[Saved candidate verification](saved-model-patch-reviews.md) separately reserves
+an immutable attempt before selected engine/ML workers. Exact retained network
+and proposal pins are independent of the untrusted model prose. Outcomes preserve
+errors, empty scopes, missing ML and original statistical model reruns. No read
+restarts external checks. Engineer decisions append source-bound service-role
+attestations behind formal/ML/category/acknowledgement gates; no device execution,
+model-quality acceptance or change to historical detector risk is inferred.

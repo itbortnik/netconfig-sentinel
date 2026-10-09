@@ -88,6 +88,9 @@ class Store:
                     "configuration_sources",
                     "model_patch_intents",
                     "model_patch_outcomes",
+                    "model_patch_review_intents",
+                    "model_patch_review_outcomes",
+                    "model_patch_decisions",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True

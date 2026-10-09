@@ -69,11 +69,17 @@ jobs:
           backend/tests/integration/test_batfish_sdk_transport.py
           backend/tests/integration/test_live_model_patch_batfish.py -q -s
           --junitxml=owned-batfish-junit.xml
+      - name: Check saved HTTP candidate with the real owned engine
+        run: >-
+          pytest backend/tests/integration/test_saved_model_patch_api.py
+          -k saved_http_candidate -q -s --junitxml=owned-saved-candidate-junit.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: owned-batfish-results
-          path: owned-batfish-junit.xml
+          path: |
+            owned-batfish-junit.xml
+            owned-saved-candidate-junit.xml
           if-no-files-found: error
           retention-days: 14
 
@@ -102,7 +108,11 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -e ".[dev]"
-      - run: pytest -q backend/tests/integration/test_postgres_api.py backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py backend/tests/integration/test_operation_audit.py backend/tests/integration/test_saved_model_patch_api.py
+      - run: >-
+          pytest -q backend/tests/integration/test_postgres_api.py
+          backend/tests/integration/test_local_model_api.py backend/tests/integration/test_role_access.py
+          backend/tests/integration/test_operation_audit.py backend/tests/integration/test_saved_model_patch_api.py
+          -k "not actual_isolated_native"
 
   frontend:
     runs-on: ubuntu-latest

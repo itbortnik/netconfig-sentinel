@@ -1,0 +1,59 @@
+{
+  "version": "owned-installed-saved-patch-review-0.1.0",
+  "wheel_sha256": "f7dcaa45d170919299850316d68135f17bb6e5cb93fbafd5aea0c711a5068e4a",
+  "runtime_files_byte_equal": 11,
+  "new_llm_generations": 0,
+  "draft_input": "unchanged recorded accepted answer replay; new UUID/context, not a fresh model measurement",
+  "recorded_receipt_sha256": "558794c9b26231fb769f05e5005c769e8ac26316601262d5e89fe816214b6e76",
+  "source_sha256": "b352d0f36f5085848f20babf5983ce406d34c878c15168cfe2bbff580669dcf2",
+  "candidate_sha256": "fa2fd13eec1cd991001d91a852a8eb11b8d3eb2267520877fe9f837ff5180a97",
+  "actual_cpu_ml_workers": 2,
+  "reports": [
+    {
+      "kind": "native",
+      "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+      "before_score": 0.3203485310077667,
+      "after_score": 0.32078489661216736,
+      "execution_status": "completed",
+      "ml_execution": "completed",
+      "approval_blockers": [
+        "formal_scope_not_passed",
+        "engine_cleanup_not_confirmed",
+        "selected_ml_category_not_supported"
+      ],
+      "review_sha256": "9e6ad86d801dee0f615209bf1482c3cbb80c213d634c11e398506f23285252e3",
+      "runtime_torch_version": "2.14.0+cpu"
+    },
+    {
+      "kind": "foundation",
+      "model_sha256": "b0122b7099915b52f46ce4b395f09b2c19389f81c601be4d6ba442d03caf1b76",
+      "before_score": 0.2516936659812927,
+      "after_score": 0.252750962972641,
+      "execution_status": "completed",
+      "ml_execution": "completed",
+      "approval_blockers": [
+        "formal_scope_not_passed",
+        "engine_cleanup_not_confirmed",
+        "selected_ml_category_not_supported"
+      ],
+      "review_sha256": "85251ec2834d51e7982cbd29b617285c4a6fca6a683ea9533337a7ed71526e6e",
+      "runtime_torch_version": "2.14.0+cpu"
+    }
+  ],
+  "replay_after_operator_model_disabled": true,
+  "encrypted_counts": {
+    "model_patch_review_intents": 2,
+    "model_patch_review_outcomes": 2,
+    "model_patch_decisions": 1
+  },
+  "engine_runs": 0,
+  "approved": false,
+  "applied": false,
+  "individual_identity_verified": false,
+  "independent_quality_proven": false,
+  "parent_imported_torch_or_transformers": false,
+  "customer_data_used": false,
+  "operator_environment_activated": false,
+  "ephemeral_database_removed": true,
+  "diagnostic_key_persisted": false
+}

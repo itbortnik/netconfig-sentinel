@@ -257,3 +257,15 @@ can see minimized untrusted prose and permitted edits, so shared keys remain
 confidential. Full source/candidate, prompts, credentials and rejected responses
 are excluded from HTTP projection/journal. Alias and consistency hashes do not
 authenticate model weights, execution, semantic truth, formal checks or an engineer.
+
+[Saved verification/decisions](saved-model-patch-reviews.md) require independent
+operator and request consent for full retained network upload or selected local ML.
+HTTP cannot select endpoints, model paths or worker code. Offline CPU workers run
+with a minimal environment, private ephemeral sanitizer key and kill/reap deadline;
+this is not an OS sandbox/firewall or hard resource quota. Full reports and review
+comments are encrypted/confidential; the operation journal records only explicit
+metadata hashes. Exact report consistency is not execution authentication. A
+reviewer's syntax/access/rollback flags are attestations, not measured guarantees;
+approved service-role decisions neither authenticate a human nor apply commands.
+Generation 0.1.0 did not pin the full topology; verification explicitly retains
+that limitation instead of implying earlier topology selection.

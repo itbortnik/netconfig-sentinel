@@ -3,8 +3,10 @@
 Отдельный API связывает сохранённую находку и **точный retained original** с одной
 попыткой локальной генерации. Старые `/api/v1/patches` остаются неизменными
 normalized-object drafts; эти два представления нельзя подменять друг другом.
-Новый маршрут не применяет изменения, не запускает Batfish/ML и не утверждает
+Generation маршрут не применяет изменения, не запускает Batfish/ML и не утверждает
 проверку vendor syntax, доступности SSH или согласие конкретного инженера.
+Последующая [saved candidate verification и решения](saved-model-patch-reviews.md)
+имеют отдельные permissions, intent/result records и explicit worker opt-ins.
 
 ## Three independent permissions
 
