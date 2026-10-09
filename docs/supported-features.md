@@ -6,6 +6,11 @@ IR, including management values, VLAN/ACL and routing parameters. They add no
 vendor commands or device syntax qualification. Existing saved API comparison
 versions and parser golden snapshots are unchanged.
 
+New API uploads also persist [measured adapter source-line coverage](parser-coverage.md),
+with an explicit denominator and per-line hash/status accounting. This is separate
+from canonical parser confidence and the released peer-comparison proxy. It adds
+no vendor syntax, full semantic normalization or network-safety qualification.
+
 ## Cisco IOS / IOS-XE
 
 Supported in the current parser slice:

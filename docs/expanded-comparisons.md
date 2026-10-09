@@ -98,6 +98,11 @@ the explicit tolerance (default .05; peer median is zero because peers must be
 completely parsed). This deficit is a proxy, not a census of vendor commands.
 An empty partial finding list is still partial, never a successful comparison.
 
+New uploads now have a separate [measured source-line coverage report](parser-coverage.md).
+It is not substituted into these released detector contracts: their saved
+fingerprints and historical findings retain the original deficit semantics.
+Comparing the measured fraction requires a new explicit version and remains open.
+
 ```powershell
 .venv\Scripts\python.exe -m app.detection.baseline.peer_compare_cli --peer peer-1.cfg --peer peer-2.cfg --peer peer-3.cfg --current candidate.cfg --device-id f6156954-3f3b-4aa2-b693-5a710fe35d44 --device-role edge-router --site-class lab --service-profile transit
 ```

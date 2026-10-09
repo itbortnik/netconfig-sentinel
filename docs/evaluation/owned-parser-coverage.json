@@ -1,0 +1,59 @@
+{
+  "version": "owned-parser-coverage-0.1.0",
+  "date": "2026-10-10",
+  "scope": "Authored functional source-line accounting, upload, encrypted history and UI; not independent parser or model quality",
+  "coverage_contract": "parser-coverage-0.1.0",
+  "unit": "adapter_source_lines",
+  "canonical_schemas_unchanged": ["1.0", "1.1"],
+  "released_peer_versions_unchanged": ["peer-baseline-0.1.0", "peer-baseline-0.2.0"],
+  "full_backend": {
+    "passed": 2044,
+    "skipped": 23,
+    "warnings": 5,
+    "seconds": 292.73,
+    "junit_sha256": "736fc5243d791d0df738aa22c377b5640d238e8010f35ebad9b002859794351f",
+    "line_coverage_fraction": 0.895,
+    "coverage_scope": "code execution, not input syntax coverage or detection quality",
+    "not_run": ["optional Batfish SDK", "live Batfish", "explicit PostgreSQL test environment"],
+    "warning_scope": "Dependency deprecations and an existing SQLite ResourceWarning"
+  },
+  "related_backend_passed": 135,
+  "pydantic_2_14_focused": {
+    "passed": 46,
+    "warnings": 2,
+    "seconds": 4.70,
+    "scope": "new parser coverage unit/API cases only, not the full suite",
+    "original_environment_unchanged": true
+  },
+  "frontend": {
+    "unit_passed": 416,
+    "typecheck": "passed",
+    "format_check": "passed",
+    "build": "passed",
+    "regular_browser_passed": 134,
+    "synthetic_model_browser_passed": 22,
+    "browser_scope": "desktop and mobile on owned loopback SQLite API",
+    "initial_browser_run": "132 passed, 2 failed because the test expected 33% instead of the actual localized 33.3%; expectation corrected and full suite rerun",
+    "legacy_browser_scope": "synthetic historical response shape, not a legacy deployment"
+  },
+  "installed_diagnostic": {
+    "wheel_sha256": "f2d1676aa2e6687ba855167aa06ac74a695e70765238083b4131e3664530407a",
+    "wheel_bytes": 655038,
+    "runtime_python_files_byte_equal": 221,
+    "ui_assets_byte_equal": true,
+    "installed_app_imports_verified": true,
+    "owned_upload_round_trips": 4,
+    "analysis_restart_round_trips": 4,
+    "legacy_snapshot_round_trips": 1,
+    "unchanged_golden_canonical_pairs": 4,
+    "temporary_database_removed": true,
+    "ml_or_engine_calls": 0,
+    "private_result_sha256": "b817b916a385ab6e14dd3b67cc663a89e110977d1f4a0efb4d78f69b87ecb1e8"
+  },
+  "remaining": [
+    "Versioned peer comparison of measured fraction; released versions still use the confidence-deficit proxy",
+    "Independent real-corpus parser coverage, complete semantic normalization and vendor syntax qualification",
+    "Fresh PostgreSQL, live-engine and Compose execution for this change depend on external test infrastructure",
+    "No production, independent model quality, confirmed real labels or full MVP completion claimed"
+  ]
+}

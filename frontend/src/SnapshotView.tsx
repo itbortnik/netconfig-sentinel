@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ConfigurationSnapshot } from "./contracts";
 import { date, percent } from "./format";
+import { ParserCoverageView } from "./ParserCoverageView";
 
 export function SnapshotView({
   snapshot,
@@ -72,6 +73,7 @@ export function SnapshotView({
           <dd>{config.unparsed_fragments.length}</dd>
         </div>
       </dl>
+      <ParserCoverageView report={snapshot.parser_coverage} />
       <dl className="identifiers">
         <dt>Устройство</dt>
         <dd>{snapshot.device_id}</dd>

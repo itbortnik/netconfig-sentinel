@@ -2,10 +2,18 @@
 
 from datetime import datetime
 from pathlib import PurePath
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from app.detection.baseline import ExpandedPeerBaseline, ExpandedPeerEvaluation, PeerBaseline
 from app.detection.baseline.expanded import encoded_value
@@ -18,6 +26,7 @@ from app.detection.statistical.isolation_forest import (
 )
 from app.domain import CanonicalConfig, Finding
 from app.explanation.local import FindingExplanation
+from app.parsers.coverage import ParserCoverage
 
 
 class InventoryLabels(BaseModel):
@@ -60,6 +69,20 @@ class ConfigurationSnapshot(BaseModel):
     device_id: UUID
     created_at: datetime
     canonical: CanonicalConfig
+    parser_coverage: ParserCoverage | None = None
+
+    @model_validator(mode="after")
+    def coverage_binding(self) -> "ConfigurationSnapshot":
+        if self.parser_coverage is not None:
+            self.parser_coverage.validate_binding(self.canonical)
+        return self
+
+    @model_serializer(mode="wrap")
+    def preserve_historical_shape(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        if self.parser_coverage is None:
+            result.pop("parser_coverage", None)
+        return result
 
 
 class ConfigurationSummary(BaseModel):

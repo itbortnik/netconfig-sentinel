@@ -56,6 +56,11 @@ def test_postgresql_encrypted_history_and_restart() -> None:
             )
             assert uploaded.status_code == 201
             snapshot = uploaded.json()
+            coverage = snapshot["parser_coverage"]
+            assert coverage["version"] == "parser-coverage-0.1.0"
+            assert coverage["accepted_units"] == coverage["command_units"] == 1
+            assert coverage["unparsed_fraction"] == 0
+            assert coverage["source_sha256"] == snapshot["canonical"]["source"]["sha256"]
             cid = snapshot["configuration_id"]
             retained = SourceRecords(store).get(
                 UUID(cid),

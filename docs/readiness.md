@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-09 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-10 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -10,7 +10,7 @@
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
-| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
+| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 пока сохраняют confidence-deficit proxy |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [saved-analysis inference](configuration-model-inference.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified operational inference не закрыты |
@@ -50,6 +50,22 @@ Multilingual MiniLM фактически загружен и используе�
 размеченный calibration cohort, а не epoch-selection validation.
 
 ## Какие evidence ещё нужны
+
+[Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
+добавлено вне canonical IR: новые uploads/API/история/UI используют фактические
+source units и явный знаменатель, не `1 - parser_confidence`. Проверены 2044 full
+backend passes/23 skips/5 warnings, 416 frontend unit checks, 134 обычных и 22
+synthetic-model browser cases; installed wheel — четыре upload/analysis/restart
+сценария, один legacy snapshot и четыре неизменных golden canonical пары.
+Принятость адаптером не равна полной семантике или vendor syntax validation.
+Сравнение этой доли с peers требует новой версии и ещё не закрыто.
+
+Предыдущий commit `ffea49008ba75ec09d21d4282bda7bc7361e5bdd` имеет неуспешный
+[CI run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37989882251),
+включая повтор failed jobs: основной test прошёл, PostgreSQL/Batfish не смогли
+загрузить services из-за unauthenticated Docker Hub rate limit. Frontend прошёл
+unit/build/локальные browser checks, но Compose также остановился на pull.
+Это не pass внешних сред и не подтверждение текущего изменения старым зелёным CI.
 
 Actual model candidate теперь имеет [отдельный bound network review](model-patch-network-review.md):
 два свежих owned Qwen requests (Cisco candidate/JunOS decline), четыре actual ML

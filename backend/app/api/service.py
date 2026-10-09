@@ -47,7 +47,7 @@ from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
 from app.explanation.local import explain_finding
 from app.ingestion.local import validate_configuration_text
-from app.parsers import parse_configuration
+from app.parsers.coverage import parse_configuration_with_coverage
 from app.policies import POLICY_CATALOG_VERSION
 
 
@@ -154,7 +154,8 @@ class AnalysisService:
 
     def upload(self, upload: UploadConfiguration) -> ConfigurationSnapshot:
         validate_configuration_text(upload.content)
-        config = parse_configuration(upload.content, filename=upload.filename)
+        parsed = parse_configuration_with_coverage(upload.content, filename=upload.filename)
+        config = parsed.canonical
         if upload.inventory is not None:
             config = config.model_copy(
                 update={
@@ -172,6 +173,7 @@ class AnalysisService:
             device_id=upload.device_id,
             created_at=datetime.now(UTC),
             canonical=config,
+            parser_coverage=parsed.coverage,
         )
         self.store.add_configuration(
             snapshot,

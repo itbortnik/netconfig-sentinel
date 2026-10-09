@@ -118,6 +118,13 @@ The [local device-account slice](local-device-users.md) emits canonical schema
 Saved `1.0` serialization remains unchanged; old snapshots are not reparsed.
 Unsupported options remain raw unknown fragments, not normalized account facts.
 
+New uploads retain a separate [source-line coverage report](parser-coverage.md)
+outside the canonical IR. Its ordered line/hash/disposition units and denominator
+are measured from the actual adapter result, not inferred from confidence. The
+encrypted snapshot stores it without changing old canonical schemas, golden
+bytes, forest features or comparison fingerprints. Old history without coverage
+remains unmeasured. Accepted source units do not prove full semantics or syntax.
+
 Peer comparison is a separate deterministic detector:
 
 The [versioned policy catalog](policy-catalog.md) has 30 distinct review

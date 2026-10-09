@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parserCoverageSchema } from "./parserCoverage";
 import { makeExpandedComparisonSchema } from "./expandedComparisons";
 
 export const rolePermissions = {
@@ -276,44 +277,68 @@ export const localUserSchema = z
       ).size === user.authentication.length,
   );
 
-export const snapshotSchema = z.object({
-  configuration_id: id,
-  device_id: id,
-  created_at: timestamp,
-  canonical: z
-    .looseObject({
-      schema_version: z.enum(["1.0", "1.1"]),
-      source: z.object({
-        filename: z.string(),
-        sha256: hash,
-        collected_at: timestamp,
-      }),
-      device: z.looseObject({
-        hostname: z.string().nullable(),
-        vendor: z.enum(["cisco", "juniper"]),
-        platform: z.string(),
-        role: z.string().nullable().optional(),
-        site_class: z.string().nullable().optional(),
-        service_profile: z.string().nullable().optional(),
-      }),
-      parser_confidence: score,
-      parse_warnings: z.array(z.string()),
-      unparsed_fragments: z.array(z.object({ raw_text: z.string(), location })),
-      interfaces: z.array(jsonObject),
-      vlans: z.array(jsonObject),
-      acls: z.array(jsonObject),
-      static_routes: z.array(jsonObject),
-      local_users: z.array(localUserSchema).optional(),
-    })
-    .refine(
-      (config) =>
-        (config.schema_version === "1.0"
-          ? !config.local_users?.length
-          : config.local_users !== undefined) &&
-        new Set(config.local_users?.map((user) => user.name)).size ===
-          (config.local_users?.length ?? 0),
-    ),
-});
+export const snapshotSchema = z
+  .object({
+    configuration_id: id,
+    device_id: id,
+    created_at: timestamp,
+    parser_coverage: parserCoverageSchema.nullable().optional(),
+    canonical: z
+      .looseObject({
+        schema_version: z.enum(["1.0", "1.1"]),
+        source: z.object({
+          filename: z.string(),
+          sha256: hash,
+          collected_at: timestamp,
+        }),
+        device: z.looseObject({
+          hostname: z.string().nullable(),
+          vendor: z.enum(["cisco", "juniper"]),
+          platform: z.string(),
+          role: z.string().nullable().optional(),
+          site_class: z.string().nullable().optional(),
+          service_profile: z.string().nullable().optional(),
+        }),
+        parser_confidence: score,
+        parse_warnings: z.array(z.string()),
+        unparsed_fragments: z.array(
+          z.object({ raw_text: z.string(), location }),
+        ),
+        interfaces: z.array(jsonObject),
+        vlans: z.array(jsonObject),
+        acls: z.array(jsonObject),
+        static_routes: z.array(jsonObject),
+        local_users: z.array(localUserSchema).optional(),
+      })
+      .refine(
+        (config) =>
+          (config.schema_version === "1.0"
+            ? !config.local_users?.length
+            : config.local_users !== undefined) &&
+          new Set(config.local_users?.map((user) => user.name)).size ===
+            (config.local_users?.length ?? 0),
+      ),
+  })
+  .refine((snapshot) => {
+    const report = snapshot.parser_coverage;
+    if (!report) return true;
+    const config = snapshot.canonical;
+    const unparsed = new Set(
+      config.unparsed_fragments.flatMap(
+        (fragment) => fragment.location.source_lines,
+      ),
+    );
+    const measured = report.units.filter(
+      (unit) => unit.disposition === "unparsed",
+    );
+    return (
+      report.source_sha256 === config.source.sha256 &&
+      report.vendor === config.device.vendor &&
+      report.platform === config.device.platform &&
+      unparsed.size === measured.length &&
+      measured.every((unit) => unparsed.has(unit.source_line))
+    );
+  }, "coverage is not bound to this snapshot");
 export const configurationSummarySchema = z.object({
   configuration_id: id,
   device_id: id,
