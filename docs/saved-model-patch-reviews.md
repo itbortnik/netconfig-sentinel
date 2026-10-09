@@ -164,6 +164,13 @@ was performed, and no operator configuration was activated.
 The live CI job separately runs the saved HTTP candidate against the real owned
 Linux engine on a two-device authored Cisco network (reachable and empty scope),
 using a **synthetic loopback draft provider**, not a fresh LLM measurement.
-Until that exact published revision finishes successfully, these new live checks
-are planned verification, not evidence of a completed run. Prior live library
-checks do not prove the new HTTP/storage workflow.
+The [actual saved HTTP live result](evaluation/owned-saved-model-review-live.json)
+for revision `da94662debf147587f7977c445c30e3b8da677f5` passed in
+[CI job 113906751997](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37956062309/job/113906751997):
+2 passed / 79 deselected in 9.55 s. Actual engine 2026.08.27.3685 returned
+1 → 1 reachable / zero differences for nonempty scope and 0 → 0 / inconclusive
+for empty scope. Cleanup completed in both, saved replay after engine permission
+was removed passed, and status was not promoted. Earlier library/transport checks
+also passed separately (26 tests / 29.00 s). None of these runs proves SSH access,
+device syntax, complete operational topology, independent ML quality or a human's
+approval. The synthetic provider is not a new model generation measurement.

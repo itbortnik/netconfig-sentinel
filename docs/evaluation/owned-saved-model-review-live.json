@@ -1,0 +1,44 @@
+{
+  "version": "owned-saved-model-patch-http-live-0.1.0",
+  "commit": "da94662debf147587f7977c445c30e3b8da677f5",
+  "ci_run": 37956062309,
+  "job_id": 113906751997,
+  "job_url": "https://github.com/itbortnik/netconfig-sentinel/actions/runs/37956062309/job/113906751997",
+  "job_conclusion": "success",
+  "private_log_sha256": "7ad308180366f26cfbe9b319e8df0c34a8e3bbc339bce2a9142f51455aabf57b",
+  "tests_passed": 2,
+  "tests_deselected": 79,
+  "test_seconds": 9.55,
+  "cases": [
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "new_llm_generations": 0,
+      "scenario": "reachable",
+      "status": "no_differences_in_scope",
+      "status_promoted": false,
+      "synthetic_provider": true
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "new_llm_generations": 0,
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "status_promoted": false,
+      "synthetic_provider": true
+    }
+  ],
+  "new_llm_generations": 0,
+  "independent_quality_proven": false,
+  "device_syntax_verified": false,
+  "management_access_verified": false,
+  "individual_identity_verified": false,
+  "applied": false
+}
