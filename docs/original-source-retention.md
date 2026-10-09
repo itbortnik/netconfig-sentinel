@@ -74,8 +74,9 @@ Original payload не включён в `ConfigurationSnapshot`/summary/explanat
 HTTP response. Endpoint `/configurations/{id}/source` не создан; existing canonical
 unknown-fragment visibility не расширяется. Library opt-in не заменяет service
 authorization, его нельзя принимать от LLM/документа. Здесь нет model call,
-Batfish upload, patch execution или повышения статуса. Stored model proposal,
-полный verification workflow и engineer decision остаются отдельными работами.
+Batfish upload, patch execution или повышения статуса. [Saved model proposal](saved-model-patches.md)
+использует отдельное operator/request разрешение. Полный verification workflow
+и engineer decision остаются отдельными работами.
 
 ## Owned installed-package check
 
@@ -86,8 +87,10 @@ Batfish upload, patch execution или повышения статуса. Stored
 отсутствует, raw-download route даёт 404. Проверены ciphertexts и пять atomic
 domain audit events, byte identity восьми runtime/migration files. БД удалена,
 диагностический ключ не сохранён; это не backup/restore qualification. Model
-libraries не импортировались, model/engine calls отсутствуют. PostgreSQL требует
-отдельного real CI подтверждения; этот SQLite check его не заменяет.
+libraries не импортировались, model/engine calls отсутствуют. Original retention
+на PostgreSQL отдельно прошла [real CI](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37948390935)
+на commit `82673dc`: все четыре jobs завершились success. Этот SQLite check
+сам по себе его не заменяет.
 
 Local full suite: **1687 passed, 21 skipped**, четыре dependency deprecation
 warnings; 31 новых retention cases входят в набор. Старый migration fixture

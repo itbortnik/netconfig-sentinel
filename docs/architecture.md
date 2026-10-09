@@ -312,3 +312,13 @@ the library does not run providers, authenticate execution or approve a change.
 An independently opted-in null-only explanation receives explicit before/after
 facts, never the earlier untrusted model prose. Its structural/citation validation
 cannot prove semantics and its failure does not erase the deterministic report.
+
+The [saved model patch workflow](saved-model-patches.md) uses a separate HTTP
+namespace and schema. Retained original, operator patch permission and per-request
+context consent are independent. The exact saved finding/source/baseline are
+revalidated before reserving an encrypted generation intent and atomic audit.
+Only the database reservation winner invokes the bounded loopback worker; pending,
+accepted, declined and failed attempts are not automatically retried. Completion
+is an independent atomic record. Readers receive minimized untrusted answer and
+hash bindings, never full source/candidate or prompt. Existing null-only explanations
+and normalized object proposals are not broadened or reinterpreted.

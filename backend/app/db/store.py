@@ -86,6 +86,8 @@ class Store:
                     "operation_receipts",
                     "operation_completions",
                     "configuration_sources",
+                    "model_patch_intents",
+                    "model_patch_outcomes",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True

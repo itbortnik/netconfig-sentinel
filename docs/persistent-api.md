@@ -31,13 +31,15 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0006_configuration_sources`; перед обновлением существующей БД
+Текущая revision — `0007_model_patch_intents`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).
 Схема включает [журнал операций](operation-audit.md) без raw text/промптов и
 [optional encrypted original text](original-source-retention.md) только после
 `retain_original_source=true` при загрузке. Default false; raw HTTP download нет.
+Отдельные [source-bound model proposals](saved-model-patches.md) сохраняют одну
+явно разрешённую попытку; original retention сама по себе model call не разрешает.
 Прошлым запросам receipt не приписывается; сбой completion может оставить уже
 сохранённое изменение.
 SQLite покрыта интеграционными тестами. PostgreSQL 17 проверен отдельным
@@ -93,6 +95,9 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Локальная проверка черновика | `POST /api/v1/patches/<UUID>/verify` |
 | История локальных проверок | `GET /api/v1/patches/<UUID>/verifications?limit=20&offset=0` |
 | Сохранённый отчёт проверки | `GET /api/v1/patches/<UUID>/verifications/<UUID>` |
+| Явно запросить source-bound model draft | `POST /api/v1/model-patches` |
+| История model attempts выбранного анализа | `GET /api/v1/model-patches?analysis_id=<UUID>` |
+| Сохранённый model attempt | `GET /api/v1/model-patches/<UUID>` |
 
 Списки возвращают сводки от новых к старым, `limit` от 1 до 100, `offset` от 0
 до 10000. Каждый запуск анализа создаёт отдельную запись; создание снимков,

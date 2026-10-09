@@ -293,6 +293,9 @@ scoped review описана в [`docs/model-patch-network-review.md`](docs/mode
 Явное необязательное хранение точного исходника в зашифрованной БД,
 без HTTP-выгрузки и восстановления старых файлов, описано в
 [`docs/original-source-retention.md`](docs/original-source-retention.md).
+Отдельный opt-in API «сохранённая находка → точный исходник → одна модельная
+попытка», encrypted история и отказ от автоматического повторения описаны в
+[`docs/saved-model-patches.md`](docs/saved-model-patches.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

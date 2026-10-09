@@ -223,7 +223,7 @@ The opt-in [source-bound model patch](model-patch-drafts.md) exports only a
 whitelisted management slice, not the original snapshot or its unrelated secrets.
 Numeric anchors/hashes and management facts can still be confidential. A local
 context flag is not authorization for external transport. The existing HTTP schema
-remains null-only. Model edits require exact current source/finding/document
+for `/findings/{id}/explain` remains null-only. Model edits require exact current source/finding/document
 bindings and local replay, parser, scope and policy checks; invalid output has no
 repair/template fallback. Raw candidate and untrusted prose stay private, excluded
 from container repr. Passing these checks is not device syntax, access/rollback,
@@ -245,3 +245,15 @@ Before/after labels and strict null-only word/list/citation bounds reduce ambigu
 but cannot authenticate free-text claims. Actual accepted diagnostic prose has
 contradicted supplied facts. Keep all explanation drafts visibly untrusted and
 separate from detector/verifier facts, approval and application authority.
+
+The separate [saved model patch API](saved-model-patches.md) requires both draft
+and model-explanation permissions, operator patch opt-in and strict request consent.
+Original retention alone grants no model upload permission. Encrypted intent and
+audit are committed before a provider call; only the reservation winner may call.
+Missing completion remains unconfirmed and never triggers automatic generation.
+Repeated or malicious new intent IDs can still consume bounded local compute:
+this is not per-user quota, global GPU scheduling or tenant isolation. Read roles
+can see minimized untrusted prose and permitted edits, so shared keys remain
+confidential. Full source/candidate, prompts, credentials and rejected responses
+are excluded from HTTP projection/journal. Alias and consistency hashes do not
+authenticate model weights, execution, semantic truth, formal checks or an engineer.

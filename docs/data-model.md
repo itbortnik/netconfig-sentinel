@@ -131,3 +131,13 @@ UTF-8 string bound to a saved snapshot, filename, source hash and canonical hash
 It is retained only with explicit upload consent in an encrypted FK-linked row,
 never reconstructed for historical snapshots or serialized in API responses.
 See [privacy and internal handoff](original-source-retention.md).
+
+`ModelPatchIntent` (`model-patch-intent-0.1.0`) binds a request UUID and selected
+analysis/finding/source/baseline to exact context/catalog and configured model-alias
+hashes. `ModelPatchOutcome` (`model-patch-outcome-0.1.0`) is a separate encrypted
+terminal result bound to the full intent fingerprint. Its accepted answer may
+contain narrow whitelisted line edits; rejected provider bytes are not retained.
+`ModelPatchProposal` (`source-bound-patch-proposal-0.1.0`) is a minimized read
+projection, not a normalized `PatchDraft` or verification certificate. Absence of
+completion remains generating; generation statuses never approve/apply a change.
+See [durable generation semantics](saved-model-patches.md).

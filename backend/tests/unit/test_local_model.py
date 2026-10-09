@@ -64,6 +64,7 @@ def test_environment_is_opt_in_and_missing_fields_fail_closed(monkeypatch):
         "NETCONFIG_LLM_MODEL",
         "NETCONFIG_LLM_API_KEY",
         "NETCONFIG_LLM_ALLOW_LOCAL_CONTEXT",
+        "NETCONFIG_LLM_ALLOW_PATCH_DRAFT",
     ):
         monkeypatch.delenv(name, raising=False)
     assert LocalModelSettings.from_environment() is None
@@ -125,3 +126,28 @@ def test_redaction_replaces_keys_values_messages_and_limits_without_exporting_al
     assert result["observed"][shared][2:] == [42, True, None]
     assert redacted.context_sha256 == text_sha256(redacted.context_json)
     assert "alias_mapping" not in result
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "true"])
+def test_patch_mode_requires_exact_operator_boolean(value):
+    with pytest.raises(ValueError):
+        LocalModelSettings(
+            "http://127.0.0.1:9000/v1/chat/completions",
+            "test",
+            allow_local_context=True,
+            allow_patch_draft=value,
+        )
+
+
+@pytest.mark.parametrize("permission", ["", "0", "1", "true", "2"])
+def test_patch_environment_requires_existing_context_permission(monkeypatch, permission):
+    monkeypatch.setenv("NETCONFIG_LLM_ENDPOINT", "http://127.0.0.1:9000/v1/chat/completions")
+    monkeypatch.setenv("NETCONFIG_LLM_MODEL", "test")
+    monkeypatch.setenv("NETCONFIG_LLM_ALLOW_LOCAL_CONTEXT", "1")
+    monkeypatch.setenv("NETCONFIG_LLM_ALLOW_PATCH_DRAFT", permission)
+    if permission in {"true", "2"}:
+        with pytest.raises(ValueError):
+            LocalModelSettings.from_environment()
+    else:
+        selected = LocalModelSettings.from_environment()
+        assert selected is not None and selected.allow_patch_draft is (permission == "1")

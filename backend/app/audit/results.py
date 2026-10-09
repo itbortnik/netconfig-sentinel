@@ -23,6 +23,7 @@ from app.api.explanation_contracts import (
     ModelExplanationBundle,
 )
 from app.api.feedback_contracts import FeedbackRecord
+from app.api.model_patch_contracts import ModelPatchProposal
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
 from app.domain import Finding
@@ -71,6 +72,7 @@ _SUPPORTED = (
     PatchSummary,
     VerificationRun,
     VerificationSummary,
+    ModelPatchProposal,
     Finding,
     FindingExplanation,
     OperationPage,
@@ -93,6 +95,13 @@ def _selected(value: BaseModel) -> dict[str, object]:
     if isinstance(value, ConfigurationSnapshot):
         selected["source_sha256"] = value.canonical.source.sha256
         selected["version"] = f"canonical-schema-{value.canonical.schema_version}"
+    if isinstance(value, ModelPatchProposal):
+        selected["source"] = _selected(value.source)
+        if value.baseline is not None:
+            selected["baseline"] = _selected(value.baseline)
+        selected["model_alias_sha256"] = value.model_alias_sha256
+        selected["proposal_sha256"] = value.proposal_sha256
+        selected["candidate_sha256"] = value.candidate_sha256
     if isinstance(value, Finding):
         selected["finding_sha256"] = finding_fingerprint(value)
     if isinstance(value, ModelSummary):

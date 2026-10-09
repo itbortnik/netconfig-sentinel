@@ -4,6 +4,8 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock
 
@@ -13,6 +15,7 @@ from app.explanation.privacy import redact_prompt
 from app.explanation.provider import (
     MAX_ANSWER_BYTES,
     DraftAnswer,
+    ExplanationProvider,
     InvalidProviderAnswer,
     ProviderPrompt,
     generate_draft,
@@ -20,6 +23,10 @@ from app.explanation.provider import (
 
 
 class ModelBusy(Exception):
+    pass
+
+
+class ModelPatchDisabled(Exception):
     pass
 
 
@@ -87,6 +94,19 @@ class LocalModelRuntime:
         self.settings = settings
         self.provider = LoopbackProvider(settings)
         self._lock = Lock()
+
+    @contextmanager
+    def patch_provider(self) -> Iterator[ExplanationProvider]:
+        """Separate operator permission; shares the explanation concurrency limit."""
+        if not self.settings.allow_patch_draft:
+            raise ModelPatchDisabled()
+        if not self._lock.acquire(blocking=False):
+            raise ModelBusy()
+        try:
+            # The caller must build/revalidate the fixed whitelist-only patch prompt.
+            yield self.provider
+        finally:
+            self._lock.release()
 
     def explain(
         self, prompt: ProviderPrompt, chunks: tuple[DocumentChunk, ...]

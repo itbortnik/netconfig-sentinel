@@ -15,6 +15,7 @@ from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
 from app.api.health import router as health_router
+from app.api.model_patches import router as model_patch_router
 from app.api.operation_audit import router as operation_audit_router
 from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
@@ -68,6 +69,7 @@ def create_app(
             snapshot_diff_router,
             explanation_router,
             patch_router,
+            model_patch_router,
             operation_audit_router,
         )
         for route in router.routes
@@ -112,6 +114,7 @@ def create_app(
     application.include_router(snapshot_diff_router)
     application.include_router(explanation_router)
     application.include_router(patch_router)
+    application.include_router(model_patch_router)
     application.include_router(operation_audit_router)
     mount_frontend(application, frontend_dir)
     return application

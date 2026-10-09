@@ -93,6 +93,8 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "operation_receipts",
             "operation_completions",
             "configuration_sources",
+            "model_patch_intents",
+            "model_patch_outcomes",
         }
         with store.engine.begin() as connection, pytest.raises(IntegrityError):
             connection.execute(
