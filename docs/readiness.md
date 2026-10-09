@@ -10,7 +10,7 @@
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
-| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 пока сохраняют confidence-deficit proxy |
+| Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; saved-analysis/API/UI/объяснения для 0.3 ещё открыты |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [saved-analysis inference](configuration-model-inference.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified operational inference не закрыты |
@@ -58,7 +58,23 @@ backend passes/23 skips/5 warnings, 416 frontend unit checks, 134 обычных
 synthetic-model browser cases; installed wheel — четыре upload/analysis/restart
 сценария, один legacy snapshot и четыре неизменных golden canonical пары.
 Принятость адаптером не равна полной семантике или vendor syntax validation.
-Сравнение этой доли с peers требует новой версии и ещё не закрыто.
+Явная peer 0.3 реализация сравнивает эту долю в library/CLI, сохраняя 19 property
+templates и partial skips. Saved-analysis/API/UI/объяснения ещё не подключены;
+корректный подсчёт строк не доказывает качество на независимом реальном корпусе.
+[Отдельный local report](evaluation/owned-measured-peer-local.json): 2113 full
+backend passes/23 skips/5 warnings, 82 связанных проверки, 28 actual installed
+CLI процессов с проверкой imports в каждом child. UI regression: 416 unit checks,
+typecheck/format/build; browser не перезапускался для library/CLI изменения.
+
+Поставка coverage `216e785afe0a8d553e175231c0a05ec182db642e` имеет неуспешный
+[CI run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37993422878):
+основной test успешен; PostgreSQL service pull остановился на auth timeout и
+unauthenticated Docker Hub rate limit. Frontend прошёл unit/build/134 обычных и
+22 synthetic-model browser checks, но Compose остановился на auth timeout при
+загрузке PostgreSQL. Batfish service pull встретил auth timeout и тот же rate
+limit. Это не успешные
+PostgreSQL/Compose/live проверки текущей поставки; причины service pull не
+подменяются результатом теста приложения.
 
 Предыдущий commit `ffea49008ba75ec09d21d4282bda7bc7361e5bdd` имеет неуспешный
 [CI run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37989882251),

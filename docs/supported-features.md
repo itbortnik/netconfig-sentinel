@@ -10,6 +10,9 @@ New API uploads also persist [measured adapter source-line coverage](parser-cove
 with an explicit denominator and per-line hash/status accounting. This is separate
 from canonical parser confidence and the released peer-comparison proxy. It adds
 no vendor syntax, full semantic normalization or network-safety qualification.
+Explicit [peer 0.3 library/CLI comparison](baseline.md#measured-parser-coverage)
+uses those measured counts without changing the 19 supported property templates
+or old versions. Its saved-analysis/API/UI integration is not yet available.
 
 ## Cisco IOS / IOS-XE
 

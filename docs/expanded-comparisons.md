@@ -101,15 +101,18 @@ An empty partial finding list is still partial, never a successful comparison.
 New uploads now have a separate [measured source-line coverage report](parser-coverage.md).
 It is not substituted into these released detector contracts: their saved
 fingerprints and historical findings retain the original deficit semantics.
-Comparing the measured fraction requires a new explicit version and remains open.
+An explicit [peer 0.3 library/CLI selection](baseline.md#measured-parser-coverage)
+now compares the measured fraction while reusing these property templates. Its
+persistent API/UI and explanation integration remain open; 0.2 is unchanged.
 
 ```powershell
 .venv\Scripts\python.exe -m app.detection.baseline.peer_compare_cli --peer peer-1.cfg --peer peer-2.cfg --peer peer-3.cfg --current candidate.cfg --device-id f6156954-3f3b-4aa2-b693-5a710fe35d44 --device-role edge-router --site-class lab --service-profile transit
 ```
 
 The CLI takes only explicitly named files and inventory labels; it does not
-discover a directory or infer trusted inventory. The report includes the exact
-profile and evaluation. Exit 0 is a completed comparison without differences,
+discover a directory or infer trusted inventory. The default version remains 0.2;
+explicit 0.3 uses its separate measured-fraction tolerance flag. The report
+includes the exact profile and evaluation. Exit 0 is a completed comparison without differences,
 1 completed with differences, 2 refused, and 3 partial (with a JSON report).
 Optional `--collected-at` supplies one declared timezone-aware batch date for
 reproducibility. Without it, the current run time is used, not file modification

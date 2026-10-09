@@ -31,6 +31,12 @@ from app.detection.baseline.peer_v2 import (
     build_expanded_peer_baseline,
     evaluate_expanded_peer_baseline,
 )
+from app.detection.baseline.peer_v3 import (
+    MeasuredPeerBaseline,
+    MeasuredPeerEvaluation,
+    build_measured_peer_baseline,
+    evaluate_measured_peer_baseline,
+)
 
 __all__ = [
     "PEER_BASELINE_NAMESPACE",
@@ -42,16 +48,20 @@ __all__ = [
     "ExpandedPeerFeature",
     "ExpandedReference",
     "ExpectedConfiguration",
+    "MeasuredPeerBaseline",
+    "MeasuredPeerEvaluation",
     "PeerBaseline",
     "PeerFeature",
     "PeerGroupKey",
     "build_expanded_peer_baseline",
+    "build_measured_peer_baseline",
     "build_peer_baseline",
     "compare_expanded_reference",
     "compare_expected_configuration",
     "create_expanded_reference",
     "create_expected_configuration",
     "evaluate_expanded_peer_baseline",
+    "evaluate_measured_peer_baseline",
     "evaluate_peer_baseline",
     "project_expanded_facts",
 ]

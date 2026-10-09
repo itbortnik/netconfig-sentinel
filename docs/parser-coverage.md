@@ -6,8 +6,9 @@ snapshot payload, and displayed in the interface. No database migration or model
 activation is needed. The library entry point is
 `app.parsers.coverage.parse_configuration_with_coverage`: it validates the existing
 2 MiB UTF-8/10,000-line budgets, parses once, and returns the unchanged canonical
-configuration plus coverage. This is preparation for comparing the actual unknown
-fraction, not a replacement for the released peer detectors.
+configuration plus coverage. The opt-in
+[measured peer detector/CLI](baseline.md#measured-parser-coverage) compares the
+actual unknown fraction separately; it does not replace historical peer versions.
 
 ## Unit and denominator
 
@@ -66,7 +67,8 @@ field. History is not reparsed or silently upgraded. The interface shows
 the per-line array. Canonical schemas 1.0/1.1, parser golden bytes, forest features,
 existing reference/peer fingerprints and saved analysis/explanation bindings are
 unchanged. Peer-baseline 0.1/0.2 still use their documented confidence-deficit
-proxy; integrating measured coverage needs a new explicit comparison contract.
+proxy. Explicit peer 0.3 uses the measured fraction in the library/local CLI;
+its persistent API/UI and explanation integration remain open.
 
 ## Checks and limits
 
@@ -87,4 +89,5 @@ independent real corpus, a vendor syntax check, model evaluation or formal safet
 checks; 134 regular and 22 synthetic-model browser cases. An installed wheel
 verified four upload/analysis/restart paths, one unchanged legacy snapshot and
 four unchanged canonical golden pairs. No ML or engine was called by that
-installed coverage diagnostic. Peer comparison of this fraction remains open.
+installed coverage diagnostic. That report predates peer 0.3 and does not verify
+its comparison behavior; peer 0.3 has separate raw-input functional checks.

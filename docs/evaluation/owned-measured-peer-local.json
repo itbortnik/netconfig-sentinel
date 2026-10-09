@@ -1,0 +1,75 @@
+{
+  "version": "owned-measured-peer-local-0.1.0",
+  "date": "2026-10-10",
+  "scope": "Authored source-line peer comparison in library and installed CLI; not independent real-corpus quality or saved-analysis/API/UI integration",
+  "detector": "peer-baseline-0.3.0",
+  "evaluation_contract": "peer-comparison-report-0.3.0",
+  "coverage_contract": "parser-coverage-0.1.0",
+  "unit": "adapter_source_lines",
+  "eligible_property_features": 19,
+  "historical_versions_and_defaults_unchanged": true,
+  "related_backend_passed": 82,
+  "new_authored_checks": 69,
+  "full_backend": {
+    "passed": 2113,
+    "skipped": 23,
+    "warnings": 5,
+    "seconds": 293.77,
+    "junit_sha256": "e60b3a32fd830e11c3cbb889e2b0353ea35421ba97d3a739b81e741891d80f7e",
+    "coverage_xml_sha256": "b1d0263a34f0ef9fa38df087e640f9053d1e8c6d57ea7eba6bd02142d5ecf604",
+    "coverage_lines_executed": 17388,
+    "coverage_lines_total": 19426,
+    "coverage_scope": "Code execution, not source syntax recall or operational detection quality",
+    "not_run": ["optional Batfish SDK", "live Batfish", "explicit PostgreSQL test environment"],
+    "warning_scope": "Dependency deprecations and an existing SQLite ResourceWarning"
+  },
+  "pydantic_2_14_focused": {
+    "passed": 82,
+    "seconds": 2.21,
+    "junit_sha256": "d41186d1a638f55fc29ce43c980e5cd1f2a686409f15ee5d69c4ca8933e2ac88",
+    "scope": "Measured detector/CLI and historical expanded CLI only, not the full suite",
+    "original_environment_unchanged": true
+  },
+  "frontend_regression": {
+    "unit_passed": 416,
+    "typecheck": "passed",
+    "format_check": "passed",
+    "build": "passed",
+    "build_warning": "Existing minified JavaScript chunk exceeds 500 kB",
+    "browser_checks": "not_run_for_this_library_CLI_change",
+    "measured_comparison_UI": "not_implemented_yet"
+  },
+  "installed_diagnostic": {
+    "wheel_sha256": "943011b1ba6e2048c534d83dbfb9f14b47b98a9f39759b085f39c1e5d12f13ef",
+    "wheel_bytes": 660158,
+    "installed_cli_processes": 28,
+    "refusals": 7,
+    "runtime_python_files_byte_equal": 222,
+    "ui_assets_byte_equal": true,
+    "parent_and_each_child_installed_app_imports_verified": true,
+    "inputs_unchanged_by_CLI": true,
+    "temporary_inputs_removed": true,
+    "fresh_LLM_ML_engine_calls": 0,
+    "torch_transformers_not_imported_parent_or_children": true,
+    "partial_measured_fractions": [
+      {"form": "ios", "unparsed": 1, "command_units": 4, "fraction": 0.25, "legacy_confidence_deficit": 0.12},
+      {"form": "junos_set", "unparsed": 1, "command_units": 4, "fraction": 0.25, "legacy_confidence_deficit": 0.15000000000000002},
+      {"form": "junos_blocks", "unparsed": 1, "command_units": 7, "fraction": 0.14285714285714285, "legacy_confidence_deficit": 0.06000000000000005}
+    ]
+  },
+  "previous_commit_CI": {
+    "commit": "216e785afe0a8d553e175231c0a05ec182db642e",
+    "run": 37993422878,
+    "conclusion": "failure",
+    "test": "2044 passed, 23 skipped, 3 warnings",
+    "postgres_and_batfish": "Service pull failed on auth timeout and unauthenticated Docker Hub rate limit before application tests",
+    "frontend": "Unit/build/134 regular and 22 synthetic-model browser checks passed; Compose PostgreSQL pull failed on auth timeout",
+    "scope": "Historical coverage commit only; not CI evidence for the measured peer change"
+  },
+  "remaining": [
+    "Explicit measured comparison in saved analysis, encrypted history, API/UI and version-bound explanation sources",
+    "Independent real-corpus parser and peer quality; selected peers have zero measured fractions by complete-parsing eligibility",
+    "Universal command accounting, complete semantic normalization, authoritative vendor syntax and full network safety remain unproven",
+    "Fresh external PostgreSQL/Compose/live-engine execution depends on test infrastructure; no production or full MVP completion claimed"
+  ]
+}
