@@ -15,8 +15,17 @@ from app.api.contracts import AnalysisResult, ConfigurationSnapshot, RegisteredM
 from app.api.feedback_contracts import FeedbackRecord
 from app.core.settings import ApiSettings
 from app.db.migrate import SCHEMA_REVISION
-from app.db.tables import AnalysisRow, AuditRow, ConfigurationRow, DeviceRow, FeedbackRow, ModelRow
+from app.db.tables import (
+    AnalysisRow,
+    AuditRow,
+    ConfigurationRow,
+    ConfigurationSourceRow,
+    DeviceRow,
+    FeedbackRow,
+    ModelRow,
+)
 from app.domain.fingerprints import finding_fingerprint
+from app.ingestion.source_retention import prepare_original_source
 
 
 class DeviceIdentityConflict(ValueError):
@@ -76,6 +85,7 @@ class Store:
                     "verification_runs",
                     "operation_receipts",
                     "operation_completions",
+                    "configuration_sources",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
             return True
@@ -177,7 +187,23 @@ class Store:
         with self._sessions() as session:
             return [self._model(row) for row in session.scalars(query.limit(limit).offset(offset))]
 
-    def add_configuration(self, snapshot: ConfigurationSnapshot) -> None:
+    def add_configuration(
+        self,
+        snapshot: ConfigurationSnapshot,
+        *,
+        retain_original_source: bool = False,
+        original_source: str | None = None,
+    ) -> None:
+        if type(retain_original_source) is not bool or (
+            retain_original_source != (original_source is not None)
+        ):
+            raise ValueError("Original source retention is unavailable.")
+        retained = None
+        if original_source is not None:
+            try:
+                retained = prepare_original_source(snapshot, original_source)
+            except Exception:
+                raise ValueError("Original source retention is unavailable.") from None
         config = snapshot.canonical
         device_id, snapshot_id = str(snapshot.device_id), str(snapshot.configuration_id)
         identity = json.dumps(
@@ -214,6 +240,26 @@ class Store:
                     created_at=datetime.now(UTC),
                 )
             )
+            if retained is not None:
+                session.flush()
+                session.add(
+                    ConfigurationSourceRow(
+                        configuration_id=snapshot_id,
+                        payload=self._encode(
+                            retained.model_dump_json(),
+                            kind="configuration_source",
+                            row_id=snapshot_id,
+                        ),
+                    )
+                )
+                session.add(
+                    AuditRow(
+                        id=str(uuid4()),
+                        action="configuration.source_retained",
+                        resource_id=snapshot_id,
+                        created_at=datetime.now(UTC),
+                    )
+                )
 
     def get_configuration(self, configuration_id: UUID) -> ConfigurationSnapshot | None:
         with self._sessions() as session:

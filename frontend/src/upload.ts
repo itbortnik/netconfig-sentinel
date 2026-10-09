@@ -5,6 +5,11 @@ export const MAX_TEXT_BYTES = 2 * 1024 * 1024;
 const encoder = new TextEncoder();
 
 export function validateUpload(upload: Upload): string | null {
+  if (
+    upload.retain_original_source !== undefined &&
+    typeof upload.retain_original_source !== "boolean"
+  )
+    return "Согласие на хранение исходника должно быть явным: да или нет.";
   if (upload.inventory && !inventorySchema.safeParse(upload.inventory).success)
     return "Заполните все три метки группы: 1–64 символа без крайних пробелов и управляющих символов.";
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(upload.device_id))

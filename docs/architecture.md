@@ -6,6 +6,13 @@ snapshots, encrypt the record, and atomically append an audit event. Local revie
 has its own immutable intent ID/history and cannot promote the draft or a formal
 verification status. Explicit unavailable formal requests fail without fallback.
 Neither path reconstructs raw files, changes saved risk, or contacts devices.
+
+An explicit [original retention option](original-source-retention.md) now keeps
+the exact received UTF-8 input in a separate encrypted FK-linked row, atomically
+with the uploaded snapshot and audit. Default upload still discards the full
+original. Old snapshots are never backfilled from canonical IR. Internal reading
+requires an independently selected source hash and explicit local permission;
+no raw-download route or automatic model/engine transfer is introduced.
 See [persistent draft/review contracts](persistent-patches.md).
 
 The first iteration is a modular monolith. `app.domain` owns stable contracts;

@@ -12,6 +12,8 @@ import app.patching.persistent as workflow_module
 import pytest
 from alembic import command
 from alembic.config import Config
+from app.api.contracts import UploadConfiguration
+from app.api.feedback_contracts import SubmitFeedback
 from app.api.patch_contracts import PatchDraft, VerificationRun
 from app.core.settings import ApiSettings
 from app.db.migrate import upgrade_database
@@ -393,38 +395,50 @@ def test_contracts_and_output_budgets_never_allow_status_promotion(patch_api, mo
     assert verify(client, draft, verification_id=run["verification_id"]).status_code == 200
 
 
-def test_upgrade_from_feedback_revision_preserves_existing_history(patch_api):
-    client, service, settings = patch_api
-    before, _ = pair(client)
-    analyzed = client.post(
-        f"/api/v1/configurations/{before['configuration_id']}/analyze", headers=HEADERS
-    ).json()
-    feedback_path = f"/api/v1/findings/{analyzed['findings'][0]['finding_id']}/feedback"
-    feedback = client.post(
-        feedback_path,
-        headers=HEADERS,
-        json={
-            "feedback_id": str(uuid4()),
-            "analysis_id": analyzed["analysis_id"],
-            "finding_sha256": analyzed["explanations"][0]["finding_sha256"],
-            "verdict": "needs_investigation",
-            "comment": "Preserved before draft migration.",
-        },
-    ).json()
-    # Represent an actual pre-draft database without deleting any existing records.
-    with service.store.engine.begin() as connection:
-        # These two new-schema tables did not exist at the represented historical revision.
-        connection.exec_driver_sql("DROP TABLE operation_completions")
-        connection.exec_driver_sql("DROP TABLE operation_receipts")
-        connection.exec_driver_sql("DROP TABLE verification_runs")
-        connection.exec_driver_sql("DROP TABLE patch_proposals")
-        connection.execute(text("UPDATE alembic_version SET version_num='0003_finding_feedback'"))
-    assert not service.store.ready()
-    assert client.get("/api/v1/configurations", headers=HEADERS).status_code == 503
+def test_upgrade_from_feedback_revision_preserves_existing_history(tmp_path):
+    settings = ApiSettings(
+        f"sqlite:///{tmp_path / 'legacy-patches.sqlite3'}", TOKEN, Fernet.generate_key().decode()
+    )
+    application = create_app(settings)
+    service = application.state.analysis_service
     migration = Config()
     migration.set_main_option(
         "script_location", str(Path(migration_module.__file__).parent / "migrations")
     )
+    with service.store.engine.begin() as connection:
+        migration.attributes["connection"] = connection
+        command.upgrade(migration, "0003_finding_feedback")
+    # Populate an actual old schema; never relabel a current database as historical.
+    saved = service.upload(
+        UploadConfiguration(device_id=uuid4(), filename="edge.cfg", content="hostname patch-edge\n")
+    )
+    service.upload(
+        UploadConfiguration(
+            device_id=saved.device_id,
+            filename="edge.cfg",
+            content="hostname patch-edge\nntp server 192.0.2.1\n",
+        )
+    )
+    result = service.analyze(saved.configuration_id)
+    assert result is not None
+    assessment, created = service.submit_feedback(
+        result.findings[0].finding_id,
+        SubmitFeedback(
+            feedback_id=uuid4(),
+            analysis_id=result.analysis_id,
+            finding_sha256=result.explanations[0].finding_sha256,
+            verdict="needs_investigation",
+            comment="Preserved before draft migration.",
+        ),
+    )
+    assert created
+    before = saved.model_dump(mode="json")
+    analyzed = result.model_dump(mode="json")
+    feedback = assessment.model_dump(mode="json")
+    feedback_path = f"/api/v1/findings/{analyzed['findings'][0]['finding_id']}/feedback"
+    assert not service.store.ready()
+    with TestClient(application) as client:
+        assert client.get("/api/v1/configurations", headers=HEADERS).status_code == 503
     with service.store.engine.begin() as connection:
         migration.attributes["connection"] = connection
         command.upgrade(migration, "head")

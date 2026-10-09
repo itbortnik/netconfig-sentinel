@@ -1,0 +1,42 @@
+{
+  "version": "owned-original-source-installed-0.1.0",
+  "evidence_date": "2026-10-09",
+  "wheel_sha256": "a592a1495e05e9058eba9b78446939cfc6c9c7dedaeb2385840a0bd22d7e1e00",
+  "source_runtime_files_byte_equal": true,
+  "runtime_files_compared": 8,
+  "actual_owned_asgi_uploads": 3,
+  "retained_source_count": 2,
+  "default_source_not_retained": true,
+  "schema_revision": "0006_configuration_sources",
+  "wrong_key_refused": true,
+  "encrypted_payloads_checked": 2,
+  "domain_audit_event_count": 5,
+  "cases": [
+    {
+      "vendor": "cisco",
+      "retained": true,
+      "source_sha256": "31b387184330585a3d77c67c353536c95779f2de8807aa072fd7bbf296d64962",
+      "exact_received_utf8_roundtrip": true,
+      "restart_read_passed": true,
+      "raw_download_endpoint_absent": true
+    },
+    {
+      "vendor": "juniper",
+      "retained": true,
+      "source_sha256": "7a2fa0df4c58701ab6c0b299d731ce2639a3cea952d195d50349bcec33e9279e",
+      "exact_received_utf8_roundtrip": true,
+      "restart_read_passed": true,
+      "raw_download_endpoint_absent": true
+    }
+  ],
+  "operator_database_touched": false,
+  "ephemeral_database_removed": true,
+  "diagnostic_key_persisted": false,
+  "production_backup_qualified": false,
+  "model_libraries_imported": false,
+  "new_model_calls": 0,
+  "new_engine_calls": 0,
+  "production_quality_proven": false,
+  "approved": false,
+  "applied": false
+}

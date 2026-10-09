@@ -74,6 +74,48 @@ test("invalid authentication remains disconnected and no token persists", async 
   expect(await localStorageState(page)).toEqual({ local: {}, session: {} });
 });
 
+test("original retention needs per-upload consent and resets after source changes and success", async ({
+  page,
+}) => {
+  await connect(page);
+  const consent = page.getByLabel(
+    "Сохранить точный исходный текст в зашифрованной БД",
+  );
+  await expect(consent).not.toBeChecked();
+  await page
+    .getByLabel("Текст конфигурации")
+    .fill("hostname retention-owned\n");
+  await consent.check();
+  await page
+    .getByLabel("Текст конфигурации")
+    .fill("hostname retention-owned\n! new version\n");
+  await expect(consent).not.toBeChecked();
+  await consent.check();
+  const saved = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/v1/configurations") &&
+      response.request().method() === "POST",
+  );
+  await page
+    .getByRole("button", { name: "Сохранить снимок", exact: true })
+    .click();
+  const response = await saved;
+  expect(response.status()).toBe(201);
+  expect(response.request().postDataJSON().retain_original_source).toBe(true);
+  await expect(consent).not.toBeChecked();
+  await expect(page.getByLabel("Текст конфигурации")).toHaveValue("");
+  const snapshot = await response.json();
+  expect(snapshot.content).toBeUndefined();
+  expect(
+    (
+      await page.request.get(
+        `/api/v1/configurations/${snapshot.configuration_id}/source`,
+        { headers: { Authorization: `Bearer ${TOKEN}` } },
+      )
+    ).status(),
+  ).toBe(404);
+});
+
 test("real Cisco upload, analysis, evidence, history and reload", async ({
   page,
 }) => {

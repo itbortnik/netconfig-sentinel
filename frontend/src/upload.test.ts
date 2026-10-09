@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Upload } from "./contracts";
 import {
   MAX_TEXT_BYTES,
   readConfigurationFile,
@@ -11,6 +12,22 @@ const good = {
   content: "hostname edge\n",
 };
 describe("bounded UTF-8 uploads", () => {
+  it("accepts only explicit boolean retention, default remains absent", () => {
+    expect(validateUpload(good)).toBeNull();
+    expect(
+      validateUpload({ ...good, retain_original_source: false }),
+    ).toBeNull();
+    expect(
+      validateUpload({ ...good, retain_original_source: true }),
+    ).toBeNull();
+    for (const flag of [1, 0, null, "true"])
+      expect(
+        validateUpload({
+          ...good,
+          retain_original_source: flag,
+        } as unknown as Upload),
+      ).not.toBeNull();
+  });
   it("accepts a valid request and exactly 10000 terminated lines", () => {
     expect(validateUpload(good)).toBeNull();
     expect(

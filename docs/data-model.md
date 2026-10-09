@@ -125,3 +125,9 @@ neighbors. `LinePolicy` adds a physical-line budget. `LineReport` binds line
 counts, train-only class weight, validation metrics and selected epoch to the
 encoder and corpus. `LineScore` contains source hash, one-based line number,
 uncalibrated score and decision; unscorable lines use null values.
+
+`StoredOriginalSource` (`configuration-source-0.1.0`) is an optional confidential
+UTF-8 string bound to a saved snapshot, filename, source hash and canonical hash.
+It is retained only with explicit upload consent in an encrypted FK-linked row,
+never reconstructed for historical snapshots or serialized in API responses.
+See [privacy and internal handoff](original-source-retention.md).

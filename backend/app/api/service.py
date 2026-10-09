@@ -163,7 +163,11 @@ class AnalysisService:
             created_at=datetime.now(UTC),
             canonical=config,
         )
-        self.store.add_configuration(snapshot)
+        self.store.add_configuration(
+            snapshot,
+            retain_original_source=upload.retain_original_source,
+            original_source=upload.content if upload.retain_original_source else None,
+        )
         return snapshot
 
     def analyze(

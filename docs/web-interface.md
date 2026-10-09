@@ -177,3 +177,7 @@ versions/hashes, keyset paging и явный неподтверждённый и
 
 Firefox/Safari, специализированный accessibility audit, TLS и production
 нагрузка пока не проверены. Успех unit/browser tests не означает готовность всего MVP.
+
+При загрузке есть отдельный [original retention opt-in](original-source-retention.md).
+Checkbox default false, предупреждает о полных секретах; выбор действует только
+для одной загрузки и сбрасывается после успеха/смены input. Raw-download UI нет.

@@ -121,8 +121,14 @@ Fernet выявляет подмену прочитанных payload, но не
 Локальный registry не утверждает, не калибрует и не продвигает модели в production.
 
 Общий `/ready` проверяет схему, а не все зашифрованные строки и не пригодность
-ключа для старой БД. API сохраняет canonical snapshot, не полный raw file;
-восстановить original для формальной проверки по нему нельзя.
+ключа для старой БД. По умолчанию API сохраняет canonical snapshot, не полный
+original text; восстановить source по нему нельзя. Отдельный явный
+[retention opt-in](original-source-retention.md) сохраняет полученный текст
+в encrypted FK-linked payload атомарно со снимком и аудитом. Он может содержать
+все секреты, не обезличивается и не разрешает model/engine transfer. Raw-download
+endpoint отсутствует; внутреннее чтение требует exact consent и selected hash.
+Старые snapshots остаются без original source. Retention/backup/disk quotas и
+доверие к локальному коду не обеспечиваются одним шифрованием.
 
 Production-проверки PostgreSQL, deployment, TLS, roles, backup/restore и
 penetration testing ещё не выполнены. Static checks и SQLite integration tests

@@ -33,6 +33,12 @@ class AnalysisRow(Base):
     payload: Mapped[str] = mapped_column(Text)
 
 
+class ConfigurationSourceRow(Base):
+    __tablename__ = "configuration_sources"
+    configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"), primary_key=True)
+    payload: Mapped[str] = mapped_column(Text)
+
+
 class AuditRow(Base):
     __tablename__ = "audit_events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

@@ -290,6 +290,9 @@ scoped review описана в [`docs/model-patch-network-review.md`](docs/mode
 Единый source-bound отчёт local/ML/formal facts и отдельное необязательное
 объяснение без нового патча описаны в
 [`docs/candidate-review.md`](docs/candidate-review.md).
+Явное необязательное хранение точного исходника в зашифрованной БД,
+без HTTP-выгрузки и восстановления старых файлов, описано в
+[`docs/original-source-retention.md`](docs/original-source-retention.md).
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 import pytest
 from app.core.settings import ApiSettings
 from app.db.migrate import upgrade_database
+from app.db.source_records import SourceRecords
 from app.db.store import Store, make_engine
 from app.main import create_app
 from cryptography.fernet import Fernet
@@ -50,11 +51,18 @@ def test_postgresql_encrypted_history_and_restart() -> None:
                     "device_id": str(UUID(int=1)),
                     "filename": "edge.cfg",
                     "content": "hostname edge\n",
+                    "retain_original_source": True,
                 },
             )
             assert uploaded.status_code == 201
             snapshot = uploaded.json()
             cid = snapshot["configuration_id"]
+            retained = SourceRecords(store).get(
+                UUID(cid),
+                expected_source_sha256=snapshot["canonical"]["source"]["sha256"],
+                allow_local_read=True,
+            )
+            assert retained.content == "hostname edge\n"
             analyzed = client.post(f"/api/v1/configurations/{cid}/analyze", headers=headers)
             assert analyzed.status_code == 201
             result = analyzed.json()
@@ -159,7 +167,20 @@ def test_postgresql_encrypted_history_and_restart() -> None:
                 == object_diff
             )
         with store.engine.connect() as connection:
-            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 5
+            assert connection.execute(text("SELECT count(*) FROM audit_events")).scalar_one() == 6
+            ciphertext = connection.execute(
+                text("SELECT payload FROM configuration_sources")
+            ).scalar_one()
+            assert "hostname" not in ciphertext
+        assert (
+            SourceRecords(store).get(
+                UUID(cid),
+                expected_source_sha256=snapshot["canonical"]["source"]["sha256"],
+                allow_local_read=True,
+            )
+            == retained
+        )
+        with store.engine.connect() as connection:
             for table in ("patch_proposals", "verification_runs"):
                 payload = connection.execute(text(f"SELECT payload FROM {table}")).scalar_one()
                 assert "edge" not in payload and "192.0.2.1" not in payload

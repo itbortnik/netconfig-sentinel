@@ -943,6 +943,7 @@ export type Upload = {
   filename: string;
   content: string;
   inventory?: Inventory;
+  retain_original_source?: boolean;
 };
 export type AnalysisOptions = {
   reference_configuration_id?: string;

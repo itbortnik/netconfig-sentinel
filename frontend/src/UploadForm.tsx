@@ -13,6 +13,7 @@ type Props = {
 export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   const [filename, setFilename] = useState("configuration.cfg");
   const [content, setContent] = useState("");
+  const [retainOriginal, setRetainOriginal] = useState(false);
   const [role, setRole] = useState("");
   const [siteClass, setSiteClass] = useState("");
   const [profile, setProfile] = useState("");
@@ -21,6 +22,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const alive = useRef(true);
   const revision = useRef(0);
+  useEffect(() => setRetainOriginal(false), [device]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -30,6 +32,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   }, []);
   async function chooseFile(file: File | undefined) {
     if (!file) return;
+    setRetainOriginal(false);
     const selected = ++revision.current;
     setReading(true);
     setError(null);
@@ -54,6 +57,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
       device_id: device,
       filename,
       content,
+      retain_original_source: retainOriginal,
       ...(role || siteClass || profile
         ? {
             inventory: {
@@ -69,6 +73,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
     if (invalid) return;
     if ((await onUpload(upload)) && alive.current) {
       setContent("");
+      setRetainOriginal(false);
       if (fileInput.current) fileInput.current.value = "";
     }
   }
@@ -160,7 +165,10 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
         <input
           id="filename"
           value={filename}
-          onChange={(event) => setFilename(event.target.value)}
+          onChange={(event) => {
+            setFilename(event.target.value);
+            setRetainOriginal(false);
+          }}
           disabled={disabled}
           maxLength={255}
           autoComplete="off"
@@ -170,7 +178,10 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
         <textarea
           id="configuration-text"
           value={content}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={(event) => {
+            setContent(event.target.value);
+            setRetainOriginal(false);
+          }}
           disabled={disabled}
           rows={8}
           placeholder={"hostname edge-01\n…"}
@@ -178,6 +189,20 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
           autoComplete="off"
           required
         />
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={retainOriginal}
+            disabled={disabled}
+            onChange={(event) => setRetainOriginal(event.target.checked)}
+          />
+          Сохранить точный исходный текст в зашифрованной БД
+        </label>
+        <p className="hint">
+          Необязательно; исходник может содержать секреты и не обезличивается.
+          Согласие относится только к этой загрузке. HTTP-выгрузки исходника
+          нет.
+        </p>
         {error && (
           <p className="inline-error" role="alert">
             {error}

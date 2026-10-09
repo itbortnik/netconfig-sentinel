@@ -41,6 +41,7 @@ class UploadConfiguration(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     content: str = Field(min_length=1, max_length=2 * 1024 * 1024)
     inventory: InventoryLabels | None = None
+    retain_original_source: bool = Field(default=False, strict=True)
 
     @field_validator("filename")
     @classmethod

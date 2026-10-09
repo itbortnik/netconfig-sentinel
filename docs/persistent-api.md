@@ -31,11 +31,13 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0005_operation_journal`; перед обновлением существующей БД
+Текущая revision — `0006_configuration_sources`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).
-Новая revision включает [журнал операций](operation-audit.md) без raw text/промптов.
+Схема включает [журнал операций](operation-audit.md) без raw text/промптов и
+[optional encrypted original text](original-source-retention.md) только после
+`retain_original_source=true` при загрузке. Default false; raw HTTP download нет.
 Прошлым запросам receipt не приписывается; сбой completion может оставить уже
 сохранённое изменение.
 SQLite покрыта интеграционными тестами. PostgreSQL 17 проверен отдельным
@@ -109,7 +111,8 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 Feedback имеет отдельные меньшие лимиты: 16 KiB body и 1–2000 символов comment.
 Сравнение снимков — read-only GET с явной парой версий того же устройства:
 [контракт, budgets и ограничения](snapshot-diff.md). Оно не создаёт анализ и
-не сохраняет raw original file; partial scope не выдаётся за полное сравнение.
+сам не сохраняет raw original file; отдельный upload opt-in не меняет diff scope.
+Partial scope не выдаётся за полное сравнение.
 
 Объяснение с источниками требует analysis ID и finding content hash, читает
 неизменное локальное объяснение и allowlisted разделы внутренней документации.
