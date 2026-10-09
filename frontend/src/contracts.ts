@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { makeExpandedComparisonSchema } from "./expandedComparisons";
 
 export const rolePermissions = {
   reader: ["read"],
@@ -406,6 +407,8 @@ const knowledgeReleaseByDetectorVersion: Record<string, string> = {
   "policy-rules-0.7.0": "project-knowledge-0.2.0",
   "expected-config-0.1.0": "project-knowledge-0.1.0",
   "peer-baseline-0.1.0": "project-knowledge-0.1.0",
+  "expected-config-0.2.0": "project-knowledge-0.3.0",
+  "peer-baseline-0.2.0": "project-knowledge-0.3.0",
   "isolation-forest-0.1.0": "project-knowledge-0.1.0",
 };
 const embeddingIdentitySchema = z
@@ -485,6 +488,7 @@ export const explanationBundleSchema = z
     knowledge_version: z.enum([
       "project-knowledge-0.1.0",
       "project-knowledge-0.2.0",
+      "project-knowledge-0.3.0",
     ]),
     knowledge_sha256: hash,
     retrieval: z.enum(["explicit_reference", "semantic_supplement"]),
@@ -711,7 +715,7 @@ const peerBaselineSchema = z
       ),
   );
 const comparisonSchema = z
-  .object({
+  .strictObject({
     reference: snapshotBindingSchema.nullable(),
     peers: z.array(snapshotBindingSchema).max(20),
     peer_baseline: peerBaselineSchema.nullable(),
@@ -737,6 +741,7 @@ export const analysisSchema = z
       "analysis-api-0.1.0",
       "analysis-api-0.2.0",
       "analysis-api-0.3.0",
+      "analysis-api-0.4.0",
     ]),
     analysis_id: id,
     configuration_id: id,
@@ -775,19 +780,47 @@ export const analysisSchema = z
       })
       .nullable(),
     limitations: z.array(z.string()),
-    comparison: comparisonSchema.nullable().optional(),
+    comparison: z
+      .union([
+        comparisonSchema,
+        makeExpandedComparisonSchema(snapshotBindingSchema, findingSchema),
+      ])
+      .nullable()
+      .optional(),
     statistical: statisticalSchema.nullable().optional(),
   })
   .refine((result) => {
     const comparison = result.comparison;
     const statistical = result.statistical;
+    const expanded = comparison && "version" in comparison ? comparison : null;
+    if ((result.version === "analysis-api-0.4.0") !== !!expanded) return false;
     if (
       result.version !== "analysis-api-0.3.0" &&
+      result.version !== "analysis-api-0.4.0" &&
       (result.version === "analysis-api-0.2.0") !== !!comparison
     )
       return false;
-    if ((result.version === "analysis-api-0.3.0") !== !!statistical)
+    if (
+      result.version !== "analysis-api-0.4.0" &&
+      (result.version === "analysis-api-0.3.0") !== !!statistical
+    )
       return false;
+    if (expanded?.peer_evaluation) {
+      const report = expanded.peer_evaluation;
+      if (
+        report.device_id !== result.device_id ||
+        report.source_sha256 !== result.source_sha256 ||
+        report.status !== result.status ||
+        JSON.stringify(report.findings) !==
+          JSON.stringify(
+            result.findings.filter((item) => item.detector === "peer_baseline"),
+          ) ||
+        expanded.peers.some(
+          (item) => item.source_sha256 === result.source_sha256,
+        )
+      )
+        return false;
+    }
     if (statistical) {
       if (result.status !== "completed") return false;
       if (
@@ -887,7 +920,9 @@ export const analysisSchema = z
           ? result.policy_catalog_version
           : finding.detector === "expected_configuration" &&
               comparison?.reference
-            ? "expected-config-0.1.0"
+            ? expanded
+              ? "expected-config-0.2.0"
+              : "expected-config-0.1.0"
             : finding.detector === "peer_baseline"
               ? comparison?.peer_baseline?.model_version
               : finding.detector === "isolation_forest"
@@ -946,6 +981,7 @@ export type Upload = {
   retain_original_source?: boolean;
 };
 export type AnalysisOptions = {
+  comparison_version?: "0.1.0" | "0.2.0";
   reference_configuration_id?: string;
   peer_configuration_ids?: string[];
   statistical_model_id?: string;

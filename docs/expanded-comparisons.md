@@ -3,8 +3,8 @@
 The opt-in `expected-config-0.2.0` and `peer-baseline-0.2.0` detectors extend
 supported canonical-IR comparisons. They do not silently broaden the released
 0.1.0 detectors, existing API analyses, saved explanations or model artifacts.
-This delivery provides the library and local CLI workflows. API/UI persistence
-and released explanation-source integration for 0.2.0 remain separate work.
+The library and local CLI workflows are also available through explicit API/UI
+selection, encrypted versioned persistence and sealed explanation sources.
 
 ## Same-device reference
 
@@ -132,10 +132,48 @@ partial targets, invalid contracts and both local entry points. IR-only mutation
 tests are contract checks, not additional independent raw-source examples.
 No real confirmed labels, detection-quality metric, ML inference, data-plane
 result, device syntax/access/rollback qualification or engineer approval is
-claimed. Existing encrypted API and immutable knowledge releases remain at
-their previous comparison versions until explicit versioned integration.
+claimed. Existing encrypted API analyses and immutable knowledge releases keep
+their original comparison versions; new opt-in results do not rewrite history.
 
 [The measured local report](evaluation/owned-expanded-local-comparisons.json)
 records 1903 full-suite passes/23 skips/5 warnings, 128 focused checks, focused
 Pydantic 2.14 compatibility and 12 actual CLI processes from an installed wheel.
 These are functional checks, not independent detection-quality measurements.
+
+## Persistent API and interface
+
+Select `comparison_version: "0.2.0"` together with a saved reference and/or
+3–20 saved peers in the [analysis request](api-comparisons.md). The interface's
+“Область сравнения” selector sends this choice explicitly. Its default remains
+0.1.0 and resets on logout/reload. An unselected version does not upgrade an old
+run. With no comparison inputs, selecting 0.2.0 still gives policy-only behavior.
+
+New results use `analysis-api-0.4.0` and `comparison-context-0.2.0`, including
+when an experimental forest is explicitly selected. The encrypted context stores
+exact snapshot IDs/hashes/times, the expanded peer profile and its evaluation.
+Profile fingerprint, source/device, inventory, support counts, report status and
+findings are cross-checked. Old 0.1/0.2/0.3 analyses retain their original shape.
+No schema migration, automatic profile refresh or baseline approval is implied.
+
+The saved report distinguishes retained features actually compared, properties
+skipped for incomplete parsing, and features omitted for lack of consensus.
+A partial report can have no findings; it still skips all selected properties
+and cannot produce a risk score. The parser ratio is a confidence-deficit proxy,
+not an exact unknown-command census. The interface displays these separately.
+
+Deterministic explanations recompute the exact selected detector before saving.
+Explicit source retrieval binds new findings to `project-knowledge-0.3.0`, sealed
+from published commit `20efc00827f1b0e0bbbd27ac55fd3a75f5167fc1`. Original detector
+versions keep their old releases. These are internal project documents, not
+vendor manuals, engineer approvals or proof of factual/semantic quality.
+Optional semantic retrieval requires a separate external 0.3 index pin; absence
+returns 503 rather than silently using an old index. Neither comparison nor
+explicit retrieval calls a language model, Batfish or a device.
+
+[The API/UI/installed report](evaluation/owned-expanded-api-comparisons.json)
+records 1952 full-suite passes/23 skips/5 warnings, 370 frontend unit tests,
+116 regular and 22 synthetic-model browser cases, 14 installed analysis/restart
+round trips and four actual isolated CPU document-worker requests. The new
+43-row index reaches the expected section for five of six reused authored queries
+at both rank one and rank four. These checks do not qualify independent quality,
+instruct generation, a real network or production deployment.

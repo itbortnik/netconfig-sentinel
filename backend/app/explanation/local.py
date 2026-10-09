@@ -8,9 +8,13 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.detection.baseline import (
+    ExpandedPeerBaseline,
+    ExpandedReference,
     ExpectedConfiguration,
     PeerBaseline,
+    compare_expanded_reference,
     compare_expected_configuration,
+    evaluate_expanded_peer_baseline,
     evaluate_peer_baseline,
 )
 from app.detection.policy_engine import evaluate_policies
@@ -57,8 +61,8 @@ def explain_finding(
     finding: Finding,
     config: CanonicalConfig,
     *,
-    reference: ExpectedConfiguration | None = None,
-    peer_baseline: PeerBaseline | None = None,
+    reference: ExpectedConfiguration | ExpandedReference | None = None,
+    peer_baseline: PeerBaseline | ExpandedPeerBaseline | None = None,
     statistical_model: FittedIsolationForest | None = None,
 ) -> FindingExplanation:
     """Require a finding to match a fresh detector run before generating prose."""
@@ -81,7 +85,12 @@ def explain_finding(
     elif finding.detector == "expected_configuration":
         if reference is None:
             raise ValueError("reference findings require the selected reference")
-        candidates = compare_expected_configuration(config, reference, device_id=finding.device_id)
+        if isinstance(reference, ExpandedReference):
+            candidates = compare_expanded_reference(config, reference, device_id=finding.device_id)
+        else:
+            candidates = compare_expected_configuration(
+                config, reference, device_id=finding.device_id
+            )
         summary = "A supported parameter differs from the selected device reference."
         technical = (
             "The detector compared canonical values for the same object. "
@@ -89,12 +98,24 @@ def explain_finding(
             "Reference line numbers belong to the reference snapshot."
         )
         recommendation = "Review the intended change against the selected device reference."
-        citations = ("docs/expected-configuration.md",)
+        citations = (
+            "docs/expected-configuration.md#expanded-supported-facts"
+            if isinstance(reference, ExpandedReference)
+            else "docs/expected-configuration.md",
+        )
     elif finding.detector == "peer_baseline":
         if peer_baseline is None:
             raise ValueError("peer findings require the selected consensus profile")
-        peer_baseline = PeerBaseline.model_validate(peer_baseline.model_dump())
-        candidates = evaluate_peer_baseline(config, peer_baseline, device_id=finding.device_id)
+        if isinstance(peer_baseline, ExpandedPeerBaseline):
+            peer_baseline = ExpandedPeerBaseline.model_validate(peer_baseline.model_dump())
+            candidates = list(
+                evaluate_expanded_peer_baseline(
+                    config, peer_baseline, device_id=finding.device_id
+                ).findings
+            )
+        else:
+            peer_baseline = PeerBaseline.model_validate(peer_baseline.model_dump())
+            candidates = evaluate_peer_baseline(config, peer_baseline, device_id=finding.device_id)
         summary = "A supported value differs from the selected peer consensus."
         technical = (
             "The detector compared canonical values with an explicitly selected peer group. "
@@ -102,7 +123,20 @@ def explain_finding(
             "Peer agreement is not proof of compliance or correct network behavior."
         )
         recommendation = "Review peer selection, inventory labels and intended configuration."
-        citations = ("docs/baseline.md",)
+        if isinstance(peer_baseline, ExpandedPeerBaseline) and (
+            finding.category == "baseline.parser.unsupported_ratio_high"
+        ):
+            summary = "Parsing confidence is below the selected peer profile's tolerance."
+            technical = (
+                "The detector compared a parser-confidence deficit proxy with the profile limit. "
+                "All property comparisons were skipped because parsing is incomplete. "
+                "Unknown command counts and configuration safety were not established."
+            )
+        citations = (
+            "docs/baseline.md#expanded-peer-templates"
+            if isinstance(peer_baseline, ExpandedPeerBaseline)
+            else "docs/baseline.md",
+        )
     elif finding.detector == "isolation_forest":
         if statistical_model is None:
             raise ValueError("statistical findings require their selected model")

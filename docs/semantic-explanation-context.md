@@ -28,6 +28,21 @@ persistent API; частичная или неверная настройка о
 его opt-in развёртывание требует отдельной подготовки зависимостей и readonly
 model/index mounts оператором. Оно здесь не выдаётся за проверенный deployment.
 
+Для расширенных comparison findings 0.2 отдельно постройте knowledge 0.3 index
+и задайте `NETCONFIG_DOCUMENT_INDEX_SHA256_0_3`. Первые четыре параметра остаются
+обязательными; дополнительный pin необязателен для старых releases. Если pin 0.3
+не задан, semantic request новой находки даёт 503 до чтения индекса/запуска worker.
+Явные references доступны без encoder. Старые pins не используются для 0.3.
+
+```powershell
+.venv\Scripts\python.exe -m ml.retrieval.smoke --model-root artifacts/minilm-public --output-root artifacts/expanded-document-search --knowledge-version project-knowledge-0.3.0
+```
+
+Каталог output должен быть новым. При общей index root можно явно повторить
+`--knowledge-version` для всех трёх releases. Без этого параметра CLI сохраняет
+прежний двухрелизный диагностический сценарий. Полученный hash переносится в
+настройку оператором; команда не активирует runtime и не меняет environment.
+
 Index SHA pins должны находиться вне изменяемых manifests. Артефакты разных
 NumPy/PyTorch/Transformers/tokenizers/safetensors versions не смешиваются:
 identity включает runtime versions. После смены runtime пересоберите оба indexes,

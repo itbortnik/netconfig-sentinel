@@ -2,7 +2,7 @@
 
 Explanation retrieval reads immutable, allowlisted internal document releases,
 not mutable current Markdown or arbitrary source files. Existing contexts keep
-their wire versions and fields; `knowledge_version` now accepts both supported
+their wire versions and fields; `knowledge_version` now accepts all three supported
 releases and is explicitly selected from the recorded detector version.
 
 | Recorded detector version | Knowledge release | Sections |
@@ -10,8 +10,9 @@ releases and is explicitly selected from the recorded detector version.
 | `policy-rules-0.6.0` | `project-knowledge-0.1.0` | 31 |
 | `policy-rules-0.7.0` | `project-knowledge-0.2.0` | 41 |
 | `expected-config-0.1.0`, `peer-baseline-0.1.0`, `isolation-forest-0.1.0` | `project-knowledge-0.1.0` | 31 |
+| `expected-config-0.2.0`, `peer-baseline-0.2.0` | `project-knowledge-0.3.0` | 43 |
 
-Both releases contain the same eight explicitly reviewed **project document
+All three releases contain the same eight explicitly reviewed **project document
 IDs**, with the appropriate historic bytes. They are not vendor manuals,
 organization-approved policies, a proof of reachability or a semantic index.
 Each document's source hash and each normalized section's content hash remain
@@ -24,7 +25,9 @@ promise that a current public Markdown link has identical contents.
 
 The 0.1.0 files were preserved byte-for-byte from project commit
 `cab3cd06255315d20e1da23d9593fd642748b67b`; 0.2.0 from
-`c7409db2d68a86d9ef71349fa94f36e60717639b`. All sixteen document files were checked
+`c7409db2d68a86d9ef71349fa94f36e60717639b`; 0.3.0 from
+`20efc00827f1b0e0bbbd27ac55fd3a75f5167fc1`. The first sixteen files remain unchanged;
+the new eight are preserved from that published source commit. Document files are checked
 against their original Git blob identities. Their manifests record the source
 commit, release, internal-project authority and every document's SHA-256.
 Source commits identify historical content, not external licensing or human
@@ -32,7 +35,7 @@ approval attestations.
 
 The package stores files under `app/knowledge/versions/<release>/`; the checkout
 uses the matching `backend/app/knowledge/versions/` tree. The build hook includes
-only the two known releases, their eight document IDs and manifests. Neither
+only the three known releases, their eight document IDs and manifests. Neither
 current `docs/` files, workspace files nor runtime-uploaded data become sources.
 No network fetch, corpus expansion or new vendor-document license is implied.
 

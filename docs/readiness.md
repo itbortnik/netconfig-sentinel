@@ -12,7 +12,7 @@
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk | Unknown text остаётся конфиденциальным, не интерпретируется как безопасный |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
-| Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 local comparisons](expanded-comparisons.md) добавляют management values/VLAN/ACL/routing и explicit partial skips | 0.2 API/UI/sealed explanation integration ещё не выполнена; synthetic functional checks не измеряют эксплуатационные false positives |
+| Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified HTTP inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md); [saved draft/review/decision API/UI](model-patch-interface.md) | Schema-valid outputs всё ещё содержат unsupported claims; independent semantic quality и квалификация полного реального candidate workflow не закрыты; vendor/internal library требует прав и отбора |
@@ -73,7 +73,14 @@ type-check failure своего общего run отдельно от успе�
 [Expanded local comparison evidence](evaluation/owned-expanded-local-comparisons.json)
 фиксирует новую opt-in 0.2 реализацию management/VLAN/ACL/routing comparisons,
 1903 full local passes/23 skips/5 warnings и 12 actual installed CLI processes.
-Это не готовая 0.2 API/UI интеграция, независимые реальные labels или метрики качества.
+Следующая [API/UI/installed поставка](evaluation/owned-expanded-api-comparisons.json)
+добавляет явный выбор версии, encrypted profile/evaluation, historical replay и
+sealed knowledge 0.3. Локально: 1952 full passes/23 skips/5 warnings, 370 UI unit
+tests, 116 обычных и 22 synthetic-model browser сценария. В installed package
+проверены 14 analyses/restart round trips и четыре настоящих isolated document
+worker requests; новых instruct/Batfish вызовов в этом workflow нет. Новый index
+даёт hit@1 и hit@4 по 5/6 на прежних authored queries, не independent quality.
+Production, реальные подтверждённые labels и calibration не закрыты.
 
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.

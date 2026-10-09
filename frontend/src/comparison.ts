@@ -42,6 +42,7 @@ export function comparisonOptions(
   current: SelectedSnapshot,
   reference: SelectedSnapshot | null,
   peers: SelectedSnapshot[],
+  version: "0.1.0" | "0.2.0" = "0.1.0",
 ): AnalysisOptions | undefined {
   if (!reference && peers.length === 0) return undefined;
   if (
@@ -66,7 +67,9 @@ export function comparisonOptions(
           !peer.complete ||
           peer.group !== current.group ||
           !peer.hostname ||
-          peer.hostname === current.hostname ||
+          (version === "0.2.0"
+            ? peer.hostname.toLowerCase() === current.hostname?.toLowerCase()
+            : peer.hostname === current.hostname) ||
           peer.device === current.device ||
           Date.parse(peer.created) > Date.parse(current.created),
       )
@@ -77,13 +80,19 @@ export function comparisonOptions(
     if (
       new Set(peers.map((peer) => peer.device)).size !== peers.length ||
       new Set(peers.map((peer) => peer.hash)).size !== peers.length ||
-      new Set(peers.map((peer) => peer.hostname)).size !== peers.length
+      new Set(
+        peers.map((peer) =>
+          version === "0.2.0" ? peer.hostname?.toLowerCase() : peer.hostname,
+        ),
+      ).size !== peers.length ||
+      (version === "0.2.0" && peers.some((peer) => peer.hash === current.hash))
     )
       throw new Error(
         "Нельзя считать несколько версий или копий одного устройства разными peers.",
       );
   }
   return {
+    ...(version === "0.2.0" ? { comparison_version: version } : {}),
     ...(reference ? { reference_configuration_id: reference.id } : {}),
     ...(peers.length
       ? { peer_configuration_ids: peers.map((peer) => peer.id) }

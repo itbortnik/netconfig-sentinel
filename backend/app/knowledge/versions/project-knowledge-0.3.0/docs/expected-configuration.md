@@ -85,8 +85,8 @@ UUID передаёт вызывающая сторона: это проверк
 
 ## Expanded supported facts
 
-`expected-config-0.2.0` is an explicit library/CLI/API/UI selection, not a silent
-upgrade of saved analyses. It compares supported management values (including
+`expected-config-0.2.0` is an explicit local-library/CLI selection, not a silent
+upgrade of saved API analyses. It compares supported management values (including
 actual NTP/Syslog servers), local-user privilege/class/UID/authentication metadata,
 interface presence/enabled/mode/access/native/allowed VLANs/address sets, VLAN
 inventory, ordered ACL/prefix-list rules, BGP process/neighbor parameters, OSPFv2

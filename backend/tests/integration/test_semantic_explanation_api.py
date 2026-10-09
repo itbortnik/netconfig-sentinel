@@ -365,6 +365,7 @@ def test_environment_requires_complete_config_and_unconfigured_api_cannot_accept
         "NETCONFIG_DOCUMENT_INDEX_ROOT",
         "NETCONFIG_DOCUMENT_INDEX_SHA256_0_1",
         "NETCONFIG_DOCUMENT_INDEX_SHA256_0_2",
+        "NETCONFIG_DOCUMENT_INDEX_SHA256_0_3",
     )
     for name in names:
         monkeypatch.delenv(name, raising=False)
@@ -373,11 +374,19 @@ def test_environment_requires_complete_config_and_unconfigured_api_cannot_accept
     with pytest.raises(ValueError):
         DocumentRetrievalSettings.from_environment()
     for name, value in zip(
-        names, (str(tmp_path / "model"), str(tmp_path / "index"), "a" * 64, "b" * 64), strict=True
+        names[:4],
+        (str(tmp_path / "model"), str(tmp_path / "index"), "a" * 64, "b" * 64),
+        strict=True,
     ):
         monkeypatch.setenv(name, value)
     configured = DocumentRetrievalSettings.from_environment()
     assert configured is not None
+    assert configured.expanded_index_sha256 is None
+    monkeypatch.setenv(names[4], "c" * 64)
+    assert DocumentRetrievalSettings.from_environment().expanded_index_sha256 == "c" * 64
+    monkeypatch.setenv(names[4], "private invalid pin")
+    with pytest.raises(ValueError):
+        DocumentRetrievalSettings.from_environment()
     with pytest.raises(ValueError):
         create_app(document_retrieval=configured)
 
@@ -396,6 +405,8 @@ def test_runtime_releases_lock_after_unavailable_index(tmp_path):
     [
         ("expected_configuration", "expected-config-0.1.0"),
         ("peer_baseline", "peer-baseline-0.1.0"),
+        ("expected_configuration", "expected-config-0.2.0"),
+        ("peer_baseline", "peer-baseline-0.2.0"),
         ("isolation_forest", "isolation-forest-0.1.0"),
     ],
 )
@@ -404,7 +415,24 @@ def test_nonpolicy_query_uses_public_constant_not_customer_facts(semantic_api, d
     finding = app.state.analysis_service.store.get_analysis(result["analysis_id"]).findings[0]
     other = finding.model_copy(update={"detector": detector, "model_version": version})
     query = public_retrieval_query(other)
-    assert PRIVATE not in query and query.endswith("limitations.")
+    assert PRIVATE not in query and not any(
+        value in query for value in other.observed.values() if isinstance(value, str)
+    )
+
+
+def test_expanded_semantic_release_never_reuses_an_older_external_pin(tmp_path, monkeypatch):
+    runtime = DocumentRetrievalRuntime(
+        DocumentRetrievalSettings(tmp_path / "model", tmp_path / "index", "a" * 64, "b" * 64)
+    )
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError(
+            "unconfigured expanded release must not read an index or spawn a worker"
+        )
+
+    monkeypatch.setattr("app.explanation.retrieval_runtime.load_document_index", unexpected)
+    with pytest.raises(RetrievalUnavailable):
+        runtime.search(load_knowledge_catalog("project-knowledge-0.3.0"), "public query")
 
 
 def test_unsupported_detector_version_or_policy_category_has_no_semantic_query(semantic_api):

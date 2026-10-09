@@ -61,6 +61,134 @@ async function expectNoOverflow(page: Page) {
   expect(layout.scroll <= layout.viewport, JSON.stringify(layout)).toBe(true);
 }
 
+for (const vendor of ["cisco", "juniper"] as const) {
+  for (const scenario of ["reference", "peers", "partial"] as const) {
+    test(`expanded ${vendor} ${scenario}: explicit version, sealed sources and saved history`, async ({
+      page,
+    }) => {
+      await connect(page);
+      const suffix = `${test.info().project.name}-${Date.now()}`;
+      const normal = (host: string, address = "192.0.2.1") =>
+        vendor === "cisco"
+          ? `hostname ${host}\nntp server ${address}\n`
+          : `set system host-name ${host}\nset system ntp server ${address}\n`;
+      const device = await page
+        .getByLabel("UUID устройства", { exact: true })
+        .inputValue();
+      if (scenario === "reference") {
+        await upload(page, normal(`expanded-${suffix}`));
+        await page
+          .getByRole("button", { name: "Выбрать как эталон", exact: true })
+          .click();
+      } else {
+        await page
+          .getByText("Метки группы сравнения (необязательно)", { exact: true })
+          .click();
+        await page.getByLabel("Роль устройства", { exact: true }).fill("edge");
+        await page.getByLabel("Класс площадки", { exact: true }).fill("branch");
+        await page
+          .getByLabel("Профиль сервиса", { exact: true })
+          .fill("owned-expanded");
+        for (let index = 0; index < 3; index++) {
+          await page
+            .getByRole("button", { name: "Новое", exact: true })
+            .click();
+          await upload(page, normal(`expanded-peer-${suffix}-${index}`));
+          await page
+            .getByRole("button", {
+              name: "Добавить в группу сравнения",
+              exact: true,
+            })
+            .click();
+        }
+      }
+      await page.getByLabel("UUID устройства", { exact: true }).fill(device);
+      await upload(
+        page,
+        normal(`expanded-${suffix}`, "192.0.2.9") +
+          (scenario === "partial" ? "unknown PRIVATE_COMMAND\n" : ""),
+      );
+      await expect(
+        page.getByLabel("Область сравнения", { exact: true }),
+      ).toHaveValue("0.1.0");
+      await page
+        .getByLabel("Область сравнения", { exact: true })
+        .selectOption("0.2.0");
+      const saved = page.waitForResponse(
+        (response) =>
+          response.url().endsWith("/analyze") &&
+          response.request().method() === "POST",
+      );
+      await page
+        .getByRole("button", { name: "Анализировать снимок", exact: true })
+        .click();
+      const response = await saved;
+      expect(response.status()).toBe(201);
+      expect(response.request().postDataJSON().comparison_version).toBe(
+        "0.2.0",
+      );
+      const result = await response.json();
+      expect(result.version).toBe("analysis-api-0.4.0");
+      await expect(
+        page.getByRole("heading", { name: "Находки и доказательства" }),
+      ).toBeVisible();
+      await page
+        .getByText("Входы сравнения и профиль группы", { exact: true })
+        .click();
+      await expect(page.locator(".analysis-summary")).toContainText(
+        "Расширенное сравнение 0.2.0",
+      );
+      if (scenario === "partial") {
+        await expect(page.locator(".analysis-summary")).toContainText(
+          "Сравнение свойств пропущено",
+        );
+        expect(result.comparison.peer_evaluation.skipped_features).toHaveLength(
+          19,
+        );
+        expect(result.risk).toBeNull();
+      } else if (scenario === "peers") {
+        await expect(page.locator(".analysis-summary")).toContainText(
+          "Сравнено: 19",
+        );
+      }
+      const finding = result.findings.find(
+        (item: { model_version: string }) =>
+          item.model_version ===
+          (scenario === "reference"
+            ? "expected-config-0.2.0"
+            : "peer-baseline-0.2.0"),
+      );
+      expect(finding).toBeDefined();
+      await page.getByLabel("Поиск по находкам").fill(finding.category);
+      await page.locator(".finding-button").first().click();
+      await page
+        .getByRole("button", {
+          name: "Показать источники объяснения",
+          exact: true,
+        })
+        .click();
+      await expect(
+        page.getByRole("region", { name: "Объяснение с источниками" }),
+      ).toContainText("project-knowledge-0.3.0");
+      await expectNoOverflow(page);
+      expect(await localStorageState(page)).toEqual({ local: {}, session: {} });
+      await page.reload();
+      await connect(page);
+      await expect(
+        page.getByLabel("Область сравнения", { exact: true }),
+      ).toHaveValue("0.1.0");
+      await page.getByRole("button", { name: "Анализы", exact: true }).click();
+      await page.locator(".history-item").first().click();
+      await page
+        .getByText("Входы сравнения и профиль группы", { exact: true })
+        .click();
+      await expect(page.locator(".analysis-summary")).toContainText(
+        "Расширенное сравнение 0.2.0",
+      );
+    });
+  }
+}
+
 test("invalid authentication remains disconnected and no token persists", async ({
   page,
 }) => {

@@ -76,7 +76,5 @@ comparison and only permits parser-confidence-deficit triage. Its report is
 explicitly partial even when findings are empty. Peer consensus is not an
 approved security baseline and scores are not calibrated fault probabilities.
 No policy, model, network or device validation/application is implied. This
-version is explicitly selectable in the library/CLI and persistent API/UI.
-Saved profiles/reports retain their exact version and explanations use sealed
-knowledge 0.3; old profiles/sources are unchanged.
-See [full signatures and limits](expanded-comparisons.md#peer-templates).
+version is currently local-library/CLI only; saved API/knowledge integration is
+separate. See [full signatures and limits](expanded-comparisons.md#peer-templates).

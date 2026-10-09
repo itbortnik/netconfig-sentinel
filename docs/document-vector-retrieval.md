@@ -1,7 +1,7 @@
 # Локальный векторный поиск по запечатанным документам
 
 Реализован отдельный ограниченный cosine index для approved внутренних разделов
-knowledge 0.1.0 и 0.2.0. Его библиотека не импортирует PyTorch/Transformers и
+knowledge 0.1.0, 0.2.0 и 0.3.0. Его библиотека не импортирует PyTorch/Transformers и
 не меняет findings, risk, confidence, feedback, patches или сохранённые анализы.
 HTTP `explain` по умолчанию использует `explicit_reference`; отдельный
 [opt-in semantic context](semantic-explanation-context.md) подключает индекс
@@ -88,7 +88,14 @@ hard process deadline. При ошибке остаётся непроверен
 Каталоги `artifacts/` исключены из Git; wheel не содержит weights или vectors.
 
 CLI строит оба release indexes, сохраняет их, загружает обратно и выполняет
-шесть authored EN/RU запросов. Библиотечный поиск можно вызвать так:
+шесть authored EN/RU запросов.
+
+Для новых comparison sources используйте `--knowledge-version project-knowledge-0.3.0`.
+Этот повторяемый параметр выбирает точные releases; default двухрелизный run и
+исторические отчёты не меняются. Knowledge 0.3 содержит 43 sections; собственный
+pin для HTTP описан в [настройке semantic context](semantic-explanation-context.md).
+
+Библиотечный поиск можно вызвать так:
 
 ```python
 from pathlib import Path

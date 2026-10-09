@@ -7,7 +7,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.detection.baseline import PeerBaseline
+from app.detection.baseline import ExpandedPeerBaseline, ExpandedPeerEvaluation, PeerBaseline
+from app.detection.baseline.expanded import encoded_value
 from app.detection.fusion import RiskAssessment, RiskSource, fuse_risk
 from app.detection.statistical.artifact import ForestArtifact
 from app.detection.statistical.features import FEATURE_SCHEMA_VERSION
@@ -81,6 +82,7 @@ class AnalysisOptions(BaseModel):
     reference_configuration_id: UUID | None = None
     peer_configuration_ids: tuple[UUID, ...] = Field(default=(), max_length=20)
     statistical_model_id: UUID | None = None
+    comparison_version: Literal["0.1.0", "0.2.0"] = "0.1.0"
 
     @model_validator(mode="after")
     def distinct_selections(self) -> "AnalysisOptions":
@@ -144,6 +146,89 @@ class ComparisonContext(BaseModel):
                 self.peer_baseline.sample_count != len(self.peers)
             ):
                 raise ValueError("peer profile count differs from selected inputs")
+        return self
+
+
+class ExpandedComparisonContext(BaseModel):
+    """New wire contract; legacy profiles retain their original shape and meaning."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["comparison-context-0.2.0"] = "comparison-context-0.2.0"
+    reference: SnapshotBinding | None = None
+    peers: tuple[SnapshotBinding, ...] = Field(default=(), max_length=20)
+    peer_baseline: ExpandedPeerBaseline | None = None
+    peer_evaluation: ExpandedPeerEvaluation | None = None
+
+    @model_validator(mode="after")
+    def bound_profile(self) -> "ExpandedComparisonContext":
+        if self.reference is None and not self.peers:
+            raise ValueError("comparison requires selected inputs")
+        if bool(self.peers) != (self.peer_baseline is not None) or (
+            bool(self.peers) != (self.peer_evaluation is not None)
+        ):
+            raise ValueError("expanded peer inputs, profile and report must be present together")
+        if self.peers:
+            if not 3 <= len(self.peers) <= 20:
+                raise ValueError("invalid peer count")
+            for values in (
+                [item.configuration_id for item in self.peers],
+                [item.device_id for item in self.peers],
+                [item.source_sha256 for item in self.peers],
+            ):
+                if len(values) != len(set(values)):
+                    raise ValueError("peer inputs must be independent snapshots")
+            baseline, report = self.peer_baseline, self.peer_evaluation
+            assert baseline is not None and report is not None
+            indexed = {item.source_sha256: item for item in self.peers}
+            if baseline.sample_count != len(self.peers) or (
+                set(indexed) != {item.source_sha256 for item in baseline.samples}
+                or any(
+                    item.collected_at > indexed[item.source_sha256].created_at
+                    for item in baseline.samples
+                )
+                or report.baseline_sha256 != baseline.fingerprint()
+                or report.profile_features != tuple(item.field for item in baseline.features)
+            ):
+                raise ValueError("expanded peer profile differs from its selected inputs or report")
+            features = {item.field.value: item for item in baseline.features}
+            parser_findings = []
+            for finding in report.findings:
+                if finding.category == "baseline.parser.unsupported_ratio_high":
+                    parser_findings.append(finding)
+                    if (
+                        report.status != "partial"
+                        or report.unsupported_ratio <= baseline.unsupported_ratio_limit
+                        or finding.observed.get("value") != report.unsupported_ratio
+                        or finding.expected.get("maximum_unsupported_ratio")
+                        != baseline.unsupported_ratio_limit
+                        or finding.expected.get("peer_median") != baseline.unsupported_ratio_median
+                        or finding.confidence != 1.0
+                        or finding.anomaly_score
+                        != min(
+                            1.0,
+                            (report.unsupported_ratio - baseline.unsupported_ratio_limit)
+                            / max(1.0 - baseline.unsupported_ratio_limit, 0.01),
+                        )
+                    ):
+                        raise ValueError(
+                            "parser deficit finding differs from its profile or report"
+                        )
+                else:
+                    feature = features.get(str(finding.expected.get("feature")))
+                    if feature is None or (
+                        finding.category != f"baseline.{feature.field.value}_deviation"
+                        or encoded_value(finding.expected.get("value"))
+                        != encoded_value(feature.expected)
+                        or finding.expected.get("peer_support_count") != feature.support_count
+                        or finding.expected.get("peer_sample_count") != feature.sample_count
+                        or finding.confidence != feature.support_ratio
+                        or finding.anomaly_score != feature.support_ratio
+                    ):
+                        raise ValueError("peer finding differs from its selected feature")
+            if len(parser_findings) != int(
+                report.unsupported_ratio > baseline.unsupported_ratio_limit
+            ):
+                raise ValueError("parser deficit report is missing its required finding")
         return self
 
 
@@ -237,9 +322,9 @@ class StatisticalContext(BaseModel):
 
 class AnalysisResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    version: Literal["analysis-api-0.1.0", "analysis-api-0.2.0", "analysis-api-0.3.0"] = (
-        "analysis-api-0.1.0"
-    )
+    version: Literal[
+        "analysis-api-0.1.0", "analysis-api-0.2.0", "analysis-api-0.3.0", "analysis-api-0.4.0"
+    ] = "analysis-api-0.1.0"
     analysis_id: UUID
     configuration_id: UUID
     device_id: UUID
@@ -251,16 +336,21 @@ class AnalysisResult(BaseModel):
     explanations: tuple[FindingExplanation, ...]
     risk: RiskAssessment | None
     limitations: tuple[str, ...]
-    comparison: ComparisonContext | None = None
+    comparison: ComparisonContext | ExpandedComparisonContext | None = None
     statistical: StatisticalContext | None = None
 
     @model_validator(mode="after")
     def bound_results(self) -> "AnalysisResult":
-        if self.version != "analysis-api-0.3.0" and (
+        expanded = isinstance(self.comparison, ExpandedComparisonContext)
+        if (self.version == "analysis-api-0.4.0") != expanded:
+            raise ValueError("expanded comparisons require their own API version")
+        if self.version not in {"analysis-api-0.3.0", "analysis-api-0.4.0"} and (
             (self.version == "analysis-api-0.2.0") != (self.comparison is not None)
         ):
             raise ValueError("comparison context requires the extended API version")
-        if (self.version == "analysis-api-0.3.0") != (self.statistical is not None):
+        if self.version != "analysis-api-0.4.0" and (
+            (self.version == "analysis-api-0.3.0") != (self.statistical is not None)
+        ):
             raise ValueError("statistical context requires the model API version")
         versions = {"policy_engine": self.policy_catalog_version}
         if self.statistical is not None:
@@ -291,11 +381,25 @@ class AnalysisResult(BaseModel):
                     reference.configuration_id == self.configuration_id
                 ):
                     raise ValueError("reference must be a different snapshot of the same device")
-                versions["expected_configuration"] = "expected-config-0.1.0"
+                versions["expected_configuration"] = (
+                    "expected-config-0.2.0" if expanded else "expected-config-0.1.0"
+                )
             if self.comparison.peer_baseline is not None:
                 if any(item.device_id == self.device_id for item in self.comparison.peers):
                     raise ValueError("target device cannot be its own peer")
                 versions["peer_baseline"] = self.comparison.peer_baseline.model_version
+            if isinstance(self.comparison, ExpandedComparisonContext):
+                report = self.comparison.peer_evaluation
+                if report is not None and (
+                    (report.device_id, report.source_sha256, report.status)
+                    != (self.device_id, self.source_sha256, self.status)
+                    or report.findings
+                    != tuple(item for item in self.findings if item.detector == "peer_baseline")
+                    or any(
+                        item.source_sha256 == self.source_sha256 for item in self.comparison.peers
+                    )
+                ):
+                    raise ValueError("expanded peer report differs from its analysis")
         if (self.status == "completed") != (self.risk is not None):
             raise ValueError("only complete parsing permits a risk result")
         if len(self.findings) != len(self.explanations):

@@ -1,7 +1,7 @@
 # Supported features
 
 Comparison coverage is separate from parser syntax support. The opt-in
-[expanded local comparisons](expanded-comparisons.md) use the existing supported
+[expanded CLI/API/UI comparisons](expanded-comparisons.md) use the existing supported
 IR, including management values, VLAN/ACL and routing parameters. They add no
 vendor commands or device syntax qualification. Existing saved API comparison
 versions and parser golden snapshots are unchanged.

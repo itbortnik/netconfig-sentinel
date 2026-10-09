@@ -15,7 +15,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.domain import Finding
 from app.policies import POLICY_CATALOGS
 
-type KnowledgeVersion = Literal["project-knowledge-0.1.0", "project-knowledge-0.2.0"]
+type KnowledgeVersion = Literal[
+    "project-knowledge-0.1.0", "project-knowledge-0.2.0", "project-knowledge-0.3.0"
+]
 KNOWLEDGE_VERSION: KnowledgeVersion = "project-knowledge-0.2.0"
 ARCHIVE_MANIFESTS = MappingProxyType(
     {
@@ -25,6 +27,9 @@ ARCHIVE_MANIFESTS = MappingProxyType(
         "project-knowledge-0.2.0": (
             "73434e471171d10016e6cb7e43c4c970128e9b086667e8634e60498b76785eb7"
         ),
+        "project-knowledge-0.3.0": (
+            "aace5e74c6fe85ee55f576e1b632cac51fbaa7659606cb4ec3b3add2f4808edd"
+        ),
     }
 )
 RELEASE_BY_DETECTOR_VERSION: MappingProxyType[str, KnowledgeVersion] = MappingProxyType(
@@ -33,6 +38,8 @@ RELEASE_BY_DETECTOR_VERSION: MappingProxyType[str, KnowledgeVersion] = MappingPr
         "policy-rules-0.7.0": "project-knowledge-0.2.0",
         "expected-config-0.1.0": "project-knowledge-0.1.0",
         "peer-baseline-0.1.0": "project-knowledge-0.1.0",
+        "expected-config-0.2.0": "project-knowledge-0.3.0",
+        "peer-baseline-0.2.0": "project-knowledge-0.3.0",
         "isolation-forest-0.1.0": "project-knowledge-0.1.0",
     }
 )
@@ -168,26 +175,29 @@ class KnowledgeCatalog:
             citations = rule.references
         else:
             references = {
-                "expected_configuration": (
-                    "expected-config-0.1.0",
-                    ("docs/expected-configuration.md#доказательства-и-ограничения",),
+                ("expected_configuration", "expected-config-0.1.0"): (
+                    "docs/expected-configuration.md#доказательства-и-ограничения",
                 ),
-                "peer_baseline": (
-                    "peer-baseline-0.1.0",
-                    ("docs/baseline.md#exact-consensus-features", "docs/baseline.md#limitations"),
+                ("peer_baseline", "peer-baseline-0.1.0"): (
+                    "docs/baseline.md#exact-consensus-features",
+                    "docs/baseline.md#limitations",
                 ),
-                "isolation_forest": (
-                    "isolation-forest-0.1.0",
-                    (
-                        "docs/statistical-baseline.md#finding-interpretation",
-                        "docs/statistical-baseline.md#current-limitations",
-                    ),
+                ("expected_configuration", "expected-config-0.2.0"): (
+                    "docs/expected-configuration.md#expanded-supported-facts",
+                ),
+                ("peer_baseline", "peer-baseline-0.2.0"): (
+                    "docs/baseline.md#expanded-peer-templates",
+                    "docs/baseline.md#limitations",
+                ),
+                ("isolation_forest", "isolation-forest-0.1.0"): (
+                    "docs/statistical-baseline.md#finding-interpretation",
+                    "docs/statistical-baseline.md#current-limitations",
                 ),
             }
-            selection = references.get(finding.detector)
-            if selection is None or finding.model_version != selection[0]:
+            selection = references.get((finding.detector, finding.model_version))
+            if selection is None:
                 raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
-            citations = selection[1]
+            citations = selection
         indexed = {chunk.citation: chunk for chunk in self.chunks}
         try:
             selected = tuple(indexed[citation] for citation in citations)
@@ -211,6 +221,11 @@ def knowledge_version_for_finding(finding: Finding) -> KnowledgeVersion:
         ("isolation_forest", "isolation-forest-0.1.0"),
     }:
         return "project-knowledge-0.1.0"
+    elif (finding.detector, finding.model_version) in {
+        ("expected_configuration", "expected-config-0.2.0"),
+        ("peer_baseline", "peer-baseline-0.2.0"),
+    }:
+        return "project-knowledge-0.3.0"
     raise KnowledgeUnavailable("Reviewed knowledge is unavailable.")
 
 

@@ -20,7 +20,11 @@ class FrontendAssetsHook(BuildHookInterface):
                 "docs/baseline.md",
                 "docs/statistical-baseline.md",
             )
-            for release in ("project-knowledge-0.1.0", "project-knowledge-0.2.0"):
+            for release in (
+                "project-knowledge-0.1.0",
+                "project-knowledge-0.2.0",
+                "project-knowledge-0.3.0",
+            ):
                 for source in (*sources, "manifest.json"):
                     relative = f"knowledge/versions/{release}/{source}"
                     path = Path(self.root) / "backend" / "app" / relative

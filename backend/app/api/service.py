@@ -9,6 +9,7 @@ from app.api.contracts import (
     AnalysisResult,
     ComparisonContext,
     ConfigurationSnapshot,
+    ExpandedComparisonContext,
     ModelSummary,
     RegisteredModel,
     SnapshotBinding,
@@ -19,10 +20,19 @@ from app.api.contracts import (
 from app.api.feedback_contracts import FeedbackRecord, SubmitFeedback
 from app.db.store import FeedbackConflict, StorageIntegrityError, Store
 from app.detection.baseline import (
+    ExpandedPeerBaseline,
+    ExpandedPeerEvaluation,
+    ExpandedReference,
+    ExpectedConfiguration,
+    PeerBaseline,
     PeerGroupKey,
+    build_expanded_peer_baseline,
     build_peer_baseline,
+    compare_expanded_reference,
     compare_expected_configuration,
+    create_expanded_reference,
     create_expected_configuration,
+    evaluate_expanded_peer_baseline,
     evaluate_peer_baseline,
 )
 from app.detection.fusion import RiskSource, fuse_risk
@@ -184,9 +194,11 @@ class AnalysisService:
         )
         findings = evaluate_policies(config, device_id=snapshot.device_id)
         options = options or AnalysisOptions()
-        reference = None
+        expanded = options.comparison_version == "0.2.0"
+        reference: ExpectedConfiguration | ExpandedReference | None = None
         reference_binding = None
-        baseline = None
+        baseline: PeerBaseline | ExpandedPeerBaseline | None = None
+        peer_evaluation: ExpandedPeerEvaluation | None = None
         statistical = None
         statistical_model = None
         peers: list[ConfigurationSnapshot] = []
@@ -198,14 +210,24 @@ class AnalysisService:
                 or (selected.created_at > snapshot.created_at)
             ):
                 raise ValueError("reference snapshot is missing, current or newer than the target")
-            reference = create_expected_configuration(
-                selected.canonical,
-                device_id=selected.device_id,
-                reference_id=str(selected.configuration_id),
-            )
-            findings.extend(
-                compare_expected_configuration(config, reference, device_id=snapshot.device_id)
-            )
+            if expanded:
+                reference = create_expanded_reference(
+                    selected.canonical,
+                    device_id=selected.device_id,
+                    reference_id=str(selected.configuration_id),
+                )
+                findings.extend(
+                    compare_expanded_reference(config, reference, device_id=snapshot.device_id)
+                )
+            else:
+                reference = create_expected_configuration(
+                    selected.canonical,
+                    device_id=selected.device_id,
+                    reference_id=str(selected.configuration_id),
+                )
+                findings.extend(
+                    compare_expected_configuration(config, reference, device_id=snapshot.device_id)
+                )
             reference_binding = SnapshotBinding.from_snapshot(selected)
         if options.peer_configuration_ids:
             group = PeerGroupKey.from_config(config)
@@ -235,17 +257,34 @@ class AnalysisService:
                 peer.canonical.device.hostname is None for peer in peers
             ):
                 raise ValueError("peer comparisons require explicit device hostnames")
-            baseline = build_peer_baseline([peer.canonical for peer in peers])
-            findings.extend(evaluate_peer_baseline(config, baseline, device_id=snapshot.device_id))
-        comparison = (
-            ComparisonContext(
-                reference=reference_binding,
-                peers=tuple(SnapshotBinding.from_snapshot(peer) for peer in peers),
-                peer_baseline=baseline,
-            )
-            if reference_binding is not None or peers
-            else None
-        )
+            if expanded:
+                baseline = build_expanded_peer_baseline([peer.canonical for peer in peers])
+                peer_evaluation = evaluate_expanded_peer_baseline(
+                    config, baseline, device_id=snapshot.device_id
+                )
+                findings.extend(peer_evaluation.findings)
+            else:
+                baseline = build_peer_baseline([peer.canonical for peer in peers])
+                findings.extend(
+                    evaluate_peer_baseline(config, baseline, device_id=snapshot.device_id)
+                )
+        comparison: ComparisonContext | ExpandedComparisonContext | None = None
+        if reference_binding is not None or peers:
+            if expanded:
+                assert baseline is None or isinstance(baseline, ExpandedPeerBaseline)
+                comparison = ExpandedComparisonContext(
+                    reference=reference_binding,
+                    peers=tuple(SnapshotBinding.from_snapshot(peer) for peer in peers),
+                    peer_baseline=baseline,
+                    peer_evaluation=peer_evaluation,
+                )
+            else:
+                assert baseline is None or isinstance(baseline, PeerBaseline)
+                comparison = ComparisonContext(
+                    reference=reference_binding,
+                    peers=tuple(SnapshotBinding.from_snapshot(peer) for peer in peers),
+                    peer_baseline=baseline,
+                )
         completed = [RiskSource.POLICY]
         if baseline is not None:
             completed.append(RiskSource.PEER_GROUP)
@@ -282,7 +321,9 @@ class AnalysisService:
             )
             completed.append(RiskSource.STATISTICAL)
         result = AnalysisResult(
-            version="analysis-api-0.3.0"
+            version="analysis-api-0.4.0"
+            if isinstance(comparison, ExpandedComparisonContext)
+            else "analysis-api-0.3.0"
             if statistical is not None
             else ("analysis-api-0.2.0" if comparison is not None else "analysis-api-0.1.0"),
             analysis_id=uuid4(),

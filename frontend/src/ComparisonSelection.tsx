@@ -3,12 +3,16 @@ import type { SelectedSnapshot } from "./comparison";
 export function ComparisonSelection({
   reference,
   peers,
+  version,
+  onVersion,
   busy,
   onClearReference,
   onRemovePeer,
 }: {
   reference: SelectedSnapshot | null;
   peers: SelectedSnapshot[];
+  version: "0.1.0" | "0.2.0";
+  onVersion: (value: "0.1.0" | "0.2.0") => void;
   busy: boolean;
   onClearReference: () => void;
   onRemovePeer: (id: string) => void;
@@ -27,6 +31,27 @@ export function ComparisonSelection({
           ? `${reference.hostname ?? "Без hostname"} · ${reference.id}`
           : "Не выбран"}
       </p>
+      <label htmlFor="comparison-version">Область сравнения</label>
+      <select
+        id="comparison-version"
+        disabled={busy}
+        value={version}
+        onChange={(event) =>
+          onVersion(event.target.value === "0.2.0" ? "0.2.0" : "0.1.0")
+        }
+      >
+        <option value="0.1.0">0.1 — прежний набор признаков</option>
+        <option value="0.2.0">
+          0.2 — значения management, VLAN, ACL и routing
+        </option>
+      </select>
+      {version === "0.2.0" && (
+        <p className="hint">
+          При неполном разборе текущего снимка сравнение свойств peers
+          пропускается целиком. Отсутствие находок не означает, что эти свойства
+          проверены.
+        </p>
+      )}
       {reference && (
         <button
           className="button secondary compact"

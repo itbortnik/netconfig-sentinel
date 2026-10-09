@@ -64,9 +64,10 @@ def archive_copy(tmp_path, monkeypatch):
     return target
 
 
+@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0"])
 @pytest.mark.parametrize("case", ["missing", "changed", "extra", "manifest", "rehash", "oversized"])
-def test_changed_or_missing_historical_sources_never_fall_back(archive_copy, case):
-    root = archive_copy / "versions" / OLD
+def test_changed_or_missing_historical_sources_never_fall_back(archive_copy, case, release):
+    root = archive_copy / "versions" / release
     path = root / DOCUMENT_IDS[0]
     if case == "missing":
         path.unlink()
@@ -84,7 +85,7 @@ def test_changed_or_missing_historical_sources_never_fall_back(archive_copy, cas
             manifest["documents"][DOCUMENT_IDS[0]] = hashlib.sha256(path.read_bytes()).hexdigest()
             (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(KnowledgeUnavailable, match=r"^Reviewed knowledge is unavailable\.$"):
-        load_knowledge_catalog(OLD)
+        load_knowledge_catalog(release)
     assert load_knowledge_catalog(NEW).version == NEW
 
 
@@ -97,15 +98,16 @@ def test_unversioned_and_current_document_overlays_are_not_retrieval_sources(arc
 
 
 @pytest.mark.parametrize("kind", ["is_symlink", "is_junction"])
+@pytest.mark.parametrize("release", [OLD, "project-knowledge-0.3.0"])
 @pytest.mark.parametrize(
     "relative", [".", "docs", "docs/policies", "manifest.json", "docs/policies/management-plane.md"]
 )
 def test_link_gate_covers_archive_and_all_document_parents(
-    archive_copy, monkeypatch, kind, relative
+    archive_copy, monkeypatch, kind, relative, release
 ):
     from pathlib import Path
 
-    root = archive_copy / "versions" / OLD
+    root = archive_copy / "versions" / release
     target = root / relative
     original = getattr(Path, kind)
 
@@ -114,7 +116,7 @@ def test_link_gate_covers_archive_and_all_document_parents(
 
     monkeypatch.setattr(Path, kind, link)
     with pytest.raises(KnowledgeUnavailable):
-        load_knowledge_catalog(OLD)
+        load_knowledge_catalog(release)
 
 
 def test_context_cannot_bind_old_detector_to_new_documents():

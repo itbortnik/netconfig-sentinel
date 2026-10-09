@@ -56,7 +56,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-root", required=True, type=Path)
     parser.add_argument("--output-root", required=True, type=Path)
+    parser.add_argument(
+        "--knowledge-version",
+        action="append",
+        choices=("project-knowledge-0.1.0", "project-knowledge-0.2.0", "project-knowledge-0.3.0"),
+        help="Explicit releases to build; omission preserves the original two-release diagnostic.",
+    )
     arguments = parser.parse_args()
+    versions = arguments.knowledge_version or ["project-knowledge-0.1.0", "project-knowledge-0.2.0"]
+    if len(set(versions)) != len(versions):
+        parser.error("knowledge releases must be distinct")
     if arguments.output_root.exists():
         parser.error("output root must not already exist")
     # This offline process owns its threads; library inference does not mutate global settings.
@@ -66,7 +75,7 @@ def main() -> None:
     load_seconds = perf_counter() - began
     arguments.output_root.mkdir()
     releases = []
-    for release in ("project-knowledge-0.1.0", "project-knowledge-0.2.0"):
+    for release in versions:
         catalog = load_knowledge_catalog(release)
         if not all(
             expected in {chunk.citation for chunk in catalog.chunks} for _, expected, _ in QUERIES
@@ -112,8 +121,12 @@ def main() -> None:
             }
         )
     report = {
-        "report_version": "document-retrieval-diagnostic-0.1.0",
-        "scope": "six authored EN/RU queries over two sealed internal project releases",
+        "report_version": "document-retrieval-diagnostic-0.2.0"
+        if arguments.knowledge_version
+        else "document-retrieval-diagnostic-0.1.0",
+        "scope": (
+            f"six authored EN/RU queries over {len(versions)} sealed internal project releases"
+        ),
         "independent_evaluation": False,
         "production_qualified": False,
         "uses_customer_configurations": False,

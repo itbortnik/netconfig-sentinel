@@ -45,6 +45,12 @@ def public_retrieval_query(finding: Finding) -> str:
             ("peer_baseline", "peer-baseline-0.1.0"): (
                 "Peer configuration consensus baseline: interpretation and limitations."
             ),
+            ("expected_configuration", "expected-config-0.2.0"): (
+                "Expanded supported facts: exact same-device reference values and limitations."
+            ),
+            ("peer_baseline", "peer-baseline-0.2.0"): (
+                "Expanded peer templates: value consensus, omitted features and partial parsing."
+            ),
             ("isolation_forest", "isolation-forest-0.1.0"): (
                 "Experimental Isolation Forest outlier finding interpretation and limitations."
             ),
@@ -71,11 +77,14 @@ class DocumentRetrievalRuntime:
             self._lock.release()
 
     def _search(self, catalog: KnowledgeCatalog, query: str) -> RetrievalSelection:
-        pin = (
-            self.settings.legacy_index_sha256
-            if catalog.version == "project-knowledge-0.1.0"
-            else self.settings.current_index_sha256
-        )
+        pins = {
+            "project-knowledge-0.1.0": self.settings.legacy_index_sha256,
+            "project-knowledge-0.2.0": self.settings.current_index_sha256,
+            "project-knowledge-0.3.0": self.settings.expanded_index_sha256,
+        }
+        pin = pins.get(catalog.version)
+        if pin is None:
+            raise RetrievalUnavailable("Document retrieval is unavailable.")
         index = load_document_index(
             self.settings.index_root / catalog.version, catalog, expected_sha256=pin
         )

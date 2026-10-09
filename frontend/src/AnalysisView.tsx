@@ -142,6 +142,47 @@ export function AnalysisView({
               Различия с эталоном не входят в итоговый риск. Метки и снимки
               выбраны оператором, не утверждены автоматически.
             </p>
+            {"version" in result.comparison && (
+              <div>
+                <p>
+                  Расширенное сравнение 0.2.0. Версия сохранена для этого
+                  анализа.
+                </p>
+                {result.comparison.peer_evaluation && (
+                  <>
+                    <p>
+                      {result.comparison.peer_evaluation.status === "partial"
+                        ? "Сравнение свойств пропущено: неполный разбор."
+                        : "Выбранные признаки группы сравнены."}
+                    </p>
+                    <p>
+                      Сравнено:{" "}
+                      {
+                        result.comparison.peer_evaluation.compared_features
+                          .length
+                      }
+                      . Пропущено из-за разбора:{" "}
+                      {
+                        result.comparison.peer_evaluation.skipped_features
+                          .length
+                      }
+                      . Без консенсуса:{" "}
+                      {result.comparison.peer_baseline?.omitted_features
+                        .length ?? 0}
+                      .
+                    </p>
+                    <p className="hint">
+                      Дефицит доверия парсера:{" "}
+                      {percent(
+                        result.comparison.peer_evaluation.unsupported_ratio,
+                      )}
+                      . Это не точный подсчёт неизвестных команд и не
+                      вероятность ошибки.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
             <pre className="json-view">
               {JSON.stringify(result.comparison, null, 2)}
             </pre>
