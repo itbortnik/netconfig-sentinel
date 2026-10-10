@@ -31,10 +31,14 @@ deduplication, network/site/device/time isolation, mutations и фактичес
 Owned laboratory scenarios — не независимые реальные сети. Разрешённого большого
 корпуса и подтверждённых реальных labels нет; такие метрики не публикуются как
 измеренные. Feedback verdict не становится ground truth автоматически.
-[Pending public-source review](dataset-source-review.md) нашёл 508 Batfish fixture
-кандидатов по pinned tree metadata; это не imported/approved dataset, independent
-networks или real-confirmed labels. Для приёма нового источника требуется human
-source/use review; тела конфигураций ещё не загружались.
+[Approved public-source intake](dataset-source-review.md) получил разрешение
+пользователя на локальные research/training/evaluation/derivative uses без
+публикации конфигураций. Получены 508 pinned entries/507 distinct raw blobs;
+content preflight пропустил к диагностическому парсеру 411 примеров, из них 386
+частичных. Остальные удержаны text/sanitization/residual/parser/file-review gates.
+Это не imported dataset или новые независимые сети: capture/entity metadata
+неизвестны, imported records/dataset bundles/training runs пока 0. Подтверждённые
+аномалии и independent-network counts отсутствуют, не подменяются нулями.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
@@ -55,6 +59,17 @@ Multilingual MiniLM фактически загружен и используе�
 размеченный calibration cohort, а не epoch-selection validation.
 
 ## Какие evidence ещё нужны
+
+[Source-intake evidence](evaluation/owned-batfish-source-intake.json) фиксирует
+human approval, pinned blob/size/hash checks и локальный premetadata content
+preflight. Общий scanner не ослабляет полный dataset gate: 2370 full passes/
+27 skips/5 warnings, 32 final focused и 32 actual Pydantic 2.14 checks; ruff/mypy
+223 files на обеих платформах. Installed wheel: 223 runtime файла побайтно,
+13 target imports в каждом из двух isolated children, восемь content checks и
+неизменный полный quality report шести authored legacy records. Новые live
+engine/DB/browser/model checks для этого slice не выполнялись. Для upstream
+collection всё ещё нужны metadata-aware import, дедупликация, допустимая изоляция
+и репрезентативный размеченный корпус; content preflight не закрывает эти gates.
 
 [Hierarchical JunOS mutation evidence](evaluation/owned-hierarchical-junos-mutations.json)
 проверяет opt-in offline 0.2: 14 классов, связанные изменения, source preservation,

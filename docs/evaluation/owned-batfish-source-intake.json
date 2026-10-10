@@ -1,0 +1,82 @@
+{
+  "version": "owned-batfish-source-intake-0.1.0",
+  "date": "2026-10-10",
+  "scope": "human-authorized pinned local parser-fixture acquisition and content preflight; not a dataset or model evaluation",
+  "requirements": ["source provenance and allowed uses", "sanitization and residual-content checks", "truthful corpus accounting"],
+  "upstream": {
+    "repository": "batfish/batfish",
+    "revision": "329c14bf712f81b1522147abb00419c8e34e8f4a",
+    "selected_directories": ["projects/batfish/src/test/resources/org/batfish/grammar/cisco/testconfigs/", "projects/batfish/src/test/resources/org/batfish/grammar/juniper/testconfigs/"],
+    "root_license": "Apache-2.0",
+    "root_license_git_blob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "root_license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "additional_license_notice_files_under_selected_directories": 0,
+    "complete_legal_or_per_file_provenance_determination": false
+  },
+  "authorization": {
+    "decision": "explicit_human_source_and_local_use_approval",
+    "allowed_local_uses": ["research", "training", "evaluation", "derivative_works"],
+    "redistribution_authorized": false,
+    "per_file_exceptions_still_require_review": true,
+    "private_approval_sha256": "12670615fd580a455526dcf5d01851b3e174702c529ce6ac5f137596789d91e4"
+  },
+  "acquisition": {
+    "acquired_at": "2026-10-10T09:42:02.457907+00:00",
+    "candidate_entries": 508,
+    "cisco_directory_entries": 169,
+    "juniper_directory_entries": 339,
+    "distinct_raw_blobs": 507,
+    "total_candidate_bytes": 379872,
+    "excluded_build_files": 2,
+    "all_git_blob_size_sha256_checks_passed": true,
+    "raw_and_sanitized_configuration_bodies_published": false,
+    "private_initial_pending_metadata_sha256": "8bc7905c2ae561af529acc07af9f4f162d70dfb7c9078ccfcfaa572142a89b1f",
+    "private_acquisition_sha256": "43ed82ae36a8b7eedd280dc26b617a74e581669897df9b2b466074479e8c46c7"
+  },
+  "content_preflight": {
+    "performed_at": "2026-10-10T09:45:35.970361+00:00",
+    "sanitization_version": "config-sanitizer-0.2.0",
+    "pseudonymization_key": "ephemeral_not_saved",
+    "physical_entity_metadata": "unknown_conservatively_unsplit",
+    "device_capture_times": "unknown_not_replaced_by_acquisition_time",
+    "statuses": {
+      "parsed_content_diagnostic": 411,
+      "sanitization_refused": 82,
+      "residual_content_refused": 9,
+      "parser_refused": 2,
+      "text_refused": 3,
+      "file_notice_review_pending": 1
+    },
+    "residual_issue_counts": {"sanitization.secret_value": 6, "sanitization.hostname": 2, "sanitization.username": 1},
+    "accepted_command_units": 1358,
+    "unparsed_command_units": 3664,
+    "command_denominator": 5022,
+    "partial_configurations": 386,
+    "warning_bearing_configurations": 40,
+    "vendor_hint_mismatches": 0,
+    "private_preflight_sha256": "6eeeb843cdee3bd737202a59ad5512afdc80d4c676c56f4102aa6c9696b352a3",
+    "notice_heuristic_limit": "three flags: two invalid encodings and one configuration license statement; not three established third-party legal notices"
+  },
+  "runtime_change": "full quality gate and premetadata content preflight share one content/hash/version scanner; default policy and historical serialized reports unchanged",
+  "verification": {
+    "local_full_pytest": {"passed": 2370, "skipped": 27, "warnings": 5, "seconds": 246.93, "private_junit_sha256": "3edd7ad910c7ee57a69882e1042486d54ef0fe818c9901cacdb456afd9a8c3b1", "note": "completed before restoring unrelated line wrapping; final focused behavior rechecked"},
+    "local_full_coverage": {"statements": 19933, "missed": 2028, "private_xml_sha256": "0ab46bc3cad9abc9257a5f551cf63f4051fb9a66065154c1d3a555c0e19a99ad", "meaning": "test execution coverage, not model accuracy"},
+    "final_focused_pytest": {"passed": 32, "seconds": 0.31, "private_junit_sha256": "c134cffa35fa7c198ebd8ab6e3b69ca5092f5304413c2ddf2280f3785b1dcc97"},
+    "focused_pydantic_2_14": {"passed": 32, "seconds": 0.28, "private_junit_sha256": "b37986c4e655b8795003cedc2896c651302a455e827be8e032a0485075f3fe4a"},
+    "ruff": "pass",
+    "mypy_default_and_win32": {"status": "pass", "source_files": 223},
+    "installed_wheel": {"bytes": 687904, "sha256": "d4d14acdc152ef7eb6e3b19930cb41b03a8fdf5cd6ac73991406163cfc0e5c66", "runtime_files_inventory_and_bytes_matched": 223, "isolated_children": 2, "loaded_target_modules_per_child": 13, "public_content_scan_cases": 8, "historical_diagnostics_unchanged": true, "six_authored_record_full_quality_report_unchanged": true, "historical_report_sha256": "5da5b39054cffbeadb471acdbbf35783b13d7a268abe55c4b33ec89fb1067e7f", "private_result_sha256": "176826ea1f0d14dec1b4ff147a2c0380fef842ee6a4a78e2eecf7ffd9bf8d8ea"},
+    "new_exact_commit_ci": "not_yet_run",
+    "new_live_batfish_postgres_browser_runs": "not_run",
+    "real_model_training_or_inference": "not_run"
+  },
+  "imported_records": 0,
+  "dataset_bundles_written": 0,
+  "stored_sanitized_configuration_bodies": 0,
+  "independent_network_count": null,
+  "real_confirmed_anomaly_count": null,
+  "upstream_parents_assumed_healthy": false,
+  "deduplication_split_model_selection_calibration_or_independent_evaluation_executed": false,
+  "privacy_or_vendor_syntax_qualified": false,
+  "full_dataset_or_mvp_complete": false
+}

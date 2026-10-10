@@ -18,11 +18,75 @@ from ml.datasets import (
     build_dataset_quality_report,
     deduplicate_dataset,
     load_dataset_artifact,
+    scan_sanitized_content,
     split_deduplicated_dataset,
     write_dataset_artifact,
 )
 
 CAPTURED_AT = datetime(2026, 1, 1, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("hostname host-000000000001\n", set()),
+        ("hostname unsanitized-fixture\n", {"sanitization.hostname"}),
+        (
+            "username fixture-user secret fixture-only-value\n",
+            {
+                "sanitization.username",
+                "sanitization.secret_value",
+            },
+        ),
+        ("snmp-server community fixture-only-community RO\n", {"sanitization.snmp_community"}),
+        ("\n", {"content.empty"}),
+        (
+            "hostname host-000000000001\x00\n",
+            {"content.control_character", "sanitization.hostname"},
+        ),
+        (
+            "-----BEGIN PRIVATE KEY-----\nfixture-only-material\n",
+            {
+                "sanitization.certificate_material",
+                "sanitization.incomplete_certificate_block",
+            },
+        ),
+    ],
+)
+def test_content_scan_needs_no_invented_capture_or_entity_metadata(
+    text: str,
+    expected: set[str],
+) -> None:
+    result = scan_sanitized_content(
+        text,
+        sanitized_sha256=hashlib.sha256(text.encode()).hexdigest(),
+        sanitization_version="config-sanitizer-0.1.0",
+    )
+    assert {code for code, _ in result} == expected
+    assert isinstance(result, tuple)
+    assert all("fixture-only" not in message for _, message in result)
+
+
+def test_content_scan_keeps_version_and_hash_checks_independent() -> None:
+    text = "hostname host-000000000001\n"
+    result = scan_sanitized_content(
+        text,
+        sanitized_sha256="0" * 64,
+        sanitization_version="config-sanitizer-0.2.0",
+    )
+    assert {code for code, _ in result} == {
+        "integrity.sanitized_hash_mismatch",
+        "sanitization.unsupported_version",
+    }
+    assert (
+        scan_sanitized_content(
+            text,
+            sanitized_sha256=hashlib.sha256(text.encode()).hexdigest(),
+            sanitization_version="config-sanitizer-0.2.0",
+            allowed_versions=("config-sanitizer-0.2.0",),
+        )
+        == ()
+    )
 
 
 def _sha256(value: str) -> str:

@@ -1,10 +1,11 @@
-# Pending public-source intake
+# Approved local public-source intake
 
-This is a source-review proposal, not an approved dataset or a training run.
-The existing `DatasetSource.license_review` gate requires human review before
-`import_local_dataset` can accept a new source. Public availability and a
-repository license alone do not mark individual records reviewed or establish
-labels, independent networks, capture times, privacy, or model quality.
+The human user approved the pinned Batfish source on 2026-10-10 for local
+research, training, evaluation and derivative preprocessing, subject to
+file-level exception checks. Redistribution of configuration bodies was not
+requested or authorized. This supersedes the earlier pending metadata proposal;
+it is not an approved full dataset, a training run or legal/privacy qualification
+of every file. The existing importer and full quality gate remain in force.
 
 ## Fixed Batfish candidate
 
@@ -24,30 +25,59 @@ not a final legal or per-file provenance determination.
 | `juniper/testconfigs/` | 339 |
 | Total after excluding two `BUILD.bazel` files | 508 |
 
-These are 379,872 bytes of extensionless candidate blobs, **not** 508 reviewed
-supported configurations, independent networks, or confirmed anomalies. No
-configuration body has been downloaded by this intake step. Only tree/license
-metadata was read; no import, sanitization, deduplication, splitting, training,
-model selection, or evaluation was performed. Status remains `pending`.
+These are 379,872 bytes of extensionless candidate entries, **not** 508
+independent networks or confirmed anomalies. After approval, all entries were
+acquired locally and verified against their pinned Git blob, byte count and
+SHA-256. There are 507 distinct raw blobs. The root license is retained locally;
+no raw or sanitized configuration bodies are published in this repository.
 
-## Review decision needed
+## Local content preflight
 
-A human reviewer must approve the selected source and intended local research,
-training/evaluation and derivative preprocessing uses, or reject/restrict them.
-The proposed intake does not redistribute raw or sanitized configuration bodies
-on the public repository. Review must preserve applicable attribution/license
-notices and check any file-level exceptions before accepting a record. It does
-not replace authorization for separately supplied real customer configurations.
+A bounded notice heuristic flagged three entries: two are also invalid UTF-8;
+the remaining JunOS quote-bug fixture contains a `license` configuration
+statement, not a demonstrated third-party legal override. It remains excluded
+pending sensitive-content/provenance review. The heuristic is not a legal scan.
+Two invalid-encoding inputs and one control-byte input are excluded separately.
+Approval does not authorize separately supplied customer data or waive per-file
+checks, attribution or license notices.
 
-After approval, use the existing importer/quality/artifact contracts rather than
-another ingestion pipeline: verify each pinned blob and content hash, apply
-bounded text checks and reviewed sanitization, retain unsupported/rejected counts,
-deduplicate before counting, and keep derived views with their source families.
-The new CIDR policy has explicit unsupported contexts: never silently fall back
-to historical v1 to force acceptance. Directory/vendor hints are not device
-qualification. Unknown physical network/site/role/time metadata must not be
-invented; keep grouping conservative and document fixture revision/acquisition
-time separately from real device capture time.
+The actual preflight applies explicit sanitizer `config-sanitizer-0.2.0`, then
+the shared `scan_sanitized_content` quality checks before diagnostic parsing.
+It never falls back to historical v1. A single ephemeral pseudonymization key
+and conservative unknown-topology scope were used in memory; neither the key nor
+sanitized bodies were saved. Private diagnostics retain hashes/codes/counts,
+not raw error messages or sensitive values. This run is not a durable corpus.
+
+| Final status (one per candidate entry) | Entries |
+| --- | ---: |
+| Parsed for content diagnostics | 411 |
+| Sanitizer refused unsupported/invalid context | 82 |
+| Residual recognized sensitive content refused | 9 |
+| Parser refused | 2 |
+| Invalid encoding/control text refused | 3 |
+| File-level content review pending | 1 |
+| Total | 508 |
+
+The nine residual refusals include six credential directives, two hostnames and
+one username. Of the 411 parsed entries, 386 have unparsed units and 40 have
+warnings. The coverage denominator is 5,022 command units: 1,358 accepted and
+3,664 unparsed. These are adapter diagnostics, not vendor syntax qualification,
+deduplicated size or detector accuracy. Directory hints did not conflict with
+detected vendors in accepted diagnostics.
+
+## Remaining import boundary
+
+Physical network/site/device/role and device-capture times are unknown. They are
+not inferred from filenames or replaced by the acquisition timestamp. The
+collection remains conservatively unsplit; it cannot establish three independent
+train/validation/test groups. The current record contract requires capture and
+entity metadata, so no `ImportedDatasetRecord`, split or dataset bundle was
+created. Independent-network and real-confirmed anomaly counts remain missing,
+not zero. Deduplication, model training, calibration, selection and independent
+evaluation were not run on this collection. A metadata-aware import path and
+reviewed representative inputs are still needed; full quality gates must not be
+bypassed. The minimized [evidence](evaluation/owned-batfish-source-intake.json)
+binds private acquisition/preflight/check artifacts without distributing bodies.
 
 Upstream parser fixtures can contain intentionally invalid or incomplete input.
 Do not label every original healthy or convert parse warnings into anomaly

@@ -38,6 +38,16 @@ The residual-content scanner is defense in depth, not proof that all possible
 vendor syntax is anonymous. Adding a vendor or command family requires new
 sanitizer fixtures and reviewer sampling.
 
+`scan_sanitized_content(text, sanitized_sha256=..., sanitization_version=...,
+allowed_versions=...)` exposes these same content/hash/version checks before
+physical entity or device-capture metadata is available. It returns immutable,
+sorted unique `(code, generic_message)` pairs without content values. The full
+record gate delegates to this scanner; historical report versions, serialized
+payloads and default v1 acceptance are unchanged. An empty result is not source
+approval, a privacy guarantee, an import, a split or permission to persist/train.
+Explicitly allow v2 when reviewing v2 content. The caller must enforce the
+existing acquisition size/text bounds and independently review file provenance.
+
 ## Warnings and distributions
 
 Warnings preserve limitations without weakening entity isolation. They cover

@@ -54,6 +54,7 @@ from ml.datasets.quality import (
     compute_pipeline_fingerprint,
     count_configuration_blocks,
     count_configuration_tokens,
+    scan_sanitized_content,
 )
 from ml.datasets.splitting import (
     SPLITTING_VERSION,
@@ -121,6 +122,7 @@ __all__ = [
     "load_dataset_artifact",
     "load_dataset_manifest",
     "normalize_configuration_text",
+    "scan_sanitized_content",
     "split_deduplicated_dataset",
     "template_configuration_text",
     "write_dataset_artifact",

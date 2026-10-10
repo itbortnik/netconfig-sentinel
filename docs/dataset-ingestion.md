@@ -4,8 +4,10 @@ Dataset candidates cross an explicit review and sanitization boundary before
 they can reach parsing, feature extraction, or model training. This slice only
 imports local files. It does not download repositories or claim that a
 production dataset has been assembled.
-The [pending pinned-source intake](dataset-source-review.md) records a reviewed
-metadata inventory only; it has no human approval or imported configuration bodies.
+The [approved pinned-source intake](dataset-source-review.md) records human
+authorization, exact local acquisition and content preflight. Its upstream
+fixtures still have unknown device-capture/entity metadata; no imported records,
+dataset bundle or model training are claimed.
 
 ## Source manifest
 

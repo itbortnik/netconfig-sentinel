@@ -481,28 +481,48 @@ def _scan_sanitized_record(
     *,
     allowed_versions: tuple[str, ...],
 ) -> list[tuple[str, str]]:
+    return list(
+        scan_sanitized_content(
+            record.sanitized_text,
+            sanitized_sha256=record.sanitized_sha256,
+            sanitization_version=record.sanitization_version,
+            allowed_versions=allowed_versions,
+        )
+    )
+
+
+def scan_sanitized_content(
+    text: str,
+    *,
+    sanitized_sha256: str,
+    sanitization_version: str,
+    allowed_versions: tuple[str, ...] = (SANITIZATION_VERSION,),
+) -> tuple[tuple[str, str], ...]:
+    """Reuse the quality gate's content checks before entity metadata is known.
+
+    No import, source approval, split, label truth or complete privacy guarantee
+    is established by an empty result. Diagnostics never include content values.
+    """
     issues: list[tuple[str, str]] = []
-    actual_hash = hashlib.sha256(record.sanitized_text.encode("utf-8")).hexdigest()
-    if actual_hash != record.sanitized_sha256:
+    actual_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    if actual_hash != sanitized_sha256:
         issues.append(
             ("integrity.sanitized_hash_mismatch", "Sanitized text does not match its SHA-256.")
         )
-    if record.sanitization_version not in allowed_versions:
+    if sanitization_version not in allowed_versions:
         issues.append(
             (
                 "sanitization.unsupported_version",
                 "A record uses a sanitization version not accepted by this report.",
             )
         )
-    if not record.sanitized_text.strip():
+    if not text.strip():
         issues.append(("content.empty", "Sanitized configuration text is empty."))
-    if _contains_control_character(record.sanitized_text):
-        issues.append(
-            ("content.control_character", "Sanitized text contains a control character.")
-        )
+    if _contains_control_character(text):
+        issues.append(("content.control_character", "Sanitized text contains a control character."))
 
     in_pem_block = False
-    for raw_line in record.sanitized_text.splitlines():
+    for raw_line in text.splitlines():
         stripped = raw_line.strip()
         if _PEM_BEGIN.fullmatch(stripped):
             in_pem_block = True
@@ -524,13 +544,9 @@ def _scan_sanitized_record(
             and "<redacted-secret>" not in lowered
         )
         if has_unredacted_secret:
-            issues.append(
-                ("sanitization.secret_value", "A credential directive is not redacted.")
-            )
+            issues.append(("sanitization.secret_value", "A credential directive is not redacted."))
         if _SNMP_COMMUNITY.search(stripped) and "<redacted-community>" not in lowered:
-            issues.append(
-                ("sanitization.snmp_community", "An SNMP community is not redacted.")
-            )
+            issues.append(("sanitization.snmp_community", "An SNMP community is not redacted."))
         _scan_identity_line(stripped, lowered, issues)
     if in_pem_block:
         issues.append(
@@ -539,7 +555,7 @@ def _scan_sanitized_record(
                 "A certificate or key block has no closing boundary.",
             )
         )
-    return sorted(set(issues))
+    return tuple(sorted(set(issues)))
 
 
 def _scan_identity_line(
