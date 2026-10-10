@@ -5,12 +5,20 @@ import json
 import os
 from datetime import UTC, datetime
 from importlib.metadata import version
-from uuid import UUID
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from uuid import UUID, uuid4
 
 import pytest
 from app.domain import Vendor
 from app.verification.batfish import ReachabilityScope, check_with_batfish
-from app.verification.snapshots import NetworkSnapshot, prepare_snapshot, validate_snapshot_pair
+from app.verification.batfish_worker import _session
+from app.verification.snapshots import (
+    NetworkSnapshot,
+    prepare_snapshot,
+    validate_snapshot_pair,
+    write_snapshot,
+)
 
 from ml.datasets import ImportedDatasetRecord
 from ml.mutation import (
@@ -70,6 +78,56 @@ SCENARIOS = (
     ("generated_direct_peer_control", "192.0.2.2/32", True, "no_differences_in_scope"),
     ("generated_empty_scope", "203.0.113.1/32", True, "inconclusive"),
 )
+
+
+def _owned_initialization_diagnostic(before: NetworkSnapshot, after: NetworkSnapshot) -> None:
+    """Test-only details from these exact authored fixtures, never operator inputs."""
+    _, expected_before, expected_after = _generated_pair()
+    assert before == expected_before and after == expected_after
+    session = _session()
+    network = "sentinel-" + uuid4().hex
+    assert network not in session.list_networks()
+    created = False
+    try:
+        session.set_network(network)
+        created = True
+        with TemporaryDirectory(prefix="owned-mutation-init-") as directory:
+            for side, snapshot in (("before", before), ("after", after)):
+                output = Path(directory) / side
+                write_snapshot(snapshot, output)
+                session.init_snapshot(
+                    str(output),
+                    name=side,
+                    overwrite=False,
+                    extra_args={"ignoremanagementinterfaces": False},
+                )
+                statuses = session.q.fileParseStatus().answer(snapshot=side).frame()
+                issues = session.q.initIssues().answer(snapshot=side).frame()
+                # Only this test's public authored input can reach this diagnostic.
+                # Omit Line_Text, filenames and full rows; production worker unchanged.
+                rows = [
+                    {
+                        "type": str(row.get("Type", ""))[:128],
+                        "details": str(row.get("Details", ""))[:512],
+                    }
+                    for row in issues.to_dict(orient="records")[:20]
+                ]
+                print(
+                    "OWNED_MUTATION_INIT_DIAGNOSTIC="
+                    + json.dumps(
+                        {
+                            "side": side,
+                            "parse_statuses": sorted(str(value) for value in statuses["Status"]),
+                            "issue_count": len(issues),
+                            "issues": rows,
+                        },
+                        sort_keys=True,
+                    )
+                )
+    finally:
+        if created:
+            session.delete_network(network)
+            print("OWNED_MUTATION_INIT_DIAGNOSTIC_CLEANUP=true")
 
 
 def _generated_pair() -> tuple[SyntheticMutationSample, NetworkSnapshot, NetworkSnapshot]:
@@ -152,6 +210,8 @@ def test_live_generated_hierarchical_route(
     after = candidate if candidate_selected else before
     scope = ReachabilityScope(start_node=before.configs[0].hostname, destination=destination)
     result = check_with_batfish(before, after, scope, allow_local_upload=True, timeout_seconds=120)
+    if result.status == "incomplete" and scenario == "generated_route_loss":
+        _owned_initialization_diagnostic(before, candidate)
     # This observation binds the precise generated edit, not a different hand edit.
     # Control queries explicitly disclose whether the candidate was selected.
     print(

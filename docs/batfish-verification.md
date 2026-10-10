@@ -212,6 +212,12 @@ job. До успешного нового exact-commit job это только �
 не evidence выполненных запросов. Даже успешные запросы квалифицируют лишь одну
 authored двухузловую модель, один класс мутации и выбранные IPv4 scopes; не все
 14 классов, vendor device syntax, management access, реальную сеть или обучение.
+Первый [owned job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38039746950/job/114177442737)
+на `a74eba0` получил `incomplete / initialization_issues` во всех четырёх попытках,
+включая неизменённый parent. Reachability counts не получены; cleanup успешен.
+Строгий gate остаётся прежним. Test-only диагностический повтор выводит только
+ограниченные Type/Details для точных публичных authored inputs; Line_Text и полные
+строки ответа не выводятся, production worker по-прежнему не раскрывает diagnostics.
 
 ## Привязка к существующему черновику
 

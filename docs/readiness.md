@@ -76,6 +76,12 @@ ruff/mypy на обеих платформах чистые. Четыре no-upl
 через прежний installed wheel: все 223 runtime файла побайтно прежние, imports
 31 app/ml модуля проверены из установленного target. Authored test functions
 исполнялись из checkout; это не independent test или live engine evidence.
+Первый [live job этой интеграции](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38039746950/job/114177442737)
+на `a74eba03752f9dcc38e9d02688b19e32d481c249` неуспешен: все четыре generated/control
+попытки вернули `incomplete / initialization_issues` до reachability queries.
+Очистка собственных сетей подтверждена, счётчики запросов отсутствуют, не равны
+нулю. Это не инфраструктурный pull-limit и не formal pass; причина инициализации
+уточняется ограниченной диагностикой только этих authored fixtures.
 
 [Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
 добавлено вне canonical IR: новые uploads/API/история/UI используют фактические
