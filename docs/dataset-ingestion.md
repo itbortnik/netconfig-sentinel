@@ -89,7 +89,7 @@ runtime from secret storage. It must not be committed with a manifest.
 
 ## Sanitization
 
-Sanitizer version `config-sanitizer-0.1.0` replaces or pseudonymizes:
+The historical default `config-sanitizer-0.1.0` replaces or pseudonymizes:
 
 - Cisco IOS and JunOS hostnames, usernames, domain names, and contacts;
 - SNMP communities, passwords, password hashes, shared secrets, and key
@@ -103,6 +103,31 @@ combines the source and topology, preserving equality and IP prefix structure
 inside one topology while separating unrelated sources. Addresses with
 protocol meaning, including unspecified, loopback, multicast, link-local, and
 IPv4 masks or wildcards, remain unchanged.
+
+Common-prefix preservation does **not** preserve zero host bits of a network
+address. A live owned experiment found that v1 could turn a valid JunOS static
+route into a noncanonical CIDR. Do not use v1 output as evidence of equivalent
+routing semantics. Existing artifacts, training/inference defaults and hashes
+are not silently regenerated or promoted by this correction.
+
+Explicit `SanitizationPolicy(version="config-sanitizer-0.2.0")` qualifies a
+bounded CIDR slice: `route`, `route-filter`, `network`, `aggregate-address`,
+`source-address`, `destination-address`, and inline `prefix-list NAME` network
+roles. It masks the transformed network's host bits, while explicit `address`
+or `ipv6 address` interface roles and bare next-hop/peer hosts retain the same
+address permutation. Invalid source networks and unknown CIDR roles are refused
+with a generic error; bare hierarchical prefix-list items and separate IPv4
+network/mask commands are not supported by this slice. It does not guarantee
+arbitrary vendor syntax, reserved-address class preservation, or full topology
+equivalence. Retained protocol-special addresses have the historical exceptions.
+
+Pass this policy through `import_local_dataset(..., sanitization_policy=policy)`.
+Segmentation and mutation accept both known versions, without resanitizing an
+existing record. The dataset quality policy still defaults to v1 for historical
+reproducibility: explicitly select the intended `allowed_sanitization_versions`
+when reviewing v2 data. A persisted bundle requires one sanitization version;
+do not silently mix versions or reuse a model's old evaluation claims. Query
+destinations must be transformed with the same version/key/topology as inputs.
 
 Sanitization is a defense-in-depth preprocessing step, not proof that arbitrary
 vendor syntax contains no identifying data. New vendors and syntax require

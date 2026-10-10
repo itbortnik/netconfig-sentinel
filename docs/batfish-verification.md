@@ -218,6 +218,13 @@ authored двухузловую модель, один класс мутации
 Строгий gate остаётся прежним. Test-only диагностический повтор выводит только
 ограниченные Type/Details для точных публичных authored inputs; Line_Text и полные
 строки ответа не выводятся, production worker по-прежнему не раскрывает diagnostics.
+Диагностический [повтор](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38040115561/job/114178500349)
+установил причину: v1 sanitization превратил network prefix в CIDR с ненулевыми
+host bits; parent получил один fatal parse warning, candidate без маршрута —
+ноль init issues. Это не отказ движка поддерживать hierarchy и не успешная
+проверка reachability. Исправленный сценарий явно выбирает ограниченную
+`config-sanitizer-0.2.0` и преобразует query destinations тем же ключом/scope.
+Успех исправленного live-запуска ещё требуется; прежние отказы сохранены.
 
 ## Привязка к существующему черновику
 

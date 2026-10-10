@@ -5,41 +5,46 @@ from __future__ import annotations
 import hashlib
 import hmac
 import re
-from ipaddress import IPv4Address, IPv6Address, ip_address
+from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-SANITIZATION_VERSION = "config-sanitizer-0.1.0"
+SANITIZATION_VERSION: Final = "config-sanitizer-0.1.0"
+NETWORK_SANITIZATION_VERSION: Final = "config-sanitizer-0.2.0"
+SUPPORTED_SANITIZATION_VERSIONS = (SANITIZATION_VERSION, NETWORK_SANITIZATION_VERSION)
+
+# Only explicit CIDR roles are qualified in v2. An unrecognized CIDR context
+# is refused rather than guessed (e.g. a bare item in a prefix-list block).
+_CIDR_NETWORK_ROLE = re.compile(
+    r"\b(?:route|route-filter|network|aggregate-address|source-address|"
+    r"destination-address|prefix-list\s+[^\s{};]+)\s+$",
+    re.I,
+)
+_CIDR_INTERFACE_ROLE = re.compile(r"(?<![\w-])(?:ipv6\s+)?address\s+$", re.I)
+_SEPARATE_NETWORK_MASK = re.compile(
+    r"^\s*(?:(?:ip\s+)?route|network)\s+(?:\d{1,3}\.){3}\d{1,3}\s+"
+    r"(?:\d{1,3}\.){3}\d{1,3}\b",
+    re.I,
+)
 
 _CISCO_HOSTNAME = re.compile(r"^(?P<prefix>\s*hostname\s+)(?P<value>\S+)", re.I)
 _JUNOS_HOSTNAME = re.compile(r"(?P<prefix>\bhost-name\s+)(?P<value>\S+)", re.I)
 _CISCO_USERNAME = re.compile(r"^(?P<prefix>\s*username\s+)(?P<value>\S+)", re.I)
-_CISCO_SNMP_USERNAME = re.compile(
-    r"^(?P<prefix>\s*snmp-server\s+user\s+)(?P<value>\S+)", re.I
-)
-_JUNOS_SET_USERNAME = re.compile(
-    r"(?P<prefix>\bsystem\s+login\s+user\s+)(?P<value>\S+)", re.I
-)
+_CISCO_SNMP_USERNAME = re.compile(r"^(?P<prefix>\s*snmp-server\s+user\s+)(?P<value>\S+)", re.I)
+_JUNOS_SET_USERNAME = re.compile(r"(?P<prefix>\bsystem\s+login\s+user\s+)(?P<value>\S+)", re.I)
 _JUNOS_SNMP_USERNAME = re.compile(
     r"(?P<prefix>\bsnmp\s+v3\s+usm\s+\S+\s+user\s+)(?P<value>\S+)", re.I
 )
-_JUNOS_BLOCK_USERNAME = re.compile(
-    r"^(?P<prefix>\s*user\s+)(?P<value>\S+)(?=\s*\{)", re.I
-)
+_JUNOS_BLOCK_USERNAME = re.compile(r"^(?P<prefix>\s*user\s+)(?P<value>\S+)(?=\s*\{)", re.I)
 _DOMAIN = re.compile(
     r"(?P<prefix>\b(?:ip\s+domain(?:-name|\s+name)|domain-name)\s+)"
     r"(?P<value>\S+)",
     re.I,
 )
-_CISCO_COMMUNITY = re.compile(
-    r"^(?P<prefix>\s*snmp-server\s+community\s+)(?P<value>\S+)", re.I
-)
-_JUNOS_SET_COMMUNITY = re.compile(
-    r"(?P<prefix>\bsnmp\s+community\s+)(?P<value>\S+)", re.I
-)
-_JUNOS_BLOCK_COMMUNITY = re.compile(
-    r"^(?P<prefix>\s*community\s+)(?P<value>\S+)(?=\s*\{)", re.I
-)
+_CISCO_COMMUNITY = re.compile(r"^(?P<prefix>\s*snmp-server\s+community\s+)(?P<value>\S+)", re.I)
+_JUNOS_SET_COMMUNITY = re.compile(r"(?P<prefix>\bsnmp\s+community\s+)(?P<value>\S+)", re.I)
+_JUNOS_BLOCK_COMMUNITY = re.compile(r"^(?P<prefix>\s*community\s+)(?P<value>\S+)(?=\s*\{)", re.I)
 _SECRET = re.compile(
     r"(?P<prefix>\b(?:"
     r"enable\s+(?:secret|password)|"
@@ -51,17 +56,13 @@ _SECRET = re.compile(
     r"(?P<value>\"[^\"]*\"|'[^']*'|\S+)",
     re.I,
 )
-_SNMP_AUTH_SECRET = re.compile(
-    r"(?P<prefix>\bauth\s+(?:md5|sha(?:-?\d+)?)\s+)(?P<value>\S+)", re.I
-)
+_SNMP_AUTH_SECRET = re.compile(r"(?P<prefix>\bauth\s+(?:md5|sha(?:-?\d+)?)\s+)(?P<value>\S+)", re.I)
 _SNMP_PRIV_SECRET = re.compile(
     r"(?P<prefix>\bpriv\s+(?:des|3des|aes(?:\s+\d+)?|aes-?\d+)\s+)"
     r"(?P<value>\S+)",
     re.I,
 )
-_STANDALONE_KEY = re.compile(
-    r"^(?P<prefix>\s*key\s+(?:[067]\s+)?)(?P<value>\S+)", re.I
-)
+_STANDALONE_KEY = re.compile(r"^(?P<prefix>\s*key\s+(?:[067]\s+)?)(?P<value>\S+)", re.I)
 _CONTACT = re.compile(
     r"^(?P<prefix>\s*(?:set\s+(?:system\s+contact|"
     r"snmp\s+(?:contact|location))|snmp-server\s+(?:contact|location)|"
@@ -97,6 +98,7 @@ class SanitizationPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     pseudonymize_ip_addresses: bool = True
+    version: Literal["config-sanitizer-0.1.0", "config-sanitizer-0.2.0"] = SANITIZATION_VERSION
 
 
 class SanitizationResult(BaseModel):
@@ -169,27 +171,13 @@ def sanitize_configuration(
             continue
 
         line = raw_line
-        line = _replace_alias(
-            line, _CISCO_HOSTNAME, "hostname", "host", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _JUNOS_HOSTNAME, "hostname", "host", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _CISCO_USERNAME, "username", "user", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _CISCO_SNMP_USERNAME, "username", "user", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _JUNOS_SET_USERNAME, "username", "user", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _JUNOS_SNMP_USERNAME, "username", "user", topology_key, counts
-        )
-        line = _replace_alias(
-            line, _JUNOS_BLOCK_USERNAME, "username", "user", topology_key, counts
-        )
+        line = _replace_alias(line, _CISCO_HOSTNAME, "hostname", "host", topology_key, counts)
+        line = _replace_alias(line, _JUNOS_HOSTNAME, "hostname", "host", topology_key, counts)
+        line = _replace_alias(line, _CISCO_USERNAME, "username", "user", topology_key, counts)
+        line = _replace_alias(line, _CISCO_SNMP_USERNAME, "username", "user", topology_key, counts)
+        line = _replace_alias(line, _JUNOS_SET_USERNAME, "username", "user", topology_key, counts)
+        line = _replace_alias(line, _JUNOS_SNMP_USERNAME, "username", "user", topology_key, counts)
+        line = _replace_alias(line, _JUNOS_BLOCK_USERNAME, "username", "user", topology_key, counts)
         line = _replace_alias(
             line, _DOMAIN, "domain", "domain", topology_key, counts, suffix=".invalid"
         )
@@ -211,15 +199,9 @@ def sanitize_configuration(
             counts,
         )
         line = _replace_fixed(line, _SECRET, "secret", "<redacted-secret>", counts)
-        line = _replace_fixed(
-            line, _SNMP_AUTH_SECRET, "secret", "<redacted-secret>", counts
-        )
-        line = _replace_fixed(
-            line, _SNMP_PRIV_SECRET, "secret", "<redacted-secret>", counts
-        )
-        line = _replace_fixed(
-            line, _STANDALONE_KEY, "secret", "<redacted-secret>", counts
-        )
+        line = _replace_fixed(line, _SNMP_AUTH_SECRET, "secret", "<redacted-secret>", counts)
+        line = _replace_fixed(line, _SNMP_PRIV_SECRET, "secret", "<redacted-secret>", counts)
+        line = _replace_fixed(line, _STANDALONE_KEY, "secret", "<redacted-secret>", counts)
         line = _replace_alias(
             line,
             _CISCO_PKI_CHAIN,
@@ -230,10 +212,12 @@ def sanitize_configuration(
         )
         line = _replace_contact(line, counts)
         if effective_policy.pseudonymize_ip_addresses:
-            line = _replace_ip_addresses(line, topology_key, counts)
+            line = _replace_ip_addresses(line, topology_key, counts, effective_policy.version)
         output.append(line)
 
-    return SanitizationResult(text="".join(output), replacements=counts)
+    return SanitizationResult(
+        text="".join(output), replacements=counts, version=effective_policy.version
+    )
 
 
 def pseudonymize_identifier(
@@ -286,9 +270,7 @@ def _replace_fixed(
 ) -> str:
     def replacement(match: re.Match[str]) -> str:
         _increment(counts, category)
-        return match.group("prefix") + _render_token(
-            match.group("value"), replacement_value
-        )
+        return match.group("prefix") + _render_token(match.group("value"), replacement_value)
 
     return pattern.sub(replacement, line)
 
@@ -301,9 +283,10 @@ def _replace_contact(line: str, counts: dict[str, int]) -> str:
     return _CONTACT.sub(replacement, line)
 
 
-def _replace_ip_addresses(
-    line: str, key: bytes, counts: dict[str, int]
-) -> str:
+def _replace_ip_addresses(line: str, key: bytes, counts: dict[str, int], version: str) -> str:
+    if version == NETWORK_SANITIZATION_VERSION and _SEPARATE_NETWORK_MASK.search(line):
+        raise ValueError("separate network masks are not supported by CIDR sanitization")
+
     def replacement(match: re.Match[str]) -> str:
         raw_value = match.group("value")
         address_text, separator, prefix = raw_value.partition("/")
@@ -311,12 +294,32 @@ def _replace_ip_addresses(
             address = ip_address(address_text)
         except ValueError:
             return raw_value
+        network_prefix = False
+        if separator and version == NETWORK_SANITIZATION_VERSION:
+            try:
+                length = int(prefix)
+                if not 0 <= length <= address.max_prefixlen:
+                    raise ValueError
+                context = match.string[: match.start()]
+                if _CIDR_NETWORK_ROLE.search(context):
+                    # Reject invalid source networks; never silently repair them.
+                    ip_network(raw_value, strict=True)
+                    network_prefix = True
+                elif not _CIDR_INTERFACE_ROLE.search(context):
+                    raise ValueError
+            except ValueError:
+                raise ValueError("unsupported or invalid CIDR sanitization context") from None
         if _preserve_address(address) or (
             isinstance(address, IPv4Address) and _looks_like_ipv4_mask(address)
         ):
             return raw_value
         _increment(counts, "ip_address")
         anonymized = _prefix_preserving_address(address, key)
+        if network_prefix:
+            # The address permutation preserves common prefixes, not zero host
+            # bits. Canonicalize network roles only; interface/next-hop aliases
+            # must remain the same host, including valid .0 addresses on /31.
+            anonymized = ip_network(f"{anonymized}/{prefix}", strict=False).network_address
         return f"{anonymized}{separator}{prefix}" if separator else str(anonymized)
 
     return _IPV6.sub(replacement, _IPV4.sub(replacement, line))

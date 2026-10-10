@@ -80,8 +80,19 @@ ruff/mypy на обеих платформах чистые. Четыре no-upl
 на `a74eba03752f9dcc38e9d02688b19e32d481c249` неуспешен: все четыре generated/control
 попытки вернули `incomplete / initialization_issues` до reachability queries.
 Очистка собственных сетей подтверждена, счётчики запросов отсутствуют, не равны
-нулю. Это не инфраструктурный pull-limit и не formal pass; причина инициализации
-уточняется ограниченной диагностикой только этих authored fixtures.
+нулю. Это не инфраструктурный pull-limit и не formal pass. Диагностический
+[повтор](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38040115561/job/114178500349)
+показал fatal warning: v1 sanitization оставлял ненулевые host bits в static
+network CIDR. Ограниченная [v2 CIDR policy](dataset-ingestion.md#sanitization)
+выбирается явно, не пересчитывает старые данные или model defaults. Исправленный
+сценарий использует её для configs и query destinations; успешный live result
+ещё не получен. Неизвестные CIDR роли и separate IPv4 masks в v2 отклоняются,
+а полная топологическая эквивалентность обезличивания не доказана.
+Локальная регрессия исправления: 2362 passes/27 skips/5 warnings, 255 связанных
+passes/4 live skips, 193 focused Pydantic 2.14 passes/4 live skips; ruff и mypy
+223 files на обеих платформах чистые. Новый installed wheel проверяет все 223
+runtime файла, 33 loaded imports, четыре no-upload случая и import/segment/
+generate/reverse round trip. Это не успешный live result или независимое качество.
 
 [Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
 добавлено вне canonical IR: новые uploads/API/история/UI используют фактические

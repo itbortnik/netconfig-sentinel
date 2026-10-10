@@ -15,6 +15,13 @@ uses those measured counts without changing the 19 supported property templates
 or old versions. Its encrypted saved analysis retains the full profile/report;
 old unmeasured snapshots are refused for peer 0.3, never silently reparsed.
 
+Dataset sanitization is also versioned separately from parsing. Explicit
+[v2 CIDR sanitization](dataset-ingestion.md#sanitization) canonicalizes only
+recognized network roles while preserving interface/next-hop host identity.
+Unknown CIDR roles and separate network masks are refused in that slice;
+historical v1 bytes/defaults are unchanged. This adds no vendor syntax or general
+topology-equivalence qualification.
+
 ## Cisco IOS / IOS-XE
 
 Supported in the current parser slice:

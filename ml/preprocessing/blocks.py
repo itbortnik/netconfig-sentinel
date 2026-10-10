@@ -11,7 +11,7 @@ from app.parsers import detect_vendor
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ml.datasets.models import ImportedDatasetRecord
-from ml.preprocessing.sanitization import SANITIZATION_VERSION
+from ml.preprocessing.sanitization import SUPPORTED_SANITIZATION_VERSIONS
 
 SEGMENTATION_VERSION = "config-blocks-0.1.0"
 
@@ -88,7 +88,7 @@ def segment_configuration(record: ImportedDatasetRecord) -> tuple[ConfigurationB
     text = record.sanitized_text
     if not text.strip() or len(text.encode("utf-8")) > 1024 * 1024:
         raise ValueError("segmentation requires nonempty text up to 1 MiB")
-    if record.sanitization_version != SANITIZATION_VERSION:
+    if record.sanitization_version not in SUPPORTED_SANITIZATION_VERSIONS:
         raise ValueError("unsupported sanitization version")
     if digest(text) != record.sanitized_sha256:
         raise ValueError("sanitized input hash mismatch")

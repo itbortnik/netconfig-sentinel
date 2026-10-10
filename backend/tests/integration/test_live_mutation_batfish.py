@@ -5,6 +5,7 @@ import json
 import os
 from datetime import UTC, datetime
 from importlib.metadata import version
+from ipaddress import ip_address, ip_network
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import UUID, uuid4
@@ -28,7 +29,15 @@ from ml.mutation import (
     mutate_configuration,
     reverse_mutation,
 )
-from ml.preprocessing import sanitize_configuration
+from ml.preprocessing import (
+    NETWORK_SANITIZATION_VERSION,
+    SanitizationPolicy,
+    sanitize_configuration,
+)
+
+OWNED_TOPOLOGY = "owned-hierarchical-route"
+OWNED_KEY = b"owned-fixture-only-pseudonym-key-001"
+OWNED_POLICY = SanitizationPolicy(version=NETWORK_SANITIZATION_VERSION)
 
 EDGE = """system {
     host-name owned-edge;
@@ -135,8 +144,9 @@ def _generated_pair() -> tuple[SyntheticMutationSample, NetworkSnapshot, Network
     sanitized = [
         sanitize_configuration(
             text,
-            topology_id="owned-hierarchical-route",
-            pseudonymization_key=b"owned-fixture-only-pseudonym-key-001",
+            topology_id=OWNED_TOPOLOGY,
+            pseudonymization_key=OWNED_KEY,
+            policy=OWNED_POLICY,
         )
         for text in (EDGE, CORE)
     ]
@@ -181,13 +191,42 @@ def _generated_pair() -> tuple[SyntheticMutationSample, NetworkSnapshot, Network
     return sample, before, after
 
 
+def _owned_scope(before: NetworkSnapshot, destination: str) -> ReachabilityScope:
+    # Scope and configs must use exactly the same version, topology and key.
+    sanitized = sanitize_configuration(
+        "destination-address " + destination,
+        topology_id=OWNED_TOPOLOGY,
+        pseudonymization_key=OWNED_KEY,
+        policy=OWNED_POLICY,
+    )
+    return ReachabilityScope(
+        start_node=before.configs[0].hostname, destination=sanitized.text.split()[1]
+    )
+
+
+def test_generated_scope_uses_the_same_sanitized_hosts_and_network() -> None:
+    _, before, _ = _generated_pair()
+    reachable = _owned_scope(before, "198.51.100.1/32").destination
+    peer = _owned_scope(before, "192.0.2.2/32").destination
+    edge, core = (item.text for item in before.configs)
+    assert reachable is not None and peer is not None
+    host = str(ip_network(reachable).network_address)
+    peer_host = str(ip_network(peer).network_address)
+    assert f"address {host}/24;" in core
+    assert f"address {peer_host}/30;" in core
+    assert f"next-hop {peer_host};" in edge
+    route = next(line.split()[1] for line in edge.splitlines() if line.strip().startswith("route "))
+    assert ip_address(host) in ip_network(route, strict=True)
+    assert host != "198.51.100.1" and peer_host != "192.0.2.2"
+
+
 @pytest.mark.parametrize("scenario,destination,candidate_selected,expected_status", SCENARIOS)
 def test_generated_pair_and_no_upload_gate_without_engine(
     scenario: str, destination: str, candidate_selected: bool, expected_status: str
 ) -> None:
     sample, before, candidate = _generated_pair()
     after = candidate if candidate_selected else before
-    scope = ReachabilityScope(start_node=before.configs[0].hostname, destination=destination)
+    scope = _owned_scope(before, destination)
     result = check_with_batfish(before, after, scope, allow_local_upload=False)
     assert result.status == "unavailable" and result.reason == "upload_not_authorized"
     assert result.before_sha256 == before.digest and result.after_sha256 == after.digest
@@ -208,7 +247,7 @@ def test_live_generated_hierarchical_route(
     sample, before, candidate = _generated_pair()
     serialized_sample = sample.model_dump_json()
     after = candidate if candidate_selected else before
-    scope = ReachabilityScope(start_node=before.configs[0].hostname, destination=destination)
+    scope = _owned_scope(before, destination)
     result = check_with_batfish(before, after, scope, allow_local_upload=True, timeout_seconds=120)
     if result.status == "incomplete" and scenario == "generated_route_loss":
         _owned_initialization_diagnostic(before, candidate)
@@ -224,6 +263,7 @@ def test_live_generated_hierarchical_route(
                 "sdk_version": version("pybatfish"),
                 "mutation_id": sample.mutation_id,
                 "mutation_engine_version": sample.engine_version,
+                "sanitization_version": OWNED_POLICY.version,
                 "source_sha256": sample.original_sha256,
                 "candidate_sha256": sample.mutated_sha256,
                 "before_snapshot_sha256": result.before_sha256,

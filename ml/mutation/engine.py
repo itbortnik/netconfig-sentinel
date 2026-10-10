@@ -28,7 +28,7 @@ from ml.mutation.models import (
     SyntheticAnomalyLabel,
     SyntheticMutationSample,
 )
-from ml.preprocessing import SANITIZATION_VERSION
+from ml.preprocessing import SUPPORTED_SANITIZATION_VERSIONS
 
 
 class MutationNotApplicableError(ValueError):
@@ -183,7 +183,7 @@ def mutate_configuration(
     actual_hash = _sha256(record.sanitized_text)
     if actual_hash != record.sanitized_sha256:
         raise ValueError("record sanitized text does not match its SHA-256")
-    if record.sanitization_version != SANITIZATION_VERSION:
+    if record.sanitization_version not in SUPPORTED_SANITIZATION_VERSIONS:
         raise ValueError("record uses an unsupported sanitization version")
     if record.vendor_hint is None:
         raise MutationNotApplicableError("mutation requires an explicit vendor hint")

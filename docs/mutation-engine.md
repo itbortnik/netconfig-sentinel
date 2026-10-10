@@ -136,6 +136,11 @@ Linux CI run and do not mutate the sample's historical formal status. The other
 13 JunOS-applicable classes gain no formal or device qualification from that test.
 Parser validation is not proof that a real device will accept the candidate or
 that the mutation has the intended topology-wide impact.
+The first generated live fixture was rejected because historical v1 sanitization
+did not canonicalize network CIDRs. The corrected fixture opts into the bounded
+[v2 CIDR policy](dataset-ingestion.md#sanitization), including matching query
+scopes. Both known sanitized record versions are accepted without changing their
+text or hashes. No successful corrected live result is asserted before execution.
 
 ## Avoiding generator artifacts
 
