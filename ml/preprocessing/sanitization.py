@@ -12,7 +12,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 SANITIZATION_VERSION: Final = "config-sanitizer-0.1.0"
 NETWORK_SANITIZATION_VERSION: Final = "config-sanitizer-0.2.0"
-SUPPORTED_SANITIZATION_VERSIONS = (SANITIZATION_VERSION, NETWORK_SANITIZATION_VERSION)
+PREFIX_LIST_SANITIZATION_VERSION: Final = "config-sanitizer-0.3.0"
+SUPPORTED_SANITIZATION_VERSIONS = (
+    SANITIZATION_VERSION,
+    NETWORK_SANITIZATION_VERSION,
+    PREFIX_LIST_SANITIZATION_VERSION,
+)
 
 # Only explicit CIDR roles are qualified in v2. An unrecognized CIDR context
 # is refused rather than guessed (e.g. a bare item in a prefix-list block).
@@ -25,6 +30,19 @@ _CIDR_INTERFACE_ROLE = re.compile(r"(?<![\w-])(?:ipv6\s+)?address\s+$", re.I)
 _SEPARATE_NETWORK_MASK = re.compile(
     r"^\s*(?:(?:ip\s+)?route|network)\s+(?:\d{1,3}\.){3}\d{1,3}\s+"
     r"(?:\d{1,3}\.){3}\d{1,3}\b",
+    re.I,
+)
+_CISCO_PREFIX_LIST_START = re.compile(r"^\s*(?:ip|ipv6)\s+prefix-list\s+", re.I)
+_CISCO_PREFIX_LIST_CONTEXT = re.compile(
+    r"^\s*(?:ip|ipv6)\s+prefix-list\s+[a-z0-9_][a-z0-9_.-]{0,127}\s+"
+    r"(?:seq\s+[0-9]{1,10}\s+)?(?:permit|deny)\s+$",
+    re.I,
+)
+_CISCO_PREFIX_LIST_ENTRY = re.compile(
+    r"^\s*(?P<family>ip|ipv6)\s+prefix-list\s+(?P<name>[a-z0-9_][a-z0-9_.-]{0,127})\s+"
+    r"(?:seq\s+(?P<sequence>[0-9]{1,10})\s+)?(?P<action>permit|deny)\s+"
+    r"(?P<network>[0-9a-f.:]+/[0-9]{1,3})"
+    r"(?:\s+ge\s+(?P<ge>[0-9]{1,3}))?(?:\s+le\s+(?P<le>[0-9]{1,3}))?\s*$",
     re.I,
 )
 
@@ -98,7 +116,9 @@ class SanitizationPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     pseudonymize_ip_addresses: bool = True
-    version: Literal["config-sanitizer-0.1.0", "config-sanitizer-0.2.0"] = SANITIZATION_VERSION
+    version: Literal[
+        "config-sanitizer-0.1.0", "config-sanitizer-0.2.0", "config-sanitizer-0.3.0"
+    ] = SANITIZATION_VERSION
 
 
 class SanitizationResult(BaseModel):
@@ -284,8 +304,14 @@ def _replace_contact(line: str, counts: dict[str, int]) -> str:
 
 
 def _replace_ip_addresses(line: str, key: bytes, counts: dict[str, int], version: str) -> str:
-    if version == NETWORK_SANITIZATION_VERSION and _SEPARATE_NETWORK_MASK.search(line):
+    canonical_networks = version in (
+        NETWORK_SANITIZATION_VERSION,
+        PREFIX_LIST_SANITIZATION_VERSION,
+    )
+    if canonical_networks and _SEPARATE_NETWORK_MASK.search(line):
         raise ValueError("separate network masks are not supported by CIDR sanitization")
+    if version == PREFIX_LIST_SANITIZATION_VERSION:
+        _validate_cisco_prefix_list_cidr(line)
 
     def replacement(match: re.Match[str]) -> str:
         raw_value = match.group("value")
@@ -295,13 +321,17 @@ def _replace_ip_addresses(line: str, key: bytes, counts: dict[str, int], version
         except ValueError:
             return raw_value
         network_prefix = False
-        if separator and version == NETWORK_SANITIZATION_VERSION:
+        if separator and canonical_networks:
             try:
                 length = int(prefix)
                 if not 0 <= length <= address.max_prefixlen:
                     raise ValueError
                 context = match.string[: match.start()]
-                if _CIDR_NETWORK_ROLE.search(context):
+                prefix_list_network = (
+                    version == PREFIX_LIST_SANITIZATION_VERSION
+                    and _CISCO_PREFIX_LIST_CONTEXT.fullmatch(context) is not None
+                )
+                if _CIDR_NETWORK_ROLE.search(context) or prefix_list_network:
                     # Reject invalid source networks; never silently repair them.
                     ip_network(raw_value, strict=True)
                     network_prefix = True
@@ -323,6 +353,38 @@ def _replace_ip_addresses(line: str, key: bytes, counts: dict[str, int], version
         return f"{anonymized}{separator}{prefix}" if separator else str(anonymized)
 
     return _IPV6.sub(replacement, _IPV4.sub(replacement, line))
+
+
+def _validate_cisco_prefix_list_cidr(line: str) -> None:
+    """Qualify only positive IOS/XE permit/deny CIDR entries, not vendor syntax."""
+    has_cidr = any(
+        "/" in match.group("value")
+        for pattern in (_IPV4, _IPV6)
+        for match in pattern.finditer(line)
+    )
+    if not _CISCO_PREFIX_LIST_START.match(line) or not has_cidr:
+        return
+    entry = _CISCO_PREFIX_LIST_ENTRY.fullmatch(line)
+    try:
+        if entry is None or entry.group("name").lower() in {"detail", "summary"}:
+            raise ValueError
+        sequence = entry.group("sequence")
+        if sequence is not None and not 1 <= int(sequence) <= 4_294_967_294:
+            raise ValueError
+        network = ip_network(entry.group("network"), strict=True)
+        if network.version != (4 if entry.group("family").lower() == "ip" else 6):
+            raise ValueError
+        ge_text, le_text = entry.group("ge"), entry.group("le")
+        ge = int(ge_text) if ge_text is not None else None
+        le = int(le_text) if le_text is not None else None
+        if ge is not None and not network.prefixlen < ge <= network.max_prefixlen:
+            raise ValueError
+        if le is not None and not network.prefixlen <= le <= network.max_prefixlen:
+            raise ValueError
+        if ge is not None and le is not None and ge > le:
+            raise ValueError
+    except ValueError:
+        raise ValueError("unsupported or invalid Cisco prefix-list CIDR entry") from None
 
 
 def _prefix_preserving_address(

@@ -36,7 +36,10 @@ Owned laboratory scenarios — не независимые реальные се
 публикации конфигураций. Получены 508 pinned entries/507 distinct raw blobs;
 content preflight пропустил к диагностическому парсеру 411 примеров, из них 386
 частичных. Остальные удержаны text/sanitization/residual/parser/file-review gates.
-Это не imported dataset или новые независимые сети: capture/entity metadata
+Последующий [v3 prefix-list preflight](evaluation/owned-prefix-list-sanitization.json)
+добавил восемь entries: 419 parsed, 393 partial; прежние 422 sanitizable входа
+побайтно одинаковы в paired v2/v3 run. Это не imported dataset или новые
+независимые сети: capture/entity metadata
 неизвестны, imported records/dataset bundles/training runs пока 0. Подтверждённые
 аномалии и independent-network counts отсутствуют, не подменяются нулями.
 
@@ -70,6 +73,20 @@ preflight. Общий scanner не ослабляет полный dataset gate:
 engine/DB/browser/model checks для этого slice не выполнялись. Для upstream
 collection всё ещё нужны metadata-aware import, дедупликация, допустимая изоляция
 и репрезентативный размеченный корпус; content preflight не закрывает эти gates.
+
+Explicit [v3 CIDR preprocessing](dataset-ingestion.md#sanitization) покрывает
+positive IOS/XE prefix-list entries, не новые команды парсера; v1/v2 не меняются.
+Отдельная поставка: 2435 full passes/27 skips/5 warnings, 149 focused и 149
+Pydantic 2.14 passes, ruff/default+win32 mypy 223 files. Installed wheel сверяет
+223 runtime файла и все 29 app/ml imports нового child; 65 authored checks,
+включая шесть import/parse/segment/mutate/reverse/quality/artifact round trips.
+Два isolated children сохранили прежний полный quality report. Actual upstream
+preflight не пишет bodies/keys и не создаёт fake network/capture metadata;
+независимое качество, source corpus import и реальные метки остаются открыты.
+Для предыдущей поставки shared scanner commit
+`ec3b202992a116e090254030fb997b6026e5d8b8` все четыре
+[CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38043151359)
+успешны. Это не новый exact-commit CI для v3 preprocessing.
 
 [Hierarchical JunOS mutation evidence](evaluation/owned-hierarchical-junos-mutations.json)
 проверяет opt-in offline 0.2: 14 классов, связанные изменения, source preservation,

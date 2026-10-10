@@ -58,8 +58,12 @@ not raw error messages or sensitive values. This run is not a durable corpus.
 | File-level content review pending | 1 |
 | Total | 508 |
 
-The nine residual refusals include six credential directives, two hostnames and
-one username. Of the 411 parsed entries, 386 have unparsed units and 40 have
+The nine residual refusals carry six secret-keyword flags, two hostname flags
+and one username flag. These are conservative scanner diagnoses, not nine
+confirmed secret disclosures: later inspection found valueless/negated commands,
+password authentication-order and other ambiguous contexts among them. They
+remain excluded; this stage does not weaken checks to force acceptance.
+Of the 411 parsed entries, 386 have unparsed units and 40 have
 warnings. The coverage denominator is 5,022 command units: 1,358 accepted and
 3,664 unparsed. These are adapter diagnostics, not vendor syntax qualification,
 deduplicated size or detector accuracy. Directory hints did not conflict with
@@ -84,3 +88,22 @@ Do not label every original healthy or convert parse warnings into anomaly
 ground truth. They may support parser robustness and reviewed training inputs,
 but do not supply real-confirmed labels, independent real calibration/test
 cohorts, or proof of unknown external pretraining exposure.
+
+## Prefix-list follow-up
+
+An explicit v3 preprocessing slice addresses Cisco prefix-list CIDR roles without
+loosening v2 or repairing invalid source networks. A second private preflight
+uses the same approved acquisition and a fresh ephemeral key. Paired v2/v3
+execution within that run confirms all 422 previously sanitizable entries have
+identical text and replacement counts; eight previously refused entries are now
+sanitizable and pass the unchanged residual scanner/diagnostic parser.
+
+The resulting 508-entry status distribution is 419 parsed, 74 sanitizer refusals,
+nine residual refusals, two vendor-detection refusals, three text refusals and
+one pending file review. Of the 419 parsed entries, 393 are partial and 40 have
+warnings: 1,411 accepted / 3,788 unparsed / 5,199 command units. This is not
+deduplicated size, improved detector accuracy or eight independent networks.
+Bodies/keys remain unpersisted and imports/bundles/training remain zero. The
+original v2 result above is retained as historical evidence, not overwritten.
+The [v3 evidence](evaluation/owned-prefix-list-sanitization.json) separates owned
+functional round trips from actual upstream content diagnostics.

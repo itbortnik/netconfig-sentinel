@@ -126,12 +126,31 @@ arbitrary vendor syntax, reserved-address class preservation, or full topology
 equivalence. Retained protocol-special addresses have the historical exceptions.
 
 Pass this policy through `import_local_dataset(..., sanitization_policy=policy)`.
-Segmentation and mutation accept both known versions, without resanitizing an
+Segmentation and mutation accept all three known versions, without resanitizing an
 existing record. The dataset quality policy still defaults to v1 for historical
 reproducibility: explicitly select the intended `allowed_sanitization_versions`
 when reviewing v2 data. A persisted bundle requires one sanitization version;
 do not silently mix versions or reuse a model's old evaluation claims. Query
 destinations must be transformed with the same version/key/topology as inputs.
+
+Explicit `SanitizationPolicy(version="config-sanitizer-0.3.0")` adds a bounded
+IOS/IOS-XE prefix-list CIDR role to v2. It accepts positive `ip|ipv6 prefix-list
+NAME [seq NUMBER] permit|deny NETWORK/LENGTH [ge N] [le N]` lines with a bounded
+ASCII identifier, optional sequence 1..4,294,967,294, canonical source network,
+matching address family and valid ordered prefix-length bounds. `ge` must exceed
+the base length; `le` cannot be shorter, `ge <= le`, and both are family-bounded.
+Entry action, sequence, order, bounds, indentation and line endings are retained.
+The network alias uses the same host permutation, then clears network host bits.
+The qualification follows the official [IOS-XE IPv4 reference](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9600/software/release/17-17/command_reference/b_1717_9600_cr/ip_routing_commands.html)
+and [IOS IPv6 reference](https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/ipv6/command/ipv6-cr-book/ipv6-i4.html).
+This conservative slice is not a vendor syntax validator: negative forms,
+CIDR-bearing descriptions/comments, duplicate/reversed bounds, unknown suffixes,
+mixed-family entries, bare JunOS hierarchy and separate IPv4 masks remain
+unqualified/refused. An explicit no-IP policy still disables IP preprocessing;
+it is not anonymous data. v1 default/output and explicit v2 output/refusals stay
+unchanged. The full quality gate must explicitly allow v3; old corpora/model
+claims are not migrated. [Local pinned-source diagnostics](dataset-source-review.md#prefix-list-follow-up)
+measure eight additional accepted entries, not independent data quality.
 
 Sanitization is a defense-in-depth preprocessing step, not proof that arbitrary
 vendor syntax contains no identifying data. New vendors and syntax require

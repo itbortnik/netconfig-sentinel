@@ -2,6 +2,7 @@
 
 from ml.preprocessing.sanitization import (
     NETWORK_SANITIZATION_VERSION,
+    PREFIX_LIST_SANITIZATION_VERSION,
     SANITIZATION_VERSION,
     SUPPORTED_SANITIZATION_VERSIONS,
     SanitizationPolicy,
@@ -12,6 +13,7 @@ from ml.preprocessing.sanitization import (
 
 __all__ = [
     "NETWORK_SANITIZATION_VERSION",
+    "PREFIX_LIST_SANITIZATION_VERSION",
     "SANITIZATION_VERSION",
     "SUPPORTED_SANITIZATION_VERSIONS",
     "SanitizationPolicy",

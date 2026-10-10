@@ -22,6 +22,12 @@ Unknown CIDR roles and separate network masks are refused in that slice;
 historical v1 bytes/defaults are unchanged. This adds no vendor syntax or general
 topology-equivalence qualification.
 
+Explicit [v3 Cisco prefix-list CIDR sanitization](dataset-ingestion.md#sanitization)
+adds bounded IOS/IOS-XE positive permit/deny entries with optional sequence and
+ordered `ge`/`le` bounds. v1/v2 outputs and refusal behavior stay unchanged.
+This is preprocessing for already parsed prefix lists, not new parser commands,
+vendor validation or evidence that a source fixture is healthy.
+
 ## Cisco IOS / IOS-XE
 
 Supported in the current parser slice:
