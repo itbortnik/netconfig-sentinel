@@ -63,10 +63,31 @@ representatives (3445 structural blocks), три malformed structures отказ
 Lexical approximation — 30819 tokens, не model tokenizer count. Исторический
 manifest/import/dedup/split/quality contract не ослаблен: observed splitter,
 full quality metrics, artifact writer и mutation lineage явно отказывают этому
-record kind. Частные staging JSON не являются training-ready corpus; bundles,
-train/selection/calibration runs по этому источнику всё ещё 0. Следующий
-выполнимый шаг — явный train-only exposure protocol, без независимых real-test
-claims и с учётом contamination/unknown upstream training exposure.
+record kind. На этапе intake частные staging JSON не были training-ready corpus;
+bundles/train/selection/calibration runs по этому источнику тогда были 0.
+Последующая [train-only интеграция](configuration-pretraining.md#train-only-source-fixtures)
+повторяет source permissions/inventory/current content/dedup gates, явно удерживает
+три malformed structures и обучает тот же движок на 412 fixtures/3445 blocks/
+4569 windows/**142500 content BPE tokens**. Это 46610 параметров и две фиксированные
+эпохи, не ориентиры большого корпуса или pretrained foundation encoder.
+Train weighted loss 19.0544→18.4906; validation/test/real-confirmed metrics остаются
+`null`, selection/calibration не выполнялись. Installed replay сохраняет идентичную
+model identity; повторный run не добавляет независимых данных. Обычный transfer/
+registry не принимают этот отдельный train-only bundle. Следующий разрыв —
+fixture-aware downstream exposure/contamination checks и проверяемый перенос,
+после него всё ещё нужны independent representative labels/calibration/test.
+
+Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
+2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
+checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel побайтно
+совпадает с runtime: два isolated children, 35 old/38 new app/ml target imports,
+51 новая проверка и actual source retraining с той же model identity. Сохранены
+старый полный six-record quality JSON, семь файлов dataset artifact и четыре
+файла actual objective bundle; прежний native train/validation run дал идентичные
+полный report и веса. Новые local live engine/DB/browser проверки не запускались.
+Точный предыдущий fixture-intake commit `1b11c06abdea95af6dd0dae713b63d2b9b01b84d`
+имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38046558911);
+это не exact-commit CI новой train-only поставки и не independent model quality.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;

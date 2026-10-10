@@ -8,7 +8,9 @@ The [approved pinned-source intake](dataset-source-review.md) records human
 authorization, exact local acquisition and content preflight. Its upstream
 fixtures still have unknown device-capture/entity metadata. The explicit fixture
 intake below now imports local reviewed candidates without fabricating those
-fields; no quality-gated split corpus or model training is claimed.
+fields. The later [explicit train-only route](configuration-pretraining.md#train-only-source-fixtures)
+performs bounded reconstruction training; no quality-gated split corpus or
+independent model-quality claim follows from intake.
 
 ## Source manifest
 

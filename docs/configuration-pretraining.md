@@ -140,3 +140,85 @@ pretrained/parameter-efficient transfer or online model activation is claimed.
 These objectives use [cross entropy](https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html),
 [binary cross entropy with logits](https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html)
 and [cosine embedding loss](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html).
+
+## Train-only source fixtures
+
+`ml.datasets.fixture_training.prepare_fixture_training_corpus` now connects the
+explicit unknown-metadata intake to the **same** byte-BPE, reconstruction target,
+CPU objective optimizer and checksum bundle implementations above. It is a
+separate `config-fixture-corpus-0.1.0` exposure contract, not a fabricated
+`DatasetSplitResult` or a weakened full dataset quality gate.
+
+The source must be approved for training. Its complete raw-hash/vendor inventory,
+source ID and acquisition time must match the imported records. Current content
+checks and deduplication are repeated; the unknown collection remains indivisible
+and entirely train-only. Its inventory includes duplicate members and holds,
+while the training fingerprint includes only deduplicated accepted representatives.
+Physical network/device/capture/role metadata remain unknown. A hash binds these
+declarations, not source rights, true labels or independent topology identity.
+
+Structural segmentation refusals fail by default. An operator must predeclare
+`structural_refusals: "exclude"` to hold them, with exact source references/hashes
+and an explicit reason in the audit. This option cannot hide content/hash/vendor,
+permission, source inventory or size errors. Unknown but segmentable commands
+remain in token reconstruction; parser acceptance does not certify vendor syntax.
+Token/command/typed-parameter objectives use the existing source-offset logic.
+Replaced-line, same-device and cross-vendor tasks are **disabled** and have `null`
+losses, not fake supervision from fixture filenames or collection membership.
+
+`train_fixture_tokenizer` trains only on accepted train representatives.
+`train_fixture_objectives` uses fixed predeclared epochs and keeps the **final**
+epoch, even if an earlier training loss is lower. No validation forward pass,
+selection, calibration or test metric is manufactured. The separate
+`config-fixture-pretraining-0.1.0` report binds the full exposure audit and protocol;
+validation fields are `null`. `save_pretraining` shares the existing writer;
+`load_fixture_pretraining` is the explicit loader. The old `load_pretraining` and
+ordinary objective-transfer validation refuse this train-only bundle. Optimizer
+resume, downstream fixture-aware transfer and registry/online activation are not
+implemented by this slice.
+
+The runnable path accepts a private fixture manifest, a JSON list of **all**
+sanitized imported records (not merely representatives when duplicates exist),
+and an operator-authored protocol JSON:
+
+```powershell
+python -m ml.training.fixture_pretraining_cli --manifest private/fixture-manifest.json --records private/imported-fixtures.json --protocol private/protocol.json --output artifacts/new-fixture-run
+```
+
+Example protocol for a bounded functional experiment, not production defaults:
+
+```json
+{
+  "corpus": {"structural_refusals": "exclude", "max_records": 512},
+  "tokenizer": {"vocab_size": 512, "min_frequency": 2, "context_length": 64},
+  "encoder": {"hidden_size": 32, "layers": 1, "heads": 2, "feedforward_size": 64, "dropout": 0},
+  "training": {"seed": 17, "epochs": 2, "batch_size": 16, "embedding_size": 16, "max_records": 512},
+  "weights": {"token": 1, "command": 1, "parameter": 1, "replaced_line": 0, "same_device": 0, "cross_vendor": 0}
+}
+```
+
+The CLI freezes the protocol before BPE/optimization, refuses overwrite, preserves
+an incomplete marker on failure, saves the bundle and verifies a load/identity
+round trip. Inputs and model artifacts stay in trusted private storage. CLI
+failure output does not echo configuration or model exception contents.
+
+[Measured source-fixture training](evaluation/owned-source-fixture-pretraining.json)
+on 2026-10-10 uses the already approved pinned Batfish source: 415 complete intake
+records, 415 content representatives, three structural holds, 412 train fixtures,
+3,445 blocks, 4,569 windows and **142,500 content BPE tokens**. This is distinct
+from the earlier 30,819 lexical-token approximation. Padding/special tokens and
+multiple epochs do not increase corpus size. The 46,610-parameter encoder trained
+for two fixed epochs; train weighted loss changed from 19.0544 to 18.4906.
+Validation/test metrics and confirmed real labels remain missing. All configurations,
+tokenizer/model artifacts and exposure inventories stay local; only aggregate
+evidence is public.
+
+The actual installed wheel retrains this same collection with identical model
+identity/weights. It also gives the exact prior report and weights for the existing
+six-objective train/validation demonstration and reads a real historical bundle
+without rewriting its four files. These are functional/reproducibility checks,
+not an independent benchmark or multiple independent corpora. No PoC/MVP scale,
+foundation pretraining, anomaly quality or complete Stage A qualification follows
+from this small reconstruction run. A downstream transfer must explicitly account
+for this source/duplicate/template exposure and unknown device/time identity;
+reserved test data must not be recycled to tune it.

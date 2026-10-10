@@ -14,6 +14,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from torch import Tensor, nn
 
 from ml.datasets import DatasetSplit, DatasetSplitResult
+from ml.datasets.fixture_training import (
+    FixtureTrainingAudit,
+    FixtureTrainingCorpus,
+    validate_fixture_training_corpus,
+)
 from ml.evaluation.cli import _unique_pairs
 from ml.evaluation.contracts import Digest
 from ml.evaluation.metrics import canonical_hash
@@ -30,6 +35,8 @@ from ml.training.pretraining_data import (
     ObjectiveData,
     PretrainingWeights,
     SemanticPair,
+    fixture_audit_identity,
+    prepare_fixture_pretraining,
     prepare_pretraining,
 )
 from ml.training.transformer import ConfigEncoderMLM, EncoderPolicy
@@ -156,6 +163,123 @@ class PretrainingResult:
     model: ObjectiveEncoder
     tokenizer: TokenizerArtifact
     report: PretrainingReport
+
+
+class FixturePretrainingEpoch(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    epoch: int = Field(ge=1)
+    train_components: dict[str, float | None]
+    train_total: float = Field(ge=0)
+    validation_components: None = None
+    validation_total: None = None
+
+
+class FixturePretrainingReport(BaseModel):
+    """Fixed final epoch; no validation selection, test metrics or device claims."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    version: Literal["config-fixture-pretraining-0.1.0"] = "config-fixture-pretraining-0.1.0"
+    encoder_policy: EncoderPolicy
+    training_policy: PretrainingPolicy
+    weights: PretrainingWeights
+    tokenizer_sha256: Digest
+    corpus: FixtureTrainingAudit
+    protocol_sha256: Digest
+    train_source_fingerprint: Digest
+    train_fingerprint: Digest
+    train_counts: dict[str, int]
+    train_windows: int = Field(ge=1)
+    parameter_count: int = Field(ge=1)
+    selection: Literal["fixed_final_epoch"] = "fixed_final_epoch"
+    selected_epoch: int = Field(ge=1)
+    losses: tuple[FixturePretrainingEpoch, ...]
+    torch_version: str
+    validation_source_fingerprint: None = None
+    validation_fingerprint: None = None
+    validation_counts: None = None
+    test_evaluated: Literal[False] = False
+    production_quality_proven: Literal[False] = False
+
+    @model_validator(mode="after")
+    def consistent(self) -> FixturePretrainingReport:
+        if (
+            self.weights.replaced_line
+            or self.weights.same_device
+            or self.weights.cross_vendor
+            or self.train_source_fingerprint != self.corpus.training_fingerprint
+            or self.selected_epoch != self.training_policy.epochs
+            or tuple(row.epoch for row in self.losses)
+            != tuple(range(1, self.training_policy.epochs + 1))
+            or set(self.train_counts) != set(TASKS)
+            or any(value < 0 for value in self.train_counts.values())
+            or any(self.train_counts[name] for name in TASKS[3:])
+            or self.corpus.training_count > self.training_policy.max_records
+            or self.train_windows > self.training_policy.max_windows
+        ):
+            raise ValueError("fixture pretraining exposure/selection is inconsistent")
+        expected_protocol = fixture_protocol_identity(
+            self.corpus,
+            self.tokenizer_sha256,
+            self.encoder_policy,
+            self.training_policy,
+            self.weights,
+        )
+        if self.protocol_sha256 != expected_protocol:
+            raise ValueError("fixture pretraining protocol binding differs")
+        for epoch in self.losses:
+            if set(epoch.train_components) != set(TASKS):
+                raise ValueError("fixture losses must identify all objective states")
+            expected = 0.0
+            for name, weight in self.weights.model_dump().items():
+                value = epoch.train_components[name]
+                if weight:
+                    if not self.train_counts[name] or value is None or value < 0:
+                        raise ValueError("enabled fixture objective lacks supervision/loss")
+                    expected += weight * value
+                elif value is not None:
+                    raise ValueError("disabled fixture loss must remain unmeasured")
+            if not math.isclose(expected, epoch.train_total, rel_tol=1e-6, abs_tol=1e-6):
+                raise ValueError("fixture weighted total differs from components")
+        return self
+
+
+@dataclass
+class FixturePretrainingResult:
+    model: ObjectiveEncoder
+    tokenizer: TokenizerArtifact
+    report: FixturePretrainingReport
+
+
+def fixture_protocol_identity(
+    corpus: FixtureTrainingAudit,
+    tokenizer_sha256: str,
+    encoder: EncoderPolicy,
+    policy: PretrainingPolicy,
+    weights: PretrainingWeights,
+) -> str:
+    """Bind the exposure and fixed protocol before optimization, not its outcomes."""
+    return canonical_hash(
+        {
+            "version": "config-fixture-pretraining-0.1.0",
+            "corpus": fixture_audit_identity(corpus),
+            "tokenizer": tokenizer_sha256,
+            "encoder": encoder.model_dump(mode="json"),
+            "training": policy.model_dump(mode="json"),
+            "weights": weights.model_dump(mode="json"),
+            "selection": "fixed_final_epoch",
+            "validation": None,
+            "test": None,
+        }
+    )
+
+
+@dataclass(frozen=True)
+class _ObjectiveEpoch:
+    epoch: int
+    train_components: dict[str, float | None]
+    train_total: float
+    validation_components: dict[str, float | None] | None
+    validation_total: float | None
 
 
 def _pooled(
@@ -328,54 +452,15 @@ def train_configuration_objectives(
         for pair in (*part.same_device, *part.cross_vendor):
             if max(len(pair.left), len(pair.right)) > policy.max_pair_windows:
                 raise ValueError("pretraining pair window budget exceeded")
-    previous_threads = torch.get_num_threads()
-    deterministic = torch.are_deterministic_algorithms_enabled()
-    warn = torch.is_deterministic_algorithms_warn_only_enabled()
-    try:
-        torch.set_num_threads(1)
-        torch.use_deterministic_algorithms(True)
-        with torch.random.fork_rng(devices=[]):
-            torch.manual_seed(policy.seed)
-            model = ObjectiveEncoder(tokenizer, encoder, policy)
-            optimizer = torch.optim.AdamW(
-                model.parameters(), lr=policy.learning_rate, weight_decay=policy.weight_decay
-            )
-            epochs, best, selected, state = [], float("inf"), 0, {}
-            for epoch in range(1, policy.epochs + 1):
-                model.train()
-                optimizer.zero_grad(set_to_none=True)
-                train_components, train_total = _run_objectives(
-                    model, data[DatasetSplit.TRAIN], policy, weights, backward=True
-                )
-                nn.utils.clip_grad_norm_(
-                    model.parameters(), policy.gradient_clip, error_if_nonfinite=True
-                )
-                optimizer.step()
-                model.eval()
-                with torch.no_grad():
-                    val_components, val_total = _run_objectives(
-                        model, data[DatasetSplit.VALIDATION], policy, weights, backward=False
-                    )
-                epochs.append(
-                    PretrainingEpoch(
-                        epoch=epoch,
-                        train_components=train_components,
-                        train_total=train_total,
-                        validation_components=val_components,
-                        validation_total=val_total,
-                    )
-                )
-                if val_total < best:
-                    best, selected = val_total, epoch
-                    state = {
-                        name: value.detach().clone() for name, value in model.state_dict().items()
-                    }
-            model.load_state_dict(state)
-            model.eval()
-    finally:
-        torch.use_deterministic_algorithms(deterministic, warn_only=warn)
-        torch.set_num_threads(previous_threads)
     train, validation = data[DatasetSplit.TRAIN], data[DatasetSplit.VALIDATION]
+    model, observations, selected = _optimize_objectives(
+        tokenizer,
+        encoder,
+        policy,
+        weights,
+        train,
+        validation,
+    )
     report = PretrainingReport(
         encoder_policy=encoder,
         training_policy=policy,
@@ -395,15 +480,166 @@ def train_configuration_objectives(
         },
         parameter_count=sum(parameter.numel() for parameter in model.parameters()),
         best_epoch=selected,
-        losses=tuple(epochs),
+        losses=tuple(
+            PretrainingEpoch(
+                epoch=row.epoch,
+                train_components=row.train_components,
+                train_total=row.train_total,
+                validation_components=cast(dict[str, float | None], row.validation_components),
+                validation_total=cast(float, row.validation_total),
+            )
+            for row in observations
+        ),
         torch_version=torch.__version__,
     )
     return PretrainingResult(model, tokenizer, report)
 
 
-def save_pretraining(result: PretrainingResult, path: Path) -> None:
-    report = PretrainingReport.model_validate(result.report.model_dump())
+def train_fixture_objectives(
+    corpus: FixtureTrainingCorpus,
+    tokenizer: TokenizerArtifact,
+    *,
+    encoder_policy: EncoderPolicy | None = None,
+    training_policy: PretrainingPolicy | None = None,
+    weights: PretrainingWeights | None = None,
+) -> FixturePretrainingResult:
+    """Actual shared optimizer, fixed epochs on approved unknown-metadata fixtures."""
+    corpus = validate_fixture_training_corpus(corpus)
+    encoder = EncoderPolicy.model_validate((encoder_policy or EncoderPolicy()).model_dump())
+    policy = PretrainingPolicy.model_validate((training_policy or PretrainingPolicy()).model_dump())
+    weights = PretrainingWeights.model_validate(
+        (
+            weights
+            or PretrainingWeights(
+                replaced_line=0,
+                same_device=0,
+                cross_vendor=0,
+            )
+        ).model_dump()
+    )
+    if weights.replaced_line or weights.same_device or weights.cross_vendor:
+        raise ValueError("fixtures cannot supply device/donor/semantic objective labels")
+    tokenizer = TokenizerArtifact.model_validate(tokenizer.model_dump())
+    data = prepare_fixture_pretraining(
+        corpus,
+        tokenizer,
+        seed=policy.seed,
+        max_records=policy.max_records,
+        max_windows=policy.max_windows,
+        max_examples=policy.max_examples,
+    )
+    if any(weight and not data.counts()[name] for name, weight in weights.model_dump().items()):
+        raise ValueError("enabled fixture pretraining objective lacks targets")
+    protocol = fixture_protocol_identity(
+        corpus.audit, tokenizer.tokenizer_sha256, encoder, policy, weights
+    )
+    model, observations, selected = _optimize_objectives(
+        tokenizer,
+        encoder,
+        policy,
+        weights,
+        data,
+        None,
+    )
+    report = FixturePretrainingReport(
+        encoder_policy=encoder,
+        training_policy=policy,
+        weights=weights,
+        tokenizer_sha256=tokenizer.tokenizer_sha256,
+        corpus=corpus.audit,
+        protocol_sha256=protocol,
+        train_source_fingerprint=data.source_fingerprint,
+        train_fingerprint=data.fingerprint,
+        train_counts=data.counts(),
+        train_windows=data.windows,
+        parameter_count=sum(parameter.numel() for parameter in model.parameters()),
+        selected_epoch=selected,
+        losses=tuple(
+            FixturePretrainingEpoch(
+                epoch=row.epoch,
+                train_components=row.train_components,
+                train_total=row.train_total,
+            )
+            for row in observations
+        ),
+        torch_version=torch.__version__,
+    )
+    return FixturePretrainingResult(model, tokenizer, report)
+
+
+def _optimize_objectives(
+    tokenizer: TokenizerArtifact,
+    encoder: EncoderPolicy,
+    policy: PretrainingPolicy,
+    weights: PretrainingWeights,
+    train: ObjectiveData,
+    validation: ObjectiveData | None,
+) -> tuple[ObjectiveEncoder, tuple[_ObjectiveEpoch, ...], int]:
+    """One implementation; known splits select validation, fixtures use the final epoch."""
+    previous_threads = torch.get_num_threads()
+    deterministic = torch.are_deterministic_algorithms_enabled()
+    warn = torch.is_deterministic_algorithms_warn_only_enabled()
+    try:
+        torch.set_num_threads(1)
+        torch.use_deterministic_algorithms(True)
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(policy.seed)
+            model = ObjectiveEncoder(tokenizer, encoder, policy)
+            optimizer = torch.optim.AdamW(
+                model.parameters(), lr=policy.learning_rate, weight_decay=policy.weight_decay
+            )
+            epochs, best, selected, state = [], float("inf"), 0, {}
+            for epoch in range(1, policy.epochs + 1):
+                model.train()
+                optimizer.zero_grad(set_to_none=True)
+                train_components, train_total = _run_objectives(
+                    model, train, policy, weights, backward=True
+                )
+                nn.utils.clip_grad_norm_(
+                    model.parameters(), policy.gradient_clip, error_if_nonfinite=True
+                )
+                optimizer.step()
+                model.eval()
+                val_components, val_total = None, None
+                if validation is not None:
+                    with torch.no_grad():
+                        val_components, val_total = _run_objectives(
+                            model, validation, policy, weights, backward=False
+                        )
+                epochs.append(
+                    _ObjectiveEpoch(
+                        epoch=epoch,
+                        train_components=train_components,
+                        train_total=train_total,
+                        validation_components=val_components,
+                        validation_total=val_total,
+                    )
+                )
+                if val_total is None or val_total < best:
+                    best, selected = val_total if val_total is not None else best, epoch
+                    state = {
+                        name: value.detach().clone() for name, value in model.state_dict().items()
+                    }
+            model.load_state_dict(state)
+            model.eval()
+    finally:
+        torch.use_deterministic_algorithms(deterministic, warn_only=warn)
+        torch.set_num_threads(previous_threads)
+    return model, tuple(epochs), selected
+
+
+def save_pretraining(result: PretrainingResult | FixturePretrainingResult, path: Path) -> None:
+    report: PretrainingReport | FixturePretrainingReport
+    if isinstance(result, FixturePretrainingResult):
+        report = FixturePretrainingReport.model_validate(result.report.model_dump())
+    else:
+        report = PretrainingReport.model_validate(result.report.model_dump())
     tokenizer = TokenizerArtifact.model_validate(result.tokenizer.model_dump())
+    if isinstance(report, FixturePretrainingReport) and (
+        report.corpus.training_count != tokenizer.training_record_count
+        or report.corpus.block_count != tokenizer.training_block_count
+    ):
+        raise ValueError("fixture bundle tokenizer/exposure counts differ")
     if report.tokenizer_sha256 != tokenizer.tokenizer_sha256 or (
         report.train_source_fingerprint != tokenizer.training_fingerprint
         or report.encoder_policy != result.model.encoder_policy
@@ -434,6 +670,23 @@ def save_pretraining(result: PretrainingResult, path: Path) -> None:
 
 
 def load_pretraining(path: Path) -> PretrainingResult:
+    model, tokenizer, report = _load_pretraining(path, fixture=False)
+    return PretrainingResult(model, tokenizer, cast(PretrainingReport, report))
+
+
+def load_fixture_pretraining(path: Path) -> FixturePretrainingResult:
+    model, tokenizer, report = _load_pretraining(path, fixture=True)
+    return FixturePretrainingResult(model, tokenizer, cast(FixturePretrainingReport, report))
+
+
+def _load_pretraining(
+    path: Path,
+    *,
+    fixture: bool,
+) -> tuple[ObjectiveEncoder, TokenizerArtifact, PretrainingReport | FixturePretrainingReport]:
+    expected_version = (
+        "config-fixture-pretraining-0.1.0" if fixture else "config-objective-pretraining-0.1.0"
+    )
     files = {"tokenizer.json", "report.json", "weights.pt", "manifest.json"}
     if path.is_symlink() or not path.is_dir() or {item.name for item in path.iterdir()} != files:
         raise ValueError("pretraining bundle is missing, unsafe or incomplete")
@@ -448,7 +701,7 @@ def load_pretraining(path: Path) -> PretrainingResult:
         not isinstance(manifest, dict)
         or set(manifest) != {"version", "files"}
         or (
-            manifest["version"] != "config-objective-pretraining-0.1.0"
+            manifest["version"] != expected_version
             or not isinstance(manifest["files"], dict)
             or set(manifest["files"]) != files - {"manifest.json"}
             or any(_file_hash(path / name) != value for name, value in manifest["files"].items())
@@ -458,12 +711,21 @@ def load_pretraining(path: Path) -> PretrainingResult:
     payload = json.loads(
         (path / "report.json").read_text(encoding="utf-8"), object_pairs_hook=_unique_pairs
     )
-    report = PretrainingReport.model_validate(payload)
+    report: PretrainingReport | FixturePretrainingReport = (
+        FixturePretrainingReport.model_validate(payload)
+        if fixture
+        else PretrainingReport.model_validate(payload)
+    )
     tokenizer = load_tokenizer(path / "tokenizer.json")
     if report.tokenizer_sha256 != tokenizer.tokenizer_sha256 or (
         report.train_source_fingerprint != tokenizer.training_fingerprint
     ):
         raise ValueError("pretraining bundle tokenizer/report mismatch")
+    if isinstance(report, FixturePretrainingReport) and (
+        report.corpus.training_count != tokenizer.training_record_count
+        or report.corpus.block_count != tokenizer.training_block_count
+    ):
+        raise ValueError("fixture bundle tokenizer/exposure counts differ")
     with torch.random.fork_rng(devices=[]):
         model = ObjectiveEncoder(tokenizer, report.encoder_policy, report.training_policy)
     if sum(parameter.numel() for parameter in model.parameters()) != report.parameter_count:
@@ -473,17 +735,22 @@ def load_pretraining(path: Path) -> PretrainingResult:
     )
     if any(not bool(torch.isfinite(value).all()) for value in model.state_dict().values()):
         raise ValueError("pretraining bundle has nonfinite weights")
-    return PretrainingResult(model.eval(), tokenizer, report)
+    return model.eval(), tokenizer, report
 
 
-def pretraining_identity(result: PretrainingResult) -> str:
+def pretraining_identity(result: PretrainingResult | FixturePretrainingResult) -> str:
     checksum = hashlib.sha256()
     for name, value in sorted(result.model.state_dict().items()):
         checksum.update(json.dumps((name, tuple(value.shape), str(value.dtype))).encode())
         checksum.update(value.detach().cpu().contiguous().numpy().tobytes())
+    payload = result.report.model_dump(mode="json")
+    if isinstance(result, FixturePretrainingResult):
+        payload["corpus"]["source"]["allowed_uses"] = sorted(
+            result.report.corpus.source.allowed_uses,
+        )
     return canonical_hash(
         {
-            "report": result.report.model_dump(mode="json"),
+            "report": payload,
             "weights_sha256": checksum.hexdigest(),
         }
     )

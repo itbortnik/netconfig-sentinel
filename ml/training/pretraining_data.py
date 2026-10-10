@@ -15,6 +15,12 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, model_validator
 from tokenizers import Tokenizer
 
 from ml.datasets import DatasetSplit, DatasetSplitResult, ImportedDatasetRecord
+from ml.datasets.fixture_training import (
+    FixtureTrainingAudit,
+    FixtureTrainingCorpus,
+    validate_fixture_training_corpus,
+)
+from ml.datasets.models import ImportedDatasetFixtureRecord
 from ml.evaluation.contracts import Digest
 from ml.evaluation.metrics import canonical_hash
 from ml.preprocessing.blocks import ConfigurationBlock, digest, segment_configuration
@@ -368,37 +374,12 @@ def prepare_pretraining(
         rows = partitions[split]
         if not rows or len(rows) > max_records:
             raise ValueError("pretraining record budget exceeded or empty partition")
-        blocks: dict[str, tuple[ConfigurationBlock, ...]] = {}
-        encoded: dict[str, list[tuple[TokenWindow, ...]]] = {}
-        token: list[MaskedWindow] = []
-        command: list[MaskedWindow] = []
-        parameter: list[MaskedWindow] = []
-        windows = 0
-        for row in rows:
-            if row.vendor_hint not in (Vendor.CISCO, Vendor.JUNIPER):
-                raise ValueError("pretraining requires an explicit supported vendor")
-            blocks[row.sanitized_sha256] = segment_configuration(row)
-            encoded[row.sanitized_sha256] = []
-            for block in blocks[row.sanitized_sha256]:
-                batch = encode_block(block, tokenizer)
-                windows += len(batch)
-                if windows > max_windows:
-                    raise ValueError("pretraining window budget exceeded; no truncation")
-                encoded[row.sanitized_sha256].append(batch)
-                token.extend(
-                    mask_window(window, vocab_size=tokenizer.actual_vocab_size, seed=seed)
-                    for window in batch
-                )
-                command.extend(
-                    _mask_spans(
-                        block, batch, tokenizer, _command_spans(block.text, row.vendor_hint), seed
-                    )
-                )
-                parameter.extend(
-                    _mask_spans(
-                        block, batch, tokenizer, _parameter_spans(block.text, row.vendor_hint), seed
-                    )
-                )
+        blocks, encoded, token, command, parameter, windows = _reconstruction_targets(
+            rows,
+            tokenizer,
+            seed=seed,
+            max_windows=max_windows,
+        )
         replaced = _replacements(rows, blocks, tokenizer, max_examples)
         same: list[PairExample] = []
         for row in rows:
@@ -486,3 +467,120 @@ def prepare_pretraining(
             tuple(sorted(scopes)),
         )
     return result
+
+
+def _reconstruction_targets(
+    rows: tuple[ImportedDatasetRecord, ...] | tuple[ImportedDatasetFixtureRecord, ...],
+    tokenizer: TokenizerArtifact,
+    *,
+    seed: int,
+    max_windows: int,
+) -> tuple[
+    dict[str, tuple[ConfigurationBlock, ...]],
+    dict[str, list[tuple[TokenWindow, ...]]],
+    list[MaskedWindow],
+    list[MaskedWindow],
+    list[MaskedWindow],
+    int,
+]:
+    """Shared source-offset construction, without device or semantic assumptions."""
+    blocks: dict[str, tuple[ConfigurationBlock, ...]] = {}
+    encoded: dict[str, list[tuple[TokenWindow, ...]]] = {}
+    token: list[MaskedWindow] = []
+    command: list[MaskedWindow] = []
+    parameter: list[MaskedWindow] = []
+    windows = 0
+    for row in rows:
+        if row.vendor_hint not in (Vendor.CISCO, Vendor.JUNIPER):
+            raise ValueError("pretraining requires an explicit supported vendor")
+        blocks[row.sanitized_sha256] = segment_configuration(row)
+        encoded[row.sanitized_sha256] = []
+        for block in blocks[row.sanitized_sha256]:
+            batch = encode_block(block, tokenizer)
+            windows += len(batch)
+            if windows > max_windows:
+                raise ValueError("pretraining window budget exceeded; no truncation")
+            encoded[row.sanitized_sha256].append(batch)
+            token.extend(
+                mask_window(window, vocab_size=tokenizer.actual_vocab_size, seed=seed)
+                for window in batch
+            )
+            command.extend(
+                _mask_spans(
+                    block,
+                    batch,
+                    tokenizer,
+                    _command_spans(block.text, row.vendor_hint),
+                    seed,
+                )
+            )
+            parameter.extend(
+                _mask_spans(
+                    block,
+                    batch,
+                    tokenizer,
+                    _parameter_spans(block.text, row.vendor_hint),
+                    seed,
+                )
+            )
+    return blocks, encoded, token, command, parameter, windows
+
+
+def prepare_fixture_pretraining(
+    corpus: FixtureTrainingCorpus,
+    tokenizer: TokenizerArtifact,
+    *,
+    seed: int = 17,
+    max_records: int = 512,
+    max_windows: int = 10000,
+    max_examples: int = 20000,
+) -> ObjectiveData:
+    """Only reconstruction; no invented same-device, donor or semantic labels."""
+    if not 0 <= seed <= 2**31 - 1 or not (
+        1 <= max_records <= 2048 and 1 <= max_windows <= 100000 and 1 <= max_examples <= 100000
+    ):
+        raise ValueError("invalid fixture pretraining construction budgets")
+    corpus = validate_fixture_training_corpus(corpus)
+    tokenizer = TokenizerArtifact.model_validate(tokenizer.model_dump())
+    if tokenizer.training_fingerprint != corpus.audit.training_fingerprint or (
+        tokenizer.training_record_count != len(corpus.records)
+        or tokenizer.training_block_count != corpus.audit.block_count
+    ):
+        raise ValueError("fixture tokenizer belongs to a different training corpus")
+    if len(corpus.records) > max_records:
+        raise ValueError("fixture pretraining record budget exceeded")
+    _, _, token, command, parameter, windows = _reconstruction_targets(
+        corpus.records,
+        tokenizer,
+        seed=seed,
+        max_windows=max_windows,
+    )
+    if max(len(token), len(command), len(parameter)) > max_examples:
+        raise ValueError("fixture pretraining objective example budget exceeded")
+    return ObjectiveData(
+        tuple(token),
+        tuple(command),
+        tuple(parameter),
+        (),
+        (),
+        (),
+        canonical_hash(
+            {
+                "version": "config-fixture-pretraining-data-0.1.0",
+                "construction_version": DATA_VERSION,
+                "seed": seed,
+                "corpus": fixture_audit_identity(corpus.audit),
+                "tokenizer": tokenizer.tokenizer_sha256,
+            }
+        ),
+        corpus.audit.training_fingerprint,
+        len(corpus.records),
+        windows,
+        (),
+    )
+
+
+def fixture_audit_identity(audit: FixtureTrainingAudit) -> str:
+    payload = audit.model_dump(mode="json")
+    payload["source"]["allowed_uses"] = sorted(audit.source.allowed_uses)
+    return canonical_hash(payload)

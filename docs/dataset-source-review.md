@@ -129,8 +129,10 @@ Earlier strict results and the corrected final run are retained separately.
 
 Of the intermediate 413 parsed entries, 387 were partial and 40 had warnings: 1,384 accepted /
 3,697 unparsed / 5,081 command units. Both older preflights remain untouched.
-Physical/capture metadata remain unknown, sanitized bodies/keys are not stored,
-and imports/bundles/training remain zero. [Residual-gate evidence](evaluation/owned-residual-content-gate.json)
+At those preflight stages physical/capture metadata remained unknown,
+sanitized bodies/keys were not stored, and imports/bundles/training were zero.
+The later private intake and training follow-ups are recorded below.
+[Residual-gate evidence](evaluation/owned-residual-content-gate.json)
 records the stricter scope and historical compatibility separately from v3 CIDR
 qualification or independent data/model quality.
 
@@ -164,8 +166,34 @@ quality-gated split artifact format. The observed splitter/quality metrics/
 artifact writer/current mutation lineage refuse fixture records before creating
 any corpus or target. Independent networks, capture-time measurements and
 confirmed-real labels remain missing (`null`). No train/validation/test partitions,
-model training, selection or calibration have been run on this source. A reviewed
-train-only exposure protocol remains the next integration boundary.
+model training, selection or calibration had been run on this source at that
+intake stage. The subsequent train-only integration is recorded below; the
+historical intake evidence is not rewritten as a model-quality result.
 
 [Owned intake evidence](evaluation/owned-source-fixture-intake.json) records the
 actual source run, installed-package replay and unchanged historical contracts.
+
+## Bounded train-only reconstruction follow-up
+
+The [explicit fixture training route](configuration-pretraining.md#train-only-source-fixtures)
+now uses these approved private records without new acquisition or fabricated
+metadata. It rechecks training permission and complete manifest inventory,
+current sanitized content and shared deduplication, and keeps the entire unknown
+collection in train. Three malformed structures are explicitly held under the
+predeclared exclusion policy, not silently omitted from the input inventory.
+No held licensing/text/sanitization/residual entries from the original 508-entry
+acquisition are reintroduced.
+
+The bounded run trains on 412 representatives/3,445 blocks/4,569 windows with
+142,500 content BPE tokens, two fixed epochs and 46,610 parameters. Only token,
+command and typed-parameter reconstruction have targets. Device/donor/semantic
+tasks cannot be inferred from these fixtures. A saved bundle round trip and
+actual installed-package retraining reproduce the same model identity. Losses
+describe training, not independent anomaly detection or confirmed healthy parents.
+No validation/test partition, calibration, real labels, public configurations or
+online model activation is claimed. Duplicate/source/template exposure must be
+accounted for in any later downstream transfer or benchmark.
+
+[Aggregate training evidence](evaluation/owned-source-fixture-pretraining.json)
+retains the fixed protocol, input/model/tokenizer hashes, local checks and
+historical compatibility separately from independent quality.

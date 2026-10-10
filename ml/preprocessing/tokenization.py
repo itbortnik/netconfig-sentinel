@@ -11,6 +11,11 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 
+from ml.datasets.fixture_training import (
+    FixtureTrainingCorpus,
+    validate_fixture_training_corpus,
+)
+from ml.datasets.models import ImportedDatasetFixtureRecord, ImportedDatasetRecord
 from ml.datasets.splitting import DatasetSplit, DatasetSplitResult
 from ml.preprocessing.blocks import (
     ConfigurationBlock,
@@ -122,6 +127,24 @@ def train_config_tokenizer(
     _validate_split_entities(splits)
     partition = next(item for item in splits.partitions if item.split is DatasetSplit.TRAIN)
     records = sorted(partition.records, key=lambda item: (item.source_id, item.record_id))
+    return _train_tokenizer(tuple(records), effective)
+
+
+def train_fixture_tokenizer(
+    corpus: FixtureTrainingCorpus,
+    *,
+    policy: TokenizerPolicy | None = None,
+) -> TokenizerArtifact:
+    """Same byte-BPE engine on an explicit audited train-only fixture collection."""
+    corpus = validate_fixture_training_corpus(corpus)
+    effective = TokenizerPolicy.model_validate((policy or TokenizerPolicy()).model_dump())
+    return _train_tokenizer(corpus.records, effective)
+
+
+def _train_tokenizer(
+    records: tuple[ImportedDatasetRecord, ...] | tuple[ImportedDatasetFixtureRecord, ...],
+    effective: TokenizerPolicy,
+) -> TokenizerArtifact:
     blocks = [block for record in records for block in segment_configuration(record)]
     tokenizer = Tokenizer(models.BPE(unk_token="[UNK]"))
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
