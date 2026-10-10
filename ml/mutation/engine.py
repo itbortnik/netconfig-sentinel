@@ -8,6 +8,7 @@ from collections import Counter
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from difflib import SequenceMatcher
+from typing import Literal
 
 from app.domain import CanonicalConfig, Vendor
 from app.parsers import parse_configuration
@@ -16,7 +17,10 @@ from ml.datasets.deduplication import DatasetRecordReference
 from ml.datasets.models import ImportedDatasetRecord
 from ml.mutation.models import (
     MUTATION_ENGINE_VERSION,
+    STRUCTURAL_MUTATION_ENGINE_VERSION,
     MutationFormalValidation,
+    MutationLineChange,
+    MutationLocalization,
     MutationOperation,
     MutationSyntaxValidation,
     MutationType,
@@ -159,9 +163,12 @@ def mutate_configuration(
     mutation_types: Sequence[MutationType],
     *,
     seed: int = 0,
+    engine_version: str = MUTATION_ENGINE_VERSION,
 ) -> SyntheticMutationSample:
     """Apply one to five unique mutations and validate the resulting syntax."""
 
+    if engine_version not in {MUTATION_ENGINE_VERSION, STRUCTURAL_MUTATION_ENGINE_VERSION}:
+        raise ValueError("unsupported mutation engine version")
     requested = tuple(MutationType(item) for item in mutation_types)
     if not requested:
         raise ValueError("at least one mutation type is required")
@@ -169,6 +176,8 @@ def mutate_configuration(
         raise ValueError("at most five linked mutation types are allowed")
     if len(requested) != len(set(requested)):
         raise ValueError("mutation types must be unique within one sample")
+    if engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION and type(seed) is not int:
+        raise ValueError("structural mutation seed must be an integer")
     if seed < 0 or seed > 2**63 - 1:
         raise ValueError("seed must fit the supported non-negative range")
     actual_hash = _sha256(record.sanitized_text)
@@ -180,23 +189,63 @@ def mutate_configuration(
         raise MutationNotApplicableError("mutation requires an explicit vendor hint")
 
     layout = _text_layout(record.sanitized_text)
+    structural = engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION
+    if structural:
+        if record.vendor_hint is not Vendor.JUNIPER:
+            raise MutationNotApplicableError("structural version requires hierarchical JunOS")
+        if len(record.sanitized_text.encode("utf-8")) > 1_048_576:
+            raise MutationNotApplicableError("hierarchical source exceeds the byte budget")
+        from ml.mutation.junos_hierarchy import validate_hierarchical_source
+
+        validate_hierarchical_source(layout.lines)
     original_config = _parse(record, record.sanitized_text)
     if original_config.device.vendor is not record.vendor_hint:
         raise MutationValidationError("vendor hint does not match parser detection")
-    _require_supported_style(layout.lines, record.vendor_hint)
+    if not structural:
+        _require_supported_style(layout.lines, record.vendor_hint)
+    elif original_config.parse_warnings:
+        raise MutationNotApplicableError("structural mutation requires a warning-free parent")
 
     lines = list(layout.lines)
     operations: list[MutationOperation] = []
     for mutation_type in requested:
-        handler = _HANDLERS[mutation_type]
-        lines, operation = handler(
-            lines,
-            record.vendor_hint,
-            seed,
-            record.sanitized_sha256,
-            mutation_type,
-            _SPECS[mutation_type],
-        )
+        if structural:
+            from ml.mutation.junos_hierarchy import mutate_hierarchy
+
+            before_text = layout.render(lines)
+            before_config = _parse(record, before_text)
+            lines, operation = mutate_hierarchy(
+                lines,
+                before_config,
+                seed,
+                record.sanitized_sha256,
+                mutation_type,
+                _SPECS[mutation_type],
+            )
+            after_text = layout.render(lines)
+            if len(after_text.encode("utf-8")) > 1_048_576:
+                raise MutationValidationError("structural result exceeds the byte budget")
+            after_config = _parse(record, after_text)
+            if after_config.parse_warnings or Counter(
+                item.raw_text for item in after_config.unparsed_fragments
+            ) != Counter(item.raw_text for item in before_config.unparsed_fragments):
+                raise MutationValidationError("structural operation changed parser uncertainty")
+            if not _effect_observed(
+                mutation_type, before_config, after_config, before_text, after_text
+            ):
+                raise MutationValidationError(
+                    f"expected mutation effect was not observed: {mutation_type.value}"
+                )
+        else:
+            handler = _HANDLERS[mutation_type]
+            lines, operation = handler(
+                lines,
+                record.vendor_hint,
+                seed,
+                record.sanitized_sha256,
+                mutation_type,
+                _SPECS[mutation_type],
+            )
         operations.append(operation)
 
     mutated_text = layout.render(lines)
@@ -205,10 +254,7 @@ def mutate_configuration(
         raise MutationValidationError("mutation changed vendor detection")
     route_map_partial = MutationType.ROUTE_MAP_ORDER_CHANGE in requested
     introduced_warnings = sum(
-        (
-            Counter(mutated_config.parse_warnings)
-            - Counter(original_config.parse_warnings)
-        ).values()
+        (Counter(mutated_config.parse_warnings) - Counter(original_config.parse_warnings)).values()
     )
     introduced_unparsed = (
         0
@@ -224,6 +270,10 @@ def mutate_configuration(
         raise MutationValidationError(
             "mutation introduced parser warnings or unsupported fragments"
         )
+    if structural and Counter(
+        item.raw_text for item in mutated_config.unparsed_fragments
+    ) != Counter(item.raw_text for item in original_config.unparsed_fragments):
+        raise MutationValidationError("structural mutation changed unsupported fragments")
     for mutation_type in requested:
         if not _effect_observed(
             mutation_type,
@@ -242,9 +292,16 @@ def mutate_configuration(
         requested,
         seed,
         mutated_hash,
+        engine_version=engine_version,
     )
-    affected_lines = _changed_line_numbers(layout.lines, lines)
-    return SyntheticMutationSample(
+    localization = _localization(layout.lines, lines) if structural else None
+    affected_lines = (
+        localization.changed_result_lines
+        if localization is not None
+        else _changed_line_numbers(layout.lines, lines)
+    )
+    sample = SyntheticMutationSample(
+        engine_version=engine_version,
         mutation_id=mutation_id,
         source_record=DatasetRecordReference(
             source_id=record.source_id,
@@ -264,15 +321,14 @@ def mutate_configuration(
             for mutation_type in requested
         ),
         affected_lines=affected_lines,
+        localization=localization,
         syntax_validation=MutationSyntaxValidation(
             status=(
                 MutationValidationStatus.PARTIAL
-                if route_map_partial
+                if route_map_partial or (structural and mutated_config.unparsed_fragments)
                 else MutationValidationStatus.PASSED
             ),
-            parser=(
-                "cisco_ios" if record.vendor_hint is Vendor.CISCO else "juniper_junos"
-            ),
+            parser=("cisco_ios" if record.vendor_hint is Vendor.CISCO else "juniper_junos"),
             parser_confidence=mutated_config.parser_confidence,
             warning_count=len(mutated_config.parse_warnings),
             unparsed_fragment_count=len(mutated_config.unparsed_fragments),
@@ -285,7 +341,11 @@ def mutate_configuration(
                 ),
             )
             if route_map_partial
-            else (),
+            else (
+                ("Unsupported parent fragments are preserved, not semantically validated.",)
+                if structural and mutated_config.unparsed_fragments
+                else ()
+            ),
         ),
         formal_validation=MutationFormalValidation(
             status=MutationValidationStatus.NOT_RUN,
@@ -297,19 +357,23 @@ def mutate_configuration(
             "The synthetic label is not a confirmed real-world anomaly.",
         ),
     )
+    if structural:
+        reverse_mutation(sample, mutated_text)
+    return sample
 
 
 def list_applicable_mutations(
     record: ImportedDatasetRecord,
     *,
     seed: int = 0,
+    engine_version: str = MUTATION_ENGINE_VERSION,
 ) -> tuple[MutationType, ...]:
     """Return mutations that independently produce a validated sample."""
 
     applicable: list[MutationType] = []
     for mutation_type in MutationType:
         try:
-            mutate_configuration(record, (mutation_type,), seed=seed)
+            mutate_configuration(record, (mutation_type,), seed=seed, engine_version=engine_version)
         except (MutationNotApplicableError, MutationValidationError):
             continue
         applicable.append(mutation_type)
@@ -343,6 +407,10 @@ def reverse_mutation(sample: SyntheticMutationSample, mutated_text: str) -> str:
     restored = layout.render(lines)
     if _sha256(restored) != sample.original_sha256:
         raise MutationValidationError("reverse operations did not restore the original")
+    if sample.engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION and (
+        sample.localization != _localization(lines, layout.lines)
+    ):
+        raise MutationValidationError("final localization does not match the restored original")
     return restored
 
 
@@ -392,8 +460,7 @@ def _operation(
     affected_lines: Sequence[int] | None = None,
 ) -> MutationOperation:
     changed_lines = tuple(
-        affected_lines
-        or range(start_index + 1, start_index + max(1, len(mutated_lines)) + 1)
+        affected_lines or range(start_index + 1, start_index + max(1, len(mutated_lines)) + 1)
     )
     return MutationOperation(
         mutation_type=mutation_type,
@@ -440,12 +507,9 @@ def _candidate(
     salt: str = "candidate",
 ) -> int:
     if not candidates:
-        raise MutationNotApplicableError(
-            f"precondition is not satisfied: {mutation_type.value}"
-        )
+        raise MutationNotApplicableError(f"precondition is not satisfied: {mutation_type.value}")
     digest = hashlib.sha256(
-        f"{MUTATION_ENGINE_VERSION}\0{fingerprint}\0{seed}\0"
-        f"{mutation_type.value}\0{salt}".encode()
+        f"{MUTATION_ENGINE_VERSION}\0{fingerprint}\0{seed}\0{mutation_type.value}\0{salt}".encode()
     ).digest()
     return candidates[int.from_bytes(digest[:8], "big") % len(candidates)]
 
@@ -537,9 +601,7 @@ def _telnet_enabled(
     spec: _MutationSpec,
 ) -> tuple[list[str], MutationOperation]:
     if vendor is Vendor.CISCO:
-        pattern = re.compile(
-            r"^(?P<indent>\s*)transport\s+input\s+(?P<protocols>.+?)\s*$", re.I
-        )
+        pattern = re.compile(r"^(?P<indent>\s*)transport\s+input\s+(?P<protocols>.+?)\s*$", re.I)
         candidates = []
         for index, line in enumerate(lines):
             match = pattern.match(line)
@@ -563,9 +625,7 @@ def _telnet_enabled(
             mutation_type=mutation_type,
         )
         replacement = f"{match.group('indent')}transport input {order}"
-        return _replace_span(
-            lines, index, index + 1, (replacement,), mutation_type, spec
-        )
+        return _replace_span(lines, index, index + 1, (replacement,), mutation_type, spec)
     ssh = re.compile(r"^(?P<indent>\s*)set\s+system\s+services\s+ssh\b.*$", re.I)
     candidates = [index for index, line in enumerate(lines) if ssh.match(line)]
     index = _candidate(
@@ -605,9 +665,7 @@ def _snmp_downgrade(
             mutation_type,
             spec,
             {Vendor.CISCO: pattern, Vendor.JUNIPER: pattern},
-            lambda match: (
-                f"{match.group('indent')}snmp-server community <redacted-community> RO"
-            ),
+            lambda match: f"{match.group('indent')}snmp-server community <redacted-community> RO",
         )
     pattern = re.compile(r"^(?P<indent>\s*)set\s+snmp\s+v3\b.*$", re.I)
     candidates = [index for index, line in enumerate(lines) if pattern.match(line)]
@@ -636,9 +694,7 @@ def _permissive_acl(
     spec: _MutationSpec,
 ) -> tuple[list[str], MutationOperation]:
     patterns = {
-        Vendor.CISCO: re.compile(
-            r"^(?P<prefix>\s*(?:\d+\s+)?)deny(?P<suffix>\s+.+)$", re.I
-        ),
+        Vendor.CISCO: re.compile(r"^(?P<prefix>\s*(?:\d+\s+)?)deny(?P<suffix>\s+.+)$", re.I),
         Vendor.JUNIPER: re.compile(
             r"^(?P<prefix>\s*set\s+firewall\b.*\sthen\s+)"
             r"(?:discard|reject)(?P<suffix>\s*)$",
@@ -836,11 +892,7 @@ def _missing_bgp_neighbor(
     }
     pattern = patterns[vendor]
     neighbors = sorted(
-        {
-            match.group("neighbor")
-            for line in lines
-            if (match := pattern.match(line)) is not None
-        }
+        {match.group("neighbor") for line in lines if (match := pattern.match(line)) is not None}
     )
     selected = _candidate(
         list(range(len(neighbors))),
@@ -852,8 +904,7 @@ def _missing_bgp_neighbor(
     indices = [
         index
         for index, line in enumerate(lines)
-        if (match := pattern.match(line)) is not None
-        and match.group("neighbor") == neighbor
+        if (match := pattern.match(line)) is not None and match.group("neighbor") == neighbor
     ]
     return _remove_indices(lines, indices, mutation_type, spec)
 
@@ -887,8 +938,7 @@ def _ospf_area(
         spec,
         patterns,
         lambda match: (
-            f"{match.group('prefix')}{_different_area(match.group('area'))}"
-            f"{match.group('suffix')}"
+            f"{match.group('prefix')}{_different_area(match.group('area'))}{match.group('suffix')}"
         ),
     )
 
@@ -912,11 +962,7 @@ def _removed_static_route(
     }
     pattern = patterns[vendor]
     destinations = sorted(
-        {
-            match.group("destination")
-            for line in lines
-            if (match := pattern.match(line)) is not None
-        }
+        {match.group("destination") for line in lines if (match := pattern.match(line)) is not None}
     )
     selected = _candidate(
         list(range(len(destinations))),
@@ -928,8 +974,7 @@ def _removed_static_route(
     indices = [
         index
         for index, line in enumerate(lines)
-        if (match := pattern.match(line)) is not None
-        and match.group("destination") == destination
+        if (match := pattern.match(line)) is not None and match.group("destination") == destination
     ]
     return _remove_indices(lines, indices, mutation_type, spec)
 
@@ -989,14 +1034,10 @@ def _missing_ntp_syslog(
     if vendor is Vendor.CISCO:
         pattern = re.compile(r"^\s*(?:ntp\s+server|logging\s+host)\b", re.I)
     else:
-        pattern = re.compile(
-            r"^\s*set\s+system\s+(?:ntp\s+server|syslog\s+host)\b", re.I
-        )
+        pattern = re.compile(r"^\s*set\s+system\s+(?:ntp\s+server|syslog\s+host)\b", re.I)
     indices = [index for index, line in enumerate(lines) if pattern.match(line)]
     if not indices:
-        raise MutationNotApplicableError(
-            f"precondition is not satisfied: {mutation_type.value}"
-        )
+        raise MutationNotApplicableError(f"precondition is not satisfied: {mutation_type.value}")
     return _remove_indices(lines, indices, mutation_type, spec)
 
 
@@ -1092,11 +1133,7 @@ def _conflicting_ip(
         match = pattern.match(line)
         if match is None:
             continue
-        interface = (
-            current_interface
-            if vendor is Vendor.CISCO
-            else match.group("interface")
-        )
+        interface = current_interface if vendor is Vendor.CISCO else match.group("interface")
         if interface is not None:
             matches.append((index, match, interface))
     pairs = [
@@ -1122,9 +1159,7 @@ def _conflicting_ip(
             f"{source.group('mask')}{target.group('suffix')}"
         )
     else:
-        replacement = (
-            f"{target.group('prefix')}{source.group('address')}{target.group('suffix')}"
-        )
+        replacement = f"{target.group('prefix')}{source.group('address')}{target.group('suffix')}"
     return _replace_span(
         lines,
         target_index,
@@ -1142,16 +1177,12 @@ def _remove_indices(
     spec: _MutationSpec,
 ) -> tuple[list[str], MutationOperation]:
     if not indices:
-        raise MutationNotApplicableError(
-            f"precondition is not satisfied: {mutation_type.value}"
-        )
+        raise MutationNotApplicableError(f"precondition is not satisfied: {mutation_type.value}")
     start = min(indices)
     end = max(indices) + 1
     removed = set(indices)
     replacement = [
-        line
-        for index, line in enumerate(lines[start:end], start)
-        if index not in removed
+        line for index, line in enumerate(lines[start:end], start) if index not in removed
     ]
     return _replace_span(
         lines,
@@ -1190,10 +1221,9 @@ def _effect_observed(
     if mutation_type is MutationType.INCORRECT_ACCESS_TRUNK_MODE:
         return _switchport_modes(after) != _switchport_modes(before)
     if mutation_type is MutationType.BGP_REMOTE_AS_MISMATCH:
-        return (
-            len(_remote_as_values(after)) == len(_remote_as_values(before))
-            and _remote_as_values(after) != _remote_as_values(before)
-        )
+        return len(_remote_as_values(after)) == len(
+            _remote_as_values(before)
+        ) and _remote_as_values(after) != _remote_as_values(before)
     if mutation_type is MutationType.MISSING_BGP_NEIGHBOR:
         return len(_remote_as_values(after)) < len(_remote_as_values(before))
     if mutation_type is MutationType.OSPF_AREA_MISMATCH:
@@ -1203,12 +1233,8 @@ def _effect_observed(
     if mutation_type is MutationType.MANAGEMENT_EXPOSURE:
         return _permit_any_source_count(after) > _permit_any_source_count(before)
     if mutation_type is MutationType.MISSING_NTP_SYSLOG:
-        before_count = len(before.management.ntp_servers) + len(
-            before.management.syslog_servers
-        )
-        after_count = len(after.management.ntp_servers) + len(
-            after.management.syslog_servers
-        )
+        before_count = len(before.management.ntp_servers) + len(before.management.syslog_servers)
+        after_count = len(after.management.ntp_servers) + len(after.management.syslog_servers)
         return after_count < before_count
     if mutation_type is MutationType.ROUTE_MAP_ORDER_CHANGE:
         return _route_map_sequences(after_text) != _route_map_sequences(before_text)
@@ -1235,8 +1261,7 @@ def _permit_any_count(config: CanonicalConfig) -> int:
 
 def _permit_any_source_count(config: CanonicalConfig) -> int:
     return sum(
-        rule.action == "permit"
-        and bool({"any", "0.0.0.0/0", "::/0"} & set(rule.source_addresses))
+        rule.action == "permit" and bool({"any", "0.0.0.0/0", "::/0"} & set(rule.source_addresses))
         for acl in config.acls
         for rule in acl.rules
     )
@@ -1251,9 +1276,7 @@ def _access_vlans(config: CanonicalConfig) -> tuple[tuple[str, int | None, str |
 
 
 def _switchport_modes(config: CanonicalConfig) -> tuple[tuple[str, str | None], ...]:
-    return tuple(
-        (interface.name, interface.switchport_mode) for interface in config.interfaces
-    )
+    return tuple((interface.name, interface.switchport_mode) for interface in config.interfaces)
 
 
 def _remote_as_values(config: CanonicalConfig) -> tuple[tuple[str, int], ...]:
@@ -1288,9 +1311,7 @@ def _route_map_sequences(text: str) -> tuple[tuple[str, int], ...]:
 
 def _duplicate_interface_address_count(config: CanonicalConfig) -> int:
     addresses = [
-        address.address
-        for interface in config.interfaces
-        for address in interface.addresses
+        address.address for interface in config.interfaces for address in interface.addresses
     ]
     return len(addresses) - len(set(addresses))
 
@@ -1310,10 +1331,12 @@ def _mutation_id(
     mutation_types: tuple[MutationType, ...],
     seed: int,
     mutated_hash: str,
+    *,
+    engine_version: str = MUTATION_ENGINE_VERSION,
 ) -> str:
     payload = "\0".join(
         (
-            MUTATION_ENGINE_VERSION,
+            engine_version,
             record.source_id,
             record.record_id,
             record.sanitized_sha256,
@@ -1338,6 +1361,32 @@ def _changed_line_numbers(
         else:
             changed.add(min(max(1, right_start + 1), max(1, len(mutated_lines))))
     return tuple(sorted(changed))
+
+
+def _localization(
+    original_lines: Sequence[str], mutated_lines: Sequence[str]
+) -> MutationLocalization:
+    changes: list[MutationLineChange] = []
+    matcher = SequenceMatcher(a=original_lines, b=mutated_lines, autojunk=False)
+    for tag, before_start, before_end, after_start, after_end in matcher.get_opcodes():
+        if tag == "equal":
+            continue
+        kind: Literal["insert", "delete", "replace"]
+        kind = "insert" if tag == "insert" else "delete" if tag == "delete" else "replace"
+        changes.append(
+            MutationLineChange(
+                kind=kind,
+                original_start_line=before_start + 1,
+                original_line_count=before_end - before_start,
+                mutated_start_line=after_start + 1,
+                mutated_line_count=after_end - after_start,
+            )
+        )
+    return MutationLocalization(
+        original_line_count=len(original_lines),
+        mutated_line_count=len(mutated_lines),
+        changes=tuple(changes),
+    )
 
 
 def _sha256(value: str) -> str:

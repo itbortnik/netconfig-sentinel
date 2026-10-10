@@ -10,7 +10,10 @@ from ml.mutation.engine import (
 )
 from ml.mutation.models import (
     MUTATION_ENGINE_VERSION,
+    STRUCTURAL_MUTATION_ENGINE_VERSION,
     MutationFormalValidation,
+    MutationLineChange,
+    MutationLocalization,
     MutationOperation,
     MutationSyntaxValidation,
     MutationType,
@@ -21,7 +24,10 @@ from ml.mutation.models import (
 
 __all__ = [
     "MUTATION_ENGINE_VERSION",
+    "STRUCTURAL_MUTATION_ENGINE_VERSION",
     "MutationFormalValidation",
+    "MutationLineChange",
+    "MutationLocalization",
     "MutationNotApplicableError",
     "MutationOperation",
     "MutationSyntaxValidation",

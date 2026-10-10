@@ -1,0 +1,108 @@
+{
+  "version": "owned-hierarchical-junos-mutations-0.1.0",
+  "date": "2026-10-10",
+  "scope": "Authored offline hierarchical JunOS mutation diagnostics and installed-package compatibility; not independent quality, device syntax or network-safety qualification",
+  "engine_version": "config-mutation-0.2.0",
+  "default_engine_version_unchanged": "config-mutation-0.1.0",
+  "localization_contract": "mutation-localization-0.1.0",
+  "junos_applicable_classes": 14,
+  "maximum_linked_mutations": 5,
+  "localization_semantics": "Final textual source/result spans; pure deletions have explicit removed source spans and no invented affected result line; operation-level offsets remain intermediate reversal data, not final training coordinates",
+  "bounds": {
+    "source_and_result_utf8_bytes": 1048576,
+    "source_and_result_lines": 50000,
+    "nodes": 4096,
+    "nesting_levels": 64,
+    "interface_addresses_for_candidate_planning": 64
+  },
+  "related_backend": {
+    "passed": 173,
+    "new_authored_checks": 139,
+    "seconds": 2.04,
+    "junit_sha256": "a2257a8877b71a9b8368eed11aa12965798487146cf1b9fdaf928c1eda171897",
+    "coverage": "Fourteen classes, linked edits, source preservation, IPv6, exact reversal, malformed and ambiguous inputs, missing preconditions, budgets including CRLF bytes, partial unknowns, localization tampering and historical serialization"
+  },
+  "full_backend": {
+    "passed": 2314,
+    "skipped": 23,
+    "warnings": 5,
+    "seconds": 243.03,
+    "junit_sha256": "6c0a0f437394dd09cbcac3867d60f49728173396b39cfae9bfb5ce1a6aec12f4",
+    "coverage_xml_sha256": "613c330ba7d4e091f0cb91067cd5c5c6fdb7cfc0913fd212c748e6dad8a8b165",
+    "coverage_lines_executed": 17866,
+    "coverage_lines_total": 19906,
+    "coverage_scope": "Code execution, not vendor syntax recall, label truth or independent detector quality",
+    "not_run": ["optional Batfish SDK", "live Batfish", "explicit PostgreSQL test environment"],
+    "warning_scope": "Dependency deprecations and an existing SQLite ResourceWarning"
+  },
+  "pydantic_2_14_focused": {
+    "passed": 173,
+    "seconds": 2.0,
+    "junit_sha256": "795e4c5b00859641fa7fccd0f3092e0499aff3a5d6f5f4fec75118432be81386",
+    "scope": "Mutation tests only, not the full suite",
+    "original_environment_unchanged": true
+  },
+  "static_checks": {
+    "ruff": "passed",
+    "selected_python_format": "passed",
+    "mypy_default_files": 223,
+    "mypy_win32_files": 223
+  },
+  "frontend_regression": {
+    "unit_passed": 478,
+    "typecheck": "passed",
+    "format_check": "passed",
+    "build": "passed",
+    "build_warning": "Existing minified JavaScript chunk exceeds 500 kB",
+    "local_browser": "not_run_for_this_offline_mutator_change",
+    "frontend_source_changed": false
+  },
+  "installed_diagnostic": {
+    "wheel_bytes": 686928,
+    "wheel_sha256": "a333a4ff1f130a3860704e7091d74f3c1e09d854a6a6b47be65e78ec240e5e26",
+    "private_result_sha256": "4ff3ad2d998ba001bef2a41d889efe91fdc8720d11086ae3d6d07aace77b856c",
+    "runtime_python_inventory_and_files_byte_equal": 223,
+    "static_assets_byte_equal": 3,
+    "isolated_child_processes": 5,
+    "each_child_loaded_app_and_ml_imports_verified_installed_only": true,
+    "torch_transformers_not_imported_in_children": true,
+    "process_isolation_scope": "Python -I, checkout roots removed from sys.path and each loaded app/ml module path inspected; not an OS filesystem or network sandbox",
+    "authored_hierarchy_parent_templates": 1,
+    "layout_views": 4,
+    "generated_samples": 68,
+    "exact_reversals": 68,
+    "serialization_round_trips": 68,
+    "synthetic_labels": 100,
+    "linked_batches_per_layout": 2,
+    "preserved_partial_samples": 4,
+    "refusals": 16,
+    "input_parent_unchanged": true,
+    "temporary_inputs_removed": true,
+    "layout_samples_sha256": {
+      "lf_tail": "cab09cd75ccb6c47c5ac53613ccd5d00699346e3d1edda046ebf019456514294",
+      "lf_no_tail": "f0cdbeb24f1a898c01a49c69698151b0377e238fd235cbc5aaf6709fa07bfded",
+      "crlf_tail": "a9278f98fdc05eec79669fab097693de07214bdf86e4cc99632ddf14999ab2d5",
+      "crlf_no_tail": "cc3969424d76fe454a881f37a434d902fabdfa3ed3b13c4996a5c4e1a13828e5"
+    },
+    "historical_flat_samples": 29,
+    "historical_complete_serialization_sha256": "328152c2030b5b1817f8505942e3ea1fc1c244a1a1315876ac2a52b613f13010",
+    "historical_scope": "Actual previous installed package output compared with current golden checksum; default version, IDs and complete sample serialization unchanged for these authored cases",
+    "new_hierarchy_training_or_model_inference": "not_run",
+    "generated_sample_formal_validation": "not_run",
+    "device_application": "not_run"
+  },
+  "previous_commit_CI": {
+    "commit": "20c5b26f378d8725578d69371b4f6bd465c1edce",
+    "run": 37999329652,
+    "conclusion": "success",
+    "jobs": ["test", "postgres-api", "batfish-live", "frontend"],
+    "scope": "Exact prior measured API/UI commit only, not current mutation validation or full real topology"
+  },
+  "remaining": [
+    "Authored mutation facts are synthetic and unconfirmed; an unmutated parent is not necessarily healthy",
+    "Format views and linked labels do not increase independent configuration, network or test-cohort counts",
+    "Partial unknown fragments are preserved, not validated; bounded canonical checks are not authoritative vendor syntax",
+    "No automatic conversion to training line targets, corpus expansion, independent detector evaluation, risk promotion, formal verification or device application",
+    "Authorized real data, confirmed labels, independent calibration and full operational qualification remain open"
+  ]
+}

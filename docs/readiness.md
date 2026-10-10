@@ -10,6 +10,7 @@
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
+| Синтетические мутации | [Default 0.1 и opt-in hierarchical JunOS 0.2](mutation-engine.md): 15 IOS/14 JunOS классов, до пяти связанных изменений, точный откат и раздельные source/result spans удалений в 0.2 | Offline generator, не remediation или реальные подтверждённые labels; partial unknowns сохранены, device syntax/formal impact и независимое качество не проверены |
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI/API/UI и сохраняет полный report/profile и версионные объяснения | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; независимое реальное качество не подтверждено |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
@@ -51,6 +52,20 @@ Multilingual MiniLM фактически загружен и используе�
 
 ## Какие evidence ещё нужны
 
+[Hierarchical JunOS mutation evidence](evaluation/owned-hierarchical-junos-mutations.json)
+проверяет opt-in offline 0.2: 14 классов, связанные изменения, source preservation,
+точный откат и корректные final source/result spans удалений. Локально: 2314 full
+passes/23 skips/5 warnings, 173 связанных проверки, 173 focused Pydantic 2.14 checks,
+ruff/mypy 223 files на обеих платформах. Frontend 478 unit/typecheck/format/build
+прошёл; local browser для offline изменения не перезапускался. Installed wheel:
+68 генераций/откатов/JSON round trips, 16 отказов, 29 исторических flat образцов
+с неизменной полной сериализацией; imports проверены в каждом из пяти children.
+Это один authored parent в четырёх форматных views, не рост независимого корпуса.
+Синтетическая метка не становится real-confirmed, а пустые result lines при
+удалении — здоровым line target. Новые sample-specific Batfish/device checks и
+обучение на этих примерах не выполнялись; существующий review engine не запускается
+генератором автоматически. Независимое качество и quantitative gates открыты.
+
 [Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
 добавлено вне canonical IR: новые uploads/API/история/UI используют фактические
 source units и явный знаменатель, не `1 - parser_confidence`. Проверены 2044 full
@@ -78,6 +93,11 @@ Knowledge 0.4 запечатан из published 5cb7cd1; старые 24 док�
 5/6, не independent retrieval quality. Diagnostic deadline 40 s не квалифицирует
 default 20 s или SLA; child import introspection не выполнялся. Эти local checks
 не заменяют PostgreSQL/Compose/live-engine прогон точной новой поставки.
+Для точного API/UI commit `20c5b26f378d8725578d69371b4f6bd465c1edce`
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37999329652)
+завершились успешно, включая PostgreSQL, Compose/browser и owned live-engine scope.
+Это подтверждение этой поставки, не последующих мутаций, полной реальной сети
+или независимого качества модели.
 
 Предыдущий library/CLI commit `5cb7cd1fa1ad7d26b156526ad0e978418aeb8962` имеет
 [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37995756443),

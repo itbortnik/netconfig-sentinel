@@ -83,6 +83,13 @@ Both hierarchical and `set` syntax are supported for:
 
 ## Current limitations
 
+The opt-in [hierarchical JunOS synthetic generator](mutation-engine.md) supports
+14 anomaly classes in a bounded multiline subset, with exact source reversal and
+versioned final textual localization. It is a separate offline dataset tool,
+not hierarchical remediation, additional parser syntax, a trained detector,
+vendor syntax qualification or network-behavior validation. Existing flat
+mutation defaults and historical samples remain unchanged.
+
 Source-preserving [native patch drafts](vendor-patch-drafts.md) are a separate,
 inspection-only subset: explicit SSH+Telnet VTY lines or SSH version statements
 on IOS, and exact flat-set Telnet/SSH version statements on JunOS. Hierarchical
