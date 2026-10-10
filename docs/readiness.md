@@ -65,6 +65,17 @@ ruff/mypy 223 files на обеих платформах. Frontend 478 unit/type
 удалении — здоровым line target. Новые sample-specific Batfish/device checks и
 обучение на этих примерах не выполнялись; существующий review engine не запускается
 генератором автоматически. Независимое качество и quantitative gates открыты.
+Отдельные [owned network integration cases](batfish-verification.md#сгенерированное-удаление-hierarchical-junos-маршрута)
+подготовлены для именно generated hierarchical route deletion, reachable baseline,
+direct peer и empty scope. Local no-upload checks не считаются выполненными
+network queries; требуется новый exact-commit `batfish-live` run. Исторический
+formal status образца остаётся `not_run`, даже при отдельном последующем query.
+Локальная поставка network cases: 2318 full passes/27 skips/5 warnings,
+226 связанных passes/10 live skips и 53 focused Pydantic 2.14 passes/10 live skips;
+ruff/mypy на обеих платформах чистые. Четыре no-upload сценария выполнены также
+через прежний installed wheel: все 223 runtime файла побайтно прежние, imports
+31 app/ml модуля проверены из установленного target. Authored test functions
+исполнялись из checkout; это не independent test или live engine evidence.
 
 [Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
 добавлено вне canonical IR: новые uploads/API/история/UI используют фактические

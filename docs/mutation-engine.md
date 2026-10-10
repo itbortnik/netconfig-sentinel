@@ -129,6 +129,11 @@ remain `partial` as described above.
 
 External network-behavior validation of these generated samples is `not_run`;
 the separate change-review/Batfish workflow is not automatically invoked here.
+An explicit [owned network integration](batfish-verification.md#сгенерированное-удаление-hierarchical-junos-маршрута)
+tests a generated hierarchical static-route deletion with reachable/unchanged/
+direct-peer/empty-scope controls. Its live cases require a separate exact-commit
+Linux CI run and do not mutate the sample's historical formal status. The other
+13 JunOS-applicable classes gain no formal or device qualification from that test.
 Parser validation is not proof that a real device will accept the candidate or
 that the mutation has the intended topology-wide impact.
 

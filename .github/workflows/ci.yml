@@ -66,6 +66,7 @@ jobs:
       - name: Check real owned reachability and cleanup
         run: >-
           pytest backend/tests/integration/test_live_batfish.py
+          backend/tests/integration/test_live_mutation_batfish.py
           backend/tests/integration/test_batfish_sdk_transport.py
           backend/tests/integration/test_live_model_patch_batfish.py -q -s
           --junitxml=owned-batfish-junit.xml

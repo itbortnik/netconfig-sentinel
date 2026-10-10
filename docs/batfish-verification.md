@@ -189,6 +189,30 @@ coverage. Общая поддержка платформ и operational state в
 Адаптер остаётся экспериментальным; связь с
 утверждением черновика и интеграция в итоговый risk fusion намеренно отсутствуют.
 
+### Сгенерированное удаление hierarchical JunOS маршрута
+
+`backend/tests/integration/test_live_mutation_batfish.py` связывает существующий
+адаптер с точным результатом `config-mutation-0.2.0`, а не заменяет генерацию
+похожим ручным edit. Два собственных multiline JunOS устройства проходят
+sanitization с одним topology scope; генератор удаляет единственный static route
+на edge. Соседний узел остаётся побайтно прежним, весь parent восстанавливается
+точным inverse, source/candidate hashes проверяются до network query.
+
+Четыре отдельных scope проверяют generated route loss, unchanged reachable
+baseline, сохранение directly connected peer и empty unreachable scope без
+ложного pass. Параметр `candidate_selected` явно отличает unchanged control от
+запроса именно generated candidate. Каждый live output содержит mutation ID,
+source/candidate и full snapshot hashes, scope, engine/SDK versions, реальные
+счётчики, status/reason и cleanup. Старый `sample.formal_validation=not_run`
+остаётся неизменным: последующий network result не переписывает историю мутации.
+
+Обычный запуск проверяет подготовку и отказ без upload, но пропускает четыре
+live-запроса. Owned Linux CI включает этот файл в существующий `batfish-live`
+job. До успешного нового exact-commit job это только проверяемые сценарии,
+не evidence выполненных запросов. Даже успешные запросы квалифицируют лишь одну
+authored двухузловую модель, один класс мутации и выбранные IPv4 scopes; не все
+14 классов, vendor device syntax, management access, реальную сеть или обучение.
+
 ## Привязка к существующему черновику
 
 Дополнительный параметр `--patch-review private-review.json` принимает локальный
