@@ -76,6 +76,10 @@ means the legacy format accepts the project's trusted MLM checkpoints, **not**
 arbitrary third-party pretrained encoders. The separately versioned
 [joint Stage A -> B path](pretraining-transfer.md) now also accepts the project's
 six-objective checkpoints with regenerated exposure and retained semantic labels.
+The explicit [fixture transfer](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)
+adds native train-only fixture checkpoints with complete retained upstream inputs,
+bounded downstream contamination checks and unknown physical exposure. It has a
+separate 0.3 report and remains offline-only, not registry/HTTP activation.
 The separately versioned [external foundation path](foundation-config-transfer.md)
 uses a fixed reviewed publisher tokenizer/weights and explicitly unknown external
 pretraining exposure, not a fabricated native pretraining report.

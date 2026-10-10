@@ -21,12 +21,19 @@ from pydantic import (
 from torch import Tensor
 
 from ml.datasets import DatasetSplit, DatasetSplitResult, ImportedDatasetRecord
+from ml.datasets.fixture_training import FixtureTrainingCorpus
 from ml.evaluation.contracts import Cohort, Digest
 from ml.evaluation.metrics import canonical_hash
 from ml.preprocessing.blocks import digest, segment_configuration
 from ml.preprocessing.tokenization import _validate_split_entities, encode_block
 from ml.training.checkpoint import load_checkpoint, save_checkpoint
 from ml.training.classification import ProbeExample, _encoder_hash, validate_pretrained_corpus
+from ml.training.fixture_transfer import (
+    FixtureSourceBinding,
+    FixtureTransferPolicy,
+    validate_fixture_source,
+    verify_fixture_binding,
+)
 from ml.training.multitask import (
     IGNORE_TARGET,
     SEVERITY_CLASSES,
@@ -36,17 +43,24 @@ from ml.training.multitask import (
     SupervisedTargets,
     multitask_loss,
 )
-from ml.training.pretraining import PretrainingResult, load_pretraining, save_pretraining
+from ml.training.pretraining import (
+    FixturePretrainingResult,
+    PretrainingResult,
+    load_fixture_pretraining,
+    load_pretraining,
+    save_pretraining,
+)
 from ml.training.pretraining_data import SemanticPair
 from ml.training.pretraining_transfer import (
     ObjectiveSourceBinding,
+    validate_fixture_model,
     validate_objective_model,
     validate_objective_source,
     verify_objective_binding,
 )
 from ml.training.transformer import ConfigEncoderMLM, TrainingResult
 
-type PretrainedEncoder = TrainingResult | PretrainingResult
+type PretrainedEncoder = TrainingResult | PretrainingResult | FixturePretrainingResult
 
 
 class SupervisedAnnotation(BaseModel):
@@ -212,18 +226,28 @@ class MultiTaskTransferReport(_MultiTaskReportFields):
     pretraining: ObjectiveSourceBinding
 
 
+class MultiTaskFixtureTransferReport(_MultiTaskReportFields):
+    """Native train-only fixture encoder; known downstream splits, unknown physical exposure."""
+
+    version: Literal["multitask-training-0.3.0"] = "multitask-training-0.3.0"
+    pretraining: FixtureSourceBinding
+
+
 type MultiTaskReportPayload = Annotated[
-    MultiTaskReport | MultiTaskTransferReport, Field(discriminator="version")
+    MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport,
+    Field(discriminator="version"),
 ]
 
-_REPORT: TypeAdapter[MultiTaskReport | MultiTaskTransferReport] = TypeAdapter(
-    MultiTaskReportPayload
+_REPORT: TypeAdapter[MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport] = (
+    TypeAdapter(MultiTaskReportPayload)
 )
 
 
 def _encoder_model(pretrained: PretrainedEncoder) -> ConfigEncoderMLM:
     return (
-        pretrained.model.encoder if isinstance(pretrained, PretrainingResult) else pretrained.model
+        pretrained.model.encoder
+        if isinstance(pretrained, (PretrainingResult, FixturePretrainingResult))
+        else pretrained.model
     )
 
 
@@ -231,12 +255,18 @@ def _encoder_model(pretrained: PretrainedEncoder) -> ConfigEncoderMLM:
 class MultiTaskResult:
     pretrained: PretrainedEncoder
     heads: MultiTaskHeads
-    report: MultiTaskReport | MultiTaskTransferReport
+    report: MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport
 
 
-def _verified_report(result: MultiTaskResult) -> MultiTaskReport | MultiTaskTransferReport:
+def _verified_report(
+    result: MultiTaskResult,
+) -> MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport:
     report = _REPORT.validate_python(result.report.model_dump())
-    if isinstance(report, MultiTaskTransferReport):
+    if isinstance(report, MultiTaskFixtureTransferReport):
+        if not isinstance(result.pretrained, FixturePretrainingResult):
+            raise ValueError("fixture-backed report requires a native fixture source")
+        verify_fixture_binding(result.pretrained, report.pretraining)
+    elif isinstance(report, MultiTaskTransferReport):
         if not isinstance(result.pretrained, PretrainingResult):
             raise ValueError("objective-backed report cannot use legacy MLM weights")
         verify_objective_binding(result.pretrained, report.pretraining)
@@ -269,8 +299,11 @@ def extract_aligned_features(
     """Content-only block/line means; no role/site/vendor/identity features or truncation."""
     if pretrained.model.training:
         raise ValueError("feature extraction requires encoder evaluation mode")
-    if isinstance(pretrained, PretrainingResult):
-        validate_objective_model(pretrained)
+    if isinstance(pretrained, (PretrainingResult, FixturePretrainingResult)):
+        if isinstance(pretrained, FixturePretrainingResult):
+            validate_fixture_model(pretrained)
+        else:
+            validate_objective_model(pretrained)
         if any(module.training for module in pretrained.model.modules()):
             raise ValueError("feature extraction requires all objective modules in evaluation mode")
     record = ImportedDatasetRecord.model_validate(record.model_dump())
@@ -345,6 +378,8 @@ def _rows(
     examples: tuple[SupervisedExample, ...],
     policy: HeadPolicy,
     semantic_pairs: tuple[SemanticPair, ...] = (),
+    fixture_corpus: FixtureTrainingCorpus | None = None,
+    fixture_policy: FixtureTransferPolicy | None = None,
 ) -> dict[DatasetSplit, tuple[SupervisedExample, ...]]:
     splits = DatasetSplitResult.model_validate(splits.model_dump())
     _validate_split_entities(splits)
@@ -355,6 +390,22 @@ def _rows(
         for part in splits.partitions
         if part.split is not DatasetSplit.TEST
     }
+    if isinstance(pretrained, FixturePretrainingResult):
+        if fixture_corpus is None or semantic_pairs:
+            raise ValueError(
+                "fixture transfer requires retained private corpus and no semantic labels"
+            )
+        rows = validate_supervised_rows(splits, examples, policy)
+        validate_fixture_source(
+            fixture_corpus,
+            pretrained,
+            splits,
+            tuple(row.record for group in rows.values() for row in group),
+            policy=fixture_policy,
+        )
+        return rows
+    if fixture_corpus is not None or fixture_policy is not None:
+        raise ValueError("non-fixture transfer cannot silently ignore fixture exposure inputs")
     if isinstance(pretrained, PretrainingResult):
         validate_objective_source(splits, pretrained, semantic_pairs)
     else:
@@ -579,12 +630,16 @@ def train_multitask(
     training_policy: FineTunePolicy | None = None,
     loss_weights: LossWeights | None = None,
     semantic_pairs: tuple[SemanticPair, ...] = (),
+    fixture_corpus: FixtureTrainingCorpus | None = None,
+    fixture_policy: FixtureTransferPolicy | None = None,
 ) -> MultiTaskResult:
     """Train residual feature adapter/heads; select epoch on validation, never test labels."""
     head_policy = HeadPolicy.model_validate(head_policy.model_dump())
     policy = FineTunePolicy.model_validate((training_policy or FineTunePolicy()).model_dump())
     weights = LossWeights.model_validate((loss_weights or LossWeights()).model_dump())
-    rows = _rows(splits, pretrained, examples, head_policy, semantic_pairs)
+    rows = _rows(
+        splits, pretrained, examples, head_policy, semantic_pairs, fixture_corpus, fixture_policy
+    )
     encoder_hash = _encoder_hash(pretrained.model)
     encoder = copy.deepcopy(pretrained)
     encoder.model.eval().requires_grad_(False)
@@ -657,6 +712,20 @@ def train_multitask(
         best_epoch=fitted.best_epoch,
         torch_version=torch.__version__,
     )
+    if isinstance(encoder, FixturePretrainingResult):
+        if fixture_corpus is None:
+            raise ValueError("fixture transfer source corpus is unavailable")
+        fixture_report = MultiTaskFixtureTransferReport(
+            **report.model_dump(exclude={"version"}),
+            pretraining=validate_fixture_source(
+                fixture_corpus,
+                encoder,
+                splits,
+                tuple(row.record for group in rows.values() for row in group),
+                policy=fixture_policy,
+            ),
+        )
+        return MultiTaskResult(encoder, fitted.heads, fixture_report)
     if isinstance(encoder, PretrainingResult):
         transfer_report = MultiTaskTransferReport(
             **report.model_dump(exclude={"version"}),
@@ -761,7 +830,7 @@ def save_multitask(result: MultiTaskResult, path: Path) -> None:
     path.mkdir(exist_ok=False)
     marker = path / ".incomplete"
     marker.write_text("supervised bundle writing\n", encoding="utf-8")
-    if isinstance(result.pretrained, PretrainingResult):
+    if isinstance(result.pretrained, (PretrainingResult, FixturePretrainingResult)):
         save_pretraining(result.pretrained, path / "encoder")
     else:
         save_checkpoint(result.pretrained, path / "encoder")
@@ -803,7 +872,9 @@ def load_multitask(path: Path) -> MultiTaskResult:
         raise ValueError("supervised bundle payload fields differ")
     report = _REPORT.validate_python(payload["report"])
     encoder: PretrainedEncoder = (
-        load_pretraining(path / "encoder")
+        load_fixture_pretraining(path / "encoder")
+        if isinstance(report, MultiTaskFixtureTransferReport)
+        else load_pretraining(path / "encoder")
         if isinstance(report, MultiTaskTransferReport)
         else load_checkpoint(path / "encoder")
     )

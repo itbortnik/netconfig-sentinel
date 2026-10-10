@@ -12,6 +12,7 @@ from app.domain import Vendor
 from app.parsers import parse_configuration
 
 from ml.datasets import DatasetSplit, DatasetSplitResult, ImportedDatasetRecord
+from ml.datasets.fixture_training import FixtureTrainingCorpus
 from ml.evaluation.cli import write_report
 from ml.evaluation.contracts import (
     EvaluationBatch,
@@ -26,6 +27,7 @@ from ml.mutation import MutationType
 from ml.training.classification_smoke import classification_fixtures
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
+    MultiTaskFixtureTransferReport,
     MultiTaskPrediction,
     MultiTaskResult,
     MultiTaskTransferReport,
@@ -37,6 +39,7 @@ from ml.training.multitask_training import (
     multitask_identity,
     predict_multitask,
 )
+from ml.training.pretraining import FixturePretrainingResult
 from ml.training.pretraining_data import SemanticPair
 from ml.training.pretraining_transfer import objective_split_identity
 
@@ -45,14 +48,44 @@ def build_multitask_validation(
     result: MultiTaskResult,
     splits: DatasetSplitResult,
     examples: tuple[SupervisedExample, ...],
+    *,
+    fixture_corpus: FixtureTrainingCorpus | None = None,
 ) -> EvaluationBatch:
     bound_report = _verified_report(result)
     pairs: tuple[SemanticPair, ...] = ()
-    if isinstance(bound_report, MultiTaskTransferReport):
+    if isinstance(bound_report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport)):
         if objective_split_identity(splits) != (bound_report.pretraining.source_manifest_sha256):
             raise ValueError("evaluation source manifest binding differs from transferred corpus")
-        pairs = bound_report.pretraining.semantic_pairs
-    rows = _rows(splits, result.pretrained, examples, result.report.head_policy, pairs)
+        if isinstance(bound_report, MultiTaskTransferReport):
+            pairs = bound_report.pretraining.semantic_pairs
+    rows = _rows(
+        splits,
+        result.pretrained,
+        examples,
+        result.report.head_policy,
+        pairs,
+        fixture_corpus,
+        bound_report.pretraining.exposure.policy
+        if isinstance(bound_report, MultiTaskFixtureTransferReport)
+        else None,
+    )
+    if isinstance(bound_report, MultiTaskFixtureTransferReport):
+        from ml.training.fixture_transfer import validate_fixture_source
+
+        if not isinstance(result.pretrained, FixturePretrainingResult):
+            raise ValueError("fixture evaluation requires the bound fixture encoder")
+        if (
+            fixture_corpus is None
+            or validate_fixture_source(
+                fixture_corpus,
+                result.pretrained,
+                splits,
+                tuple(row.record for group in rows.values() for row in group),
+                policy=bound_report.pretraining.exposure.policy,
+            )
+            != bound_report.pretraining
+        ):
+            raise ValueError("fixture validation exposure differs from fitted transfer")
     if _fingerprint(rows[DatasetSplit.TRAIN]) != result.report.train_fingerprint or (
         _fingerprint(rows[DatasetSplit.VALIDATION]) != result.report.validation_fingerprint
     ):
@@ -67,7 +100,7 @@ def build_multitask_validation(
         model_sha256=multitask_identity(result),
         tokenizer_sha256=result.report.tokenizer_sha256,
         dataset_manifest_sha256=objective_split_identity(splits)
-        if isinstance(bound_report, MultiTaskTransferReport)
+        if isinstance(bound_report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport))
         else canonical_hash(splits.model_dump(mode="json")),
         threshold_policy_sha256=canonical_hash("recorded-strict-0.5-supervised-head-thresholds-1"),
         classes=result.report.head_policy.classes,

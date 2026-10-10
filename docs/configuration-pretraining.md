@@ -176,6 +176,10 @@ validation fields are `null`. `save_pretraining` shares the existing writer;
 ordinary objective-transfer validation refuse this train-only bundle. Optimizer
 resume, downstream fixture-aware transfer and registry/online activation are not
 implemented by this slice.
+The subsequent [explicit fixture transfer](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)
+now connects this native bundle to the shared supervised heads and validation
+adapter after retained-input/exposure checks. Registry/online activation is still
+unsupported; ordinary objective-transfer validation is not relaxed.
 
 The runnable path accepts a private fixture manifest, a JSON list of **all**
 sanitized imported records (not merely representatives when duplicates exist),

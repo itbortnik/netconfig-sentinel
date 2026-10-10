@@ -15,6 +15,7 @@ from ml.registry.contracts import EntryEnvelope, ModelCard, RegistryManifest
 if TYPE_CHECKING:
     from ml.training.foundation_transfer import FoundationTransferReport, FoundationTransferResult
     from ml.training.multitask_training import (
+        MultiTaskFixtureTransferReport,
         MultiTaskReport,
         MultiTaskResult,
         MultiTaskTransferReport,
@@ -118,16 +119,26 @@ def list_models(root: Path) -> tuple[ModelCard, ...]:
 
 def _model_card(model: MultiTaskResult | FoundationTransferResult) -> ModelCard:
     from ml.training.multitask_training import (
+        MultiTaskFixtureTransferReport,
         MultiTaskResult,
         MultiTaskTransferReport,
         _verified_report,
         multitask_identity,
     )
 
-    report: MultiTaskReport | MultiTaskTransferReport | FoundationTransferReport
+    report: (
+        MultiTaskReport
+        | MultiTaskTransferReport
+        | MultiTaskFixtureTransferReport
+        | FoundationTransferReport
+    )
     kind: Literal["native", "foundation"]
     if isinstance(model, MultiTaskResult):
         report = _verified_report(model)
+        if isinstance(report, MultiTaskFixtureTransferReport):
+            raise ValueError(
+                "fixture-backed transfer is offline-only; registry admission is not supported"
+            )
         identity = multitask_identity(model)
         manifest = (
             report.pretraining.source_manifest_sha256

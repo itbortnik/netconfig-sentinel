@@ -1,0 +1,335 @@
+{
+  "version": "owned-source-fixture-transfer-evidence-0.1.0",
+  "scope": "Actual native fixture-pretrained encoder -> shared supervised heads -> saved bundle -> selection metrics; offline-only and not independent anomaly quality",
+  "requirements": [
+    "12: authorized source provenance, deduplication and explicit isolation limitations",
+    "13B: source-aligned supervised heads and configurable losses",
+    "14: measured synthetic diagnostic metrics and honest missing real/test cohorts"
+  ],
+  "source": {
+    "pinned_commit": "329c14bf712f81b1522147abb00419c8e34e8f4a",
+    "source_type": "batfish_test",
+    "human_approval_sha256": "12670615fd580a455526dcf5d01851b3e174702c529ce6ac5f137596789d91e4",
+    "private_manifest_sha256": "dfa8a530179755aad7ef93ecabb31d43331960fc05cfc85efb299fc67dbc9ea8",
+    "private_imported_records_sha256": "e5a29e64535c403bdce82fe3a48135fcb2a1d940535a7375f4b9607fe2085032",
+    "intake_members": 415,
+    "train_fixtures": 412,
+    "structural_holds": 3,
+    "source_bpe_tokens": 142500,
+    "source_parameters": 46610,
+    "independent_physical_network_device_capture_metadata": null,
+    "confirmed_real_annotations": null,
+    "new_source_acquisitions": 0,
+    "new_model_downloads": 0,
+    "configurations_tokenizers_weights_and_full_inventories_published": false
+  },
+  "contracts": {
+    "training_report": "multitask-training-0.3.0",
+    "source_binding": "fixture-source-binding-0.1.0",
+    "exposure_audit": "fixture-transfer-exposure-0.1.0",
+    "prior_0_1_and_0_2_numerical_training_path": "unchanged",
+    "physical_pretraining_isolation_proven": false,
+    "source_target_inventory_checked": "Every upstream imported member; downstream split representatives and all supplied non-test derivatives",
+    "discarded_downstream_metadata_absent_from_input": "not audited or manufactured",
+    "heldout_overlap_action": "refuse complete run",
+    "train_overlap_action": "allow but count each method",
+    "comparison_budget_action": "fail, no subset or truncation",
+    "test_text_use": "overlap checking only, no features, labels or tuning",
+    "registry_saved_analysis_pre_post_and_http_admission": "unsupported; explicit registry refusal before entry allocation"
+  },
+  "source_binding": {
+    "corpus_sha256": "777fa1df00a98f53e5dc2327c736d626c62aad142d16c2818e0ce1ee97e84278",
+    "exposure": {
+      "comparisons": 26560,
+      "corpus_sha256": "777fa1df00a98f53e5dc2327c736d626c62aad142d16c2818e0ce1ee97e84278",
+      "downstream_content_sha256": "809f8396aa7ba1c22c8e5c4b4d257e092476cf9622fa9cb456ce9e55ccf6dc5b",
+      "downstream_manifest_sha256": "5266e170bc0547d61f544f1dc707e66ac34e1b6fef675296a894e0e3a0fb4777",
+      "downstream_unique_content_count": 64,
+      "heldout_overlap_count": 0,
+      "physical_pretraining_isolation_proven": false,
+      "policy": {
+        "max_comparisons": 200000,
+        "near_duplicate_threshold": 0.82
+      },
+      "source_intake_count": 415,
+      "train_overlap_counts": {
+        "near": 0,
+        "normalized": 0,
+        "raw": 0,
+        "sanitized": 0,
+        "source": 0,
+        "template": 0
+      },
+      "version": "fixture-transfer-exposure-0.1.0"
+    },
+    "pretraining_sha256": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+    "report_sha256": "f0f8366398241606cba7a1ebcf057e574ccaf7dd047523092fb8548b0af1bbb1",
+    "source_manifest_sha256": "5266e170bc0547d61f544f1dc707e66ac34e1b6fef675296a894e0e3a0fb4777",
+    "version": "fixture-source-binding-0.1.0"
+  },
+  "downstream": {
+    "original_owned_configurations": 24,
+    "hypothetical_network_labels": 12,
+    "original_train": 16,
+    "original_selection": 4,
+    "reserved_test": 4,
+    "train_views": 48,
+    "selection_views": 12,
+    "selection_device_labels": 4,
+    "unique_downstream_content_for_overlap": 64,
+    "comparisons": 26560,
+    "views_and_replays_do_not_add_independent_networks": true,
+    "target_semantics": "injected_mutation",
+    "unmodified_parent_means": "no authored operation injected, not proved healthy",
+    "selection_vendor_views": {
+      "cisco": 4,
+      "juniper": 8
+    },
+    "positive_injections": "JunOS only",
+    "physical_stage_a_isolation": false
+  },
+  "fixed_protocol": {
+    "epochs": 20,
+    "gradient_clip": 1,
+    "learning_rate": 0.01,
+    "max_feature_values": 4000000,
+    "max_total_windows": 10000,
+    "seed": 17,
+    "weight_decay": 0.01,
+    "head_policy": {
+      "adapter_rank": 16,
+      "classes": [
+        "telnet_enabled"
+      ],
+      "contrastive_margin": 0.2,
+      "embedding_size": 64,
+      "max_blocks_per_configuration": 1024,
+      "max_examples": 128,
+      "max_feature_values": 2000000,
+      "max_lines_per_configuration": 100000,
+      "version": "multitask-heads-0.1.0"
+    },
+    "loss_weights": {
+      "anomaly": 1,
+      "category": 1,
+      "contrastive": 0.1,
+      "localization": 1,
+      "severity": 0
+    },
+    "selection": "minimum weighted validation loss",
+    "fixed_strict_score_threshold": 0.5,
+    "severity": "disabled; no inferred labels",
+    "protocol_file_sha256": "45d56f6fe33441c55d56d3cd1acbf8b2e540f501a42daa829602da8fc66a6b56"
+  },
+  "measured_run": {
+    "date": "2026-10-10",
+    "python": "3.14.7",
+    "torch": "2.14.0+cpu",
+    "pydantic": "2.13.5",
+    "tokenizers": "0.23.2",
+    "trainable_parameters": 3993,
+    "total_parameters": 50603,
+    "best_epoch": 20,
+    "source_model_identity": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+    "supervised_model_identity": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+    "train_target_counts": {
+      "anomaly": 48,
+      "category": 48,
+      "contrastive": 1128,
+      "localization": 392,
+      "severity": 0
+    },
+    "selection_target_counts": {
+      "anomaly": 12,
+      "category": 12,
+      "contrastive": 66,
+      "localization": 98,
+      "severity": 0
+    },
+    "first_epoch": {
+      "epoch": 1,
+      "train_components": {
+        "anomaly": 0.6805283427238464,
+        "category": 0.6799668669700623,
+        "contrastive": 0.37315255403518677,
+        "localization": 0.6165297031402588,
+        "severity": null
+      },
+      "train_total": 2.0143401622772217,
+      "validation_components": {
+        "anomaly": 0.6573594212532043,
+        "category": 0.6625775694847107,
+        "contrastive": 0.39025697112083435,
+        "localization": 0.5590548515319824,
+        "severity": null
+      },
+      "validation_total": 1.9180175065994263
+    },
+    "last_epoch": {
+      "epoch": 20,
+      "train_components": {
+        "anomaly": 0.5724032521247864,
+        "category": 0.5738585591316223,
+        "contrastive": 0.3619351089000702,
+        "localization": 0.1236320436000824,
+        "severity": null
+      },
+      "train_total": 1.3060873746871948,
+      "validation_components": {
+        "anomaly": 0.5612305402755737,
+        "category": 0.5641672611236572,
+        "contrastive": 0.3871278464794159,
+        "localization": 0.12749798595905304,
+        "severity": null
+      },
+      "validation_total": 1.2916085720062256
+    },
+    "source_weights_and_report_unchanged": true,
+    "saved_model_and_predictions_round_trip": true,
+    "private_run_sha256": "02d8b590ffb925fd461fcf63f73b49b6faac70ab3bd350a3d32f4c37d9630fcd",
+    "private_heads_sha256": "2a20e234c23b0a021d6b02d9a774944cfc5445b9ee8a0170fdf3aac9ecbdeee2",
+    "private_prediction_batch_sha256": "9ecc36172d7673e5965c163a1d03824112fed7090f596415ce04773005d24ba3",
+    "private_metrics_sha256": "da5d17b7d73c79c0ea837fda81656dfeb3cc96964fafc5f1f74bf0898ccfb671",
+    "latency_scope": "parsing and inference including model-binding checks; excludes initial source/model loading, training and I/O",
+    "metrics": {
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 94,
+        "precision": null,
+        "recall": 0,
+        "f1": 0
+      },
+      "ece": 0.15711125483115512,
+      "category": {
+        "label": "telnet_enabled",
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "precision": null,
+        "recall": 0,
+        "f1": 0,
+        "average_precision": 1,
+        "pr_auc_trapezoidal": 1
+      },
+      "latency": {
+        "measured_cases": 12,
+        "missing_cases": 0,
+        "mean_seconds": 0.020689349970780313,
+        "median_seconds": 0.020682349801063538,
+        "p95_seconds": 0.021431105048395693,
+        "max_seconds": 0.021474500186741352
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0,
+        "f1": 0,
+        "average_precision": 0.8166666666666667,
+        "pr_auc_trapezoidal": 0.7958333333333334
+      },
+      "parser_coverage": {
+        "measured_cases": 12,
+        "missing_cases": 0,
+        "zero_significant_cases": 0,
+        "significant_lines": 92,
+        "recognized_lines": 92,
+        "micro_fraction": 1,
+        "macro_fraction": 1
+      }
+    },
+    "calibration_fit": null,
+    "independent_test": false,
+    "real_confirmed_metrics": null,
+    "unknown_anomaly_metrics": null,
+    "online_activation": false,
+    "production_quality_proven": false
+  },
+  "checks": {
+    "new_authored_cases": 49,
+    "ruff": "pass",
+    "mypy_default_linux_win32_227_runtime_files": "pass",
+    "nearest_regression": {
+      "passed": 289,
+      "seconds": 68.69,
+      "junit_sha256": "052620e2b45aa52cf60cf1d97645d29cd6819520ab0d3a54d6c3f98f48e9d649"
+    },
+    "pydantic_2_14_regression": {
+      "passed": 289,
+      "seconds": 59.5,
+      "junit_sha256": "e4d6f66fa3dff32bc07f2c833331f3f33a65b9590dc65f0b57f53bf06017bcd1"
+    },
+    "frozen_full_regression": {
+      "collected": 2651,
+      "passed": 2624,
+      "skipped": 27,
+      "warnings": 5,
+      "seconds": 264.42,
+      "junit_sha256": "314aa6d18c7a2d61dd2a24f5529ce6b84a7c24c85db43111aa1fba1470dca7fa",
+      "statements": 20669,
+      "missed_statements": 2060,
+      "execution_coverage_percent_rounded": 90,
+      "coverage_sha256": "f27eec35097d0200fee7e3b771b81a531d8debdb4e473f25bef05fd0a307849d",
+      "skipped_scopes": {
+        "optional_batfish_sdk": 12,
+        "live_batfish": 6,
+        "live_model_patch": 2,
+        "live_mutation": 4,
+        "postgres": 1,
+        "saved_http_live_engine": 2
+      }
+    },
+    "installed_wheel": {
+      "sha256": "96f37678cb58f3fba0bd690af6b7e9f170384ffd42fc2f1719837d2823be9ed2",
+      "bytes": 705492,
+      "runtime_inventory_files": 227,
+      "runtime_bytes_match_checkout": true,
+      "isolated_children": 2,
+      "loaded_target_module_counts": [
+        47,
+        87
+      ],
+      "all_app_ml_imports_from_selected_target": true,
+      "new_cases_executed": 49,
+      "junit_sha256": "9c8401629ca328bc5771b45123e2c5eea9b362c41cfb7434be771caeac73a65b",
+      "actual_source_transfer_model_identity": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+      "same_source_replay_not_independent_data": true,
+      "historical_dataset_objective_and_supervised_bundles_unchanged": true,
+      "old_new_native_full_report_sha256": "06c82e0f299ab554f665f8d146efbda48263a6164af16bc7202a1bfc5e9bc9e4",
+      "historical_six_record_quality_sha256": "5143f9f66b5d07794c1afc556e996107fd223c31ab6ef382837bde5f76a50fa4",
+      "old_new_actual_supervised_identity": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+      "old_new_actual_supervised_prediction_sha256": "463679ae9226b6595a67769f394d85af3cec263a10b7ce2c6bb6b2d1b107a010",
+      "private_result_sha256": "e56dbe02eb111627e3e720a4f6bcba51d041778dc14c8d142eda83c9d032c0bd"
+    },
+    "new_live_engine_database_browser_checks": "not_run_locally_for_transfer_slice",
+    "previous_exact_commit_ci": {
+      "commit": "9959397e33f5709bea3ae604b763d1314f28ee3e",
+      "run": "https://github.com/itbortnik/netconfig-sentinel/actions/runs/38048804671",
+      "test_batfish_live_postgres_api_frontend": "all_completed_success"
+    },
+    "new_exact_commit_ci": "not_run_at_report_creation"
+  },
+  "remaining_boundaries": [
+    "Current fixed-threshold detection and localization are not useful: all four injected positives missed",
+    "Source physical isolation, chronology, full discarded downstream metadata and real ground truth remain unproven",
+    "Only three reconstruction objectives were trained on this upstream collection; no device/donor/semantic labels invented",
+    "Small authored selection diagnostics are not independent test, baseline superiority, cross-vendor qualification or fitted calibration",
+    "Registry/API/pre-post integration for this explicit report and representative authorized labeled cohorts remain open",
+    "No large-corpus or foundation-model qualification, production risk activation or automatic patch application"
+  ]
+}

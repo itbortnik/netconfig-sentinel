@@ -105,3 +105,81 @@ fixture are JunOS-only. There are no real-confirmed, independent-test,
 unknown-anomaly or fitted-calibration results. These measurements establish a
 working source-bound training/save/load pipeline, not improved anomaly quality,
 baseline superiority, cross-vendor generalization or production readiness.
+
+## Approved train-only source fixtures -> supervised heads
+
+The separately versioned `multitask-training-0.3.0` path accepts an actual
+`FixturePretrainingResult` and its retained private `FixtureTrainingCorpus`.
+It does not require that this unknown-metadata collection was selected on the
+downstream validation corpus. Neither a legacy MLM nor a six-objective report
+is fabricated. Existing 0.1/0.2 checkpoints and their numerical training paths
+remain unchanged; unsupported versions still fail explicitly.
+
+`validate_fixture_source()` rechecks source permissions, complete imported
+inventory/current content/deduplication, model/tokenizer/tensor consistency and
+the recorded Stage A reconstruction targets. Its source binding retains actual
+model/report/corpus hashes and a downstream manifest/exposure audit. Physical
+network, device, capture time and confirmed anomaly metadata remain unknown;
+`physical_pretraining_isolation_proven` is always false.
+
+Before fitting, every upstream intake member, including duplicates and structural
+holds, is compared with every unique downstream content item: all recorded split
+representatives (including reserved test) and supplied train/validation derivatives.
+Checks cover source ID, raw/sanitized/normalized hash, abstracted template and
+exhaustive token Jaccard similarity. Identical downstream texts preserve **all**
+supplied members' source/raw provenance, not only the first member. Discarded
+downstream duplicate metadata not present in this split/derivative input is not
+invented or audited. This bounded check does not establish exhaustive original
+downstream provenance, independent physical identity or chronology.
+
+Any source/template/content match against validation or reserved test refuses the
+whole run. Train overlap is allowed but counted. Template matches are conservative
+and can refuse generic shared templates; no convenient target subset is selected.
+Default limits are 200,000 comparisons and Jaccard >= 0.82, recorded explicitly;
+budget overruns fail instead of truncating. Test text is used only for overlap
+checking, never encoded as a feature or used with labels for epoch/threshold tuning.
+
+The existing nested-encoder feature extractor, frozen deep copy, residual adapter,
+pooler, losses, optimizer, validation epoch selection and saved bundle are shared.
+Training/prediction/save/load bind the whole Stage A state, including disabled
+auxiliary heads. The existing validation metric adapter also requires the retained
+private corpus and regenerates the exact fitted exposure and annotation bindings.
+Neither missing Stage A device/semantic labels nor Stage B severity labels are
+manufactured. The new format is currently **offline-only**: registry admission,
+saved-analysis/pre-post supplements and HTTP model selection do not support it.
+
+```python
+result = train_multitask(
+    downstream_splits, trusted_fixture_encoder, reviewed_examples,
+    fixture_corpus=retained_private_fixture_corpus,
+    head_policy=HeadPolicy(classes=("telnet_enabled",)),
+    loss_weights=LossWeights(severity=0),
+)
+```
+
+The explicit authored demonstration uses an independently pinned source bundle
+and complete retained manifest/imports; it refuses existing output:
+
+```powershell
+python -m ml.training.fixture_transfer_smoke --source-model private/source-bundle --source-sha256 <full-pin> --manifest private/fixture-manifest.json --records private/imported-fixtures.json --output artifacts/new-fixture-transfer
+```
+
+[Measured transfer](evaluation/owned-source-fixture-transfer.json), 2026-10-10:
+the actual 412-fixture reconstruction encoder feeds 3,993 trainable head/adapter
+parameters, 50,603 total. The original 24 authored configs are re-sanitized for
+this current content gate, not counted as new networks or real anomalies.
+Their 16 train/4 validation/4 reserved-test configs yield 48/12 labeled formatting
+and Telnet views. All 415 upstream members versus 64 unique downstream contents
+produce 26,560 comparisons, with no observed overlaps. Physical independence
+still remains unknown. Twenty predeclared epochs select epoch 20 by validation
+loss (1.29161); the native fixture source remains unchanged. Save/load preserves
+all predictions; an isolated installed package gives the same model identity.
+
+At the fixed strict 0.5 threshold anomaly/category F1 and line recall are **0**;
+four injected positives are missed, with no predicted positive. Anomaly AP is
+0.81667 (trapezoidal PR-AUC 0.79583); category AP is 1 on these twelve selection
+views. These are diagnostic ranking results, not fitted calibration or acceptable
+detection. Positive injections are JunOS-only; Cisco views are references.
+Real-confirmed, independent-test, unknown-anomaly and calibration-fit evidence
+remain absent. No baseline superiority, corpus scale, cross-vendor quality or
+online/production readiness follows from this transfer.

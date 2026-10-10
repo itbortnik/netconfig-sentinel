@@ -12,7 +12,13 @@ from ml.datasets import DatasetSplit, DatasetSplitResult
 from ml.evaluation.contracts import Digest
 from ml.evaluation.metrics import canonical_hash
 from ml.preprocessing.tokenization import TokenizerArtifact
-from ml.training.pretraining import PretrainingReport, PretrainingResult, pretraining_identity
+from ml.training.pretraining import (
+    FixturePretrainingReport,
+    FixturePretrainingResult,
+    PretrainingReport,
+    PretrainingResult,
+    pretraining_identity,
+)
 from ml.training.pretraining_data import SemanticPair, prepare_pretraining
 
 
@@ -53,6 +59,18 @@ def objective_split_identity(splits: DatasetSplitResult) -> str:
 def validate_objective_model(source: PretrainingResult) -> None:
     """Validate in-memory copies too, before feature extraction or bundle creation."""
     report = PretrainingReport.model_validate(source.report.model_dump())
+    _validate_encoder_model(source, report)
+
+
+def validate_fixture_model(source: FixturePretrainingResult) -> None:
+    report = FixturePretrainingReport.model_validate(source.report.model_dump())
+    _validate_encoder_model(source, report)
+
+
+def _validate_encoder_model(
+    source: PretrainingResult | FixturePretrainingResult,
+    report: PretrainingReport | FixturePretrainingReport,
+) -> None:
     tokenizer = TokenizerArtifact.model_validate(source.tokenizer.model_dump())
     model = source.model
     encoder = model.encoder
@@ -80,6 +98,11 @@ def validate_objective_model(source: PretrainingResult) -> None:
         )
     ):
         raise ValueError("objective model/report/tokenizer binding differs or is not finite CPU")
+    if isinstance(report, FixturePretrainingReport) and (
+        report.corpus.training_count != tokenizer.training_record_count
+        or report.corpus.block_count != tokenizer.training_block_count
+    ):
+        raise ValueError("fixture source tokenizer/exposure counts differ")
 
 
 def verify_objective_binding(source: PretrainingResult, binding: ObjectiveSourceBinding) -> None:

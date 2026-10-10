@@ -32,7 +32,7 @@ from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_
     "payload,error",
     [
         ({}, "union_tag_not_found"),
-        ({"version": "multitask-training-0.3.0"}, "union_tag_invalid"),
+        ({"version": "multitask-training-0.4.0"}, "union_tag_invalid"),
         ({"version": None}, "union_tag_invalid"),
         ({"version": 1}, "union_tag_invalid"),
     ],

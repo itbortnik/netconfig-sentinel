@@ -72,10 +72,19 @@ bundles/train/selection/calibration runs по этому источнику то
 эпохи, не ориентиры большого корпуса или pretrained foundation encoder.
 Train weighted loss 19.0544→18.4906; validation/test/real-confirmed metrics остаются
 `null`, selection/calibration не выполнялись. Installed replay сохраняет идентичную
-model identity; повторный run не добавляет независимых данных. Обычный transfer/
-registry не принимают этот отдельный train-only bundle. Следующий разрыв —
-fixture-aware downstream exposure/contamination checks и проверяемый перенос,
-после него всё ещё нужны independent representative labels/calibration/test.
+model identity; повторный run не добавляет независимых данных. Обычный objective
+transfer не принимает этот отдельный train-only bundle. Последующий explicit
+[fixture-aware transfer](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)
+повторяет retained corpus/targets checks и сравнивает все 415 upstream members с
+64 downstream contents: 26560 пар, source/raw/sanitized/normalized/template/near
+overlaps не наблюдались. Это audit доступных split representatives/derivatives,
+не доказанная физическая изоляция, chronology или потерянная duplicate metadata.
+Фактический encoder обучает общие heads: 3993 trainable/50603 total parameters,
+48 train/12 selection views исходных 24 owned configs; save/load и installed replay
+сохраняют predictions/model identity. Fixed-threshold anomaly/category F1 и line
+recall **0**, четыре injected positives пропущены; новый 0.3 формат offline-only.
+Registry/API/pre-post integration и independent representative labels/calibration/
+test остаются открытыми. Исторические intake/Stage A метрики не переписываются.
 
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
@@ -88,6 +97,9 @@ checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel по
 Точный предыдущий fixture-intake commit `1b11c06abdea95af6dd0dae713b63d2b9b01b84d`
 имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38046558911);
 это не exact-commit CI новой train-only поставки и не independent model quality.
+Позже exact train-only commit `9959397e33f5709bea3ae604b763d1314f28ee3e`
+получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38048804671).
+Это не CI новой fixture-transfer поставки и не real model/source qualification.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
