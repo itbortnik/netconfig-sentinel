@@ -107,3 +107,29 @@ Bodies/keys remain unpersisted and imports/bundles/training remain zero. The
 original v2 result above is retained as historical evidence, not overwritten.
 The [v3 evidence](evaluation/owned-prefix-list-sanitization.json) separates owned
 functional round trips from actual upstream content diagnostics.
+
+## Stricter residual-content follow-up
+
+The per-occurrence scanner in `dataset-quality-0.3.0` closes an authored
+mixed-redaction bypass; it does not loosen refusals to increase corpus size.
+A third append-only local preflight, still using sanitizer v3 and the approved
+pinned acquisition, now yields 413 parsed / 74 sanitizer refusals / 15 residual
+refusals / two vendor-detection refusals / three text refusals / one file hold.
+Six entries previously admitted to diagnostic parsing are additionally withheld.
+These are recognized keyword/content flags, not six confirmed secret disclosures.
+
+The final scanner also recognizes the already supported, actually redacted
+`pre-shared-key ascii-text` value instead of falsely refusing its qualifier.
+Two of those six inputs return to diagnostics: final counts are 415 parsed,
+74 sanitizer refusals, 13 residual refusals, two vendor-detection refusals,
+three text refusals and one hold. Of 415 parsed entries, 389 are partial and
+40 have warnings: 1,387 accepted / 3,738 unparsed / 5,125 command units.
+An ASCII value before the marker, including a numeric value, is still refused.
+Earlier strict results and the corrected final run are retained separately.
+
+Of the intermediate 413 parsed entries, 387 were partial and 40 had warnings: 1,384 accepted /
+3,697 unparsed / 5,081 command units. Both older preflights remain untouched.
+Physical/capture metadata remain unknown, sanitized bodies/keys are not stored,
+and imports/bundles/training remain zero. [Residual-gate evidence](evaluation/owned-residual-content-gate.json)
+records the stricter scope and historical compatibility separately from v3 CIDR
+qualification or independent data/model quality.

@@ -18,6 +18,7 @@ from ml.datasets.models import DatasetUse, ImportedDatasetRecord
 from ml.datasets.quality import (
     DatasetQualityReport,
     compute_pipeline_fingerprint,
+    scan_sanitized_content,
 )
 from ml.datasets.splitting import DatasetSplitResult
 
@@ -126,6 +127,16 @@ def write_dataset_artifact(
         raise ValueError("quality report candidate count does not match records")
     if quality_report.metrics.unique_configuration_count != deduplication.unique_count:
         raise ValueError("quality report unique count does not match deduplication")
+    if any(
+        scan_sanitized_content(
+            record.sanitized_text,
+            sanitized_sha256=record.sanitized_sha256,
+            sanitization_version=record.sanitization_version,
+            allowed_versions=quality_report.policy.allowed_sanitization_versions,
+        )
+        for record in records
+    ):
+        raise ValueError("current residual-content checks prevent artifact persistence")
     record_source_ids = tuple(sorted({record.source_id for record in records}))
     report_source_ids = tuple(source.source_id for source in quality_report.sources)
     if report_source_ids != record_source_ids:

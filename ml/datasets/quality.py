@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from bisect import bisect_left
 from collections import defaultdict
 from collections.abc import Iterable
 from enum import StrEnum
@@ -25,7 +26,7 @@ from ml.datasets.models import (
 from ml.datasets.splitting import DatasetSplit, DatasetSplitResult
 from ml.preprocessing import SANITIZATION_VERSION
 
-QUALITY_REPORT_VERSION = "dataset-quality-0.2.0"
+QUALITY_REPORT_VERSION = "dataset-quality-0.3.0"
 _TOKEN = re.compile(r"<[^>]+>|[A-Za-z0-9_./:@-]+|[{};]")
 _HOST_ALIAS = re.compile(r"^host-[0-9a-f]{12}[;]?$", re.I)
 _USER_ALIAS = re.compile(r"^user-[0-9a-f]{12}[;]?$", re.I)
@@ -42,6 +43,8 @@ _NON_SECRET_PASSWORD_POLICY = re.compile(
 _SNMP_COMMUNITY = re.compile(r"\b(?:snmp-server\s+community|snmp\s+community)\b", re.I)
 _PEM_BEGIN = re.compile(r"-----BEGIN (?:[A-Z0-9 ]*PRIVATE KEY|CERTIFICATE)-----")
 _PEM_END = re.compile(r"-----END (?:[A-Z0-9 ]*PRIVATE KEY|CERTIFICATE)-----")
+_REDACTION_MARKER = re.compile(r"<redacted-(?:secret|community|contact|material)>", re.I)
+_CONTACT_DIRECTIVE = re.compile(r"\b(?:contact|location)\b", re.I)
 
 
 class QualityIssueSeverity(StrEnum):
@@ -177,7 +180,7 @@ class DatasetQualityReport(BaseModel):
 
     report_version: str = Field(
         default=QUALITY_REPORT_VERSION,
-        pattern=r"^dataset-quality-0\.2\.0$",
+        pattern=r"^dataset-quality-0\.[23]\.0$",
     )
     policy: DatasetQualityPolicy
     intended_use: DatasetUse
@@ -521,16 +524,22 @@ def scan_sanitized_content(
     if _contains_control_character(text):
         issues.append(("content.control_character", "Sanitized text contains a control character."))
 
-    in_pem_block = False
+    expected_pem_end: str | None = None
     for raw_line in text.splitlines():
         stripped = raw_line.strip()
         if _PEM_BEGIN.fullmatch(stripped):
-            in_pem_block = True
+            if expected_pem_end is not None:
+                issues.append(_invalid_pem_boundary())
+            else:
+                expected_pem_end = stripped.replace("BEGIN", "END", 1)
             continue
         if _PEM_END.fullmatch(stripped):
-            in_pem_block = False
+            if stripped == expected_pem_end:
+                expected_pem_end = None
+            else:
+                issues.append(_invalid_pem_boundary())
             continue
-        if in_pem_block and stripped and stripped != "<redacted-material>":
+        if expected_pem_end is not None and stripped and stripped != "<redacted-material>":
             issues.append(
                 (
                     "sanitization.certificate_material",
@@ -538,23 +547,13 @@ def scan_sanitized_content(
                 )
             )
         lowered = stripped.casefold()
-        has_unredacted_secret = (
-            _SECRET_DIRECTIVE.search(stripped)
-            and not _NON_SECRET_PASSWORD_POLICY.search(stripped)
-            and "<redacted-secret>" not in lowered
-        )
-        if has_unredacted_secret:
+        if _has_unredacted_value(stripped, _SECRET_DIRECTIVE, "secret", allow_password_policy=True):
             issues.append(("sanitization.secret_value", "A credential directive is not redacted."))
-        if _SNMP_COMMUNITY.search(stripped) and "<redacted-community>" not in lowered:
+        if _has_unredacted_value(stripped, _SNMP_COMMUNITY, "community"):
             issues.append(("sanitization.snmp_community", "An SNMP community is not redacted."))
         _scan_identity_line(stripped, lowered, issues)
-    if in_pem_block:
-        issues.append(
-            (
-                "sanitization.incomplete_certificate_block",
-                "A certificate or key block has no closing boundary.",
-            )
-        )
+    if expected_pem_end is not None:
+        issues.append(_invalid_pem_boundary())
     return tuple(sorted(set(issues)))
 
 
@@ -566,36 +565,75 @@ def _scan_identity_line(
     tokens = stripped.split()
     if not tokens:
         return
-    hostname_index = _value_index(lowered, ("hostname ", "host-name "))
-    if hostname_index is not None and hostname_index < len(tokens):
+    for hostname_index in _value_indices(lowered, ("hostname ", "host-name ")):
+        if hostname_index >= len(tokens):
+            continue
         if not _HOST_ALIAS.fullmatch(tokens[hostname_index].strip('"\'')):
             issues.append(
                 ("sanitization.hostname", "A hostname is not pseudonymized.")
             )
-    username_index = _value_index(lowered, ("username ", " login user ", " user "))
-    if username_index is not None and username_index < len(tokens):
+    for username_index in _value_indices(lowered, ("username ", " login user ", " user ")):
+        if username_index >= len(tokens):
+            continue
         if not _USER_ALIAS.fullmatch(tokens[username_index].strip('"\'')):
             issues.append(
                 ("sanitization.username", "A username is not pseudonymized.")
             )
-    domain_index = _value_index(lowered, ("domain-name ", "domain name "))
-    if domain_index is not None and domain_index < len(tokens):
+    for domain_index in _value_indices(lowered, ("domain-name ", "domain name ")):
+        if domain_index >= len(tokens):
+            continue
         if not _DOMAIN_ALIAS.fullmatch(tokens[domain_index].strip('"\'')):
             issues.append(("sanitization.domain", "A domain is not pseudonymized."))
-    if re.search(r"\b(?:contact|location)\s+", lowered):
-        if "<redacted-contact>" not in lowered:
-            issues.append(
-                ("sanitization.contact", "Contact or location data is not redacted.")
-            )
+    if _has_unredacted_value(stripped, _CONTACT_DIRECTIVE, "contact"):
+        issues.append(("sanitization.contact", "Contact or location data is not redacted."))
 
 
-def _value_index(lowered: str, markers: tuple[str, ...]) -> int | None:
+def _value_indices(lowered: str, markers: tuple[str, ...]) -> tuple[int, ...]:
+    token_starts = tuple(match.start() for match in re.finditer(r"\S+", lowered))
+    indices: set[int] = set()
     for marker in markers:
-        position = lowered.find(marker)
-        if position < 0:
+        for match in re.finditer(re.escape(marker), lowered):
+            indices.add(bisect_left(token_starts, match.end()))
+    return tuple(sorted(indices))
+
+
+def _invalid_pem_boundary() -> tuple[str, str]:
+    return (
+        "sanitization.incomplete_certificate_block",
+        "A certificate or key block has missing or invalid boundaries.",
+    )
+
+
+def _has_unredacted_value(
+    text: str,
+    directive: re.Pattern[str],
+    kind: str,
+    *,
+    allow_password_policy: bool = False,
+) -> bool:
+    marker_spans = tuple(match.span() for match in _REDACTION_MARKER.finditer(text))
+    marker_index = 0
+    marker = re.escape(f"<redacted-{kind}>")
+    encoding = r"(?:[0456789]\s+)?" if kind == "secret" else ""
+    value = rf"(?:{marker}|\"{marker}\"|'{marker}')(?=\s|[;{{}}]|$)"
+    redacted_value = re.compile(rf"\s+{encoding}{value}", re.I)
+    redacted_ascii_psk = re.compile(rf"\s+ascii-text\s+{value}", re.I)
+    for match in directive.finditer(text):
+        while marker_index < len(marker_spans) and marker_spans[marker_index][1] <= match.start():
+            marker_index += 1
+        if marker_index < len(marker_spans) and marker_spans[marker_index][0] <= match.start():
             continue
-        return len(lowered[: position + len(marker)].split())
-    return None
+        if allow_password_policy and _NON_SECRET_PASSWORD_POLICY.match(text, match.start()):
+            continue
+        if (
+            kind == "secret"
+            and match.group().casefold() == "pre-shared-key"
+            and redacted_ascii_psk.match(text, match.end()) is not None
+        ):
+            continue
+        if redacted_value.match(text, match.end()) is None:
+            return True
+    return False
 
 
 def _contains_control_character(text: str) -> bool:

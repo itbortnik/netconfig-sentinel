@@ -42,6 +42,13 @@ content preflight пропустил к диагностическому пар�
 независимые сети: capture/entity metadata
 неизвестны, imported records/dataset bundles/training runs пока 0. Подтверждённые
 аномалии и independent-network counts отсутствуют, не подменяются нулями.
+Последующая поэкземплярная проверка `dataset-quality-0.3.0` дополнительно
+удержала шесть ранее разобранных entries: текущий content preflight — 413 parsed,
+387 partial/15 residual refusals. Это распознанные flags, не доказанные disclosures.
+Старые preflights и отчёты не перезаписываются. Final scanner учитывает уже
+обезличенный `pre-shared-key ascii-text` qualifier: два входа возвращены,
+итого 415 parsed/389 partial/13 residual refusals. Значение до marker всё ещё
+отклоняется; новые privacy/model-quality гарантии не заявлены.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
@@ -87,6 +94,22 @@ preflight не пишет bodies/keys и не создаёт fake network/captur
 `ec3b202992a116e090254030fb997b6026e5d8b8` все четыре
 [CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38043151359)
 успешны. Это не новый exact-commit CI для v3 preprocessing.
+
+[Per-occurrence residual gate](evaluation/owned-residual-content-gate.json)
+закрывает authored mixed-redaction bypass и повторяет текущий content check до
+новой записи даже при hash-bound legacy report. Новые отчёты имеют версию 0.3;
+старые 0.2 читаются без переоценки/изменения истории. Проверены 2480 full passes/
+27 skips/5 warnings, 142 focused и 142 Pydantic 2.14 checks, ruff/mypy 223 files
+на обеих платформах. Installed wheel: 223 runtime файла, 13 old/29 new target
+imports в двух children, 45 новых и 65 prefix-list authored проверок; фактически
+созданный старым пакетом учебный артефакт прочитан новым без изменения семи файлов.
+Current upstream preflight допускает 415 entries, не корпус/ground truth.
+Preceding prefix-list commit `d487e30b8ee5cfcff059907f39cccdfe027e6d62` имеет
+[все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38044023526):
+2435 backend passes/27 skips, 35 main Batfish + два saved-HTTP checks, 282 PG
+passes/2 skips/4 deselected, 478 frontend unit/154 regular/22 synthetic/154 Compose
+browser checks. Это не exact-commit CI для нового residual gate или source data
+network qualification; сырые/обезличенные upstream configs остаются локально.
 
 [Hierarchical JunOS mutation evidence](evaluation/owned-hierarchical-junos-mutations.json)
 проверяет opt-in offline 0.2: 14 классов, связанные изменения, source preservation,

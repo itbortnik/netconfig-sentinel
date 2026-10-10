@@ -36,6 +36,9 @@ content and the same content-derived artifact ID.
 Writing requires an existing output root, a safe single-component artifact
 name, a technically valid quality report, exact report/pipeline agreement, one
 sanitizer version, and approved sources that allow the report's intended use.
+The writer also reruns current residual-content/hash/version checks over every
+input before creating the directory, regardless of a supplied report's recorded
+version. Historical reports cannot bypass new recognized-content safeguards.
 
 The writer creates files exclusively and places an `.incomplete` marker before
 content is emitted. A failed run is deliberately left recognizable for manual
@@ -56,6 +59,9 @@ The manifest itself is validated structurally, while its artifact ID binds the
 pipeline fingerprint and all listed content files. SHA-256 provides integrity
 checking, not publisher authentication. Distribution across trust boundaries
 therefore needs a separate signing or authenticated transport mechanism.
+Loading an existing artifact does not silently rescan/upgrade its historical
+quality report or declare it recertified by today's privacy checks. Versions,
+bytes and hashes remain intact; new writes use the current gate.
 
 ## Usage
 

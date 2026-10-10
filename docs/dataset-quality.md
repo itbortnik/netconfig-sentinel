@@ -1,7 +1,7 @@
 # Dataset quality report
 
 The quality report is the gate between isolated dataset splitting and durable
-sanitized storage. Report version `dataset-quality-0.2.0` recomputes checks from
+sanitized storage. New report version `dataset-quality-0.3.0` recomputes checks from
 the sanitized records, the deduplication result, the split result, and the
 reviewed source objects. It does not accept counts supplied in a separate
 spreadsheet or infer that a target has been reached.
@@ -42,11 +42,40 @@ sanitizer fixtures and reviewer sampling.
 allowed_versions=...)` exposes these same content/hash/version checks before
 physical entity or device-capture metadata is available. It returns immutable,
 sorted unique `(code, generic_message)` pairs without content values. The full
-record gate delegates to this scanner; historical report versions, serialized
-payloads and default v1 acceptance are unchanged. An empty result is not source
-approval, a privacy guarantee, an import, a split or permission to persist/train.
-Explicitly allow v2 when reviewing v2 content. The caller must enforce the
+record gate delegates to this scanner; historical serialized reports remain
+readable without rewriting, and the default allowed sanitizer is still v1.
+An empty result is not source approval, a privacy guarantee, an import, a split
+or permission to persist/train. Explicitly allow v2/v3 when reviewing that content.
+The caller must enforce the
 existing acquisition size/text bounds and independently review file provenance.
+
+## Per-occurrence checks and historical reports
+
+Version 0.3 checks every recognized credential, community, identity and contact
+occurrence independently. A redaction marker elsewhere on a line no longer
+exempts an unredacted value, and a password-policy directive exempts only itself.
+Credential placeholders may follow a qualified one-digit encoding selector;
+community/contact placeholders cannot hide a numeric value. Placeholder suffixes,
+wrong PEM closing labels, nested/orphan boundaries and extra PEM material are
+refused with generic diagnostics. Repeated markers are scanned using ordered
+spans/token offsets rather than a quadratic exemption search.
+The already supported `pre-shared-key ascii-text <redacted-secret>` qualifier
+is recognized explicitly; the marker must still be the actual ASCII value.
+
+Readers continue to accept `dataset-quality-0.2.0` and 0.3 payloads, preserving
+their recorded version. Reading an old artifact performs its existing integrity
+verification, not automatic privacy recertification or rewriting of stored data.
+New report construction emits 0.3. Before any new artifact directory is created,
+the writer runs current content/hash/version checks over every input, even if
+supplied with a structurally valid hash-bound historical report. A previous
+report is not authority to persist newly recognized unsafe content. Sanitized
+bytes, old report/manifest hashes and model histories are not regenerated.
+
+The [owned check evidence](evaluation/owned-residual-content-gate.json) separates
+authored bypass regressions, a real artifact written by the old installed runtime,
+and the stricter approved-source preflight. Recognized flags can still include
+benign/ambiguous or unsupported syntax; this conservative scanner is not a full
+vendor-aware secret detector or a privacy guarantee.
 
 ## Warnings and distributions
 
