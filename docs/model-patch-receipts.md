@@ -59,8 +59,11 @@ operation journal, signed provenance или production key-management qualificat
 Local replay проверяет допустимые bytes/scope/parser/policy, не device syntax,
 SSH access, rollback, formal reachability или semantic/citation truth. Даже
 authenticated artifact с accepted edit не получает `validated/approved/applied`.
-Persistent API/UI handoff, candidate-specific formal/model review context и
-engineer approval остаются отдельными незавершёнными требованиями.
+Persistent [generation API](saved-model-patches.md),
+[verification/decisions](saved-model-patch-reviews.md) и [UI](model-patch-interface.md)
+реализованы отдельно. Их contracts/tests и раздельные owned measurements не
+превращают standalone receipt в удостоверение model execution или human approval
+и не квалифицируют полный actual chain.
 
 ## Installed owned evidence
 

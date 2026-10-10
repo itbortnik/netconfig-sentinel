@@ -118,7 +118,7 @@ observations, contract/model identity и SHA приватных reports.
 uncalibrated before/after scores не подтверждают качество исправления SSH.
 ML evidence не меняет исходный `not_run` в local review и не повышает status.
 
-## Незакрытый полный workflow
+## Связанные реализации и незакрытая квалификация
 
 Отдельный [exact candidate → scoped network review](model-patch-network-review.md)
 добавляет fresh source/answer binding и строит before/after network, не изменяя
@@ -126,10 +126,14 @@ ML evidence не меняет исходный `not_run` в local review и не
 подготовленных полных toy sources: Cisco candidate, JunOS decline, плюс четыре
 actual ML review/check процесса. Это не independent quality или SSH access proof.
 
-Этот slice не заменяет arbitrary vendor patches, полный baseline/previous-config
-diff, actual candidate-specific Batfish inputs/results, ML pre/post, engineer
-approval transition или связанный API/UI round trip. Приватный candidate можно
-передать в существующие отдельные ML/network review contracts только явно, с
-точными inputs; они тоже не повышают статус автоматически. Real hardware syntax,
+Сам offline slice не заменяет arbitrary vendor patches или полный baseline/
+previous-config diff. Candidate-specific Batfish и ML evidence описаны отдельно
+по ссылке выше. Последующие [generation API](saved-model-patches.md),
+[verification/decision API](saved-model-patch-reviews.md) и
+[UI](model-patch-interface.md) реализованы с самостоятельными opt-ins и durable
+history. Actual LLM generation, ML replay, engine с synthetic provider и browser
+checks остаются разными experiments, не доказанным полным actual chain.
+Приватный candidate передаётся в review только явно, с точными inputs; status
+не повышается автоматически. Real hardware syntax,
 management access/rollback, real-confirmed data, independent semantic/adversarial/
 citation evaluation и production deployment остаются открытыми.

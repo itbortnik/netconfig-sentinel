@@ -224,7 +224,13 @@ host bits; parent получил один fatal parse warning, candidate без 
 ноль init issues. Это не отказ движка поддерживать hierarchy и не успешная
 проверка reachability. Исправленный сценарий явно выбирает ограниченную
 `config-sanitizer-0.2.0` и преобразует query destinations тем же ключом/scope.
-Успех исправленного live-запуска ещё требуется; прежние отказы сохранены.
+Исправленный [exact-commit job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38041061060/job/114181229521)
+на `334cbab05cdff22608f7cfd497f1c7fabdfb0055` успешен: generated route loss
+дал 1→0 reachable / diff=1, unchanged и direct-peer controls — 1→1 / diff=0,
+empty scope — 0→0 / diff=0 и `inconclusive`. Все четыре сети удалены;
+historical sample formal status остался `not_run`. В основном шаге 35 tests
+passed, отдельные saved HTTP cases — 2 passed; прежние отказы сохранены в
+[численном отчёте](evaluation/owned-generated-route-batfish.json).
 
 ## Привязка к существующему черновику
 

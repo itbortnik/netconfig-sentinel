@@ -140,7 +140,9 @@ The first generated live fixture was rejected because historical v1 sanitization
 did not canonicalize network CIDRs. The corrected fixture opts into the bounded
 [v2 CIDR policy](dataset-ingestion.md#sanitization), including matching query
 scopes. Both known sanitized record versions are accepted without changing their
-text or hashes. No successful corrected live result is asserted before execution.
+text or hashes. The [corrected actual owned run](evaluation/owned-generated-route-batfish.json)
+measured route loss and all three controls, without changing the sample's
+historical formal status or qualifying other mutation classes.
 
 ## Avoiding generator artifacts
 

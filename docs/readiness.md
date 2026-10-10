@@ -31,6 +31,10 @@ deduplication, network/site/device/time isolation, mutations и фактичес
 Owned laboratory scenarios — не независимые реальные сети. Разрешённого большого
 корпуса и подтверждённых реальных labels нет; такие метрики не публикуются как
 измеренные. Feedback verdict не становится ground truth автоматически.
+[Pending public-source review](dataset-source-review.md) нашёл 508 Batfish fixture
+кандидатов по pinned tree metadata; это не imported/approved dataset, independent
+networks или real-confirmed labels. Для приёма нового источника требуется human
+source/use review; тела конфигураций ещё не загружались.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
@@ -85,14 +89,21 @@ ruff/mypy на обеих платформах чистые. Четыре no-upl
 показал fatal warning: v1 sanitization оставлял ненулевые host bits в static
 network CIDR. Ограниченная [v2 CIDR policy](dataset-ingestion.md#sanitization)
 выбирается явно, не пересчитывает старые данные или model defaults. Исправленный
-сценарий использует её для configs и query destinations; успешный live result
-ещё не получен. Неизвестные CIDR роли и separate IPv4 masks в v2 отклоняются,
+сценарий использует её для configs и query destinations. Последующий
+[actual job](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38041061060/job/114181229521)
+измерил route loss 1→0/diff=1, unchanged/direct-peer 1→1/diff=0, empty scope
+0→0/inconclusive; cleanup всех четырёх сетей успешен. Это одна toy topology,
+не 14 qualified классов, device syntax или независимое качество. История отказов
+сохранена в [report](evaluation/owned-generated-route-batfish.json).
+Неизвестные CIDR роли и separate IPv4 masks в v2 отклоняются,
 а полная топологическая эквивалентность обезличивания не доказана.
 Локальная регрессия исправления: 2362 passes/27 skips/5 warnings, 255 связанных
 passes/4 live skips, 193 focused Pydantic 2.14 passes/4 live skips; ruff и mypy
 223 files на обеих платформах чистые. Новый installed wheel проверяет все 223
 runtime файла, 33 loaded imports, четыре no-upload случая и import/segment/
-generate/reverse round trip. Это не успешный live result или независимое качество.
+generate/reverse round trip. Отдельная installed regression повторила 68
+hierarchical samples/undo/JSON round trips и 29 flat serializations с прежним
+полным checksum; это не 68 независимых parent или измерение detector quality.
 
 [Измеренное покрытие исходных строк](evaluation/owned-parser-coverage.json)
 добавлено вне canonical IR: новые uploads/API/история/UI используют фактические
@@ -256,8 +267,11 @@ Published instruct runtime имеет
 
 Отдельный [offline model patch slice](model-patch-drafts.md) добавляет actual
 affected command context, выбранный baseline и строгую проверку model-generated
-edits. Он не меняет null-only HTTP schema и не закрывает полный patch workflow,
-semantic quality, actual ML/formal recheck или engineer approval.
+edits. Он не меняет null-only explanation HTTP schema. Последующие
+[saved generation](saved-model-patches.md), [reviews/decisions](saved-model-patch-reviews.md)
+и [UI](model-patch-interface.md) реализованы отдельно; раздельные actual LLM/ML/
+engine measurements не доказывают semantic quality или полный actual chain
+с подтверждённым инженером, device syntax, management access и rollback.
 
 Local full suite этого slice: 1497 passed, два explicit skips; ruff и mypy на
 обеих платформах чистые. [12 actual model-patch generations](evaluation/owned-model-patches.json)

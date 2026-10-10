@@ -39,8 +39,11 @@ device syntax, SSH access, model execution authentication и application — fal
 Нельзя дописать topology к ранее полученному minimal-source answer и объявить
 его проверенным. IPv4 data-plane query не моделирует SSH protocol security,
 реальную возможность входа, vendor CLI validation или rollback. Отсутствие
-различий в одной области не доказывает безопасность всей сети. Engineer approval
-и связанные gates полного API/UI workflow остаются отдельной работой.
+различий в одной области не доказывает безопасность всей сети. Последующие
+[persistent verification/decisions](saved-model-patch-reviews.md) и
+[UI](model-patch-interface.md) реализуют отдельный workflow с этими gates.
+Он не является измеренной human identity, device/access/rollback проверкой или
+полным actual LLM → ML → engine → approval experiment.
 
 ## Фактический owned кандидат
 

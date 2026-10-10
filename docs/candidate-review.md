@@ -87,8 +87,11 @@ Generation timings: первая пара 19.690/11.069 s, вторая 19.291/6
 не включая cold model load. Explicit diagnostic deadline — 20 s; HTTP default
 10 s не повышен. Ни один текст не approved recommendation, статус патча не повышен.
 При отказе объяснения deterministic report остаётся доступным, без выдуманного
-LLM answer. Full API source handoff, durable workflow и engineer approval остаются
-отдельными незавершёнными gates; real confirmed model quality также не доказана.
+LLM answer. Последующие [saved generation](saved-model-patches.md),
+[durable verification/decisions](saved-model-patch-reviews.md) и
+[UI](model-patch-interface.md) уже реализуют отдельный source handoff workflow.
+Это не новое исполнение модели в данном historical experiment, не подтверждение
+human identity/approval или real-confirmed model quality.
 
 Local full suite: **1656 passed, 21 skipped**, четыре dependency deprecation
 warnings; 82 focused report/provider/runtime cases входят в этот набор.

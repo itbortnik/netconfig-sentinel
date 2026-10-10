@@ -160,14 +160,19 @@ report частичным; Cisco reference prose без verifier утвержд�
 Schema-valid answer остаётся непроверенным черновиком; ссылки и hashes сами по
 себе не доказывают содержание. Нет нового semantic-quality или safety gate pass.
 
-## Оставшийся полный LLM workflow
+## Текущий связанный workflow и оставшиеся границы
 
-Этот runtime не завершает полный LLM workflow: действующая HTTP schema требует
-`patch_draft=null`. Отдельный [offline source-bound model patch](model-patch-drafts.md)
-имеет самостоятельный opt-in и ограниченный management context; это не activation
-patch API. Полный vendor-specific workflow с safe diff/baseline/
-реальным verifier context, engineer approval и связанный patch API round trip
-требуют отдельного этапа. Проверка простого explanation HTTP пути выше не заменяет
-их. Не закрыты independent/adversarial/semantic/citation quality,
-vendor/internal corpus, реальные конфигурации, нагрузка, production deployment и
-access/rollback. Model prose не меняет risk/history/formal status и не применяется.
+HTTP explanation `/findings/{id}/explain` по-прежнему требует `patch_draft=null`.
+Отдельный [source-bound draft](model-patch-drafts.md) теперь имеет
+[persistent generation API](saved-model-patches.md),
+[verification/decision API](saved-model-patch-reviews.md) и
+[UI с раздельными согласиями](model-patch-interface.md). Это реализованный
+ограниченный Telnet/SSHv1 workflow, не автоматическая активация сервиса оператора.
+
+Evidence разделены: actual saved LLM generation, installed ML replay, реальные
+scoped Batfish queries с synthetic draft provider и synthetic-provider browser
+tests — разные запуски. Они не доказывают один полный actual LLM → ML → engine →
+human approval round trip, arbitrary vendor patches или semantic truth. Не закрыты
+independent/adversarial/semantic/citation quality, vendor/internal corpus,
+реальные конфигурации, нагрузка, production deployment и access/rollback.
+Model prose не меняет risk/history/formal status и не применяется.

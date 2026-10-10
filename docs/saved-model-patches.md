@@ -94,7 +94,8 @@ Formal/ML verification остаются `not_run`; `requires_human_review=true`,
 `approved=false`, `applied=false`, `model_execution_authenticated=false`.
 Configured alias/hash не доказывает реальные weights или выполнение inference.
 Schema, permitted edits и citations не устанавливают истинность свободного prose.
-Отдельные verification records и решение инженера — следующий workflow slice.
+Отдельные [verification records и решение](saved-model-patch-reviews.md) реализованы
+следующим самостоятельным slice; они не переписывают эти generation flags.
 
 Operation journal содержит только explicit metadata projection, не answer,
 commands, prompt, raw source или API key. Domain payloads encrypted at rest;
