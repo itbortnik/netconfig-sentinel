@@ -1,7 +1,8 @@
 # Dataset deduplication
 
-Deduplication runs only on `ImportedDatasetRecord` values after source review
-and sanitization. It returns one deterministic representative per duplicate
+Deduplication runs after source review and sanitization. Its historical observed
+route consumes `ImportedDatasetRecord` values. It returns one deterministic
+representative per duplicate
 component together with fingerprints, direct match evidence, and template
 groups. It does not delete local source files or claim that candidate files are
 independent configurations.
@@ -72,6 +73,30 @@ unique_count + exact_duplicate_count + near_duplicate_count = input_count
 Candidate-file count is not a dataset-size metric. Operational reporting must
 use the unique count alongside independent network, site, role, block, token,
 and confirmed-anomaly counts.
+
+## Source fixtures with unknown metadata
+
+The same `deduplicate_dataset` implementation accepts a homogeneous sequence of
+`ImportedDatasetFixtureRecord` values and returns a distinct
+`DatasetFixtureDeduplicationResult`, version `dataset-fixture-dedup-0.1.0`.
+It revalidates unknown metadata and current content/hash/sanitizer-version
+checks before clustering. Mixing fixture and observed record kinds is refused.
+
+Exact/normalized/MinHash/LSH/template evidence and bounded candidate discovery
+reuse the existing algorithms and coefficients. There is no device-identity
+candidate bucket for unknown fixtures. Representatives are selected by source
+ID, record ID and sanitized hash, **not** by source acquisition time; capture
+times remain `null`. A constant internal sort key is never stored as a timestamp.
+Results are independent of input order. Counts mean detected content families,
+not independent physical networks or healthy observations. A zero near-match
+count is not a guarantee that the bounded candidate search found all similarities.
+
+This result cannot be deserialized as the historical observed-record result or
+passed into the entity/time splitter. Historical default observed-result bytes,
+policies, representative order and algorithm version remain unchanged; an actual
+installed-runtime comparison checks the full six-record quality report and
+reads an old artifact without rewriting its files. See
+[fixture-intake evidence](evaluation/owned-source-fixture-intake.json).
 
 ## Usage
 

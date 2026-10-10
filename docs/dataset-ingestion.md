@@ -6,8 +6,9 @@ imports local files. It does not download repositories or claim that a
 production dataset has been assembled.
 The [approved pinned-source intake](dataset-source-review.md) records human
 authorization, exact local acquisition and content preflight. Its upstream
-fixtures still have unknown device-capture/entity metadata; no imported records,
-dataset bundle or model training are claimed.
+fixtures still have unknown device-capture/entity metadata. The explicit fixture
+intake below now imports local reviewed candidates without fabricating those
+fields; no quality-gated split corpus or model training is claimed.
 
 ## Source manifest
 
@@ -90,6 +91,57 @@ records = import_local_dataset(
 
 The pseudonymization key must contain at least 16 bytes and must be supplied at
 runtime from secret storage. It must not be committed with a manifest.
+
+## Explicit unknown-metadata fixture intake
+
+The historical `DatasetManifest` schema `1.0` and its loader remain strict:
+they require actual declared network/site/device identifiers and an aware
+device-capture timestamp. Do not invent these fields for upstream parser fixtures
+or substitute a repository commit/acquisition time for a device observation.
+
+`DatasetFixtureManifest` schema `source-fixture-1.0` is an explicit alternative
+for `batfish_test`, `open_repository` or `generated` **source fixtures**, not
+real/lab observations. `DatasetFixtureRecord` requires a reviewed SHA-256 and
+safe local path. Network, site, device, capture time and role are `null`; invented
+values, labels and unknown fields are rejected. `load_dataset_fixture_manifest`
+uses the same bounded text boundary without relaxing `load_dataset_manifest`.
+
+The same `import_local_dataset` implementation enforces source review, permitted
+use, local path/symlink/extension/size/text/hash checks and in-memory sanitization.
+For this explicit route it additionally revalidates the manifest and applies
+current residual-content checks before returning any result. A failure refuses
+the import rather than silently accepting the other records in that manifest.
+
+Returned `ImportedDatasetFixtureRecord` values preserve the four unknown entity/
+capture fields and role as `null`. `source_collected_at` records acquisition,
+not device capture. `collection_group_id` is a pseudonymous conservative source
+collection grouping, **not** a physical network, device or independent sample.
+All records from the same source ID use one unknown-collection sanitization
+scope/group; different source IDs must not be used to split one collection into
+purported independent networks. No record-level ground-truth label is inferred.
+
+```python
+from ml.datasets import DatasetUse, import_local_dataset, load_dataset_fixture_manifest
+from ml.preprocessing import SanitizationPolicy
+
+manifest = load_dataset_fixture_manifest(manifest_path)
+fixtures = import_local_dataset(
+    manifest, root=reviewed_source_root, intended_use=DatasetUse.TRAINING,
+    pseudonymization_key=runtime_secret_key,
+    sanitization_policy=SanitizationPolicy(version="config-sanitizer-0.3.0"),
+)
+```
+
+`intended_use=training` checks the source permission; it does not create a
+training-ready corpus. Content deduplication and lossless segmentation can
+consume these records. The observed-corpus splitter, full quality metrics,
+split-artifact writer and current mutation-lineage contract refuse this record
+kind. A dedicated reviewed train-only exposure protocol is still required before
+using unknown-metadata fixtures in model selection/calibration workflows. Parser
+acceptance is not a healthy label or vendor syntax qualification; segmentation
+may independently refuse malformed structures. The actual pinned-source local
+run and its limits are recorded in
+[owned fixture-intake evidence](evaluation/owned-source-fixture-intake.json).
 
 ## Sanitization
 

@@ -6,6 +6,12 @@ the sanitized records, the deduplication result, the split result, and the
 reviewed source objects. It does not accept counts supplied in a separate
 spreadsheet or infer that a target has been reached.
 
+This full corpus report requires the observed-record/split contract. Explicit
+unknown-metadata source fixtures are refused rather than counted as physical
+networks or given fabricated capture dates. Their content/deduplication
+diagnostics remain separate; absent independence and confirmed-anomaly metrics
+are `null`, not observed zeros. See [fixture intake](dataset-ingestion.md#explicit-unknown-metadata-fixture-intake).
+
 ## Pipeline binding
 
 `build_dataset_quality_report` first verifies that the sanitized input has the

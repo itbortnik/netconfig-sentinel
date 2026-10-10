@@ -5,6 +5,12 @@ quality-report run as a new directory. The writer never overwrites an existing
 target. The default top-level `artifacts/` directory is ignored by Git so a
 generated corpus is not committed accidentally.
 
+This format requires observed-record lineage and three entity/time-isolated
+partitions. The writer refuses unknown-metadata source fixtures before creating
+a target, even if a caller supplies other pipeline objects. Private reviewed
+fixture staging is not this quality-gated format and cannot be relabelled as a
+training/validation/test corpus. See [explicit fixture intake](dataset-ingestion.md#explicit-unknown-metadata-fixture-intake).
+
 ## Directory layout
 
 ```text

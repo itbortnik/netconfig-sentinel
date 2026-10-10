@@ -6,17 +6,22 @@ import hashlib
 import re
 import unicodedata
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from functools import lru_cache
 from ipaddress import IPv4Address, ip_address
 from itertools import pairwise
+from typing import Generic, Self, TypeVar, cast, overload
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from ml.datasets.models import ImportedDatasetRecord
+from ml.datasets.models import ImportedDatasetFixtureRecord, ImportedDatasetRecord
 
 DEDUPLICATION_VERSION = "dataset-dedup-0.1.0"
+FIXTURE_DEDUPLICATION_VERSION = "dataset-fixture-dedup-0.1.0"
+_RecordT = TypeVar("_RecordT", bound=ImportedDatasetRecord | ImportedDatasetFixtureRecord)
 _MINHASH_PRIME = (1 << 61) - 1
 _COMMENT_BLOCK = re.compile(r"/\*.*?\*/", re.S)
 _SPACE = re.compile(r"\s+")
@@ -168,7 +173,8 @@ class TemplateGroup(BaseModel):
         return self
 
 
-class DatasetDeduplicationResult(BaseModel):
+# Traditional generic syntax also supports the declared Pydantic 2.10 floor.
+class _DatasetDeduplicationResult(BaseModel, Generic[_RecordT]):  # noqa: UP046
     """Representatives plus complete audit evidence for removed copies."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -183,13 +189,13 @@ class DatasetDeduplicationResult(BaseModel):
     exact_duplicate_count: int = Field(ge=0)
     near_duplicate_count: int = Field(ge=0)
     template_group_count: int = Field(ge=1)
-    unique_records: tuple[ImportedDatasetRecord, ...] = Field(min_length=1)
+    unique_records: tuple[_RecordT, ...] = Field(min_length=1)
     fingerprints: tuple[DeduplicationFingerprint, ...] = Field(min_length=1)
     duplicate_clusters: tuple[DuplicateCluster, ...]
     template_groups: tuple[TemplateGroup, ...]
 
     @model_validator(mode="after")
-    def counts_must_match_payload(self) -> DatasetDeduplicationResult:
+    def counts_must_match_payload(self) -> Self:
         if len(self.fingerprints) != self.input_count:
             raise ValueError("fingerprint count must equal input_count")
         if len(self.unique_records) != self.unique_count:
@@ -263,9 +269,24 @@ class DatasetDeduplicationResult(BaseModel):
         return self
 
 
+class DatasetDeduplicationResult(_DatasetDeduplicationResult[ImportedDatasetRecord]):
+    """Historical observed-record result, with unchanged serialized contracts."""
+
+
+class DatasetFixtureDeduplicationResult(
+    _DatasetDeduplicationResult[ImportedDatasetFixtureRecord]
+):
+    """Content duplicate families; no physical independence or chronology claim."""
+
+    algorithm_version: str = Field(
+        default=FIXTURE_DEDUPLICATION_VERSION,
+        pattern=r"^dataset-fixture-dedup-0\.1\.0$",
+    )
+
+
 @dataclass(frozen=True)
 class _PreparedRecord:
-    record: ImportedDatasetRecord
+    record: ImportedDatasetRecord | ImportedDatasetFixtureRecord
     reference: DatasetRecordReference
     fingerprint: DeduplicationFingerprint
     tokens: frozenset[str]
@@ -333,15 +354,59 @@ def template_configuration_text(text: str) -> str:
     return _NUMBER.sub("<number>", templated)
 
 
+@overload
 def deduplicate_dataset(
-    records: tuple[ImportedDatasetRecord, ...] | list[ImportedDatasetRecord],
+    records: Sequence[ImportedDatasetRecord],
     *,
     policy: DeduplicationPolicy | None = None,
 ) -> DatasetDeduplicationResult:
+    ...
+
+
+@overload
+def deduplicate_dataset(
+    records: Sequence[ImportedDatasetFixtureRecord],
+    *,
+    policy: DeduplicationPolicy | None = None,
+) -> DatasetFixtureDeduplicationResult:
+    ...
+
+
+def deduplicate_dataset(
+    records: Sequence[ImportedDatasetRecord | ImportedDatasetFixtureRecord],
+    *,
+    policy: DeduplicationPolicy | None = None,
+) -> DatasetDeduplicationResult | DatasetFixtureDeduplicationResult:
     """Collapse duplicate families and retain deterministic audit evidence."""
 
     if not records:
         raise ValueError("at least one imported dataset record is required")
+    fixture_flags = {isinstance(record, ImportedDatasetFixtureRecord) for record in records}
+    if len(fixture_flags) != 1:
+        raise ValueError("observed records and unknown-metadata fixtures cannot be mixed")
+    if True in fixture_flags:
+        from ml.datasets.quality import scan_sanitized_content
+        from ml.preprocessing.sanitization import SUPPORTED_SANITIZATION_VERSIONS
+
+        validated: list[ImportedDatasetFixtureRecord] = []
+        for record in records:
+            try:
+                fixture = ImportedDatasetFixtureRecord.model_validate(
+                    record.model_dump(warnings=False)
+                )
+            except ValidationError:
+                raise ValueError("source fixture metadata is invalid") from None
+            if fixture.sanitization_version not in SUPPORTED_SANITIZATION_VERSIONS or (
+                scan_sanitized_content(
+                    fixture.sanitized_text,
+                    sanitized_sha256=fixture.sanitized_sha256,
+                    sanitization_version=fixture.sanitization_version,
+                    allowed_versions=(fixture.sanitization_version,),
+                )
+            ):
+                raise ValueError("source fixture failed current content/hash/version checks")
+            validated.append(fixture)
+        records = validated
     effective_policy = policy or DeduplicationPolicy()
     _validate_unique_references(records)
     prepared = tuple(
@@ -417,7 +482,7 @@ def deduplicate_dataset(
 
 
 def _prepare_record(
-    record: ImportedDatasetRecord,
+    record: ImportedDatasetRecord | ImportedDatasetFixtureRecord,
     policy: DeduplicationPolicy,
 ) -> _PreparedRecord:
     reference = DatasetRecordReference(
@@ -445,7 +510,7 @@ def _prepare_record(
 
 
 def _validate_unique_references(
-    records: tuple[ImportedDatasetRecord, ...] | list[ImportedDatasetRecord],
+    records: Sequence[ImportedDatasetRecord | ImportedDatasetFixtureRecord],
 ) -> None:
     references = [(record.source_id, record.record_id) for record in records]
     if len(references) != len(set(references)):
@@ -493,7 +558,8 @@ def _near_duplicate_candidates(
             band_values = item.signature[start : start + band_size]
             buckets[("lsh", band, *band_values)].append(index)
         buckets[("template", item.fingerprint.template_sha256)].append(index)
-        buckets[("device", item.record.network_id, item.record.device_id)].append(index)
+        if isinstance(item.record, ImportedDatasetRecord):
+            buckets[("device", item.record.network_id, item.record.device_id)].append(index)
 
     candidates: set[tuple[int, int]] = set()
     for bucket_key in sorted(buckets, key=repr):
@@ -516,7 +582,7 @@ def _build_result(
     disjoint_set: _DisjointSet,
     accepted_edges: list[_Edge],
     policy: DeduplicationPolicy,
-) -> DatasetDeduplicationResult:
+) -> DatasetDeduplicationResult | DatasetFixtureDeduplicationResult:
     groups: dict[int, list[int]] = defaultdict(list)
     for index in range(len(prepared)):
         groups[disjoint_set.find(index)].append(index)
@@ -525,14 +591,14 @@ def _build_result(
     for edge in accepted_edges:
         cluster_links[disjoint_set.find(edge.left)].append(edge)
 
-    representatives: list[ImportedDatasetRecord] = []
+    representatives: list[ImportedDatasetRecord | ImportedDatasetFixtureRecord] = []
     duplicate_clusters: list[DuplicateCluster] = []
     for root, raw_members in groups.items():
         members = sorted(raw_members, key=lambda index: _prepared_key(prepared[index]))
         representative_index = min(
             members,
             key=lambda index: (
-                prepared[index].record.captured_at,
+                _capture_sort_key(prepared[index].record),
                 *_prepared_key(prepared[index]),
                 prepared[index].record.sanitized_sha256,
             ),
@@ -581,19 +647,40 @@ def _build_result(
     exact_count = sum(edge.method in exact_methods for edge in accepted_edges)
     near_count = len(accepted_edges) - exact_count
 
-    return DatasetDeduplicationResult(
+    result_type = (
+        DatasetFixtureDeduplicationResult
+        if isinstance(prepared[0].record, ImportedDatasetFixtureRecord)
+        else DatasetDeduplicationResult
+    )
+    # The entry point rejects mixed metadata kinds before any clustering.
+    return result_type(
         policy=policy,
         input_count=len(prepared),
         unique_count=len(representatives),
         exact_duplicate_count=exact_count,
         near_duplicate_count=near_count,
         template_group_count=len(template_buckets),
-        unique_records=tuple(representatives),
+        unique_records=cast(
+            tuple[ImportedDatasetRecord, ...] | tuple[ImportedDatasetFixtureRecord, ...],
+            tuple(representatives),
+        ),
         fingerprints=tuple(
             item.fingerprint for item in sorted(prepared, key=_prepared_key)
         ),
         duplicate_clusters=tuple(duplicate_clusters),
         template_groups=template_groups,
+    )
+
+
+def _capture_sort_key(
+    record: ImportedDatasetRecord | ImportedDatasetFixtureRecord,
+) -> datetime:
+    # All fixtures use the same constant solely as a sort key, never as metadata.
+    # Their representative is selected by source/record/hash, not acquisition time.
+    return (
+        record.captured_at
+        if isinstance(record, ImportedDatasetRecord)
+        else datetime.min.replace(tzinfo=UTC)
     )
 
 

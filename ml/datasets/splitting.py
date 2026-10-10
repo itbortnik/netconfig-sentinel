@@ -247,6 +247,10 @@ def split_deduplicated_dataset(
 ) -> DatasetSplitResult:
     """Split representatives while assigning every original record for audit."""
 
+    if not isinstance(deduplication, DatasetDeduplicationResult) or any(
+        not isinstance(record, ImportedDatasetRecord) for record in records
+    ):
+        raise ValueError("entity/time splitting requires observed device metadata")
     effective_policy = policy or DatasetSplitPolicy()
     record_by_reference = _validate_inputs(records, deduplication)
     ordered_references = sorted(record_by_reference)

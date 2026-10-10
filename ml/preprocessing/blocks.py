@@ -10,7 +10,7 @@ from app.domain import Vendor
 from app.parsers import detect_vendor
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from ml.datasets.models import ImportedDatasetRecord
+from ml.datasets.models import ImportedDatasetFixtureRecord, ImportedDatasetRecord
 from ml.preprocessing.sanitization import SUPPORTED_SANITIZATION_VERSIONS
 
 SEGMENTATION_VERSION = "config-blocks-0.1.0"
@@ -83,7 +83,9 @@ def _block_id(
     )
 
 
-def segment_configuration(record: ImportedDatasetRecord) -> tuple[ConfigurationBlock, ...]:
+def segment_configuration(
+    record: ImportedDatasetRecord | ImportedDatasetFixtureRecord,
+) -> tuple[ConfigurationBlock, ...]:
     """Partition every source line exactly once, including comments and unknowns."""
     text = record.sanitized_text
     if not text.strip() or len(text.encode("utf-8")) > 1024 * 1024:

@@ -118,6 +118,10 @@ def write_dataset_artifact(
 ) -> DatasetArtifactWriteResult:
     """Persist sanitized representatives and audit data without overwriting."""
 
+    if not isinstance(deduplication, DatasetDeduplicationResult) or any(
+        not isinstance(record, ImportedDatasetRecord) for record in records
+    ):
+        raise ValueError("split artifacts require observed device metadata")
     if not quality_report.technically_valid:
         raise ValueError("blocking quality issues prevent artifact persistence")
     fingerprint = compute_pipeline_fingerprint(records, deduplication, split_result)

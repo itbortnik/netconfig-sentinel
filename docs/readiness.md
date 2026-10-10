@@ -40,7 +40,8 @@ content preflight пропустил к диагностическому пар�
 добавил восемь entries: 419 parsed, 393 partial; прежние 422 sanitizable входа
 побайтно одинаковы в paired v2/v3 run. Это не imported dataset или новые
 независимые сети: capture/entity metadata
-неизвестны, imported records/dataset bundles/training runs пока 0. Подтверждённые
+неизвестны; на момент этих preflights imported records/dataset bundles/training
+runs были 0. Подтверждённые
 аномалии и independent-network counts отсутствуют, не подменяются нулями.
 Последующая поэкземплярная проверка `dataset-quality-0.3.0` дополнительно
 удержала шесть ранее разобранных entries: текущий content preflight — 413 parsed,
@@ -49,6 +50,23 @@ content preflight пропустил к диагностическому пар�
 обезличенный `pre-shared-key ascii-text` qualifier: два входа возвращены,
 итого 415 parsed/389 partial/13 residual refusals. Значение до marker всё ещё
 отклоняется; новые privacy/model-quality гарантии не заявлены.
+
+Следующий [explicit fixture intake](evaluation/owned-source-fixture-intake.json)
+фактически импортировал 415 одобренных входов через существующий local importer
+и выполнил тот же content deduplication: 415 representatives, 0 найденных
+exact/near links, 412 template groups. Это результат ограниченного алгоритма,
+не доказательство отсутствия всех похожих файлов. Unknown network/site/device/
+capture/role сохранены как `null`; дата acquisition записана отдельно, один
+conservative source collection group не выдаётся за независимую сеть.
+389 partial/40 warning-bearing inputs сохранены; segmentation принял 412
+representatives (3445 structural blocks), три malformed structures отказаны.
+Lexical approximation — 30819 tokens, не model tokenizer count. Исторический
+manifest/import/dedup/split/quality contract не ослаблен: observed splitter,
+full quality metrics, artifact writer и mutation lineage явно отказывают этому
+record kind. Частные staging JSON не являются training-ready corpus; bundles,
+train/selection/calibration runs по этому источнику всё ещё 0. Следующий
+выполнимый шаг — явный train-only exposure protocol, без независимых real-test
+claims и с учётом contamination/unknown upstream training exposure.
 
 Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
@@ -110,6 +128,24 @@ Preceding prefix-list commit `d487e30b8ee5cfcff059907f39cccdfe027e6d62` имее
 passes/2 skips/4 deselected, 478 frontend unit/154 regular/22 synthetic/154 Compose
 browser checks. Это не exact-commit CI для нового residual gate или source data
 network qualification; сырые/обезличенные upstream configs остаются локально.
+
+Позже exact residual commit `2907f9497a2602fc06abdd9b07f01f5c315e9ff4`
+получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38045127858):
+2480 backend passes/27 skips, 35 owned Batfish + два saved-HTTP checks,
+282 PG passes/2 skips/4 deselected, 478 frontend unit/154 regular/22 synthetic/
+154 Compose browser. Эти проверки не загружают upstream corpus в движок и не
+квалифицируют новый fixture-intake commit или качество реальных данных.
+
+[Explicit unknown-metadata intake](evaluation/owned-source-fixture-intake.json)
+проверен сквозным локальным source run, 44 новыми authored cases и 161 nearest
+regression/Pydantic 2.14 cases. Final frozen suite: 2524 passes/27 skips/5 warnings;
+ruff/default+win32 mypy 223 runtime files — pass. Installed wheel побайтно
+совпадает с рабочим runtime: два isolated children, все app/ml imports из
+выбранного target, 44 fixture cases + повторная проверка 415 approved records.
+Полный six-record quality JSON предыдущего пакета побайтно неизменен, настоящий
+старый artifact прочитан без изменения семи файлов. Это functional compatibility
+и local content intake, не независимая оценка модели. Новые CI на момент записи
+этого отчёта ещё не запускались; предыдущие зелёные jobs не выдаются за новые.
 
 [Hierarchical JunOS mutation evidence](evaluation/owned-hierarchical-junos-mutations.json)
 проверяет opt-in offline 0.2: 14 классов, связанные изменения, source preservation,

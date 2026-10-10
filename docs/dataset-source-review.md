@@ -133,3 +133,39 @@ Physical/capture metadata remain unknown, sanitized bodies/keys are not stored,
 and imports/bundles/training remain zero. [Residual-gate evidence](evaluation/owned-residual-content-gate.json)
 records the stricter scope and historical compatibility separately from v3 CIDR
 qualification or independent data/model quality.
+
+## Explicit unknown-metadata fixture intake
+
+The next local run uses `source-fixture-1.0` and the existing reviewed local
+importer, not invented physical entity IDs or capture dates. It selects the 415
+entries that passed the final preflight, rechecks approved acquisition/approval/
+file SHA-256 evidence, imports with explicit sanitizer v3 and applies current
+residual checks. The held entries are not implicitly approved or reintroduced.
+
+Imported fixture records keep network/site/device/capture/role `null`, acquisition
+in `source_collected_at`, and one conservative collection grouping. Ordinary
+manifest `1.0` remains unchanged. Source permission for training is not a
+training run or proof of a healthy parent. The same content deduplicator finds
+415 representatives, zero exact/near links and 412 broad templates; bounded
+candidate discovery does not guarantee exhaustive near-match recall.
+
+All 415 reparse with the same diagnostic counts: 389 partial, 40 warning-bearing,
+1,387 accepted / 3,738 unparsed / 5,125 command units. Lossless segmentation
+accepts 412 representatives and yields 3,445 structural blocks; three malformed
+JunOS structures are refused independently. The lexical approximation counts
+30,819 tokens over representatives, not model-tokenizer tokens. The initial
+private intake attempt left an explicit incomplete marker after a segmentation
+refusal; subsequent runs preserve that attempt and record refusals rather than
+assuming every parser-accepted configuration is segmentable.
+
+Only local private staging contains sanitized fixture bodies and reviewed raw
+blob links. No configurations or keys are published. This staging is not the
+quality-gated split artifact format. The observed splitter/quality metrics/
+artifact writer/current mutation lineage refuse fixture records before creating
+any corpus or target. Independent networks, capture-time measurements and
+confirmed-real labels remain missing (`null`). No train/validation/test partitions,
+model training, selection or calibration have been run on this source. A reviewed
+train-only exposure protocol remains the next integration boundary.
+
+[Owned intake evidence](evaluation/owned-source-fixture-intake.json) records the
+actual source run, installed-package replay and unchanged historical contracts.

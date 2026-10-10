@@ -7,6 +7,11 @@ real anomaly. The explicit opt-in `config-mutation-0.2.0` extends the offline
 generator to a bounded multiline hierarchical JunOS slice. It does not replace
 the default, reserialize historical samples, train a model or apply device patches.
 
+Unknown-metadata source fixtures use a different intake record kind and are
+explicitly refused by this observed-record mutation lineage. No acquisition
+date or conservative collection grouping is converted into device metadata to
+force a synthetic sample. A fixture parent would still not be a healthy label.
+
 ## Mutation contract
 
 Every `SyntheticMutationSample` contains:

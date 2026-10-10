@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from app.domain import Vendor
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -151,3 +152,77 @@ class ImportedDatasetRecord(BaseModel):
     raw_byte_count: int = Field(ge=1)
     replacements: dict[str, int]
     sanitization_version: str
+
+
+class DatasetFixtureRecord(BaseModel):
+    """A reviewed source fixture, not an observation of a physical device."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    record_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$")
+    relative_path: str = Field(min_length=1, max_length=512)
+    expected_sha256: str = Field(pattern=SHA256_PATTERN)
+    vendor_hint: Vendor | None = None
+    network_id: None = None
+    site_id: None = None
+    device_id: None = None
+    captured_at: None = None
+    device_role: None = None
+
+    @field_validator("relative_path")
+    @classmethod
+    def relative_path_must_be_safe(cls, value: str) -> str:
+        return DatasetRecord.relative_path_must_be_safe(value)
+
+
+class DatasetFixtureManifest(BaseModel):
+    """Explicit intake contract for source fixtures with unknown entity metadata."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal["source-fixture-1.0"] = "source-fixture-1.0"
+    source: DatasetSource
+    records: tuple[DatasetFixtureRecord, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def source_and_records_must_be_valid(self) -> DatasetFixtureManifest:
+        if self.source.source_type not in {
+            DatasetSourceType.BATFISH_TEST,
+            DatasetSourceType.OPEN_REPOSITORY,
+            DatasetSourceType.GENERATED,
+        }:
+            raise ValueError("source fixtures cannot stand in for real or lab observations")
+        if len({item.record_id for item in self.records}) != len(self.records):
+            raise ValueError("record_id values must be unique")
+        if len({item.relative_path for item in self.records}) != len(self.records):
+            raise ValueError("relative_path values must be unique")
+        return self
+
+
+class ImportedDatasetFixtureRecord(BaseModel):
+    """Sanitized, unlabelled fixture with collection-level conservative grouping."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    metadata_status: Literal["unknown_source_fixture"] = "unknown_source_fixture"
+    source_id: str = Field(min_length=1, max_length=64)
+    record_id: str = Field(pattern=r"^record-[0-9a-f]{12}$")
+    collection_group_id: str = Field(pattern=r"^collection-[0-9a-f]{12}$")
+    source_collected_at: datetime
+    network_id: None = None
+    site_id: None = None
+    device_id: None = None
+    captured_at: None = None
+    device_role: None = None
+    vendor_hint: Vendor | None
+    raw_sha256: str = Field(pattern=SHA256_PATTERN)
+    sanitized_sha256: str = Field(pattern=SHA256_PATTERN)
+    sanitized_text: str
+    raw_byte_count: int = Field(ge=1)
+    replacements: dict[str, int]
+    sanitization_version: str
+
+    @field_validator("source_collected_at")
+    @classmethod
+    def source_collected_at_must_have_timezone(cls, value: datetime) -> datetime:
+        return DatasetSource.collected_at_must_have_timezone(value)

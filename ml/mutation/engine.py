@@ -167,6 +167,8 @@ def mutate_configuration(
 ) -> SyntheticMutationSample:
     """Apply one to five unique mutations and validate the resulting syntax."""
 
+    if not isinstance(record, ImportedDatasetRecord):
+        raise ValueError("mutation samples require the observed-record lineage contract")
     if engine_version not in {MUTATION_ENGINE_VERSION, STRUCTURAL_MUTATION_ENGINE_VERSION}:
         raise ValueError("unsupported mutation engine version")
     requested = tuple(MutationType(item) for item in mutation_types)

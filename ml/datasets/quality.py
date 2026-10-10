@@ -239,6 +239,10 @@ def build_dataset_quality_report(
 ) -> DatasetQualityReport:
     """Measure actual corpus quality without converting targets into claims."""
 
+    if not isinstance(deduplication, DatasetDeduplicationResult) or any(
+        not isinstance(record, ImportedDatasetRecord) for record in records
+    ):
+        raise ValueError("corpus quality metrics require observed device metadata")
     if synthetic_anomaly_count < 0 or confirmed_anomaly_count < 0:
         raise ValueError("anomaly counts must not be negative")
     effective_policy = policy or DatasetQualityPolicy()

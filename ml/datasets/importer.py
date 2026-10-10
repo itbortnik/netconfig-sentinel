@@ -4,16 +4,21 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path, PurePosixPath
+from typing import overload
 
 from pydantic import ValidationError
 
 from ml.datasets.models import (
+    DatasetFixtureManifest,
+    DatasetFixtureRecord,
     DatasetManifest,
     DatasetRecord,
     DatasetUse,
+    ImportedDatasetFixtureRecord,
     ImportedDatasetRecord,
     LicenseReviewStatus,
 )
+from ml.datasets.quality import scan_sanitized_content
 from ml.preprocessing import (
     SanitizationPolicy,
     pseudonymize_identifier,
@@ -32,6 +37,29 @@ def load_dataset_manifest(
 ) -> DatasetManifest:
     """Load a bounded UTF-8 JSON manifest with strict schema validation."""
 
+    text = _load_manifest_text(path, max_bytes=max_bytes)
+    try:
+        return DatasetManifest.model_validate_json(text)
+    except ValidationError as error:
+        raise ValueError("dataset manifest does not match the required schema") from error
+
+
+def load_dataset_fixture_manifest(
+    path: Path,
+    *,
+    max_bytes: int = DEFAULT_MAX_MANIFEST_BYTES,
+) -> DatasetFixtureManifest:
+    """Explicitly load unknown-metadata fixtures without relaxing legacy manifests."""
+
+    text = _load_manifest_text(path, max_bytes=max_bytes)
+    try:
+        return DatasetFixtureManifest.model_validate_json(text)
+    except ValidationError as error:
+        raise ValueError("fixture manifest does not match the required schema") from error
+
+
+def _load_manifest_text(path: Path, *, max_bytes: int) -> str:
+
     if max_bytes < 1:
         raise ValueError("max_bytes must be positive")
     with path.open("rb") as manifest_file:
@@ -43,15 +71,12 @@ def load_dataset_manifest(
     if _contains_disallowed_control(data):
         raise ValueError("dataset manifest must be a text JSON document")
     try:
-        text = data.decode("utf-8-sig")
+        return data.decode("utf-8-sig")
     except UnicodeDecodeError as error:
         raise ValueError("dataset manifest must be valid UTF-8") from error
-    try:
-        return DatasetManifest.model_validate_json(text)
-    except ValidationError as error:
-        raise ValueError("dataset manifest does not match the required schema") from error
 
 
+@overload
 def import_local_dataset(
     manifest: DatasetManifest,
     *,
@@ -61,8 +86,38 @@ def import_local_dataset(
     sanitization_policy: SanitizationPolicy | None = None,
     max_config_bytes: int = DEFAULT_MAX_CONFIG_BYTES,
 ) -> tuple[ImportedDatasetRecord, ...]:
+    ...
+
+
+@overload
+def import_local_dataset(
+    manifest: DatasetFixtureManifest,
+    *,
+    root: Path,
+    intended_use: DatasetUse,
+    pseudonymization_key: bytes,
+    sanitization_policy: SanitizationPolicy | None = None,
+    max_config_bytes: int = DEFAULT_MAX_CONFIG_BYTES,
+) -> tuple[ImportedDatasetFixtureRecord, ...]:
+    ...
+
+
+def import_local_dataset(
+    manifest: DatasetManifest | DatasetFixtureManifest,
+    *,
+    root: Path,
+    intended_use: DatasetUse,
+    pseudonymization_key: bytes,
+    sanitization_policy: SanitizationPolicy | None = None,
+    max_config_bytes: int = DEFAULT_MAX_CONFIG_BYTES,
+) -> tuple[ImportedDatasetRecord | ImportedDatasetFixtureRecord, ...]:
     """Validate, read, and sanitize reviewed local configuration candidates."""
 
+    if isinstance(manifest, DatasetFixtureManifest):
+        try:
+            manifest = DatasetFixtureManifest.model_validate(manifest.model_dump(warnings=False))
+        except ValidationError:
+            raise ValueError("fixture manifest does not match the required schema") from None
     if manifest.source.license_review is not LicenseReviewStatus.APPROVED:
         raise ValueError("dataset source license or authorization is not approved")
     if intended_use not in manifest.source.allowed_uses:
@@ -80,7 +135,7 @@ def import_local_dataset(
         raise ValueError("dataset root must be a directory")
 
     effective_policy = sanitization_policy or SanitizationPolicy()
-    imported: list[ImportedDatasetRecord] = []
+    imported: list[ImportedDatasetRecord | ImportedDatasetFixtureRecord] = []
     for record in manifest.records:
         source_path = _resolve_record_path(resolved_root, record)
         if source_path.suffix.lower() not in SUPPORTED_CONFIG_EXTENSIONS:
@@ -104,7 +159,11 @@ def import_local_dataset(
             raise ValueError(
                 f"configuration {record.record_id} must be valid UTF-8"
             ) from error
-        topology_scope = f"{manifest.source.source_id}\0{record.network_id}"
+        topology_scope = (
+            f"{manifest.source.source_id}\0unknown-source-collection"
+            if isinstance(record, DatasetFixtureRecord)
+            else f"{manifest.source.source_id}\0{record.network_id}"
+        )
         sanitized = sanitize_configuration(
             text,
             topology_id=topology_scope,
@@ -112,6 +171,40 @@ def import_local_dataset(
             policy=effective_policy,
         )
         sanitized_bytes = sanitized.text.encode("utf-8")
+        if isinstance(record, DatasetFixtureRecord):
+            if scan_sanitized_content(
+                sanitized.text,
+                sanitized_sha256=hashlib.sha256(sanitized_bytes).hexdigest(),
+                sanitization_version=sanitized.version,
+                allowed_versions=(effective_policy.version,),
+            ):
+                raise ValueError("source fixture failed the residual content check")
+            imported.append(
+                ImportedDatasetFixtureRecord(
+                    source_id=manifest.source.source_id,
+                    record_id=pseudonymize_identifier(
+                        record.record_id,
+                        kind="record",
+                        scope_id=manifest.source.source_id,
+                        pseudonymization_key=pseudonymization_key,
+                    ),
+                    collection_group_id=pseudonymize_identifier(
+                        manifest.source.source_id,
+                        kind="collection",
+                        scope_id="unknown-source-collection",
+                        pseudonymization_key=pseudonymization_key,
+                    ),
+                    source_collected_at=manifest.source.collected_at,
+                    vendor_hint=record.vendor_hint,
+                    raw_sha256=raw_sha256,
+                    sanitized_sha256=hashlib.sha256(sanitized_bytes).hexdigest(),
+                    sanitized_text=sanitized.text,
+                    raw_byte_count=len(data),
+                    replacements=sanitized.replacements,
+                    sanitization_version=sanitized.version,
+                )
+            )
+            continue
         imported.append(
             ImportedDatasetRecord(
                 source_id=manifest.source.source_id,
@@ -153,7 +246,7 @@ def import_local_dataset(
     return tuple(imported)
 
 
-def _resolve_record_path(root: Path, record: DatasetRecord) -> Path:
+def _resolve_record_path(root: Path, record: DatasetRecord | DatasetFixtureRecord) -> Path:
     candidate = root
     for part in PurePosixPath(record.relative_path).parts:
         candidate /= part

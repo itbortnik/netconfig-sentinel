@@ -6,6 +6,13 @@ sanitized input and its matching `DatasetDeduplicationResult`. It rejects
 missing records, extra records, changed hashes, duplicate references, and
 timezone-free capture timestamps.
 
+Unknown-metadata `ImportedDatasetFixtureRecord` and its explicit fixture dedup
+result are refused before allocation. Neither a conservative collection group
+nor its acquisition date is substituted for a physical network or capture time.
+See [explicit fixture intake](dataset-ingestion.md#explicit-unknown-metadata-fixture-intake).
+The current splitter does not implement train-only fixture exposure or produce
+independent validation/test claims from unobserved metadata.
+
 ## Isolation boundary
 
 The splitter constructs a transitive closure over four relationships:
