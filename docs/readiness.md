@@ -225,6 +225,45 @@ default/Linux/win32 — pass. Новый local live Batfish/PostgreSQL/browser r
 выполнялся; 27 explicit skips не считаются успехом, exact-commit CI ожидается
 отдельно после публикации.
 
+Позднее exact bilateral commit `c2d5f15b62c4c06ffb1ff795782fe5fa5ef19977`
+получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38154444968),
+включая PostgreSQL, Compose/browser и owned live-engine checks. Это evidence
+точной runtime-поставки, не следующего diagnostic report или real/model quality.
+
+Последующая [диагностика строковой головы](evaluation/owned-bilateral-line-localization.json)
+использует тот же selected bilateral checkpoint без нового обучения: все 32 train
+и 8 selection positive anchors попадают в encoder features и positive targets;
+batch/single scores согласованы, selected validation loss component воспроизведён.
+Положительные targets — лишь 32/592 и 8/148 строк (5.405%), несмотря на баланс
+конфигурационных классов. Все положительные line scores ниже 0.069 при strict 0.5:
+recall остаётся 0 даже на train. Line AP train/selection — 0.34029/0.42500,
+Cisco/JunOS selection — 0.20000/0.66667. Selection BCE 0.18160 ниже train-prevalence
+constant reference 0.21028, но обе decision rules пропускают все positives.
+Отсутствие targets/score mapping drift в этом сценарии исключено; единственная
+причина, приемлемое качество, calibration или исправление imbalance не доказаны.
+94 retained source/model/report files неизменны; no new fit/threshold/activation,
+reserved test features/labels не используются. Требования §13B/14 остаются
+частично выполненными, не закрываются более низким loss или существованием heads.
+Независимый numerical review обнаружил повторный sigmoid на vendor-shaped slices:
+ULP tie changes меняли Cisco AP, несмотря на allclose. Report исправлен до публикации:
+все ranking slices используют одни single-record scores без пересчёта sigmoid,
+BCE остаётся на original full-batch logits. Оба private attempts сохранены;
+это исправление diagnostic metric path, не модели, truth или нулевого recall.
+
+[Frozen explanation audit](evaluation/owned-frozen-explanation-assertions.json)
+сохраняет полный denominator восьми прежних попыток: шесть accepted rechecked
+schema/citations, два deadline — content unavailable. В ограниченных dimensions
+четыре доступных answers имеют flags: три CLI-only claims, два отсутствия
+persistence и одно отрицание передачи чисел противоречат actual workflow/context;
+одно bias assumption не подтверждено, но не названо доказанно ложным фактом.
+Отдельное условное storage-утверждение без opt-in поддержано и не включено в
+contradictions. Exact citations membership не подтверждает перенос historical
+library scope на текущий saved HTTP workflow. Это не exhaustive claim labels,
+human ground truth, semantic error rate или независимое качество; два неотмеченных
+reference answers не объявлены правильными. Новых inference/retrieval/fit/Batfish
+нет; frozen inputs и история сохранены, runtime semantic gate не добавлен.
+§17 остаётся частично выполненным, model prose не повышает фактические статусы.
+
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
 checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel побайтно

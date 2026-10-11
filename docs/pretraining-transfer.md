@@ -298,3 +298,57 @@ that a vendor shortcut was removed. Reused selection data, tiny authored
 templates, formatting/recipe/length shortcuts and line-level imbalance remain
 limitations. No independent-test, real-confirmed, vendor-syntax, formal safety,
 online activation or production-quality gate is passed.
+
+## Fixed bilateral line-head diagnostic
+
+[Recorded diagnostic](evaluation/owned-bilateral-line-localization.json) examines
+the **same selected bilateral checkpoint**, not another fit, threshold search or
+independent test. Exact retained source/annotation/exposure validation precedes
+feature extraction. All 32 train and eight selection positive current-file anchors
+have encoded features and positive `_targets`; no encoded target is ignored in
+this particular scenario. Batched and single-record line scores agree within
+`atol=1e-7, rtol=1e-6`, and the selected epoch's validation localization component
+is reproduced. Ninety-four retained source/model/report files remain unchanged.
+
+| Scope | Positive / eligible lines | Positive score range | Line AP | TP / FN at strict 0.5 |
+| --- | ---: | ---: | ---: | ---: |
+| Train | 32 / 592 | 0.04215–0.06854 | 0.34029 | 0 / 32 |
+| Selection | 8 / 148 | 0.04215–0.06810 | 0.42500 | 0 / 8 |
+| Cisco selection | 4 / 84 | 0.04215–0.04916 | 0.20000 | 0 / 4 |
+| JunOS selection | 4 / 64 | 0.04371–0.06810 | 0.66667 | 0 / 4 |
+
+Configuration-level class balance does not balance line targets: positives are
+only 5.405% of eligible lines in train and selection. The existing loss is the
+mean unweighted BCE across eligible lines, not a class-balanced objective. At
+the selected checkpoint, selection BCE is 0.18160: positive lines contribute
+0.16211 and negative lines 0.01949 to that mean. Positive errors are present,
+not masked or discarded. The validation localization component fell from
+0.56656 after update one to 0.18160 after update twenty, while strict-threshold
+recall at the saved checkpoint remains zero, including on train.
+
+For context, the closed-form constant **train prevalence** score is 32/592 =
+0.05405. It has BCE 0.21028 on these train/selection line targets and zero recall
+at 0.5. This train-only numerical reference is not a newly fitted or activated
+detector, a calibrated threshold, or a baseline-comparison winner. A lower BCE
+does not by itself establish useful localization; the ranking also mixes both
+classes. Stored per-vendor train/selection results distinguish AP from trapezoidal
+PR-AUC. Train loss measured here is **after** the saved update; epoch reports store
+train loss **before** each update and validation loss after it.
+
+Ranking uses scores from the single-record prediction path exactly once, then
+filters the same values for every global/vendor slice. An initial private
+diagnostic instead recomputed sigmoid for each slice shape: floating-point tie
+changes produced Cisco selection AP 0.17778 instead of 0.20000. Independent review
+identified that metric-path error before publication. Both attempts are retained
+with hashes in the evidence; no weights, truth or decision threshold changed.
+Numerical `allclose` does not establish identical ties or ranking metrics. BCE
+still uses the original full-batch logits to reproduce the saved loss component.
+
+These checks rule out missing positive targets and batch-to-file score mapping
+drift for this exact diagnostic. They do **not** isolate a unique cause among
+class imbalance, shared objectives, frozen features, optimization and authored
+template shortcuts. No class weights, loss weights, thresholds, model artifacts
+or online decisions change. Reserved test features/labels remain unused;
+calibration, independent localization quality and real-confirmed labels remain
+open. A useful repair requires a separately fixed experiment or a reproduced
+implementation defect, not post-hoc selection tuning presented as acceptance.

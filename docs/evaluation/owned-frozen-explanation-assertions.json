@@ -1,0 +1,171 @@
+{
+  "accepted_answers_rechecked": 6,
+  "all_deadline_attempts_retained": true,
+  "all_source_documents_are_internal_project_archive": true,
+  "annotation_basis": "bounded_manual_software_fact_assessment_not_reviewed_human_ground_truth",
+  "answers_with_selected_dimension_flags": 4,
+  "attempts": 8,
+  "cases": [
+    {
+      "answer_available": false,
+      "bounded_observations": [],
+      "content_assessment": "unavailable_deadline",
+      "detector": "expected_configuration",
+      "exact_peer_outcome_and_counts_in_summary": null,
+      "iteration": 1,
+      "schema_and_citation_membership_rechecked": false,
+      "vendor": "cisco"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [
+        {
+          "assessment": "contradicted_by_measured_http_workflow",
+          "dimension": "current_workflow_cli_only"
+        }
+      ],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "peer_baseline",
+      "exact_peer_outcome_and_counts_in_summary": false,
+      "iteration": 1,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "cisco"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "expected_configuration",
+      "exact_peer_outcome_and_counts_in_summary": null,
+      "iteration": 1,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "juniper"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [
+        {
+          "assessment": "contradicted_by_exact_prompt_values",
+          "dimension": "redaction_claim_scope"
+        },
+        {
+          "assessment": "supported_qualified_library_statement_not_proof_of_current_nonpersistence",
+          "dimension": "conditional_storage_statement"
+        }
+      ],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "peer_baseline",
+      "exact_peer_outcome_and_counts_in_summary": false,
+      "iteration": 1,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "juniper"
+    },
+    {
+      "answer_available": false,
+      "bounded_observations": [],
+      "content_assessment": "unavailable_deadline",
+      "detector": "expected_configuration",
+      "exact_peer_outcome_and_counts_in_summary": null,
+      "iteration": 2,
+      "schema_and_citation_membership_rechecked": false,
+      "vendor": "cisco"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [
+        {
+          "assessment": "contradicted_by_measured_http_workflow",
+          "dimension": "current_workflow_cli_only"
+        },
+        {
+          "assessment": "contradicted_by_saved_analysis_restart",
+          "dimension": "current_workflow_nonpersistent"
+        }
+      ],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "peer_baseline",
+      "exact_peer_outcome_and_counts_in_summary": true,
+      "iteration": 2,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "cisco"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "expected_configuration",
+      "exact_peer_outcome_and_counts_in_summary": null,
+      "iteration": 2,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "juniper"
+    },
+    {
+      "answer_available": true,
+      "bounded_observations": [
+        {
+          "assessment": "contradicted_by_measured_http_workflow",
+          "dimension": "current_workflow_cli_only"
+        },
+        {
+          "assessment": "contradicted_by_saved_analysis_restart",
+          "dimension": "current_workflow_nonpersistent"
+        },
+        {
+          "assessment": "unverified_assumption_not_demonstrated_false_fact",
+          "dimension": "peer_bias_evidence"
+        }
+      ],
+      "content_assessment": "selected_dimensions_only",
+      "detector": "peer_baseline",
+      "exact_peer_outcome_and_counts_in_summary": true,
+      "iteration": 2,
+      "schema_and_citation_membership_rechecked": true,
+      "vendor": "juniper"
+    }
+  ],
+  "contradicted_selected_assertions": 6,
+  "dimension_counts": {
+    "conditional_storage_statement": 1,
+    "current_workflow_cli_only": 3,
+    "current_workflow_nonpersistent": 2,
+    "peer_bias_evidence": 1,
+    "redaction_claim_scope": 1
+  },
+  "exact_retrieved_source_sections": [
+    {
+      "citation": "docs/baseline.md#expanded-peer-templates",
+      "content_sha256": "b271f0bdeecdfc40fa92c079aa91cbfa1d1c98c4f299249510256f43d55efd3b"
+    },
+    {
+      "citation": "docs/baseline.md#limitations",
+      "content_sha256": "788fab3441f283d7a899867ddea0deafb3d9f81f911ddb48fe9389e4f56e7c62"
+    },
+    {
+      "citation": "docs/expected-configuration.md#expanded-supported-facts",
+      "content_sha256": "5ba37fc2cf7d9311efa8543c5c9c2f37fbb8c6c478886c3b26ed06d95faaaa0d"
+    }
+  ],
+  "exhaustive_claim_annotation": false,
+  "frozen_source_files_unchanged": 9,
+  "general_semantic_accuracy": null,
+  "independent_evaluation": false,
+  "installed_imports_checked": 39,
+  "model_prose_published": false,
+  "new_independent_cases": 0,
+  "new_inference_or_retrieval": false,
+  "new_ml_fit": false,
+  "operator_activation": false,
+  "original_development_cases": 4,
+  "private_annotation_catalog_sha256": "3582fe07fe30bc0907113320a7d494edde683f04bc459832a6f9357fb1054757",
+  "private_context_identities_published": false,
+  "qualified_storage_statements_not_counted_as_contradictions": 1,
+  "runtime_semantic_validator": false,
+  "schema_and_citation_membership_passes": 6,
+  "selected_assertion_observations": 8,
+  "semantic_quality_qualified": false,
+  "source_public_evidence_sha256": "14db4e584115133293b6271cabfa017af21c9282d464bb31f350c11820859bfc",
+  "unavailable_deadline_answers": 2,
+  "unflagged_answer_semantically_correct": null,
+  "unverified_bias_assumptions": 1,
+  "version": "owned-frozen-explanation-assertion-audit-0.1.0"
+}

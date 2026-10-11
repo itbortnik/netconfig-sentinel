@@ -166,6 +166,43 @@ approval/apply и контакты с сетевыми устройствами 
 drafts и один deadline rejection. Даже после исправления context модель сохраняет
 unsupported interface/storage и peer-bias утверждения; semantic quality не пройдена.
 
+### Проверка сохранённых ответов без новой генерации
+
+[Frozen assertion audit](evaluation/owned-frozen-explanation-assertions.json)
+проверяет все восемь попыток этих двух development итераций: шесть принятых
+ответов повторно прошли schema/citation membership, два deadline имеют
+`answer=null` и остаются **unavailable**, не «семантически правильными» или
+«семантически ошибочными». Exact prompt/instruction/schema и private report hashes
+сверены с исходным evidence; frozen файлы не изменяются. Retrieval, inference,
+ML/Batfish, новые inputs и активация сервиса не выполняются.
+
+Это ручная ограниченная проверка конкретных утверждений against software facts
+и exact retrieved chunks, **не полная разметка всех claims, human ground truth
+или independent accuracy metric**. Проверены следующие наблюдения:
+
+| Выбранное утверждение | Число | Основание оценки |
+| --- | ---: | --- |
+| Текущий workflow назван CLI-only | 3 | Противоречит измеренному HTTP workflow; исторический library/CLI scope источника не описывает этот caller |
+| Текущий workflow объявлен без persistent storage | 2 | Противоречит recorded saved-analysis/restart checks; retrieved limitations также различают standalone и opt-in API storage |
+| Числа якобы не передаются в контексте | 1 | В exact redacted prompt числовые значения присутствуют; это не проверка анонимности или утверждение о передаче оригинальных имён |
+| Отсутствие bias названо assumption | 1 | Не подтверждено, но не считается доказанно ложным фактом; absence of bias должна оставаться неизвестной |
+| Storage отсутствует **без** opt-in API | 1 | Условное library-утверждение поддержано источником и не считается доказательством отсутствия storage у текущего caller |
+
+Итого четыре из шести доступных answers имеют flags в выбранных dimensions:
+шесть противоречащих assertions и одно неподтверждённое assumption. Это не число
+всех ошибок и не semantic failure rate модели. Два не отмеченных этими checks
+reference answers не объявляются полностью правильными. Оба peer summaries
+второй итерации используют actual completed/3 peers/19 compared features;
+первые generic summaries не объявляются точным воспроизведением этих counts.
+
+Все citations входят в exact retrieved sections, но membership не доказывает
+поддержку текущего вывода: описания historical standalone capabilities нельзя
+без проверки переносить на saved HTTP analysis. Public report содержит только
+counts, dimensions, assessment enums и aggregate bindings; prose, prompts,
+per-request identities и exact private annotations остаются локальными.
+Semantic validator, qualified output, independent/adversarial quality и §17
+целиком этим audit не закрыты; scores/verifier/history не меняются.
+
 Unit/wire/API tests проверяют target/permission, pseudonyms, бюджеты, redirects,
 timeout/reap/concurrency, proxy exclusion, schema/citations, неизменность истории
 и restart для Cisco/Juniper, включая partial parsing. CI повторяет wire/API cases
