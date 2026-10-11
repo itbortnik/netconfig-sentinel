@@ -102,6 +102,26 @@ review/check процесса; отдельно прошли 489 frontend unit, 
 независимой оценкой качества ML. Новые локальные live Batfish/PostgreSQL runs
 не выполнялись; их skips не засчитаны как pass.
 
+Следующее [fixture-backed paired comparison](paired-detection-comparison.md#fixture-backed-native-03-и-тот-же-контрольный-лес)
+фактически сравнивает тот же 0.3 checkpoint с двумя vendor forests на полной
+общей таблице из 12 authored selection views. Forest fit использует только
+16 original train parents; оба детектора пропустили четыре injected positives,
+F1=0. Новый route сохраняет retained source/exposure binding, а не переносит
+несовместимый старый external checkpoint на другую truth table. Это закрывает
+функциональный control-comparison разрыв этой версии, не independent benchmark,
+calibration, реальные labels, unknown-site quality или приёмку всего MVP.
+Регрессия comparison slice: 2677 full passes/27 skips/5 прежних warnings,
+40 source и 40 installed targeted checks, 130 Pydantic 2.14 checks;
+ruff/mypy default/Linux/win32 — pass. Установленный runtime побайтно совпадает
+с исходниками; новый двухмодельный сценарий и старый трёхмодельный сохраняют
+numeric parity без требования равенства measured timings. Исторические отчёты,
+веса и Stage35 predictions не изменены. Scope и hashes — в
+[отдельном evidence](evaluation/owned-source-fixture-comparison.json).
+
+Exact registry-integration commit `01b06e002c499c7266c313ec3723edc8fa97d563`
+имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38124186294);
+статус следующей comparison поставки проверяется отдельно, не переносится с него.
+
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
 checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel побайтно

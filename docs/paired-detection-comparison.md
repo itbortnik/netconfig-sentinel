@@ -112,3 +112,64 @@ Common unseen-site slice отсутствует, поскольку neural heads
 этой validation. Real/laboratory/independent quality, calibration fit, внешняя
 pretraining isolation и significance не подтверждены. Следующий meaningful
 benchmark требует разрешённых representative данных и независимых labels.
+
+## Fixture-backed native 0.3 и тот же контрольный лес
+
+Для `multitask-training-0.3.0` тот же smoke имеет отдельный явный маршрут:
+
+```powershell
+python -m ml.evaluation.comparison_smoke --native-model artifacts/fixture-heads --native-sha256 <full-pin> --fixture-admission private/retained-admission.json --output artifacts/new-owned-fixture-comparison
+```
+
+`--fixture-admission` использует [bounded private retained-input format](transformer-model-registry.md)
+и общий source/annotation/exposure validator, а не ослабленный альтернативный
+evaluator. В отличие от общего registry input этот smoke по-прежнему принимает
+только точный authored Telnet downstream сценарий: `authored_transfer_splits()`
+и соответствующие reviewed examples. Он не превращается в importer произвольных
+customer configurations. Отсутствующий/изменённый corpus, source permission,
+manifest, annotation или independent model pin приводит к отказу до output.
+
+В этом режиме сравниваются **два** детектора. Старый external checkpoint связан
+с другим downstream manifest и сюда не переносится. Любой `--foundation-*`
+параметр вместе с fixture admission отвергается; прежний трёхмодельный маршрут
+по-прежнему требует все три external параметра. Native fixture route не импортирует
+Transformers/safetensors и не требует retrieval extra; реальная загрузка native
+weights требует training runtime. Downloads, native retraining, threshold fitting,
+model activation и risk updates не выполняются.
+
+Оба леса обучаются прежним алгоритмом только на 16 original train parents
+(по восемь на vendor), не на 48 supervised views, selection или reserved test.
+Контрольные seed 42/200 trees/contamination 0.1 и strict cutoff 0.5 не менялись.
+Native adapter повторно проверяет 415 доступных upstream members против 64
+downstream contents, включая test text **только** для overlap gate. Это 26560
+проверок доступных текстов, не доказанная физическая/временная изоляция.
+Source fixture identifiers не подставляются в downstream device/site/network
+identity. Полный recorded Stage A binding отдельно сохраняется в приватном
+`fixture-source.json`; `input.json` и `forest.json` также остаются приватными.
+Публичный `report.json` — только численные агрегаты и hashes, не входные тексты.
+
+Фактический [отчёт от 2026-10-11](evaluation/paired-owned-fixture-validation.json)
+сохраняет все 12 selection views четырёх owned devices: четыре injected positives
+и восемь reference/format cases. Это прежние данные, не новая независимая выборка.
+
+| Модель | F1 @ 0.5 | Average precision | Trapezoidal PR-AUC |
+| --- | ---: | ---: | ---: |
+| Isolation Forest | 0 | 0.333333 | 0.666667 |
+| Fixture-backed native encoder | 0 | 0.816667 | 0.795833 |
+
+Обе модели пропустили четыре positives; false positives — 0. В Cisco-срезе
+четыре отрицательных примера и ни одного positive: recall/F1/AP/PR-AUC `null`,
+не нулевые ошибки или успешная Cisco anomaly qualification. JunOS-срез имеет
+восемь views, включая все четыре positives. Real/laboratory cohorts и common
+unseen-site slice отсутствуют. Raw probability ECE/Brier — статистика selection,
+не результат calibration fit; forest ranking не получает probability metrics.
+
+Этот functional comparison не меняет прежние measured transfer predictions,
+line/category metrics или исторический [отчёт 2026-10-07](evaluation/paired-owned-validation.json).
+Разница AP/PR-AUC не доказывает превосходство, статистическую значимость или
+приемлемую детекцию. Measured parsing+inference intervals исключают loading,
+fitting и I/O; разные модели и thread policies не образуют hardware/HTTP benchmark.
+Representative real-confirmed labels, independent test, calibration и полный
+MVP quality gate остаются открытыми.
+Проверки installed parity и границы измерения записаны отдельно в
+[aggregate evidence](evaluation/owned-source-fixture-comparison.json).

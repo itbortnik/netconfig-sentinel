@@ -25,15 +25,15 @@ from ml.evaluation.comparison import (
 from ml.evaluation.comparison_cli import main as compare_main
 from ml.evaluation.comparison_cli import safe_path
 from ml.evaluation.contracts import EvaluationProtocol
-from ml.evaluation.foundation_validation import build_foundation_validation
 from ml.evaluation.metrics import canonical_hash
 from ml.evaluation.multitask_validation import build_multitask_validation
 from ml.evaluation.probe_validation import _identity
 from ml.inference.change_cli import _native_inventory
 from ml.mutation import MutationType
-from ml.training.foundation_transfer import load_foundation_transfer
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
+    MultiTaskFixtureTransferReport,
+    _verified_report,
     load_multitask,
     multitask_identity,
     validate_supervised_rows,
@@ -58,37 +58,69 @@ def owned_canonical(record: ImportedDatasetRecord) -> CanonicalConfig:
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--native-model", type=Path, required=True)
     parser.add_argument("--native-sha256", required=True)
-    parser.add_argument("--foundation-model", type=Path, required=True)
-    parser.add_argument("--foundation-sha256", required=True)
-    parser.add_argument("--foundation-source", type=Path, required=True)
+    parser.add_argument("--foundation-model", type=Path)
+    parser.add_argument("--foundation-sha256")
+    parser.add_argument("--foundation-source", type=Path)
+    parser.add_argument("--fixture-admission", type=Path)
     parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     try:
         safe_path(args.output)
         if args.output.exists() or not args.output.parent.is_dir():
             raise ValueError("owned comparison output must be new")
+        external = (args.foundation_model, args.foundation_sha256, args.foundation_source)
+        if (
+            args.fixture_admission is not None and any(value is not None for value in external)
+        ) or (args.fixture_admission is None and any(value is None for value in external)):
+            raise ValueError("choose explicit fixture admission or the complete external inputs")
         _native_inventory(args.native_model)
         native = load_multitask(args.native_model)
         if multitask_identity(native) != args.native_sha256:
             raise ValueError("native independent identity differs")
-        foundation = load_foundation_transfer(
-            args.foundation_model,
-            source_root=args.foundation_source,
-            expected_identity=args.foundation_sha256,
-        )
-        if any(
-            model.report.head_policy.classes != ("telnet_enabled",)
-            for model in (native, foundation)
-        ):
+        if native.report.head_policy.classes != ("telnet_enabled",):
             raise ValueError("owned comparison requires the exact authored Telnet objective")
-        splits, _ = pretraining_fixtures()
-        examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
-        native_batch = build_multitask_validation(native, splits, examples)
-        foundation_batch = build_foundation_validation(foundation, splits, examples)
+        fixture_source = None
+        if args.fixture_admission is not None:
+            from ml.registry.admission import load_fixture_admission
+            from ml.training.fixture_transfer_smoke import authored_transfer_splits
+
+            report = _verified_report(native)
+            if not isinstance(report, MultiTaskFixtureTransferReport):
+                raise ValueError("fixture comparison requires the explicit fixture training format")
+            admission = load_fixture_admission(args.fixture_admission, native)
+            splits = authored_transfer_splits()
+            examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
+            if objective_split_identity(admission.splits) != objective_split_identity(splits) or (
+                admission.examples != examples
+            ):
+                raise ValueError(
+                    "owned fixture comparison requires exact authored downstream inputs"
+                )
+            native_batch = build_multitask_validation(
+                native, splits, examples, fixture_corpus=admission.corpus
+            )
+            fixture_source = report.pretraining
+            batches = [("native_encoder", native_batch)]
+        else:
+            from ml.evaluation.foundation_validation import build_foundation_validation
+            from ml.training.foundation_transfer import load_foundation_transfer
+
+            foundation = load_foundation_transfer(
+                args.foundation_model,
+                source_root=args.foundation_source,
+                expected_identity=args.foundation_sha256,
+            )
+            if foundation.report.head_policy.classes != ("telnet_enabled",):
+                raise ValueError("owned comparison requires the exact authored Telnet objective")
+            splits, _ = pretraining_fixtures()
+            examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
+            native_batch = build_multitask_validation(native, splits, examples)
+            foundation_batch = build_foundation_validation(foundation, splits, examples)
+            batches = [("native_encoder", native_batch), ("external_encoder", foundation_batch)]
         rows = validate_supervised_rows(splits, examples, native.report.head_policy)
         validation_records = {
             canonical_hash(
@@ -169,21 +201,22 @@ def main() -> None:
             for row in native_batch.cases
         )
         # Reject changed ground truth/grouping/review hashes, not merely mismatched IDs.
-        other_truth = tuple(
-            ComparisonTruth(
-                case_id=row.case_id,
-                identity=row.identity,
-                source_review_sha256=row.source_review_sha256,
-                annotation_sha256=row.annotation_sha256,
-                cohort=row.cohort,
-                vendor=row.vendor,
-                device_role=row.device_role,
-                anomaly_truth=row.anomaly_truth,
+        for _, batch in batches[1:]:
+            other_truth = tuple(
+                ComparisonTruth(
+                    case_id=row.case_id,
+                    identity=row.identity,
+                    source_review_sha256=row.source_review_sha256,
+                    annotation_sha256=row.annotation_sha256,
+                    cohort=row.cohort,
+                    vendor=row.vendor,
+                    device_role=row.device_role,
+                    anomaly_truth=row.anomaly_truth,
+                )
+                for row in batch.cases
             )
-            for row in foundation_batch.cases
-        )
-        if truth != other_truth:
-            raise ValueError("native and external truth/review exposure differs")
+            if truth != other_truth:
+                raise ValueError("native and external truth/review exposure differs")
         runs = [
             DetectorRun(
                 label="isolation_forest",
@@ -192,10 +225,7 @@ def main() -> None:
                 predictions=tuple(forest_predictions),
             )
         ]
-        for label, batch in (
-            ("native_encoder", native_batch),
-            ("external_encoder", foundation_batch),
-        ):
+        for label, batch in batches:
             runs.append(
                 DetectorRun(
                     label=label,
@@ -223,6 +253,11 @@ def main() -> None:
 
         with (args.output / "forest.json").open("x", encoding="utf-8", newline="\n") as stream:
             stream.write(json.dumps(forest_contents, sort_keys=True, allow_nan=False) + "\n")
+        if fixture_source is not None:
+            with (args.output / "fixture-source.json").open(
+                "x", encoding="utf-8", newline="\n"
+            ) as stream:
+                stream.write(fixture_source.model_dump_json(indent=2) + "\n")
         if compare_main(
             [
                 "--input",
@@ -246,7 +281,7 @@ def main() -> None:
             2, "Owned comparison failed: check exact trusted models, pins and unused output.\n"
         )
     print(
-        "Actual forest/native/external shared selection diagnostics; "
+        "Actual shared selection diagnostics for the explicitly selected models; "
         "no real/independent quality or safety claim."
     )
 

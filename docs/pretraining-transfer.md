@@ -108,6 +108,11 @@ baseline superiority, cross-vendor generalization or production readiness.
 
 ## Approved train-only source fixtures -> supervised heads
 
+Этот checkpoint теперь также имеет explicit [двухмодельное сравнение с лесом](paired-detection-comparison.md#fixture-backed-native-03-и-тот-же-контрольный-лес)
+на исходной authored selection, без нового fit native heads или изменения порога.
+Это functional comparison; fixed-threshold F1 остаётся 0, real/independent quality
+и физическая изоляция по-прежнему не подтверждены.
+
 The separately versioned `multitask-training-0.3.0` path accepts an actual
 `FixturePretrainingResult` and its retained private `FixtureTrainingCorpus`.
 It does not require that this unknown-metadata collection was selected on the
