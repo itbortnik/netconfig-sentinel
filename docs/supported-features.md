@@ -53,6 +53,10 @@ Supported in the current parser slice:
 - named standard and extended IPv4 ACLs plus named IPv6 ACLs, including
   sequence, permit/deny, protocol, `any`, host, IPv4 wildcard/CIDR operands,
   common port operators, and trailing options;
+- [numbered standard IPv4 ACLs](numbered-standard-acls.md), global
+  `access-list N permit|deny` for 1–99/1300–1999: `any`, `host IPv4`, and
+  IPv4 with an optional contiguous inverse wildcard; omitted wildcard means
+  an exact host. Rows are grouped by number in source order with exact anchors;
 - IPv4 and IPv6 prefix lists with optional sequence, `ge`, and `le` bounds.
 - global IPv4 and IPv6 static routes with a next hop, optional outgoing
   interface, administrative distance, and `Null0` discard routes.
@@ -113,7 +117,9 @@ do not qualify syntax, management access, formal safety, or device application.
   operational state beyond the commands listed above remain unparsed;
 - VTP, private VLANs, Q-in-Q, JunOS `vlan-id-list`, and incremental IOS trunk
   operations (`add`, `remove`, `except`) remain unsupported;
-- numbered IOS ACLs, object/object-group operands, time ranges, dynamic ACLs,
+- numbered extended IOS ACLs, mixed global/numeric named-submode ACL edits,
+  numbered ACL options/remarks/deletion, noncontiguous numbered wildcards,
+  object/object-group operands, time ranges, dynamic ACLs,
   reflexive ACLs, and advanced protocol-specific ACL options remain unparsed;
 - JunOS firewall actions and match conditions beyond the explicitly listed
   subset, prefix-list filters, route filters, and nested policy

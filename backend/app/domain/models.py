@@ -280,7 +280,7 @@ class AclRule(StrictModel):
 
 
 class AclConfig(StrictModel):
-    """Canonical named access list or firewall filter."""
+    """Canonical named/numbered access list or firewall filter."""
 
     name: str = Field(min_length=1)
     family: Literal["ipv4", "ipv6"]

@@ -5,6 +5,11 @@ engine reports configured facts only; it does not claim that an ACL protects a
 particular interface or control-plane service unless attachment data is
 available in a future parser version.
 
+The IOS [numbered standard IPv4 slice](../numbered-standard-acls.md) feeds these
+same requirements without increasing the catalog count. Rules are inspected as
+configured facts; ordering is preserved but shadowing and effective attachment
+are not evaluated. Unsupported siblings remain unknown and keep analysis partial.
+
 ## ACLs must not be empty
 
 Policy ID: `acl.empty`

@@ -9,7 +9,7 @@
 
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
-| Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
+| Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), включая [numbered standard IPv4 ACL](numbered-standard-acls.md); `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
 | Синтетические мутации | [Default 0.1 и opt-in hierarchical JunOS 0.2](mutation-engine.md): 15 IOS/14 JunOS классов, до пяти связанных изменений, точный откат и раздельные source/result spans удалений в 0.2 | Offline generator, не remediation или реальные подтверждённые labels; partial unknowns сохранены, device syntax/formal impact и независимое качество не проверены |
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI/API/UI и сохраняет полный report/profile и версионные объяснения | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; независимое реальное качество не подтверждено |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
@@ -119,8 +119,31 @@ numeric parity без требования равенства measured timings. 
 [отдельном evidence](evaluation/owned-source-fixture-comparison.json).
 
 Exact registry-integration commit `01b06e002c499c7266c313ec3723edc8fa97d563`
-имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38124186294);
-статус следующей comparison поставки проверяется отдельно, не переносится с него.
+имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38124186294).
+Следующий exact comparison commit `fefa9c61d61815a4d9bace4dba0aeb60124c812f`
+также имеет [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38124970228).
+Эти runs не являются CI следующей parser-поставки или independent quality evidence.
+
+Последующий [numbered standard IPv4 ACL slice](numbered-standard-acls.md) добавляет
+global IOS permit/deny facts в существующий IR/30-policy catalog. На тех же 415
+retained approved inputs paired old/new installed census распознал ещё 23 строки
+в девяти входах: accepted 1387→1410, unparsed 3738→3715 при неизменном command
+denominator 5125; partial inputs 389→388. Один другой вход получил только явный
+warning для неподдержанной ACL-команды; всего изменились десять fresh parse results,
+405 сохранили те же canonical/coverage/features/findings.
+Добавился один configured `acl.unrestricted_permit` finding с точной строкой;
+это не подтверждённая реальная аномалия, attachment или effective traffic verdict.
+Старые reports/snapshots/coverage/модельные файлы не переписываются. Retained corpus
+audit и exact source/annotation/exposure validation существующего 0.3 checkpoint
+сохраняются без нового inference/обучения. Границы: extended numbered ACL,
+noncontiguous wildcards, options и mixed numeric named/global edits остаются unknown.
+Локальная регрессия [parser-slice evidence](evaluation/owned-numbered-standard-acls.json):
+2749 full passes/27 skips/5 прежних warnings, 170 source и 170 installed targeted
+checks, 118 Pydantic 2.14 checks; ruff/mypy default/Linux/win32 — pass. Установленные
+229 runtime files побайтно совпадают с исходниками; четыре golden inputs неизменны.
+Независимое ревью выявило numeric-name alias, исправление повторно проверено.
+Новые local live Batfish/PostgreSQL/browser runs не выполнялись; старые CI successes
+не перенесены на этот parser commit. Это не закрывает полную vendor/ML/MVP приёмку.
 
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14

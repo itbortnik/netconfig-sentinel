@@ -1,0 +1,105 @@
+{
+  "version": "owned-numbered-standard-acls-evidence-0.1.0",
+  "measured_on": "2026-10-11",
+  "scope": "Bounded standard IPv4 numbered ACL facts and current policy/coverage integration; not vendor syntax or effective filtering qualification",
+  "requirements": ["4", "9", "11.1", "21 parser and policy tests"],
+  "corpus_diagnostic": {
+    "purpose": "functional_parser_diagnostic",
+    "source_revision": "329c14bf712f81b1522147abb00419c8e34e8f4a",
+    "manifest_sha256": "dfa8a530179755aad7ef93ecabb31d43331960fc05cfc85efb299fc67dbc9ea8",
+    "retained_records_sha256": "e5a29e64535c403bdce82fe3a48135fcb2a1d940535a7375f4b9607fe2085032",
+    "input_count": 415,
+    "new_data_acquisitions": 0,
+    "new_acl_fact_inputs": 9,
+    "new_supported_rows": 23,
+    "new_acl_rules": 23,
+    "warning_only_inputs": 1,
+    "unchanged_canonical_coverage_features_findings_inputs": 405,
+    "command_units_before_and_after": 5125,
+    "accepted_units_before": 1387,
+    "accepted_units_after": 1410,
+    "unparsed_units_before": 3738,
+    "unparsed_units_after": 3715,
+    "partial_inputs_before": 389,
+    "partial_inputs_after": 388,
+    "additional_configured_unrestricted_permit_findings": 1,
+    "existing_fresh_finding_confidence_only_changes": 44,
+    "non_acl_canonical_facts_unchanged": true,
+    "existing_golden_inputs_unchanged": true,
+    "real_confirmed_anomalies": null,
+    "independent_quality_metrics": null,
+    "physical_network_independence_proven": false,
+    "proves_vendor_syntax": false,
+    "effective_filtering_evaluated": false,
+    "raw_configurations_or_private_inventories_published": false
+  },
+  "history_and_model_compatibility": {
+    "saved_old_canonical_and_coverage_http_get_unchanged": true,
+    "history_reparsed": false,
+    "original_inputs_manifest_seven_historical_reports_and_model_files_unchanged": true,
+    "existing_fixture_model_identity": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+    "unchanged_normalized_permission_set_corpus_audit_sha256": "777fa1df00a98f53e5dc2327c736d626c62aad142d16c2818e0ce1ee97e84278",
+    "existing_source_annotation_exposure_validation_passed": true,
+    "validated_train_views": 48,
+    "validated_selection_views": 12,
+    "ml_segmentation_tokenization_or_target_contract_changed": false,
+    "native_inference_or_training_in_corpus_diagnostic": false,
+    "model_activation_or_calibration": false,
+    "policy_catalog_version_changed": false,
+    "unique_policy_count": 30,
+    "coverage_accounting_version_changed": false
+  },
+  "installed_verification": {
+    "private_aggregate_sha256": "8c4f4077585b0917d089fac45a580c276faaf06c8bf12bcd3b5af183d137ee24",
+    "runtime_python_files": 229,
+    "runtime_bytes_match_checkout": true,
+    "selected_target_parent_import_counts": [80, 153],
+    "all_parent_app_ml_imports_from_selected_targets": true,
+    "wheel_bytes": 710028,
+    "wheel_sha256": "981b21d6a754814b6d5880a181b4b8da90d4d410074e808ce1eb7855b2da219f"
+  },
+  "checks": {
+    "full_regression": {
+      "passed": 2749,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 27,
+      "warnings": 5,
+      "seconds": 255.336,
+      "junit_sha256": "9016967f6436a259184d1ee6571d7866f44d0c1110cb6127ed8419034676e57a",
+      "coverage_lines": 20818,
+      "coverage_lines_covered": 18807,
+      "coverage_xml_sha256": "131a59eecd8f986ac0d175dd0052f9fce3298a484c877e3666694b6c2ce2fbce",
+      "skips": "12 optional SDK, 14 explicit owned live-engine cases, 1 PostgreSQL case"
+    },
+    "source_targeted": {
+      "passed": 170,
+      "seconds": 2.791,
+      "junit_sha256": "d7ede038a58a6256ae0211895332d306e02db7e7a405d47629559e44aa4d7fce"
+    },
+    "installed_targeted": {
+      "passed": 170,
+      "seconds": 1.38,
+      "junit_sha256": "ccf8e5a815482a4139ebdf8bf1626e1dac03403c9bb40930b0601fd0e4b365ac"
+    },
+    "pydantic_2_14_targeted": {
+      "passed": 118,
+      "seconds": 2.795,
+      "junit_sha256": "45ca87b753d640013d4ef1161ce2a7abe5f21c599b65409608f76c014661efdf"
+    },
+    "ruff": "passed",
+    "mypy_default_linux_win32_runtime_files": 229,
+    "independent_code_review": "one numeric-alias finding fixed and reviewed again; no open findings",
+    "new_local_live_batfish_or_postgresql": "not_run",
+    "new_local_frontend_or_browser_run": "not_run; wire schema and frontend unchanged"
+  },
+  "limitations": [
+    "Standard numbered global rows only; unsupported rows remain whole unknown commands.",
+    "Extended numbers, options, remarks, deletion, noncontiguous wildcards and mixed named/global numeric edits remain unsupported.",
+    "Configured rule order is preserved, but shadowing, attachment and effective packet passage are not evaluated.",
+    "Fresh structured ACL/confidence/warning features can change; historical snapshots and findings are not recomputed.",
+    "Current coverage is a source-line disposition census, not vendor syntax acceptance or independent parser recall.",
+    "Existing source/model validation is not new ML inference, representative labels, calibration or independent quality evidence.",
+    "Previous successful CI runs are not exact-commit CI evidence for this parser change."
+  ]
+}

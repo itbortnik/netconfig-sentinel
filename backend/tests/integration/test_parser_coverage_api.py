@@ -130,6 +130,36 @@ def test_legacy_saved_payload_is_read_without_reparsing_or_inventing_coverage(ap
     assert ConfigurationSnapshot.model_validate_json(original).model_dump_json() == original
 
 
+@pytest.mark.parametrize("unknown", [False, True])
+def test_numbered_acl_upload_analysis_and_restart_keep_facts_and_partial_gate(api, unknown):
+    client, _, settings = api
+    source = "hostname owned\naccess-list 7 permit any\naccess-list 7 deny host 192.0.2.7\n"
+    if unknown:
+        source += "access-list 7 permit any log\n"
+    snapshot = upload(client, source)
+    assert snapshot["parser_coverage"]["accepted_units"] == 3
+    assert snapshot["parser_coverage"]["unparsed_units"] == int(unknown)
+    assert snapshot["parser_coverage"]["proves_vendor_syntax"] is False
+    acl = snapshot["canonical"]["acls"][0]
+    assert acl["name"] == "7" and len(acl["rules"]) == 2
+    assert acl["provenance"]["name"]["source_lines"] == [2, 3]
+    cid = snapshot["configuration_id"]
+    path = f"/api/v1/configurations/{cid}"
+    analysis = client.post(path + "/analyze", headers=HEADERS)
+    assert analysis.status_code == 201
+    result = analysis.json()
+    selected = [finding for finding in result["findings"] if finding["category"].startswith("acl.")]
+    assert len(selected) == 1 and selected[0]["category"] == "acl.unrestricted_permit"
+    assert selected[0]["affected_lines"] == [2]
+    assert selected[0]["evidence"][0]["source_location"] == acl["rules"][0]["provenance"]["rule"]
+    if unknown:
+        assert result["status"] == "partial" and result["risk"] is None
+    with TestClient(create_app(settings)) as restarted:
+        assert restarted.get(path, headers=HEADERS).json() == snapshot
+        aid = result["analysis_id"]
+        assert restarted.get(f"/api/v1/analyses/{aid}", headers=HEADERS).json() == result
+
+
 @pytest.mark.parametrize("changed_field", ["source", "platform", "unknown-anchor", "line-hash"])
 def test_bound_snapshot_and_storage_refuse_corrupt_coverage(api, changed_field):
     client, store, _ = api

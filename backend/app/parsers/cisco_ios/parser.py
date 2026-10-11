@@ -49,6 +49,10 @@ _ACL = re.compile(
     r"(?:(?P<kind>standard|extended)\s+)?(?P<name>\S+)$",
     re.IGNORECASE,
 )
+_NUMBERED_ACL = re.compile(
+    r"^access-list\s+(?P<name>[0-9]{1,4})\s+(?P<action>permit|deny)\s+(?P<source>.+)$",
+    re.IGNORECASE,
+)
 _IPV4_ADDRESS = re.compile(
     r"^ip\s+address\s+(?P<address>\S+)\s+(?P<mask>\S+)(?:\s+secondary)?$",
     re.IGNORECASE,
@@ -297,6 +301,16 @@ class CiscoIOSParser(VendorParser):
         vlans: dict[int, _CiscoVlan] = {}
         current_vlan: _CiscoVlan | None = None
         acls: list[_CiscoAcl] = []
+        numbered_acls: dict[str, _CiscoAcl] = {}
+        # Mixed submode/global edits have sequencing semantics outside this slice.
+        # Refuse their global rows even if the named header appears later.
+        named_numbers = {
+            match.group("name").lstrip("0") or "0"
+            for line in text.splitlines()
+            if (match := _ACL.fullmatch(line.strip()))
+            and match.group("family").lower() == "ip"
+            and re.fullmatch(r"[0-9]+", match.group("name"))
+        }
         current_acl: _CiscoAcl | None = None
         prefix_lists: dict[tuple[str, str], _CiscoPrefixList] = {}
         static_routes: list[StaticRouteConfig] = []
@@ -612,6 +626,28 @@ class CiscoIOSParser(VendorParser):
                             ),
                         )
                     )
+            elif re.match(r"access-list(?:\s|$)", command, re.IGNORECASE):
+                parsed = (
+                    _parse_numbered_standard_acl(command, number, raw_line, named_numbers)
+                    if not raw_line[:1].isspace()
+                    else None
+                )
+                if parsed is None:
+                    warnings.append(f"unsupported numbered ACL entry at line {number}")
+                    unparsed.append(
+                        UnparsedFragment(
+                            raw_text=raw_line,
+                            location=source_location([(number, raw_line)], parser_confidence=0.0),
+                        )
+                    )
+                else:
+                    name, rule = parsed
+                    if name not in numbered_acls:
+                        acl = _CiscoAcl(name=name, family="ipv4", kind="standard")
+                        numbered_acls[name] = acl
+                        acls.append(acl)
+                    numbered_acls[name].rules.append(rule)
+                    numbered_acls[name].facts["name"].append((number, raw_line))
             else:
                 unparsed.append(
                     UnparsedFragment(
@@ -668,6 +704,50 @@ class CiscoIOSParser(VendorParser):
             parse_warnings=warnings,
             parser_confidence=confidence,
         )
+
+
+def _parse_numbered_standard_acl(
+    command: str, number: int, raw_line: str, named_numbers: set[str]
+) -> tuple[str, AclRule] | None:
+    """Normalize only complete standard IPv4 rows, not effective filtering or edits."""
+    match = _NUMBERED_ACL.fullmatch(command)
+    if match is None:
+        return None
+    name = match.group("name")
+    identifier = int(name)
+    if (
+        str(identifier) != name
+        or not (1 <= identifier <= 99 or 1300 <= identifier <= 1999)
+        or name in named_numbers
+    ):
+        return None
+    tokens = match.group("source").split()
+    try:
+        if len(tokens) == 1 and tokens[0].lower() == "any":
+            source = "any"
+        elif len(tokens) == 2 and tokens[0].lower() == "host":
+            source = f"{IPv4Address(tokens[1])}/32"
+        elif len(tokens) in {1, 2}:
+            address = IPv4Address(tokens[0])
+            wildcard = int(IPv4Address(tokens[1])) if len(tokens) == 2 else 0
+            # Only low-order contiguous ones are representable by a CIDR prefix.
+            # Do not pass inverse masks through ip_network's hostmask heuristic.
+            if wildcard & (wildcard + 1):
+                return None
+            prefix = 32 - wildcard.bit_count()
+            source = "any" if prefix == 0 else str(ip_network(f"{address}/{prefix}", strict=False))
+        else:
+            return None
+    except ValueError:
+        return None
+    action: Literal["permit", "deny"] = (
+        "permit" if match.group("action").lower() == "permit" else "deny"
+    )
+    return name, AclRule(
+        action=action,
+        source_addresses=[source],
+        provenance={"rule": source_location([(number, raw_line)])},
+    )
 
 
 def _parse_acl_rule(
