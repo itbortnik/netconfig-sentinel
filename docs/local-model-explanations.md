@@ -203,6 +203,63 @@ per-request identities и exact private annotations остаются локал�
 Semantic validator, qualified output, independent/adversarial quality и §17
 целиком этим audit не закрыты; scores/verifier/history не меняются.
 
+### Факты текущего caller, отдельно от исторических документов
+
+`explanation-invocation-facts-0.1.0` — отдельный strict allowlist, не новая версия
+saved `analysis_facts` или response DTO. HTTP endpoint формирует его сервером
+после consent/source binding: `entrypoint=saved_analysis_http`,
+`analysis_storage=stored_analysis`, `model_answer_storage=not_stored_in_analysis`.
+Это различает сохранённый детерминированный анализ и возвращённый model draft;
+не утверждает отсутствие хранения клиентом, gateway или журналами.
+
+`selected_finding_peer_profile_storage=stored_in_analysis` устанавливается только
+для выбранной peer finding с действительно сохранённым profile. Legacy profile
+может быть сохранён без нового peer report. Для reference/policy/outlier finding
+поле `not_applicable`, даже если тот же analysis содержит другое peer comparison;
+отсутствующее metadata остаётся `not_supplied`. Offline caller по умолчанию не
+получает выдуманных сведений об interface/storage. HTTP body не управляет этими
+полями; redaction повторно валидирует closed object и не переносит private prose,
+UUID, database paths или значения profile в этот allowlist.
+
+Инструкция различает historical release descriptions и actual invocation scope,
+но не отменяет documented detector limitations. Архивные chunks/mappings,
+privacy algorithm и DraftAnswer schema не меняются; новые contexts имеют новые
+hash bindings, прежние receipts/answers не пересчитываются. Дополнительные
+workflow enums также являются данными под существующим consent, не доказательством
+анонимности, семантической истины или deployment readiness.
+
+[Фактический installed повтор](evaluation/owned-invocation-facts-http.json)
+выполнил ровно четыре новых Qwen generations на тех же четырёх owned cases.
+Все четыре completed/schema-and-citation accepted; четыре consent refusals
+произошли до модели, saved/restart analyses не изменились. Веса, detector facts,
+observed/expected, source и sealed documents совпадают с фиксированной второй
+предыдущей итерацией; finding fingerprints заново привязаны к новым run identities.
+Новых независимых случаев, ML fit, Batfish или operator activation нет.
+
+Шесть bounded dimensions перечислены до генерации; labels и выбранные assertions
+оценены вручную после неё, не считаются preregistered exhaustive claim taxonomy.
+Прежние CLI-only/безусловные nonpersistence claims не наблюдались, оба peer drafts
+назвали stored profile и completed/3 peers/19 features/0 skipped. Но отсутствие
+фраз не означает правильность всех утверждений: explicit HTTP interface и
+различение draft storage в прозе не воспроизведены. Условные library statements
+про opt-in storage не классифицируются как current nonpersistence contradictions.
+
+Сохраняются реальные проблемы: два reference drafts отрицают network/syntax issue
+без verifier, один предлагает неподтверждённое operational inaction rule; два
+peer summaries неоднозначно расширяют nonstorage на target device. Juniper peer
+assumes representative selection без evidence. Это unsupported/ambiguous claims,
+не установленные ложные факты. Reference summaries пропустили completed; ни один
+summary не начинается с literal status. Guidance 120 words/one list item не enforced:
+prose counts — 147/180/120/169, у обоих peers largest list length=3.
+
+Полный comparator denominator сохранён: раньше 3 accepted + 1 unavailable deadline,
+теперь 4 accepted; unavailable case не считается semantic pass/fail и не выбрасывается
+для удобного available-only сравнения. Первый новый HTTP request занял 19.022 s,
+остальные 6.256–7.924 s при явном diagnostic budget 20 s; default 10 s не меняется
+и не квалифицирован. Это один prompt-development intervention, не causal repair,
+independent semantic-quality pass или throughput/SLA. Public evidence содержит
+числа, enums и aggregate hashes; prose/contexts/annotations остаются приватными.
+
 Unit/wire/API tests проверяют target/permission, pseudonyms, бюджеты, redirects,
 timeout/reap/concurrency, proxy exclusion, schema/citations, неизменность истории
 и restart для Cisco/Juniper, включая partial parsing. CI повторяет wire/API cases

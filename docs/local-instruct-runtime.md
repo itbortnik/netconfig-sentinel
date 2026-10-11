@@ -198,6 +198,34 @@ ML fit и Batfish requests отсутствуют. Gateways завершены, 
 удалены через bounded temporary-directory cleanup; operator service не активирован.
 Эта helper isolation не является OS sandbox или гарантией для произвольного сервера.
 
+## Текущий caller отдельно от historical library scope
+
+[Следующий installed diagnostic](evaluation/owned-invocation-facts-http.json)
+добавляет strict server-derived `invocation_facts`, отдельно от saved status/counts:
+текущий saved HTTP entrypoint, stored analysis/selected peer profile и model draft,
+не сохраняемый в analysis. Unknown offline caller остаётся unknown; closed object
+сохраняется через повторную redaction validation, не экспортирует UUID/DB paths.
+Инструкция не переносит historical CLI/opt-in descriptions на current invocation,
+но detector limitations, sealed knowledge bytes, schema и история не изменяются.
+
+На тех же четырёх authored comparison cases выполнены четыре actual generations:
+4/4 completed/schema-and-citation accepted, 4 consent refusals до модели и
+4 unchanged saved/restart reads. Веса/source/observed/expected/docs прежние;
+finding fingerprint привязан к новому analysis, не выдаётся за старую identity.
+Prior comparator сохраняет все четыре попытки (3 accepted, 1 deadline), без
+intersection по доступным ответам. First HTTP latency 19.022 s всё ещё превышает
+default 10 s; diagnostic budget 20 s, retry/warm-up/service activation отсутствуют.
+
+Прежние CLI-only/nonpersistent assertions не наблюдаются; оба peers назвали
+stored profile и completed/3/19/0. Но это не semantic correction guarantee:
+два reference drafts исключают network/syntax issue без verifier, один добавляет
+operational inaction rule; два peers неоднозначно отрицают target-device storage,
+Juniper предполагает representative peers. Conditional opt-in library statement
+не считается current nonpersistence contradiction. Ни один summary не начинает
+literal status, references пропускают completed; word/list guidance не enforced.
+Нет exhaustive/human claim labels, independent/adversarial evaluation или causal
+quality claim. См. [границы caller context](local-model-explanations.md).
+
 ## Текущий связанный workflow и оставшиеся границы
 
 HTTP explanation `/findings/{id}/explain` по-прежнему требует `patch_draft=null`.

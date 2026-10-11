@@ -10,7 +10,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
-from app.explanation.facts import VERIFICATION_SCOPE, ExplanationAnalysisFacts
+from app.explanation.facts import (
+    VERIFICATION_SCOPE,
+    ExplanationAnalysisFacts,
+    ExplanationInvocationFacts,
+)
 from app.explanation.knowledge import DocumentChunk, text_sha256
 from app.explanation.local import FindingExplanation
 
@@ -31,6 +35,12 @@ SYSTEM_INSTRUCTIONS = (
     "Begin summary with the supplied analysis_status; if peer_report is present, include its "
     "exact selected_peer_count, compared_feature_count and skipped_feature_count. "
     "Do not invent the calling interface, persistence, transport or privacy behavior. "
+    "Use invocation_facts only for this invocation: stored_analysis and stored_in_analysis "
+    "refer to the deterministic analysis and selected peer profile, not the model draft. "
+    "not_stored_in_analysis says nothing about client, gateway or log storage. not_supplied "
+    "means unknown. Retrieved release documents may describe historical library interfaces "
+    "or opt-in storage; do not transfer those descriptions to the current caller when explicit "
+    "invocation_facts differ. This does not override documented detector limitations. "
     "Do not introduce external standards, policy obligations, protocol "
     "versions, exploitation claims or commands that are not supplied by these sources. "
     "Do not infer platform defaults. Field names and string values are pseudonyms: do not "
@@ -114,6 +124,7 @@ def build_prompt(
     warning_count: int,
     unparsed_count: int,
     analysis_facts: ExplanationAnalysisFacts | None = None,
+    invocation_facts: ExplanationInvocationFacts | None = None,
 ) -> ProviderPrompt:
     finding = Finding.model_validate(finding.model_dump())
     explanation = FindingExplanation.model_validate(explanation.model_dump())
@@ -134,6 +145,10 @@ def build_prompt(
     )
     if facts.peer_report is not None and finding.detector != "peer_baseline":
         raise ValueError("peer report requires a peer finding")
+    invocation = ExplanationInvocationFacts.model_validate(
+        (invocation_facts or ExplanationInvocationFacts()).model_dump()
+    )
+    invocation.validate_detector_scope(finding.detector)
     if not 0 <= parser_confidence <= 1 or any(
         type(count) is not int or not 0 <= count <= 10_000
         for count in (warning_count, unparsed_count)
@@ -158,6 +173,7 @@ def build_prompt(
         "limitations": explanation.limitations,
         "formal_verification": "not_run",
         "analysis_facts": facts.model_dump(mode="json"),
+        "invocation_facts": invocation.model_dump(mode="json"),
         "verification_scope": dict(VERIFICATION_SCOPE),
         "documents": [item.model_dump(mode="json") for item in chunks],
     }

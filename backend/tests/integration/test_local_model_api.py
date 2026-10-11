@@ -244,6 +244,13 @@ def test_model_draft_uses_redacted_wire_and_never_changes_saved_scores(model_api
     assert context["parser"]["unparsed_count"] == int(partial)
     assert context["analysis_facts"]["analysis_status"] == result["status"]
     assert context["analysis_facts"]["peer_report"] is None
+    assert context["invocation_facts"] == {
+        "version": "explanation-invocation-facts-0.1.0",
+        "entrypoint": "saved_analysis_http",
+        "analysis_storage": "stored_analysis",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "not_applicable",
+    }
     assert set(context["verification_scope"].values()) == {"not_checked_in_this_explanation"}
     assert "risk" not in context and "severity" not in context
     assert client.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json() == result
@@ -328,6 +335,13 @@ def test_saved_peer_report_status_and_counts_reach_model_without_private_report_
     assert answer.status_code == 200, answer.text
     context = json.loads(server.requests[0][0]["messages"][1]["content"])
     facts = context["analysis_facts"]
+    assert context["invocation_facts"] == {
+        "version": "explanation-invocation-facts-0.1.0",
+        "entrypoint": "saved_analysis_http",
+        "analysis_storage": "stored_analysis",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "stored_in_analysis",
+    }
     assert facts["analysis_status"] == result["status"] == ("partial" if partial else "completed")
     if version == "0.1.0":
         assert facts["peer_report"] is None  # Historical API has no explicit evaluation report.
@@ -357,6 +371,30 @@ def test_saved_peer_report_status_and_counts_reach_model_without_private_report_
     assert set(context["verification_scope"].values()) == {"not_checked_in_this_explanation"}
     assert client.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json() == result
 
+    # The same saved analysis has a peer profile, but it is not the selected policy fact.
+    policy = next(item for item in result["findings"] if item["detector"] == "policy_engine")
+    policy_explanation = next(
+        item for item in result["explanations"] if item["finding_id"] == policy["finding_id"]
+    )
+    policy_path = f"/api/v1/findings/{policy['finding_id']}/explain"
+    response = client.post(
+        policy_path,
+        headers=HEADERS,
+        json=options
+        | {
+            "finding_sha256": policy_explanation["finding_sha256"],
+            "allow_local_model_context": True,
+        },
+    )
+    assert response.status_code == 200, response.text
+    policy_context = json.loads(server.requests[-1][0]["messages"][1]["content"])
+    assert (
+        policy_context["invocation_facts"]["selected_finding_peer_profile_storage"]
+        == "not_applicable"
+    )
+    assert policy_context["analysis_facts"]["peer_report"] is None
+    assert client.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json() == result
+
 
 def test_missing_consent_wrong_scope_and_auth_never_contact_model(model_api):
     client, _, server, _, _ = model_api
@@ -366,6 +404,10 @@ def test_missing_consent_wrong_scope_and_auth_never_contact_model(model_api):
     assert explain(client, result, provider="local").status_code == 400
     assert explain(client, result, finding_sha256="f" * 64).status_code == 409
     assert explain(client, result, analysis_id=str(uuid4())).status_code == 404
+    assert (
+        explain(client, result, invocation_facts={"entrypoint": "saved_analysis_http"}).status_code
+        == 400
+    )
     assert client.get("/api/v1/explanation-capabilities").status_code == 401
     assert (
         client.post(f"/api/v1/findings/{uuid4()}/explain", content=b"x" * 20000).status_code == 401

@@ -264,6 +264,46 @@ reference answers не объявлены правильными. Новых inf
 нет; frozen inputs и история сохранены, runtime semantic gate не добавлен.
 §17 остаётся частично выполненным, model prose не повышает фактические статусы.
 
+Exact diagnostic commit `f61579d78188d5646718a845831f577ce6804bc8` позднее получил
+[все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38155973374).
+Это CI прежних audits, не следующего invocation-context изменения и не model quality.
+
+Следующий [caller-context slice](local-model-explanations.md) вводит отдельные
+strict server-derived facts текущего saved HTTP invocation: stored analysis,
+selected peer profile и model draft, не сохраняемый в analysis. Это не storage
+guarantee для client/gateway/logs. Offline/historical missing metadata остаются
+unknown; выбранная reference/policy finding не получает storage другой peer
+finding. Redaction повторно проверяет closed allowlist; consent/response schemas,
+sealed documents, сохранённые analyses и прежние audit/context bindings не меняются.
+
+[Actual installed repeat](evaluation/owned-invocation-facts-http.json) сохранил
+4/4 completed/schema-and-citation accepted Qwen drafts на тех же четырёх owned
+cases; comparator retained 3 accepted/1 unavailable deadline, без missing-case
+intersection. Веса/source/observed/expected/docs и saved status/counts прежние,
+finding fingerprints связаны с новыми run identities. Прежние CLI-only/безусловные
+nonpersistence assertions не наблюдаются, оба peers называют stored profile и
+completed/3/19/0. Это не causal repair или semantic-quality gate: два references
+категорично исключают network/syntax issue без verifier, один добавляет unsupported
+operational inaction rule; два peers расширяют nonstorage на target с ambiguous
+scope, Juniper assumes representative selection без evidence. Qualified opt-in
+library storage statements не названы current nonpersistence contradictions.
+Шесть dimensions перечислены до generation, labels выбраны вручную после неё;
+не exhaustive или human ground truth. Omission of old claims не делает draft правильным.
+
+Четыре consent refusals до модели, saved/restart reads неизменны; gateway завершён,
+временная owned БД удалена. Первый request 19.022 s не укладывается в default 10 s;
+diagnostic 20 s не меняет default, retries/warm-up/activation отсутствуют. Новых
+weights, independent cases, ML fit, Batfish и пересчёта старых answers нет.
+§17/independent LLM/RAG quality/production остаются частично выполненными.
+
+Регрессия этого slice: 2810 passed/27 skipped/5 warnings, coverage 18898/20906;
+138 nearest checks, 245 installed и 245 Pydantic 2.14 parent checks — pass.
+Все 230 runtime files побайтно совпали с installed target, actual API 123/GPU 57
+и targeted parent 130 imports происходят из target без checkout. Isolated child
+dependencies не наследуют Pydantic override. Ruff/mypy default/Linux/win32 — pass.
+Новый local live Batfish/PostgreSQL/browser run не выполнялся; 27 skips не pass,
+exact-commit CI этой поставки фиксируется отдельно после публикации.
+
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
 checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel побайтно

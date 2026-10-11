@@ -1,0 +1,369 @@
+{
+  "absence_of_selected_claim_implies_correct_answer": false,
+  "analysis_facts_version": "explanation-analysis-facts-0.1.0",
+  "annotation_basis": "bounded_manual_software_fact_assessment_not_reviewed_human_ground_truth",
+  "answer_schema_sha256": "ad02cb34287dc20c26a5a07466fbc14ae564c75c62419701dc9ae0ab58ba332b",
+  "application_source_base_commit": "f61579d78188d5646718a845831f577ce6804bc8",
+  "automatic_retry": false,
+  "bounded_observation_counts": {
+    "ambiguous_target_device_nonstorage_claims": 2,
+    "peer_profile_storage_acknowledgments": 2,
+    "post_generation_supplemental_observations": 5,
+    "preregistered_dimension_cells": 24,
+    "prior_cli_only_claims_observed": 0,
+    "qualified_library_storage_statements_not_counted_as_contradictions": 2,
+    "reference_completed_status_omitted": 2,
+    "supported_peer_completed_and_3_19_0_counts": 2,
+    "unconditional_current_nonpersistence_claims_observed": 0,
+    "unsupported_negative_syntax_network_assertions": 2,
+    "unsupported_operational_inaction_rules": 1,
+    "unverified_peer_representativeness_assumptions": 1
+  },
+  "cases": [
+    {
+      "analysis_facts": {
+        "analysis_status": "completed",
+        "peer_report": null,
+        "version": "explanation-analysis-facts-0.1.0"
+      },
+      "detector": "expected_configuration",
+      "generated_tokens": 254,
+      "generation_completed": true,
+      "generation_rejection": null,
+      "generation_seconds": 18.90239980000115,
+      "http_seconds": 19.021706700001232,
+      "http_status": 200,
+      "invocation_facts": {
+        "analysis_storage": "stored_analysis",
+        "entrypoint": "saved_analysis_http",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "not_applicable",
+        "version": "explanation-invocation-facts-0.1.0"
+      },
+      "largest_list_length": 1,
+      "post_generation_supplemental_observations": [
+        {
+          "assessment": "unsupported_negative_assertion_without_verifier_not_demonstrated_false_fact",
+          "dimension": "unsupported_negative_syntax_network_scope"
+        },
+        {
+          "assessment": "unverified_operational_rule_without_approved_policy",
+          "dimension": "unsupported_operational_inaction_rule"
+        }
+      ],
+      "prompt_tokens": 1920,
+      "prose_whitespace_word_count": 147,
+      "selected_dimension_observations": [
+        {
+          "assessment": "prior_cli_only_claim_not_observed_no_http_correctness_certification",
+          "dimension": "current_entrypoint"
+        },
+        {
+          "assessment": "no_storage_claim_selected_not_correctness_certification",
+          "dimension": "analysis_vs_draft_storage"
+        },
+        {
+          "assessment": "not_applicable_to_selected_reference_finding",
+          "dimension": "selected_peer_profile_storage"
+        },
+        {
+          "assessment": "completed_status_omitted_from_summary",
+          "dimension": "saved_status_and_counts"
+        },
+        {
+          "assessment": "prior_numeric_export_denial_not_observed_not_privacy_guarantee",
+          "dimension": "numeric_privacy"
+        },
+        {
+          "assessment": "not_applicable_to_selected_reference_finding",
+          "dimension": "peer_selection_bias"
+        }
+      ],
+      "summary_begins_with_supplied_status": false,
+      "vendor": "cisco"
+    },
+    {
+      "analysis_facts": {
+        "analysis_status": "completed",
+        "peer_report": {
+          "compared_feature_count": 19,
+          "profile_feature_count": 19,
+          "selected_peer_count": 3,
+          "skipped_feature_count": 0,
+          "status": "completed",
+          "version": "peer-comparison-report-0.2.0"
+        },
+        "version": "explanation-analysis-facts-0.1.0"
+      },
+      "detector": "peer_baseline",
+      "generated_tokens": 290,
+      "generation_completed": true,
+      "generation_rejection": null,
+      "generation_seconds": 7.662384999999631,
+      "http_seconds": 7.7804852000008395,
+      "http_status": 200,
+      "invocation_facts": {
+        "analysis_storage": "stored_analysis",
+        "entrypoint": "saved_analysis_http",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "stored_in_analysis",
+        "version": "explanation-invocation-facts-0.1.0"
+      },
+      "largest_list_length": 3,
+      "post_generation_supplemental_observations": [
+        {
+          "assessment": "ambiguous_target_device_nonstorage_not_proof_of_absent_target_data",
+          "dimension": "broader_target_storage_scope"
+        }
+      ],
+      "prompt_tokens": 2218,
+      "prose_whitespace_word_count": 180,
+      "selected_dimension_observations": [
+        {
+          "assessment": "prior_cli_only_claim_not_observed_no_http_correctness_certification",
+          "dimension": "current_entrypoint"
+        },
+        {
+          "assessment": "analysis_profile_storage_acknowledged_draft_storage_unaddressed",
+          "dimension": "analysis_vs_draft_storage"
+        },
+        {
+          "assessment": "supported_storage_acknowledgment_with_qualified_library_statement",
+          "dimension": "selected_peer_profile_storage"
+        },
+        {
+          "assessment": "supported_completed_3_peers_19_features_0_skipped",
+          "dimension": "saved_status_and_counts"
+        },
+        {
+          "assessment": "prior_numeric_export_denial_not_observed_not_privacy_guarantee",
+          "dimension": "numeric_privacy"
+        },
+        {
+          "assessment": "bias_effect_remains_missing_information",
+          "dimension": "peer_selection_bias"
+        }
+      ],
+      "summary_begins_with_supplied_status": false,
+      "vendor": "cisco"
+    },
+    {
+      "analysis_facts": {
+        "analysis_status": "completed",
+        "peer_report": null,
+        "version": "explanation-analysis-facts-0.1.0"
+      },
+      "detector": "expected_configuration",
+      "generated_tokens": 229,
+      "generation_completed": true,
+      "generation_rejection": null,
+      "generation_seconds": 6.15809470000022,
+      "http_seconds": 6.255673999999999,
+      "http_status": 200,
+      "invocation_facts": {
+        "analysis_storage": "stored_analysis",
+        "entrypoint": "saved_analysis_http",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "not_applicable",
+        "version": "explanation-invocation-facts-0.1.0"
+      },
+      "largest_list_length": 1,
+      "post_generation_supplemental_observations": [
+        {
+          "assessment": "unsupported_negative_assertion_without_verifier_not_demonstrated_false_fact",
+          "dimension": "unsupported_negative_syntax_network_scope"
+        }
+      ],
+      "prompt_tokens": 1927,
+      "prose_whitespace_word_count": 120,
+      "selected_dimension_observations": [
+        {
+          "assessment": "prior_cli_only_claim_not_observed_no_http_correctness_certification",
+          "dimension": "current_entrypoint"
+        },
+        {
+          "assessment": "no_storage_claim_selected_not_correctness_certification",
+          "dimension": "analysis_vs_draft_storage"
+        },
+        {
+          "assessment": "not_applicable_to_selected_reference_finding",
+          "dimension": "selected_peer_profile_storage"
+        },
+        {
+          "assessment": "completed_status_omitted_from_summary",
+          "dimension": "saved_status_and_counts"
+        },
+        {
+          "assessment": "prior_numeric_export_denial_not_observed_not_privacy_guarantee",
+          "dimension": "numeric_privacy"
+        },
+        {
+          "assessment": "not_applicable_to_selected_reference_finding",
+          "dimension": "peer_selection_bias"
+        }
+      ],
+      "summary_begins_with_supplied_status": false,
+      "vendor": "juniper"
+    },
+    {
+      "analysis_facts": {
+        "analysis_status": "completed",
+        "peer_report": {
+          "compared_feature_count": 19,
+          "profile_feature_count": 19,
+          "selected_peer_count": 3,
+          "skipped_feature_count": 0,
+          "status": "completed",
+          "version": "peer-comparison-report-0.2.0"
+        },
+        "version": "explanation-analysis-facts-0.1.0"
+      },
+      "detector": "peer_baseline",
+      "generated_tokens": 283,
+      "generation_completed": true,
+      "generation_rejection": null,
+      "generation_seconds": 7.819392600002175,
+      "http_seconds": 7.923377900002379,
+      "http_status": 200,
+      "invocation_facts": {
+        "analysis_storage": "stored_analysis",
+        "entrypoint": "saved_analysis_http",
+        "model_answer_storage": "not_stored_in_analysis",
+        "selected_finding_peer_profile_storage": "stored_in_analysis",
+        "version": "explanation-invocation-facts-0.1.0"
+      },
+      "largest_list_length": 3,
+      "post_generation_supplemental_observations": [
+        {
+          "assessment": "ambiguous_target_device_nonstorage_not_proof_of_absent_target_data",
+          "dimension": "broader_target_storage_scope"
+        }
+      ],
+      "prompt_tokens": 2225,
+      "prose_whitespace_word_count": 169,
+      "selected_dimension_observations": [
+        {
+          "assessment": "prior_cli_only_claim_not_observed_no_http_correctness_certification",
+          "dimension": "current_entrypoint"
+        },
+        {
+          "assessment": "analysis_profile_storage_acknowledged_draft_storage_unaddressed",
+          "dimension": "analysis_vs_draft_storage"
+        },
+        {
+          "assessment": "supported_storage_acknowledgment_with_qualified_library_statement",
+          "dimension": "selected_peer_profile_storage"
+        },
+        {
+          "assessment": "supported_completed_3_peers_19_features_0_skipped",
+          "dimension": "saved_status_and_counts"
+        },
+        {
+          "assessment": "prior_numeric_export_denial_not_observed_not_privacy_guarantee",
+          "dimension": "numeric_privacy"
+        },
+        {
+          "assessment": "unverified_representativeness_assumption_not_demonstrated_false_fact",
+          "dimension": "peer_selection_bias"
+        }
+      ],
+      "summary_begins_with_supplied_status": false,
+      "vendor": "juniper"
+    }
+  ],
+  "causal_improvement_proven": false,
+  "checkout_paths_and_editable_finders_excluded": true,
+  "completed_generations": 4,
+  "consent_refusals_before_model": 4,
+  "deadline_rejections": 0,
+  "default_deadline_changed": false,
+  "exhaustive_claim_annotation": false,
+  "finding_fingerprints_recreated_with_new_run_identities": true,
+  "fixed_comparator": {
+    "accepted_answers": 3,
+    "all_four_case_members_retained_no_available_case_intersection": true,
+    "frozen_assertion_audit_sha256": "2540aa3458152ce7f145b5f3737b19a9d547b9edd8bd8a5fcba5f8c1b88b9562",
+    "iteration": 2,
+    "provider_attempts": 4,
+    "selected_cli_only_claims": 2,
+    "selected_nonpersistence_claims": 2,
+    "source_evidence_sha256": "14db4e584115133293b6271cabfa017af21c9282d464bb31f350c11820859bfc",
+    "unavailable_deadline_answers": 1,
+    "unverified_bias_assumptions": 1
+  },
+  "frozen_files_unchanged_during_projection": 42,
+  "gateway_reaped": true,
+  "gateway_target_imports": 57,
+  "general_semantic_accuracy": null,
+  "hidden_warmup": false,
+  "historical_reports_unchanged": 16,
+  "http_deadline_seconds": 20,
+  "independent_evaluation": false,
+  "installed_projection_imports_checked": 39,
+  "installed_wheel_sha256": "f68e37059deed9513bb5b67ec631c53153308c19b2b74bdc898816201786e8eb",
+  "instruction_sha256": "4ff7e754593a535fac737b3d097cc3649b876d95923858e4b38b8e116369acb1",
+  "invocation_facts_version": "explanation-invocation-facts-0.1.0",
+  "knowledge_catalog_sha256": "86cbe60f544b431054e5f5aae7e973a1d08485a5a0e2806b1b431b614f019728",
+  "knowledge_version": "project-knowledge-0.3.0",
+  "maximum_requested_words": 120,
+  "measured_generations": 4,
+  "measured_on": "2026-10-11",
+  "model_identity": {
+    "attention_implementation": "sdpa",
+    "automatic_activation": false,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "external_training_exposure": "unknown",
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "parameter_count": 4022468096,
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "production_quality_proven": false,
+    "publisher_license_declaration": "Apache-2.0",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26"
+  },
+  "model_prose_published": false,
+  "new_independent_cases": 0,
+  "new_ml_fit_or_batfish_requests": 0,
+  "new_weights_downloaded": false,
+  "operator_activation": false,
+  "original_development_cases": 4,
+  "parent_target_imports": 123,
+  "pre_generation_protocol_sha256": "afda9c1d31016843a41291efe706ce99ba94da0936a14453ae9fc6ee5fc1cc57",
+  "prior_source_observed_expected_documents_and_analysis_facts_equal": true,
+  "privacy_algorithm_version": "finding-context-redaction-0.1.0",
+  "private_annotation_catalog_sha256": "9d3cad94259fa08793dfcfc5935ca1c1c9e94861bdaa63875cb68acc9ff4850d",
+  "private_context_identities_published": false,
+  "private_gateway_sha256": "268aed2afd20a06b3015f304426db1d4f2d5798a2c75622e3a63843d72c4d54e",
+  "private_prompt_catalog_sha256": "674d5d01383f47a25eb0c875fae7ce8e78e14219783ee4aac1390d1bc464b663",
+  "private_report_sha256": "86dff26687478a5883e17a2e1e78e985a5b9d5524c21a1be369b26cd097a0002",
+  "production_quality_proven": false,
+  "provider_attempts": 4,
+  "real_configurations_or_confirmed_labels": false,
+  "report_version": "owned-invocation-facts-http-0.1.0",
+  "requirements": [
+    "17",
+    "20",
+    "21"
+  ],
+  "response_schema_archives_and_saved_history_changed": false,
+  "restart_round_trips": 4,
+  "runtime_python_files_byte_equal": 230,
+  "runtime_python_inventory_sha256": "cbd7e56f767407bb8a3699a68e280e04b3c39a2a9d9dd1ed4c5debaea86f53da",
+  "runtime_semantic_validator_added": false,
+  "saved_analyses_unchanged": 4,
+  "schema_and_citation_membership_accepted": 4,
+  "scope": "strict server-derived invocation facts and one installed same-four-owned-case development intervention",
+  "semantic_quality_qualified": false,
+  "summary_status_position_enforced": false,
+  "temporary_database_removed": true,
+  "word_and_list_guidance_enforced": false,
+  "word_count_method": "whitespace-separated words in prose fields and prose list items, excluding citations and schema keys"
+}

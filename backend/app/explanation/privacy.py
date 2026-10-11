@@ -5,7 +5,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from app.explanation.facts import VERIFICATION_SCOPE, ExplanationAnalysisFacts
+from app.explanation.facts import (
+    VERIFICATION_SCOPE,
+    ExplanationAnalysisFacts,
+    ExplanationInvocationFacts,
+)
 from app.explanation.knowledge import text_sha256
 from app.explanation.provider import MAX_PROMPT_BYTES, ProviderPrompt
 from app.policies import POLICY_RULES
@@ -39,6 +43,8 @@ def redact_prompt(prompt: ProviderPrompt) -> ProviderPrompt:
         raise ValueError("unsupported context value")
 
     detector = original["detector"]
+    invocation = ExplanationInvocationFacts.model_validate(original.get("invocation_facts", {}))
+    invocation.validate_detector_scope(detector)
     category = original["category"]
     if detector == "policy_engine":
         if category not in {rule.rule_id for rule in POLICY_RULES}:
@@ -67,6 +73,7 @@ def redact_prompt(prompt: ProviderPrompt) -> ProviderPrompt:
         analysis_facts=ExplanationAnalysisFacts.model_validate(
             original.get("analysis_facts", {})
         ).model_dump(mode="json"),
+        invocation_facts=invocation.model_dump(mode="json"),
         verification_scope=dict(VERIFICATION_SCOPE),
         category=category,
         observed=redact(original["observed"]),

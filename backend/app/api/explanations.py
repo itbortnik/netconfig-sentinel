@@ -20,7 +20,11 @@ from app.api.service import AnalysisService, FeedbackTargetNotFound
 from app.audit.results import capture_result
 from app.db.store import StorageIntegrityError
 from app.domain.fingerprints import finding_fingerprint
-from app.explanation.facts import ExplanationAnalysisFacts, PeerReportFacts
+from app.explanation.facts import (
+    ExplanationAnalysisFacts,
+    ExplanationInvocationFacts,
+    PeerReportFacts,
+)
 from app.explanation.knowledge import (
     KnowledgeUnavailable,
     knowledge_version_for_finding,
@@ -154,6 +158,20 @@ def _explain(
             unparsed_count=len(config.unparsed_fragments),
             analysis_facts=ExplanationAnalysisFacts(
                 analysis_status=analysis.status, peer_report=peer_facts
+            ),
+            invocation_facts=ExplanationInvocationFacts(
+                entrypoint="saved_analysis_http",
+                analysis_storage="stored_analysis",
+                model_answer_storage="not_stored_in_analysis",
+                selected_finding_peer_profile_storage=(
+                    "not_applicable"
+                    if finding.detector != "peer_baseline"
+                    else (
+                        "stored_in_analysis"
+                        if comparison is not None and comparison.peer_baseline is not None
+                        else "not_supplied"
+                    )
+                ),
             ),
         )
         answer, context_sha = runtime.explain(prompt, common.documents)
