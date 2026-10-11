@@ -142,8 +142,27 @@ noncontiguous wildcards, options и mixed numeric named/global edits остаю�
 checks, 118 Pydantic 2.14 checks; ruff/mypy default/Linux/win32 — pass. Установленные
 229 runtime files побайтно совпадают с исходниками; четыре golden inputs неизменны.
 Независимое ревью выявило numeric-name alias, исправление повторно проверено.
-Новые local live Batfish/PostgreSQL/browser runs не выполнялись; старые CI successes
-не перенесены на этот parser commit. Это не закрывает полную vendor/ML/MVP приёмку.
+Новые local live Batfish/PostgreSQL/browser runs не выполнялись. Позднее exact parser
+commit `26241441643e5bb38fa3bb72c6842bf99402a04d` получил
+[все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38126586501).
+Это не CI следующей LLM-поставки и не полная vendor/ML/MVP приёмка.
+
+Следующий [saved-analysis explanation context](local-model-explanations.md) передаёт
+модели actual saved status и explicit peer report counts, сохраняет их через strict
+redaction allowlist и помечает отсутствующие syntax/network/access/rollback checks.
+Старой истории, sealed knowledge и risk/verifier state изменения не приписываются.
+[Actual повтор Qwen](evaluation/owned-explanation-facts-http.json) сохраняет две
+development итерации на тех же четырёх authored случаях: 8 measured attempts,
+6 completed/schema-and-citation accepted, 2 deadline rejections. Два peer summaries
+финальной инструкции теперь называют actual completed/3 peers/19 features, но
+unsupported CLI/storage/peer-bias claims остаются. Semantic quality и default
+ten-second budget не квалифицированы; новое factual context не закрывает §17
+целиком, independent LLM/RAG evaluation или весь MVP.
+Локальная регрессия: 2777 passed/27 skipped/5 прежних warnings, 225 installed
+targeted checks и 225 Pydantic 2.14 parent checks; ruff/mypy default/Linux/win32
+230 runtime files — pass. Все 230 files побайтно совпали с installed target;
+actual API и GPU imports исключают checkout. Live Batfish/PostgreSQL/browser
+локально не запускались; предыдущий parser CI не считается CI этой поставки.
 
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14

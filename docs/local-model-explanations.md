@@ -88,6 +88,24 @@ POST выполняется на `/api/v1/findings/{finding_id}/explain`. Bindin
 сохраняют равенство только в рамках этого контекста. Таблица соответствий не
 экспортируется. Evidence messages/kinds и исходные limitations исключаются.
 
+В контексте модели теперь отдельно передаются строгие
+`explanation-analysis-facts-0.1.0`: сохранённый `analysis_status` и, только для
+expanded/measured peer finding, версия/статус сохранённого peer report и числа
+выбранных peers, profile/compared/skipped features. Строки report limitations,
+названия features, inventory и IDs не добавляются. После псевдонимизации эти
+allowlisted enums/counts повторно проверяются и сохраняются без замены псевдонимами.
+Это дополнительные potentially confidential facts под тем же явным consent,
+не разрешение передачи наружу. Числа берутся из сохранённого report, не из нового
+анализа, confidence или ответа модели. Legacy peer 0.1 и reference не получают
+выдуманного peer report; offline caller без saved context получает `not_supplied`.
+
+`verification_scope` всегда отмечает vendor syntax, network impact, management
+access и rollback как `not_checked_in_this_explanation`. Completed относится
+только к записанному scoped analysis и не означает успешной проверки сети или
+безопасности изменения. Отдельные review/verifier results здесь не потребляются.
+Это путь объяснения, не patch/review approval API; его публичный response contract,
+privacy algorithm version, sealed documents и сохранённая история не меняются.
+
 Сохраняются числа, booleans, null, порядок массивов, vendor/platform, ID/версия
 детектора, публичный policy ID (другие категории обобщены), численные ограничения
 парсера, source/finding hashes и line/hash/confidence anchors. Число, номер строки,
@@ -139,6 +157,14 @@ score/status/approval, исполняемый `patch_draft` и отключен�
 обязателен. Приложение не исполняет этот текст и не сохраняет его как новый анализ,
 изменение risk, verifier status, feedback, draft или audit event. Генерация команд,
 approval/apply и контакты с сетевыми устройствами отсутствуют.
+
+Текущая инструкция просит объяснить конкретную находку, назвать saved status и
+точные peer counts, не угадывать interface/storage/privacy и уложиться в 120 слов.
+Это **prompt guidance, не semantic validator или enforced word/list limit**.
+[Повторная actual диагностика](evaluation/owned-explanation-facts-http.json)
+сохраняет обе development итерации на тех же четырёх cases: в каждой 3/4 accepted
+drafts и один deadline rejection. Даже после исправления context модель сохраняет
+unsupported interface/storage и peer-bias утверждения; semantic quality не пройдена.
 
 Unit/wire/API tests проверяют target/permission, pseudonyms, бюджеты, redirects,
 timeout/reap/concurrency, proxy exclusion, schema/citations, неизменность истории

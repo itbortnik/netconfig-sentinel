@@ -8,6 +8,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.api.access import authorize
 from app.api.configurations import Service, _request_body, _request_schema, _unique_keys
+from app.api.contracts import ExpandedComparisonContext, MeasuredComparisonContext
 from app.api.explanation_contracts import (
     ExplainFinding,
     ExplanationBundle,
@@ -19,6 +20,7 @@ from app.api.service import AnalysisService, FeedbackTargetNotFound
 from app.audit.results import capture_result
 from app.db.store import StorageIntegrityError
 from app.domain.fingerprints import finding_fingerprint
+from app.explanation.facts import ExplanationAnalysisFacts, PeerReportFacts
 from app.explanation.knowledge import (
     KnowledgeUnavailable,
     knowledge_version_for_finding,
@@ -125,6 +127,21 @@ def _explain(
         )
     assert runtime is not None
     config = snapshot.canonical
+    peer_facts = None
+    comparison = analysis.comparison
+    if finding.detector == "peer_baseline" and isinstance(
+        comparison, (ExpandedComparisonContext, MeasuredComparisonContext)
+    ):
+        report = comparison.peer_evaluation
+        assert report is not None
+        peer_facts = PeerReportFacts(
+            version=report.version,
+            status=report.status,
+            selected_peer_count=len(comparison.peers),
+            profile_feature_count=len(report.profile_features),
+            compared_feature_count=len(report.compared_features),
+            skipped_feature_count=len(report.skipped_features),
+        )
     try:
         prompt = build_prompt(
             finding,
@@ -135,6 +152,9 @@ def _explain(
             parser_confidence=config.parser_confidence,
             warning_count=len(config.parse_warnings),
             unparsed_count=len(config.unparsed_fragments),
+            analysis_facts=ExplanationAnalysisFacts(
+                analysis_status=analysis.status, peer_report=peer_facts
+            ),
         )
         answer, context_sha = runtime.explain(prompt, common.documents)
     except ModelBusy:

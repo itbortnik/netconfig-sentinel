@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from app.explanation.facts import VERIFICATION_SCOPE, ExplanationAnalysisFacts
 from app.explanation.knowledge import text_sha256
 from app.explanation.provider import MAX_PROMPT_BYTES, ProviderPrompt
 from app.policies import POLICY_RULES
@@ -63,6 +64,10 @@ def redact_prompt(prompt: ProviderPrompt) -> ProviderPrompt:
         )
     }
     context.update(
+        analysis_facts=ExplanationAnalysisFacts.model_validate(
+            original.get("analysis_facts", {})
+        ).model_dump(mode="json"),
+        verification_scope=dict(VERIFICATION_SCOPE),
         category=category,
         observed=redact(original["observed"]),
         expected=redact(original["expected"]),

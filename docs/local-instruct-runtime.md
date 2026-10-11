@@ -160,6 +160,44 @@ report частичным; Cisco reference prose без verifier утвержд�
 Schema-valid answer остаётся непроверенным черновиком; ссылки и hashes сами по
 себе не доказывают содержание. Нет нового semantic-quality или safety gate pass.
 
+## Saved analysis facts: повторная диагностика
+
+[Diagnostic 2026-10-11](evaluation/owned-explanation-facts-http.json) повторяет
+те же четыре authored reference/peer cases с новой передачей saved outcome/scope.
+Веса, detector/source values и sealed knowledge 0.3 sections не заменяются;
+request-local finding/entity IDs создаются заново, не объявляются идентичными
+старому анализу. В двух installed development итерациях выполнены восемь actual
+generation attempts: шесть completed/schema-and-citation accepted, два deadline
+rejections с `answer=null`. Все восемь consent refusals происходят до модели;
+восемь saved/restart reads сохраняют analyses/risk. Неудачи не исключены из отчёта,
+не заменены шаблоном и не повторяются скрыто. Это четыре повторно использованных
+development cases, не восемь независимых примеров.
+
+Первая инструкция с facts: 220-word guidance; вторая дополнительно просит actual
+status/counts в summary, конкретную находку вместо feature catalogue и 120-word
+guidance. Word/list limits не enforced. Обе первые Cisco reference генерации
+превысили явно установленный diagnostic deadline 20 s; default 10 s не меняется,
+таймаут не исправляется скрытым warm-up. Вторая итерация остальных трёх запросов
+заняла 9.879/8.219/8.851 s HTTP latency — это не нагрузочный SLA или deployment pass.
+
+Во всех четырёх новых peer drafts конкретный completed report больше не назван partial;
+во второй итерации оба summaries называют completed, три peers и 19 compared
+features. Но это не semantic-quality pass: модель всё ещё ошибочно переносит
+историческое описание CLI-only/непостоянного профиля из retrieved project documents
+на текущий saved HTTP analysis, а Juniper peer предполагает отсутствие bias.
+В первой итерации также наблюдалось неверное описание передачи псевдонимов/чисел.
+Оставшиеся claims и deadline failures сохранены. Prompt не является verifier;
+independent/adversarial/claim/citation evaluation остаётся открытой.
+
+В обоих процессах checkout paths и editable finders исключены; все импортированные
+`app`/`ml` modules происходят из selected installed target. Все 230 runtime Python
+files побайтно совпали с исходниками. Parent API не импортировал Torch/Transformers,
+gateway блокировал исходящие socket connections и принимал только четыре exact
+contexts в каждой итерации. Модель загружалась с прежним inventory pin; новые веса,
+ML fit и Batfish requests отсутствуют. Gateways завершены, временные owned БД
+удалены через bounded temporary-directory cleanup; operator service не активирован.
+Эта helper isolation не является OS sandbox или гарантией для произвольного сервера.
+
 ## Текущий связанный workflow и оставшиеся границы
 
 HTTP explanation `/findings/{id}/explain` по-прежнему требует `patch_draft=null`.

@@ -242,6 +242,9 @@ def test_model_draft_uses_redacted_wire_and_never_changes_saved_scores(model_api
     assert context["privacy"]["version"] == bundle["privacy_version"]
     assert context["documents"] == bundle["documents"]
     assert context["parser"]["unparsed_count"] == int(partial)
+    assert context["analysis_facts"]["analysis_status"] == result["status"]
+    assert context["analysis_facts"]["peer_report"] is None
+    assert set(context["verification_scope"].values()) == {"not_checked_in_this_explanation"}
     assert "risk" not in context and "severity" not in context
     assert client.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json() == result
     with service.store.engine.connect() as connection:
@@ -253,6 +256,106 @@ def test_model_draft_uses_redacted_wire_and_never_changes_saved_scores(model_api
             restarted.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json()
             == result
         )
+
+
+@pytest.mark.parametrize("vendor", ["cisco", "juniper"])
+@pytest.mark.parametrize(
+    "version,partial",
+    [("0.1.0", False), ("0.2.0", False), ("0.2.0", True), ("0.3.0", False), ("0.3.0", True)],
+)
+def test_saved_peer_report_status_and_counts_reach_model_without_private_report_text(
+    model_api, vendor, version, partial
+):
+    client, _, server, _, _ = model_api
+    inventory = {
+        "device_role": "private-role",
+        "site_class": "private-site",
+        "service_profile": "private-profile",
+    }
+
+    def upload(host, address, unknown=False, omit_ntp=False):
+        content = (
+            f"hostname {host}\n"
+            if vendor == "cisco"
+            else f"set system host-name {host}\n"
+        )
+        if not omit_ntp:
+            content += (
+                f"ntp server {address}\n"
+                if vendor == "cisco"
+                else f"set system ntp server {address}\n"
+            )
+        content += "unsupported private-command\n" if unknown else ""
+        response = client.post(
+            "/api/v1/configurations",
+            headers=HEADERS,
+            json={
+                "device_id": str(uuid4()),
+                "filename": "private-peer.cfg",
+                "content": content,
+                "inventory": inventory,
+            },
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    peers = [upload(f"private-peer-{number}", "192.0.2.1") for number in range(3)]
+    # Legacy peers compare NTP presence, not the expanded address change in 0.2/0.3.
+    target = upload("private-target", "192.0.2.9", partial, omit_ntp=version == "0.1.0")
+    response = client.post(
+        f"/api/v1/configurations/{target['configuration_id']}/analyze",
+        headers=HEADERS,
+        json={
+            "comparison_version": version,
+            "peer_configuration_ids": [item["configuration_id"] for item in peers],
+        },
+    )
+    assert response.status_code == 201, response.text
+    result = response.json()
+    finding = next(item for item in result["findings"] if item["detector"] == "peer_baseline")
+    explanation = next(
+        item for item in result["explanations"] if item["finding_id"] == finding["finding_id"]
+    )
+    path = f"/api/v1/findings/{finding['finding_id']}/explain"
+    options = {
+        "analysis_id": result["analysis_id"],
+        "finding_sha256": explanation["finding_sha256"],
+        "provider": "llm",
+    }
+    assert client.post(path, headers=HEADERS, json=options).status_code == 403
+    assert server.requests == []
+    answer = client.post(path, headers=HEADERS, json=options | {"allow_local_model_context": True})
+    assert answer.status_code == 200, answer.text
+    context = json.loads(server.requests[0][0]["messages"][1]["content"])
+    facts = context["analysis_facts"]
+    assert facts["analysis_status"] == result["status"] == ("partial" if partial else "completed")
+    if version == "0.1.0":
+        assert facts["peer_report"] is None  # Historical API has no explicit evaluation report.
+    else:
+        saved = result["comparison"]["peer_evaluation"]
+        assert facts["peer_report"] == {
+            "version": saved["version"],
+            "status": saved["status"],
+            "selected_peer_count": 3,
+            "profile_feature_count": len(saved["profile_features"]),
+            "compared_feature_count": len(saved["compared_features"]),
+            "skipped_feature_count": len(saved["skipped_features"]),
+        }
+        assert len(saved["skipped_features"] if partial else saved["compared_features"]) == 19
+    wire = json.dumps(server.requests)
+    for private in (
+        "private-peer",
+        "private-target",
+        "private-role",
+        "private-site",
+        "private-profile",
+        "private-command",
+        "192.0.2.",
+    ):
+        assert private not in wire
+    assert context["formal_verification"] == "not_run"
+    assert set(context["verification_scope"].values()) == {"not_checked_in_this_explanation"}
+    assert client.get(f"/api/v1/analyses/{result['analysis_id']}", headers=HEADERS).json() == result
 
 
 def test_missing_consent_wrong_scope_and_auth_never_contact_model(model_api):

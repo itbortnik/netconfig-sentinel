@@ -144,7 +144,10 @@ def test_loaded_provider_revalidates_frozen_generation_limits(provider):
 
 
 def test_source_grounded_concise_instruction_does_not_invent_platform_defaults():
-    assert "Keep the complete answer under 220 words" in SYSTEM_INSTRUCTIONS
+    assert "Keep the complete answer under 120 words" in SYSTEM_INSTRUCTIONS
+    assert "Explain this particular finding" in SYSTEM_INSTRUCTIONS
+    assert "Begin summary with the supplied analysis_status" in SYSTEM_INSTRUCTIONS
+    assert "not full vendor syntax coverage or safe network behavior" in SYSTEM_INSTRUCTIONS
     assert "Do not introduce external standards" in SYSTEM_INSTRUCTIONS
     assert "Do not infer platform defaults" in SYSTEM_INSTRUCTIONS
     assert "do not infer their original identities" in SYSTEM_INSTRUCTIONS

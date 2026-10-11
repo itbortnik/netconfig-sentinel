@@ -1,0 +1,328 @@
+{
+  "report_version": "owned-explanation-facts-http-0.1.0",
+  "measured_on": "2026-10-11",
+  "scope": "strict saved-analysis factual context and two installed actual-Qwen development iterations on the same four owned comparison cases",
+  "requirements": [
+    "17",
+    "20",
+    "21"
+  ],
+  "application_source_base_commit": "26241441643e5bb38fa3bb72c6842bf99402a04d",
+  "independent_evaluation": false,
+  "real_configurations_or_confirmed_labels": false,
+  "semantic_quality_qualified": false,
+  "production_quality_proven": false,
+  "original_case_pool_size": 4,
+  "new_independent_cases": 0,
+  "knowledge_version": "project-knowledge-0.3.0",
+  "knowledge_catalog_sha256": "86cbe60f544b431054e5f5aae7e973a1d08485a5a0e2806b1b431b614f019728",
+  "response_contracts_and_history_unchanged": true,
+  "privacy_algorithm_version": "finding-context-redaction-0.1.0",
+  "facts_version": "explanation-analysis-facts-0.1.0",
+  "new_weights_downloaded": false,
+  "new_ml_fit_or_batfish_requests": 0,
+  "default_deadline_changed": false,
+  "operator_activation": false,
+  "automatic_retry": false,
+  "hidden_warmup": false,
+  "semantic_validator_added": false,
+  "word_and_list_limits_enforced": false,
+  "runs": [
+    {
+      "iteration": 1,
+      "requested_maximum_words": 220,
+      "instruction_sha256": "15b3ef69a82ef5f5a62b5bb0f7633464abe65100f3ed9f03cb748f7db1da9a48",
+      "answer_schema_sha256": "ad02cb34287dc20c26a5a07466fbc14ae564c75c62419701dc9ae0ab58ba332b",
+      "installed_wheel_sha256": "906e9156f2fcfd0619020fb837636a85413d34b0952176ec1cd00cfa56430f56",
+      "runtime_python_inventory_sha256": "06c4705f99e60de355e5001d399b1bb364c9b9501c9a720f6f0e3f1d8c2bb752",
+      "private_report_sha256": "f24563db97c6f5a20fa1d31d27ddb7b5dbb63dacb8ec5d5c65053a0bfa76a570",
+      "private_gateway_sha256": "01a0bcd0c5c9c315284868166aae182d286ef0392515886f094691d06144239c",
+      "provider_attempts": 4,
+      "measured_generations": 4,
+      "completed_generations": 3,
+      "schema_and_citation_membership_accepted": 3,
+      "deadline_rejections": 1,
+      "consent_refusals_before_model": 4,
+      "saved_analyses_unchanged": 4,
+      "restart_round_trips": 4,
+      "runtime_python_files_byte_equal": 230,
+      "parent_target_imports": 123,
+      "gateway_target_imports": 57,
+      "strict_checkout_path_exclusion_verified": true,
+      "gateway_reaped": true,
+      "temporary_database_removed": true,
+      "http_deadline_seconds": 20,
+      "cases": [
+        {
+          "vendor": "cisco",
+          "detector": "expected_configuration",
+          "http_status": 503,
+          "http_seconds": 20.042329700198025,
+          "prompt_tokens": 1729,
+          "generated_tokens": 237,
+          "generation_seconds": 20.010406599845737,
+          "generation_completed": false,
+          "generation_rejection": "deadline",
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": null
+          }
+        },
+        {
+          "vendor": "cisco",
+          "detector": "peer_baseline",
+          "http_status": 200,
+          "http_seconds": 11.778222799766809,
+          "prompt_tokens": 2022,
+          "generated_tokens": 334,
+          "generation_seconds": 11.667214800138026,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": {
+              "version": "peer-comparison-report-0.2.0",
+              "status": "completed",
+              "selected_peer_count": 3,
+              "profile_feature_count": 19,
+              "compared_feature_count": 19,
+              "skipped_feature_count": 0
+            }
+          }
+        },
+        {
+          "vendor": "juniper",
+          "detector": "expected_configuration",
+          "http_status": 200,
+          "http_seconds": 13.381170600187033,
+          "prompt_tokens": 1732,
+          "generated_tokens": 375,
+          "generation_seconds": 13.254880100023001,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": null
+          }
+        },
+        {
+          "vendor": "juniper",
+          "detector": "peer_baseline",
+          "http_status": 200,
+          "http_seconds": 10.987502200063318,
+          "prompt_tokens": 2027,
+          "generated_tokens": 293,
+          "generation_seconds": 10.876628000289202,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": {
+              "version": "peer-comparison-report-0.2.0",
+              "status": "completed",
+              "selected_peer_count": 3,
+              "profile_feature_count": 19,
+              "compared_feature_count": 19,
+              "skipped_feature_count": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "requested_maximum_words": 120,
+      "instruction_sha256": "126d9e3e5b557131452602ecc98ba6a94bb1cb72b3892434b7a28a4daddbccbd",
+      "answer_schema_sha256": "ad02cb34287dc20c26a5a07466fbc14ae564c75c62419701dc9ae0ab58ba332b",
+      "installed_wheel_sha256": "d8d6ca32369686d45000987da3d29d723f26cc6c6273fe2abb79d3e621bee44f",
+      "runtime_python_inventory_sha256": "1b8bddbe89a76dc731e80041eea967f37757e5475df50506b9f01c00ea5f3d44",
+      "private_report_sha256": "e52d51a59564b095a8247e085a8d2cbf6b30e7fa1ed5beb815007d271edfde54",
+      "private_gateway_sha256": "81921188689480cf9b850de0136b9ffbfeb99846e6df45f77ffb1db214260d05",
+      "provider_attempts": 4,
+      "measured_generations": 4,
+      "completed_generations": 3,
+      "schema_and_citation_membership_accepted": 3,
+      "deadline_rejections": 1,
+      "consent_refusals_before_model": 4,
+      "saved_analyses_unchanged": 4,
+      "restart_round_trips": 4,
+      "runtime_python_files_byte_equal": 230,
+      "parent_target_imports": 123,
+      "gateway_target_imports": 57,
+      "strict_checkout_path_exclusion_verified": true,
+      "gateway_reaped": true,
+      "temporary_database_removed": true,
+      "http_deadline_seconds": 20,
+      "cases": [
+        {
+          "vendor": "cisco",
+          "detector": "expected_configuration",
+          "http_status": 503,
+          "http_seconds": 20.033337200060487,
+          "prompt_tokens": 1786,
+          "generated_tokens": 276,
+          "generation_seconds": 20.015153400134295,
+          "generation_completed": false,
+          "generation_rejection": "deadline",
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": null
+          }
+        },
+        {
+          "vendor": "cisco",
+          "detector": "peer_baseline",
+          "http_status": 200,
+          "http_seconds": 9.8793959999457,
+          "prompt_tokens": 2078,
+          "generated_tokens": 277,
+          "generation_seconds": 9.751861299853772,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": {
+              "version": "peer-comparison-report-0.2.0",
+              "status": "completed",
+              "selected_peer_count": 3,
+              "profile_feature_count": 19,
+              "compared_feature_count": 19,
+              "skipped_feature_count": 0
+            }
+          }
+        },
+        {
+          "vendor": "juniper",
+          "detector": "expected_configuration",
+          "http_status": 200,
+          "http_seconds": 8.219082499854267,
+          "prompt_tokens": 1788,
+          "generated_tokens": 262,
+          "generation_seconds": 8.11234930017963,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": null
+          }
+        },
+        {
+          "vendor": "juniper",
+          "detector": "peer_baseline",
+          "http_status": 200,
+          "http_seconds": 8.850633499678224,
+          "prompt_tokens": 2082,
+          "generated_tokens": 264,
+          "generation_seconds": 8.738552400376648,
+          "generation_completed": true,
+          "generation_rejection": null,
+          "analysis_facts": {
+            "version": "explanation-analysis-facts-0.1.0",
+            "analysis_status": "completed",
+            "peer_report": {
+              "version": "peer-comparison-report-0.2.0",
+              "status": "completed",
+              "selected_peer_count": 3,
+              "profile_feature_count": 19,
+              "compared_feature_count": 19,
+              "skipped_feature_count": 0
+            }
+          }
+        }
+      ],
+      "pre_generation_protocol_sha256": "4c11ff37c425486398c4986171cd572aa17705c6b9a25081d5365f90a0395cc8"
+    }
+  ],
+  "model": {
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26",
+    "publisher_license_declaration": "Apache-2.0",
+    "external_training_exposure": "unknown",
+    "parameter_count": 4022468096,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "attention_implementation": "sdpa",
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "automatic_activation": false,
+    "production_quality_proven": false
+  },
+  "totals": {
+    "provider_attempts": 8,
+    "measured_generations": 8,
+    "completed_generations": 6,
+    "schema_and_citation_membership_accepted": 6,
+    "deadline_rejections": 2,
+    "consent_refusals_before_model": 8,
+    "saved_analysis_and_restart_checks": 8
+  },
+  "checks": {
+    "final_full_suite": {
+      "passed": 2777,
+      "skipped": 27,
+      "junit_sha256": "e6d6c0c06281a42fdc6e1347d2d9d7f6913b96d3895b513068728354b97739a0",
+      "junit_seconds": 266.452
+    },
+    "installed_targeted_suite": {
+      "passed": 225,
+      "skipped": 0,
+      "junit_sha256": "f7cb6d5300ffa8efb1adef106cdbd8482297578bf98b86c3b3e372fe3ed0d1d5",
+      "junit_seconds": 23.0
+    },
+    "pydantic_2_14_parent_targeted_suite": {
+      "passed": 225,
+      "skipped": 0,
+      "junit_sha256": "03760be625d3f81de0deb7f9a8bf9a92e355ac05ed527499175d5b658ffe7ed7",
+      "junit_seconds": 22.553
+    },
+    "instruct_instruction_and_runtime_suite": {
+      "passed": 45,
+      "skipped": 0,
+      "junit_sha256": "e3a5bd2dec443f661c934ec8c36e31e9ab4477a9c7171d85bd35f1b693f4e018",
+      "junit_seconds": 1.152
+    },
+    "ruff": "pass",
+    "mypy_default_linux_win32": "pass",
+    "runtime_source_files_checked": 230,
+    "local_live_batfish": "not_run",
+    "local_postgresql": "not_run",
+    "local_frontend_browser": "not_run",
+    "public_response_schema_changed": false,
+    "coverage": {
+      "lines_covered": 18852,
+      "lines_valid": 20862,
+      "xml_sha256": "a0b9d8d53366672b361683f222dc8a52fce4311a001b9e3f8bad2014dbbb13be"
+    }
+  },
+  "observed_content_limitations": [
+    "Neither new peer iteration calls the current completed report partial; the final summaries name completed, three peers and 19 compared features. This is a qualitative development observation, not independent accuracy.",
+    "The first iteration contains unsupported CLI-only and pseudonym/numeric-export claims.",
+    "Both final peer summaries still assert CLI-only/nonpersistent analysis despite the saved HTTP workflow; the Juniper peer draft also assumes unbiased selection without evidence.",
+    "The final Juniper reference response does not begin with the requested analysis status; word/list guidance is not enforced or reliably followed.",
+    "The Cisco reference response is unavailable in both iterations because actual decoding reaches the diagnostic deadline; no semantic verdict is inferred from a null answer."
+  ],
+  "limitations": [
+    "Four reused authored development cases and eight attempts are not eight independent examples or a held-out evaluation.",
+    "Schema validity, allowed citations and context hashes do not prove claim support, network safety or usable operational advice.",
+    "Historical sealed project documentation can describe a narrower implementation than the current saved API; the model still incorrectly transfers those general descriptions to the specific request.",
+    "Saved completed status is scoped to analysis; vendor syntax, network impact, management access and rollback are not checked by this explanation boundary.",
+    "The default ten-second service budget, deployment, load, independent/adversarial RAG and real operational quality remain unqualified.",
+    "Outgoing socket blocking and installed-path checks apply to the owned helper, not an OS sandbox or arbitrary operator service.",
+    "No new raw configuration, private context/entity hashes, rejected output or accepted model prose is published by this aggregate.",
+    "The Pydantic 2.14 checks cover the parent process; isolated transport subprocesses ignore PYTHONPATH overrides."
+  ]
+}

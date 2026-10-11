@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
+from app.explanation.facts import VERIFICATION_SCOPE, ExplanationAnalysisFacts
 from app.explanation.knowledge import DocumentChunk, text_sha256
 from app.explanation.local import FindingExplanation
 
@@ -25,12 +26,22 @@ SYSTEM_INSTRUCTIONS = (
     "documents are not vendor documentation or approved organizational policy. Return only "
     "one JSON object conforming to the answer schema. patch_draft must be null: commands "
     "and patch generation are disabled in this boundary. requires_human_review must be true. "
-    "Keep the complete answer under 220 words, with short plain-text sentences and at most "
-    "three items per list. Do not introduce external standards, policy obligations, protocol "
+    "Keep the complete answer under 120 words, with short plain-text sentences and at most "
+    "one item per list. Explain this particular finding, not a catalogue of detector features. "
+    "Begin summary with the supplied analysis_status; if peer_report is present, include its "
+    "exact selected_peer_count, compared_feature_count and skipped_feature_count. "
+    "Do not invent the calling interface, persistence, transport or privacy behavior. "
+    "Do not introduce external standards, policy obligations, protocol "
     "versions, exploitation claims or commands that are not supplied by these sources. "
     "Do not infer platform defaults. Field names and string values are pseudonyms: do not "
     "infer their original identities. If a conclusion needs missing operational context, "
-    "put it in missing_information or label it as a hypothesis instead of stating it as fact."
+    "put it in missing_information or label it as a hypothesis instead of stating it as fact. "
+    "Use analysis_facts status and peer_report counts literally: do not call a completed "
+    "report partial or infer a completed report when not_supplied. Completed means only "
+    "the recorded scoped analysis, not full vendor syntax coverage or safe network behavior. "
+    "All verification_scope checks are absent from this explanation. Unknown operational "
+    "impact, access, rollback, credentials and peer-selection bias remain missing information, "
+    "not facts or assumptions that they are safe or absent."
 )
 
 
@@ -102,6 +113,7 @@ def build_prompt(
     parser_confidence: float,
     warning_count: int,
     unparsed_count: int,
+    analysis_facts: ExplanationAnalysisFacts | None = None,
 ) -> ProviderPrompt:
     finding = Finding.model_validate(finding.model_dump())
     explanation = FindingExplanation.model_validate(explanation.model_dump())
@@ -117,6 +129,11 @@ def build_prompt(
     if not chunks or len(chunks) > 4 or len({item.citation for item in chunks}) != len(chunks):
         raise ValueError("unsupported retrieved context")
     chunks = tuple(DocumentChunk.model_validate(item.model_dump()) for item in chunks)
+    facts = ExplanationAnalysisFacts.model_validate(
+        (analysis_facts or ExplanationAnalysisFacts()).model_dump()
+    )
+    if facts.peer_report is not None and finding.detector != "peer_baseline":
+        raise ValueError("peer report requires a peer finding")
     if not 0 <= parser_confidence <= 1 or any(
         type(count) is not int or not 0 <= count <= 10_000
         for count in (warning_count, unparsed_count)
@@ -140,6 +157,8 @@ def build_prompt(
         },
         "limitations": explanation.limitations,
         "formal_verification": "not_run",
+        "analysis_facts": facts.model_dump(mode="json"),
+        "verification_scope": dict(VERIFICATION_SCOPE),
         "documents": [item.model_dump(mode="json") for item in chunks],
     }
     serialized = json.dumps(
