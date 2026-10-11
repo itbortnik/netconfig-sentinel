@@ -29,6 +29,28 @@ manifest. Для внешнего encoder pretraining exposure остаётся 
 Card не содержит путь publisher source, raw configuration или grouping IDs.
 Hashes/fingerprints всё равно linkable: это приватные metadata, не анонимизация.
 
+Для fixture-backed native `multitask-training-0.3.0` используется отдельная
+`config-model-card-0.2.0`, а не изменение исторической карточки 0.1. Она сохраняет
+точный Stage A source/report/corpus binding и полный recorded exposure audit.
+`physical_pretraining_isolation_proven=false`: отсутствие наблюдаемых пересечений
+не устанавливает identity сетей, chronology или независимое качество. Внешние
+publisher weights здесь не используются; `not_applicable` не означает, что
+fixture pretraining изолирован от реальных целевых сетей.
+
+Перед записью этой модели обязательны retained complete fixture manifest/imports,
+original downstream splits и все fitted train/selection examples с annotations.
+`FixtureAdmissionContext` повторяет **тот же** source/annotation/exposure валидатор,
+что metric adapter: permissions, current corpus/Stage A targets, все upstream members
+против всех доступных downstream split/derivative contents, exact train/selection
+fingerprints. Reserved test text служит только проверке пересечений. Без контекста,
+при изменении labels/inputs/exposure или pin запись отказывается до создания entry.
+Это проверка связи входов, не подтверждение истинности labels или approval человека.
+
+После успешной регистрации `check`/inference проверяет сохранённые bundle/card/pin;
+retained admission JSON повторно не передаётся в API и не требуется для чтения
+истории. Он нужен для новой регистрации/повторной оценки, не хранится в самой записи.
+Последующая независимая review permissions/physical metadata этим не заменяется.
+
 `list` проверяет metadata checksum и ограниченный файловый layout, не веса:
 `binding_rechecked=false`. `check`/`load_registered_model` повторно загружает
 выбранный bundle, сравнивает independent pin и заново выводит полный model card.
@@ -46,15 +68,30 @@ artifact или quality metrics.
 Нужна установка проекта и training extra для native выбранных моделей;
 external path дополнительно использует фиксированный retrieval runtime. `init`
 и metadata-only `list` не импортируют PyTorch/Transformers.
+Native fixture admission не требует external retrieval extra: фактический
+`init`/`register` проверен в отдельном процессе с запрещёнными импортами
+Transformers и safetensors. Это не отказ от PyTorch для загрузки native weights.
 
 ```powershell
 python -m ml.registry.cli init --root artifacts/private-config-models
 python -m ml.registry.cli register --root artifacts/private-config-models --model artifacts/native-model --model-sha256 <independent-full-pin>
+python -m ml.registry.cli register --root artifacts/private-config-models --model artifacts/fixture-heads --model-sha256 <independent-full-pin> --fixture-admission private/retained-admission.json
 python -m ml.registry.cli register --root artifacts/private-config-models --model artifacts/external-heads --model-sha256 <independent-full-pin> --model-kind foundation --foundation-source artifacts/pinned-publisher-source
 python -m ml.registry.cli list --root artifacts/private-config-models
 python -m ml.registry.cli check --root artifacts/private-config-models --model-sha256 <independent-full-pin>
 python -m ml.registry.cli check --root artifacts/private-config-models --model-sha256 <independent-full-pin> --foundation-source artifacts/pinned-publisher-source
 ```
+
+`--fixture-admission` — bounded private JSON `fixture-registry-input-0.1.0`:
+`manifest` (`DatasetFixtureManifest`), complete `records`
+(`ImportedDatasetFixtureRecord[]`), `splits` (`DatasetSplitResult`) и `examples`
+с `record`, `parent_sha256`, `annotation` (`SupervisedAnnotation`). До 2048 imported
+records, 2–512 examples и 64 MiB; unknown/duplicate keys и linked paths отвергаются.
+Данные собираются из уже разрешённых, сохранённых объектов, не из неподтверждённого
+customer upload. Это общий input format, не рецепт только для демонстрационных
+конфигураций. Для legacy/foundation модели такой контекст явно отказывается,
+а не молча игнорируется. JSON содержит приватный sanitized text и labels:
+не публикуйте его, не помещайте внутрь registry root и защищайте отдельно.
 
 Путь модели и pin нельзя брать из недоверенного upload. Registry не скачивает
 веса, не обучает модель и не передаёт конфигурации в сеть. CLI runtime ошибки
@@ -101,6 +138,19 @@ pinned publisher encoder. По двум owned Cisco/JunOS native recipes оба 
 регистрация отказала; metadata listing не загрузил optional model runtime.
 Static tests отдельно используют маленькие authored/искусственные tensor fixtures
 для legacy 0.1, source binding, повреждений, incomplete и strict privacy contracts.
+
+На 2026-10-11 [fixture-backed diagnostic](evaluation/owned-source-fixture-registry.json)
+регистрирует существующий checkpoint
+`5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297` после
+повторной проверки complete retained inputs и 26560 сравнений. Нет нового fit,
+calibration cohort или данных. Без admission input запись отказана до allocation;
+duplicate enrollment отказан; loaded card/pin совпадает с действительной моделью.
+Final installed run выполняет два actual CPU saved-HTTP worker и четыре private
+CLI review/check для owned Cisco/JunOS. Исторические модели/данные/predictions
+неизменны между двумя isolated package children; все parent app/ml imports — из
+выбранных package targets. Эти повторные проверки не увеличивают размер корпуса
+или число независимых сетей. Отдельный metadata-only test блокирует imports
+PyTorch/Transformers и успешно читает новую карточку.
 
 Это evidence сохранения/выбора/перепроверки конкретных checkpoints, не качества
 детекции или приемлемой operational latency. Counts 48 train/12 selection views

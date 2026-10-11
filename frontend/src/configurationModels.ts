@@ -53,10 +53,79 @@ const modelCard = z
       card.trainable_parameters < card.parameter_count &&
       new Set(card.classes).size === card.classes.length,
   );
+const exposure = z
+  .strictObject({
+    version: z.literal("fixture-transfer-exposure-0.1.0"),
+    policy: z.strictObject({
+      max_comparisons: count.max(2_000_000),
+      near_duplicate_threshold: z.number().min(0.5).max(1),
+    }),
+    corpus_sha256: hash,
+    downstream_manifest_sha256: hash,
+    downstream_content_sha256: hash,
+    source_intake_count: count,
+    downstream_unique_content_count: count,
+    comparisons: count,
+    train_overlap_counts: z.strictObject({
+      source: z.number().int().nonnegative(),
+      raw: z.number().int().nonnegative(),
+      sanitized: z.number().int().nonnegative(),
+      normalized: z.number().int().nonnegative(),
+      template: z.number().int().nonnegative(),
+      near: z.number().int().nonnegative(),
+    }),
+    heldout_overlap_count: z.literal(0),
+    physical_pretraining_isolation_proven: z.literal(false),
+  })
+  .refine(
+    (value) =>
+      value.comparisons ===
+        value.source_intake_count * value.downstream_unique_content_count &&
+      value.comparisons <= value.policy.max_comparisons &&
+      Object.values(value.train_overlap_counts).every(
+        (n) => n <= value.downstream_unique_content_count,
+      ),
+  );
+const fixtureSource = z
+  .strictObject({
+    version: z.literal("fixture-source-binding-0.1.0"),
+    pretraining_sha256: hash,
+    report_sha256: hash,
+    corpus_sha256: hash,
+    source_manifest_sha256: hash,
+    exposure,
+  })
+  .refine(
+    (value) =>
+      value.corpus_sha256 === value.exposure.corpus_sha256 &&
+      value.source_manifest_sha256 ===
+        value.exposure.downstream_manifest_sha256,
+  );
+const fixtureCard = z
+  .strictObject({
+    ...modelCard.shape,
+    version: z.literal("config-model-card-0.2.0"),
+    kind: z.literal("native"),
+    training_format: z.literal("multitask-training-0.3.0"),
+    source_manifest_sha256: hash,
+    external_pretraining_exposure: z.literal("not_applicable"),
+    pretraining: fixtureSource,
+    physical_pretraining_isolation_proven: z.literal(false),
+  })
+  .refine(
+    (card) =>
+      card.source_manifest_sha256 === card.pretraining.source_manifest_sha256 &&
+      card.trainable_parameters < card.parameter_count &&
+      new Set(card.classes).size === card.classes.length,
+  );
+export const modelCardSchema = z.discriminatedUnion("version", [
+  modelCard,
+  fixtureCard,
+]);
 export const configurationInferenceSchema = z
   .strictObject({
     version: z.literal("configuration-inference-0.1.0"),
-    model: modelCard,
+    model: modelCardSchema,
     prediction: configurationPredictionSchema,
     runtime_torch_version: z
       .string()

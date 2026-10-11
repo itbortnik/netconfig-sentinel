@@ -145,8 +145,13 @@ Training/prediction/save/load bind the whole Stage A state, including disabled
 auxiliary heads. The existing validation metric adapter also requires the retained
 private corpus and regenerates the exact fitted exposure and annotation bindings.
 Neither missing Stage A device/semantic labels nor Stage B severity labels are
-manufactured. The new format is currently **offline-only**: registry admission,
-saved-analysis/pre-post supplements and HTTP model selection do not support it.
+manufactured. Since 2026-10-11, explicit [private registry admission](transformer-model-registry.md)
+reuses that exact validator and requires all retained source/downstream inputs.
+Its separately versioned model card preserves unknown physical isolation. The
+registered format is supported by opt-in saved-analysis HTTP/UI and private
+pre/post diagnostics, without risk fusion, calibration or production activation.
+At the original 2026-10-10 transfer measurement these integrations were absent;
+that historical measurement is not rewritten or counted as new quality evidence.
 
 ```python
 result = train_multitask(

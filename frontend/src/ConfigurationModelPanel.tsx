@@ -210,6 +210,14 @@ export function ConfigurationModelPanel({
           {result.status === "failed" && (
             <p>Попытка завершилась отказом. Принятых scores нет.</p>
           )}
+          {result.report?.model.version === "config-model-card-0.2.0" && (
+            <p className="notice warning">
+              Энкодер обучен на тестовых конфигурациях. Физическая изоляция
+              pretraining-данных и качество на реальных аномалиях не
+              подтверждены. Проверка пересечений не доказывает независимость
+              сетей.
+            </p>
+          )}
           {prediction && (
             <>
               <p>

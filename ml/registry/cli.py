@@ -39,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
         if action == "register":
             command.add_argument("--model", type=Path, required=True)
             command.add_argument("--model-kind", default="native")
+            command.add_argument("--fixture-admission", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -87,8 +88,17 @@ def main(argv: list[str] | None = None) -> int:
                 model = load_foundation_transfer(
                     args.model, source_root=args.foundation_source, expected_identity=pin
                 )
+            admission = None
+            if args.fixture_admission is not None:
+                from ml.registry.admission import load_fixture_admission
+
+                admission = load_fixture_admission(args.fixture_admission, model)
             card = register_model(
-                args.root, model, expected_identity=pin, foundation_source=args.foundation_source
+                args.root,
+                model,
+                expected_identity=pin,
+                foundation_source=args.foundation_source,
+                fixture_admission=admission,
             )
             summary = {
                 "card": card.model_dump(mode="json"),

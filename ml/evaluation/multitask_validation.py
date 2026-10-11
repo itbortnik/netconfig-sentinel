@@ -32,15 +32,12 @@ from ml.training.multitask_training import (
     MultiTaskResult,
     MultiTaskTransferReport,
     SupervisedExample,
-    _fingerprint,
-    _rows,
     _verified_report,
     load_multitask,
     multitask_identity,
     predict_multitask,
+    validate_multitask_inputs,
 )
-from ml.training.pretraining import FixturePretrainingResult
-from ml.training.pretraining_data import SemanticPair
 from ml.training.pretraining_transfer import objective_split_identity
 
 
@@ -52,44 +49,7 @@ def build_multitask_validation(
     fixture_corpus: FixtureTrainingCorpus | None = None,
 ) -> EvaluationBatch:
     bound_report = _verified_report(result)
-    pairs: tuple[SemanticPair, ...] = ()
-    if isinstance(bound_report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport)):
-        if objective_split_identity(splits) != (bound_report.pretraining.source_manifest_sha256):
-            raise ValueError("evaluation source manifest binding differs from transferred corpus")
-        if isinstance(bound_report, MultiTaskTransferReport):
-            pairs = bound_report.pretraining.semantic_pairs
-    rows = _rows(
-        splits,
-        result.pretrained,
-        examples,
-        result.report.head_policy,
-        pairs,
-        fixture_corpus,
-        bound_report.pretraining.exposure.policy
-        if isinstance(bound_report, MultiTaskFixtureTransferReport)
-        else None,
-    )
-    if isinstance(bound_report, MultiTaskFixtureTransferReport):
-        from ml.training.fixture_transfer import validate_fixture_source
-
-        if not isinstance(result.pretrained, FixturePretrainingResult):
-            raise ValueError("fixture evaluation requires the bound fixture encoder")
-        if (
-            fixture_corpus is None
-            or validate_fixture_source(
-                fixture_corpus,
-                result.pretrained,
-                splits,
-                tuple(row.record for group in rows.values() for row in group),
-                policy=bound_report.pretraining.exposure.policy,
-            )
-            != bound_report.pretraining
-        ):
-            raise ValueError("fixture validation exposure differs from fitted transfer")
-    if _fingerprint(rows[DatasetSplit.TRAIN]) != result.report.train_fingerprint or (
-        _fingerprint(rows[DatasetSplit.VALIDATION]) != result.report.validation_fingerprint
-    ):
-        raise ValueError("evaluation differs from the supervised training/selection corpus")
+    rows = validate_multitask_inputs(result, splits, examples, fixture_corpus=fixture_corpus)
     if not result.report.loss_weights.anomaly or not result.report.loss_weights.category:
         raise ValueError("this metric adapter requires trained anomaly and category heads")
     protocol = EvaluationProtocol(

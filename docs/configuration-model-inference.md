@@ -93,6 +93,14 @@ zeros. Embedding хранится только как SHA/размерность
 ключ, paths и prompts отсутствуют в outcome/journal. Journal связывает IDs/hashes/
 status, не scores. Hashes linkable и конфиденциальны; ACL/backup нужны отдельно.
 
+С 2026-10-11 registered fixture-backed native 0.3 также поддержан. Его отдельная
+карточка `config-model-card-0.2.0` сохраняет Stage A source и exposure bindings,
+`physical_pretraining_isolation_proven=false`. При регистрации обязательна
+повторная проверка complete retained inputs; worker не принимает admission JSON
+из HTTP-запроса. UI показывает отсутствие доказанной физической изоляции и
+real-anomaly quality при запуске и повторном чтении истории. Старые 0.1 cards,
+outcome bindings, default disabled behavior и правила consent не пересчитываются.
+
 ## Проверки и незакрытые gates
 
 Unit/API tests проверяют tiny actual native inference, pins, private sanitization,
@@ -116,7 +124,19 @@ Default Compose не передаёт эти переменные и не сод
 контейнере. Для контейнерного включения нужен отдельно проверенный image/readonly
 mount операторского registry/source; автоматический mount private folders не добавлен.
 
-Полная локальная регрессия этой поставки: 1998 passed, 23 skipped, пять warnings
+Последующая [fixture-backed проверка](evaluation/owned-source-fixture-registry.json),
+2026-10-11: существующий 0.3 checkpoint зарегистрирован через explicit retained
+admission, final installed run запускает два actual CPU workers Cisco/JunOS.
+Отказы без consent, GET/POST replay и неизменность analysis проверены. Parent
+runtime 229 Python files побайтно совпадает с checkout; imports двух isolated
+package children проверены по выбранному target. Здесь parent также выполнял
+ML admission/parity и импортировал Torch: отсутствие Torch в API parent не
+заявляется. Worker использует прежний `-I` subprocess и deadline, не synthetic
+adapter. Browser tests новой карточки отдельно synthetic; новый run не измеряет
+real-anomaly quality, latency SLA или production/Compose model deployment.
+
+Полная локальная регрессия исходной saved-analysis поставки: 1998 passed,
+23 skipped, пять warnings
 (четыре dependency deprecations и прежний SQLite ResourceWarning); coverage 89.44%
 измеряет покрытие кода, не ML quality. Skips относятся к optional SDK/live Batfish
 и отдельному PostgreSQL test environment. Ruff и mypy default/win32 прошли;

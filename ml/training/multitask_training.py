@@ -53,6 +53,7 @@ from ml.training.pretraining import (
 from ml.training.pretraining_data import SemanticPair
 from ml.training.pretraining_transfer import (
     ObjectiveSourceBinding,
+    objective_split_identity,
     validate_fixture_model,
     validate_objective_model,
     validate_objective_source,
@@ -287,6 +288,53 @@ class MultiTaskPrediction(BaseModel):
     block_attention: tuple[float, ...]
     calibrated: Literal[False] = False
     production_quality_proven: Literal[False] = False
+
+
+def validate_multitask_inputs(
+    result: MultiTaskResult,
+    splits: DatasetSplitResult,
+    examples: tuple[SupervisedExample, ...],
+    *,
+    fixture_corpus: FixtureTrainingCorpus | None = None,
+) -> dict[DatasetSplit, tuple[SupervisedExample, ...]]:
+    """Shared exact source/annotation/exposure validation; no predictions or weight updates."""
+    report = _verified_report(result)
+    pairs: tuple[SemanticPair, ...] = ()
+    if isinstance(report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport)):
+        if objective_split_identity(splits) != report.pretraining.source_manifest_sha256:
+            raise ValueError("evaluation source manifest binding differs from transferred corpus")
+        if isinstance(report, MultiTaskTransferReport):
+            pairs = report.pretraining.semantic_pairs
+    rows = _rows(
+        splits,
+        result.pretrained,
+        examples,
+        report.head_policy,
+        pairs,
+        fixture_corpus,
+        report.pretraining.exposure.policy
+        if isinstance(report, MultiTaskFixtureTransferReport)
+        else None,
+    )
+    if isinstance(report, MultiTaskFixtureTransferReport):
+        if not isinstance(result.pretrained, FixturePretrainingResult) or fixture_corpus is None:
+            raise ValueError("fixture evaluation requires the bound source corpus/encoder")
+        if (
+            validate_fixture_source(
+                fixture_corpus,
+                result.pretrained,
+                splits,
+                tuple(row.record for group in rows.values() for row in group),
+                policy=report.pretraining.exposure.policy,
+            )
+            != report.pretraining
+        ):
+            raise ValueError("fixture validation exposure differs from fitted transfer")
+    if _fingerprint(rows[DatasetSplit.TRAIN]) != report.train_fingerprint or (
+        _fingerprint(rows[DatasetSplit.VALIDATION]) != report.validation_fingerprint
+    ):
+        raise ValueError("evaluation differs from the supervised training/selection corpus")
+    return rows
 
 
 def extract_aligned_features(

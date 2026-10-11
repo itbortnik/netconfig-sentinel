@@ -51,8 +51,9 @@ function syntheticResult(
   analysis: AnalysisResult,
   source: { created_at: string },
   request: RunConfigurationModel,
+  fixture = false,
 ): ConfigurationModelRun {
-  return {
+  const result: ConfigurationModelRun = {
     version: "configuration-model-run-0.1.0",
     inference_id: request.inference_id,
     analysis_id: analysis.analysis_id,
@@ -128,8 +129,47 @@ function syntheticResult(
       },
     },
   };
+  if (fixture) {
+    result.report!.model = {
+      ...result.report!.model,
+      version: "config-model-card-0.2.0",
+      kind: "native",
+      training_format: "multitask-training-0.3.0",
+      source_manifest_sha256: PIN,
+      external_pretraining_exposure: "not_applicable",
+      physical_pretraining_isolation_proven: false,
+      pretraining: {
+        version: "fixture-source-binding-0.1.0",
+        pretraining_sha256: PIN,
+        report_sha256: PIN,
+        corpus_sha256: PIN,
+        source_manifest_sha256: PIN,
+        exposure: {
+          version: "fixture-transfer-exposure-0.1.0",
+          policy: { max_comparisons: 200000, near_duplicate_threshold: 0.82 },
+          corpus_sha256: PIN,
+          downstream_manifest_sha256: PIN,
+          downstream_content_sha256: PIN,
+          source_intake_count: 3,
+          downstream_unique_content_count: 24,
+          comparisons: 72,
+          train_overlap_counts: {
+            source: 0,
+            raw: 0,
+            sanitized: 0,
+            normalized: 0,
+            template: 0,
+            near: 0,
+          },
+          heldout_overlap_count: 0,
+          physical_pretraining_isolation_proven: false,
+        },
+      },
+    };
+  }
+  return result;
 }
-for (const mode of ["normal", "lost", "tampered"] as const) {
+for (const mode of ["normal", "fixture", "lost", "tampered"] as const) {
   test(`synthetic configuration model ${mode}: consent, immutable history and no POST retry`, async ({
     page,
   }) => {
@@ -154,7 +194,7 @@ for (const mode of ["normal", "lost", "tampered"] as const) {
         expect(options.analysis_id).toBe(analysis.analysis_id);
         expect(options.source_sha256).toBe(analysis.source_sha256);
         expect(options.allow_local_model_context).toBe(true);
-        saved = syntheticResult(analysis, source, options);
+        saved = syntheticResult(analysis, source, options, mode === "fixture");
         if (mode === "lost")
           return route.fulfill({
             status: 503,
@@ -183,7 +223,7 @@ for (const mode of ["normal", "lost", "tampered"] as const) {
     expect(posts).toBe(0);
     await consent.check();
     await start.click();
-    if (mode !== "normal") {
+    if (mode === "lost" || mode === "tampered") {
       await expect(
         panel.getByText(/Итог запроса не подтверждён/),
       ).toBeVisible();
@@ -203,8 +243,12 @@ for (const mode of ["normal", "lost", "tampered"] as const) {
     await expect(
       panel.getByText(/Некалиброванный anomaly score:/),
     ).toBeVisible();
+    if (mode === "fixture")
+      await expect(
+        panel.getByText(/Физическая изоляция pretraining-данных/),
+      ).toBeVisible();
     expect(posts).toBe(1);
-    expect(gets).toBe(mode === "normal" ? 0 : 1);
+    expect(gets).toBe(mode === "lost" || mode === "tampered" ? 1 : 0);
     expect(
       (
         await page.request.get(`/api/v1/analyses/${analysis.analysis_id}`, {
@@ -227,6 +271,10 @@ for (const mode of ["normal", "lost", "tampered"] as const) {
       panel.getByText("Сохранённый результат: completed"),
     ).toBeVisible();
     await expect(panel.getByRole("checkbox")).not.toBeChecked();
+    if (mode === "fixture")
+      await expect(
+        panel.getByText(/Физическая изоляция pretraining-данных/),
+      ).toBeVisible();
     expect(posts).toBe(1);
     expect(
       await page.evaluate(

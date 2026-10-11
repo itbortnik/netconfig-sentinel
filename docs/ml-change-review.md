@@ -60,8 +60,14 @@ python -m ml.inference.change_cli review --before private-before.cfg --after pri
 python -m ml.inference.change_cli check --before private-before.cfg --after private-draft-v1/candidate.cfg --artifact private-ml-review-v1.json --model trusted-native-model --model-sha256 <independently-retained-multitask-identity>
 ```
 
-Работают native training форматы `0.1.0` (MLM-backed) и `0.2.0`
-([joint objective source](pretraining-transfer.md)). CLI проверяет фиксированный
+Работают native training форматы `0.1.0` (MLM-backed), `0.2.0`
+([joint objective source](pretraining-transfer.md)) и `0.3.0`
+([approved fixture source](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)).
+Для 0.3 private registry admission требует повторной проверки retained inputs;
+последующий review/check проверяет exact bundle/pin, но не устанавливает физическую
+изоляцию неизвестных сетей или истинность labels. Новый format label не меняет
+исторические numeric outcomes и не даёт права считать patch формально проверенным.
+CLI проверяет фиксированный
 двухуровневый inventory и не обходит произвольное дерево папок. Существующие
 loaders используют bounded JSON heads, проверяемые manifests и CPU
 `torch.load(..., weights_only=True)` для tensor checkpoint; это не приём
@@ -122,3 +128,10 @@ External модель не получает специальной безопа�
 Uncalibrated score — не измеренная вероятность безопасного изменения; сравнение
 до/после — не metric improvement, не независимый benchmark и не baseline superiority.
 Живые формальные/платформенные проверки и реальное качество по-прежнему отсутствуют.
+
+Отдельный [fixture-backed checkpoint diagnostic](evaluation/owned-source-fixture-registry.json),
+2026-10-11, выполнил четыре isolated installed CLI review/check процесса на двух
+owned Cisco/JunOS сценариях с зарегистрированным native 0.3. Fresh recomputation
+совпала с сохранёнными результатами; local review и исходники не менялись.
+Formal status остался `not_run`, `applied=false`. Это выполнение реальных весов,
+не новый independent quality benchmark и не свидетельство безопасного патча.

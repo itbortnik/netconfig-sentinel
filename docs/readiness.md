@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-10 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-11 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -82,9 +82,25 @@ overlaps не наблюдались. Это audit доступных split repr
 Фактический encoder обучает общие heads: 3993 trainable/50603 total parameters,
 48 train/12 selection views исходных 24 owned configs; save/load и installed replay
 сохраняют predictions/model identity. Fixed-threshold anomaly/category F1 и line
-recall **0**, четыре injected positives пропущены; новый 0.3 формат offline-only.
-Registry/API/pre-post integration и independent representative labels/calibration/
-test остаются открытыми. Исторические intake/Stage A метрики не переписываются.
+recall **0**, четыре injected positives пропущены. На момент transfer measurement
+новый 0.3 формат был offline-only. С 2026-10-11 explicit private registry admission
+повторяет exact retained corpus/annotation/exposure validation и сохраняет
+отдельную 0.2 card с неизвестной физической изоляцией. Opt-in saved-analysis API/UI
+и source-bound pre/post поддерживают зарегистрированный checkpoint, без risk fusion,
+calibration/activation или изменения истории. Independent representative labels,
+calibration/test и real operational qualification остаются открытыми.
+Исторические intake/Stage A/transfer метрики не переписываются.
+
+Локальная регрессия [fixture registry/API/UI интеграции](evaluation/owned-source-fixture-registry.json):
+2667 passed/27 skipped/5 прежних warnings; ruff и mypy default/Linux/win32
+229 runtime files — pass. Pydantic 2.14: 176 focused checks; установленный пакет:
+68 checks, 229 runtime files побайтно одинаковы, старые artifacts/predictions
+не изменились. Выполнены два actual CPU saved-HTTP workers и четыре CLI pre/post
+review/check процесса; отдельно прошли 489 frontend unit, 156 desktop/mobile и
+22 model-candidate browser tests с synthetic providers. Независимое code review
+закрыло linked-input-path и native-only dependency находки; оно не является
+независимой оценкой качества ML. Новые локальные live Batfish/PostgreSQL runs
+не выполнялись; их skips не засчитаны как pass.
 
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
@@ -101,7 +117,7 @@ checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel по
 получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38048804671).
 Это не CI новой fixture-transfer поставки и не real model/source qualification.
 
-Actual joint transfer использует 24 owned configs/12 hypothetical network labels,
+Исторический actual joint transfer использует 24 owned configs/12 hypothetical network labels,
 16 train/4 validation/4 reserved test configs. Stage A — 52,725 параметров;
 Stage B — 3,993 trainable параметра, 48/12 derived train/validation views.
 Measured anomaly/category F1 и line recall равны **0** на selection diagnostics.

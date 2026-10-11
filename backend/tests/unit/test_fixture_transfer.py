@@ -366,7 +366,7 @@ def test_drift_invalidates_prediction_evaluation_and_registry_admission(inputs, 
     registry = tmp_path / "registry"
     initialize_registry(registry)
     before = (registry / "registry.json").read_bytes()
-    with pytest.raises(ValueError, match="offline-only"):
+    with pytest.raises(ValueError, match="requires retained"):
         register_model(registry, fitted, expected_identity=multitask_identity(fitted))
     assert sorted(path.name for path in registry.iterdir()) == ["registry.json"]
     assert (registry / "registry.json").read_bytes() == before

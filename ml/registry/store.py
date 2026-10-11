@@ -4,25 +4,42 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from ml.evaluation.cli import _unique_pairs
 from ml.evaluation.metrics import canonical_hash
 from ml.inference.change_artifacts import safe_path
-from ml.registry.contracts import EntryEnvelope, ModelCard, RegistryManifest
+from ml.registry.contracts import (
+    EntryEnvelope,
+    FixtureModelCard,
+    ModelCard,
+    RegistryManifest,
+    RegistryModelCard,
+)
 
 if TYPE_CHECKING:
+    from ml.datasets import DatasetSplitResult
+    from ml.datasets.fixture_training import FixtureTrainingCorpus
     from ml.training.foundation_transfer import FoundationTransferReport, FoundationTransferResult
     from ml.training.multitask_training import (
         MultiTaskFixtureTransferReport,
         MultiTaskReport,
         MultiTaskResult,
         MultiTaskTransferReport,
+        SupervisedExample,
     )
 
 MAX_ENTRIES = 256
 MAX_METADATA_BYTES = 64 * 1024
+
+
+@dataclass(frozen=True)
+class FixtureAdmissionContext:
+    corpus: FixtureTrainingCorpus
+    splits: DatasetSplitResult
+    examples: tuple[SupervisedExample, ...]
 
 
 def _pin(value: str) -> str:
@@ -85,7 +102,7 @@ def _entries(root: Path) -> tuple[Path, ...]:
     return tuple(sorted(entries, key=lambda item: item.name))
 
 
-def _entry(path: Path) -> ModelCard:
+def _entry(path: Path) -> RegistryModelCard:
     if {item.name for item in _children(path, 3)} != {"entry.json", "bundle"}:
         raise ValueError("registry entry inventory is incomplete or unsafe")
     envelope = EntryEnvelope.model_validate(_read(path / "entry.json"))
@@ -112,12 +129,12 @@ def _entry(path: Path) -> ModelCard:
     return envelope.card
 
 
-def list_models(root: Path) -> tuple[ModelCard, ...]:
+def list_models(root: Path) -> tuple[RegistryModelCard, ...]:
     """Metadata/inventory only: not inference, weight authentication or activation."""
     return tuple(_entry(path) for path in _entries(root))
 
 
-def _model_card(model: MultiTaskResult | FoundationTransferResult) -> ModelCard:
+def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryModelCard:
     from ml.training.multitask_training import (
         MultiTaskFixtureTransferReport,
         MultiTaskResult,
@@ -135,14 +152,10 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> ModelCard:
     kind: Literal["native", "foundation"]
     if isinstance(model, MultiTaskResult):
         report = _verified_report(model)
-        if isinstance(report, MultiTaskFixtureTransferReport):
-            raise ValueError(
-                "fixture-backed transfer is offline-only; registry admission is not supported"
-            )
         identity = multitask_identity(model)
         manifest = (
             report.pretraining.source_manifest_sha256
-            if isinstance(report, MultiTaskTransferReport)
+            if isinstance(report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport))
             else None
         )
         kind = "native"
@@ -160,7 +173,7 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> ModelCard:
         identity = foundation_transfer_identity(model)
         manifest = foundation_report.source_manifest_sha256
         kind = "foundation"
-    return ModelCard(
+    values: dict[str, Any] = dict(
         kind=kind,
         model_sha256=identity,
         training_format=report.version,
@@ -181,6 +194,9 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> ModelCard:
         target_semantics=report.target_semantics,
         external_pretraining_exposure="unknown" if kind == "foundation" else "not_applicable",
     )
+    if isinstance(report, MultiTaskFixtureTransferReport):
+        return FixtureModelCard(**values, pretraining=report.pretraining)
+    return ModelCard(**values)
 
 
 def register_model(
@@ -189,7 +205,8 @@ def register_model(
     *,
     expected_identity: str,
     foundation_source: Path | None = None,
-) -> ModelCard:
+    fixture_admission: FixtureAdmissionContext | None = None,
+) -> RegistryModelCard:
     pin = _pin(expected_identity)
     entries = _entries(root)
     path = root / pin
@@ -200,6 +217,21 @@ def register_model(
     card = _model_card(model)
     if card.model_sha256 != pin or (card.kind == "foundation") != (foundation_source is not None):
         raise ValueError("registry independent pin or explicit source selection differs")
+    if isinstance(card, FixtureModelCard):
+        from ml.training.multitask_training import MultiTaskResult, validate_multitask_inputs
+
+        if not isinstance(model, MultiTaskResult) or fixture_admission is None:
+            raise ValueError(
+                "fixture registry admission requires retained source/downstream inputs"
+            )
+        validate_multitask_inputs(
+            model,
+            fixture_admission.splits,
+            fixture_admission.examples,
+            fixture_corpus=fixture_admission.corpus,
+        )
+    elif fixture_admission is not None:
+        raise ValueError("non-fixture registration cannot silently ignore fixture admission inputs")
     if foundation_source is not None:
         safe_path(foundation_source)
     path.mkdir(exist_ok=False)

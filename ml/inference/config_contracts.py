@@ -6,12 +6,12 @@ from pydantic import Field, field_validator, model_validator
 
 from ml.evaluation.contracts import Frozen
 from ml.inference.change_contracts import SidePrediction
-from ml.registry.contracts import ModelCard
+from ml.registry.contracts import RegistryModelCard
 
 
 class ConfigurationInferenceReport(Frozen):
     version: Literal["configuration-inference-0.1.0"] = "configuration-inference-0.1.0"
-    model: ModelCard
+    model: RegistryModelCard
     prediction: SidePrediction
     runtime_torch_version: str = Field(min_length=1, max_length=128, pattern=r"^[a-zA-Z0-9.+_-]+$")
     sanitization_version: Literal["config-sanitizer-0.1.0"] = "config-sanitizer-0.1.0"

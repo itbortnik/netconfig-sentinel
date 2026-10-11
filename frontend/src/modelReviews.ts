@@ -275,6 +275,7 @@ const transformer = z
       .enum([
         "multitask-training-0.1.0",
         "multitask-training-0.2.0",
+        "multitask-training-0.3.0",
         "foundation-config-transfer-0.1.0",
       ])
       .nullable(),

@@ -97,6 +97,82 @@ export function configurationFixture(): ConfigurationModelRun {
     },
   };
 }
+export function fixtureConfigurationFixture(): ConfigurationModelRun {
+  const row = configurationFixture();
+  row.report!.model = {
+    ...row.report!.model,
+    version: "config-model-card-0.2.0",
+    kind: "native",
+    training_format: "multitask-training-0.3.0",
+    source_manifest_sha256: hash,
+    external_pretraining_exposure: "not_applicable",
+    physical_pretraining_isolation_proven: false,
+    pretraining: {
+      version: "fixture-source-binding-0.1.0",
+      pretraining_sha256: hash,
+      report_sha256: hash,
+      corpus_sha256: hash,
+      source_manifest_sha256: hash,
+      exposure: {
+        version: "fixture-transfer-exposure-0.1.0",
+        policy: { max_comparisons: 200000, near_duplicate_threshold: 0.82 },
+        corpus_sha256: hash,
+        downstream_manifest_sha256: hash,
+        downstream_content_sha256: hash,
+        source_intake_count: 3,
+        downstream_unique_content_count: 24,
+        comparisons: 72,
+        train_overlap_counts: {
+          source: 0,
+          raw: 0,
+          sanitized: 0,
+          normalized: 0,
+          template: 0,
+          near: 0,
+        },
+        heldout_overlap_count: 0,
+        physical_pretraining_isolation_proven: false,
+      },
+    },
+  };
+  return row;
+}
+it("accepts explicit fixture provenance without manufacturing independent quality", () => {
+  const value = fixtureConfigurationFixture();
+  expect(configurationModelRunSchema.parse(value)).toEqual(value);
+});
+it.each([
+  "physical",
+  "heldout",
+  "count",
+  "budget",
+  "corpus",
+  "manifest",
+  "format",
+  "kind",
+  "missing",
+  "activated",
+])("rejects malformed fixture %s", (damage) => {
+  const value = fixtureConfigurationFixture(),
+    card = value.report!.model;
+  if (card.version !== "config-model-card-0.2.0")
+    throw new Error("fixture card required");
+  const exposure = card.pretraining.exposure;
+  if (damage === "physical")
+    Object.assign(card, { physical_pretraining_isolation_proven: true });
+  if (damage === "heldout")
+    Object.assign(exposure, { heldout_overlap_count: 1 });
+  if (damage === "count") exposure.comparisons++;
+  if (damage === "budget") exposure.policy.max_comparisons = 1;
+  if (damage === "corpus") exposure.corpus_sha256 = "b".repeat(64);
+  if (damage === "manifest") card.source_manifest_sha256 = "b".repeat(64);
+  if (damage === "format")
+    Object.assign(card, { training_format: "multitask-training-0.2.0" });
+  if (damage === "kind") Object.assign(card, { kind: "foundation" });
+  if (damage === "missing") Reflect.deleteProperty(card, "pretraining");
+  if (damage === "activated") Object.assign(card, { activated: true });
+  expect(configurationModelRunSchema.safeParse(value).success).toBe(false);
+});
 it("accepts a bounded synthetic result without pretending it is quality evidence", () => {
   expect(configurationModelRunSchema.parse(configurationFixture())).toEqual(
     configurationFixture(),

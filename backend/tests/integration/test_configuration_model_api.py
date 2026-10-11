@@ -44,6 +44,7 @@ def synthetic_report(source, pin=PIN):
     return ConfigurationInferenceReport.model_validate(
         {
             "model": {
+                "version": "config-model-card-0.1.0",
                 "kind": "native",
                 "model_sha256": pin,
                 "training_format": "multitask-training-0.1.0",
@@ -376,41 +377,122 @@ def test_audit_records_metadata_not_model_scores(model_api):
     assert "anomaly_score" not in audit.text and "telnet_enabled" not in audit.text
 
 
-@pytest.fixture(scope="module")
-def native_registry(tmp_path_factory):
+@pytest.fixture(scope="module", params=["legacy", "fixture"])
+def native_registry(tmp_path_factory, request):
     pytest.importorskip("torch")
     from ml.mutation import MutationType
     from ml.preprocessing.tokenization import TokenizerPolicy, train_config_tokenizer
-    from ml.registry.store import initialize_registry, register_model
+    from ml.registry.store import FixtureAdmissionContext, initialize_registry, register_model
     from ml.training.classification_smoke import classification_fixtures
     from ml.training.multitask import HeadPolicy, LossWeights
     from ml.training.multitask_smoke import authored_supervision
     from ml.training.multitask_training import FineTunePolicy, multitask_identity, train_multitask
     from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_language_model
 
-    splits = classification_fixtures()
-    tokenizer = train_config_tokenizer(
-        splits, policy=TokenizerPolicy(vocab_size=300, context_length=32)
-    )
-    encoder = train_masked_language_model(
-        splits,
-        tokenizer,
-        encoder_policy=EncoderPolicy(hidden_size=16, heads=2, layers=1, feedforward_size=32),
-        training_policy=TrainingPolicy(epochs=1),
-    )
+    corpus = None
+    if request.param == "fixture":
+        from ml.datasets import DatasetFixtureManifest, DatasetUse, import_local_dataset
+        from ml.datasets.fixture_training import prepare_fixture_training_corpus
+        from ml.preprocessing import SanitizationPolicy
+        from ml.preprocessing.blocks import digest
+        from ml.preprocessing.tokenization import train_fixture_tokenizer
+        from ml.training.fixture_transfer_smoke import authored_transfer_splits
+        from ml.training.pretraining import PretrainingPolicy, train_fixture_objectives
+
+        directory = tmp_path_factory.mktemp("configuration-fixture-source")
+        texts = (
+            (
+                "cisco",
+                "hostname owned-a\ninterface GigabitEthernet0/1\n"
+                " ip address 10.0.0.1 255.255.255.0\nrouter bgp 64512\n"
+                " neighbor 10.0.0.2 remote-as 64513\n",
+            ),
+            (
+                "juniper",
+                "set system host-name owned-b\nset interfaces ge-0/0/1 unit 0 "
+                "family inet address 10.1.0.1/24\nset routing-options autonomous-system 64514\n",
+            ),
+            (
+                "juniper",
+                "system { services { ssh; } }\ninterfaces { ge-0/0/1 { unit 0 { "
+                "family inet { address 10.2.0.1/24; } } } }\n",
+            ),
+        )
+        for index, (_, content) in enumerate(texts):
+            (directory / f"owned-{index}.cfg").write_text(content, encoding="utf-8", newline="")
+        manifest = DatasetFixtureManifest.model_validate(
+            {
+                "source": {
+                    "source_id": "owned-api-fixture-source",
+                    "source_type": "batfish_test",
+                    "origin": "authored local protocol configs, no external source",
+                    "license_id": "CC0-1.0",
+                    "license_review": "approved",
+                    "allowed_uses": ["research", "training"],
+                    "collected_at": datetime(2026, 10, 10, tzinfo=UTC),
+                },
+                "records": [
+                    {
+                        "record_id": f"owned-{index}",
+                        "relative_path": f"owned-{index}.cfg",
+                        "expected_sha256": digest(content),
+                        "vendor_hint": vendor,
+                    }
+                    for index, (vendor, content) in enumerate(texts)
+                ],
+            }
+        )
+        imported = import_local_dataset(
+            manifest,
+            root=directory,
+            intended_use=DatasetUse.TRAINING,
+            pseudonymization_key=b"owned-api-fixture-pretraining-key",
+            sanitization_policy=SanitizationPolicy(version="config-sanitizer-0.3.0"),
+        )
+        corpus = prepare_fixture_training_corpus(manifest, imported)
+        tokenizer = train_fixture_tokenizer(
+            corpus, policy=TokenizerPolicy(vocab_size=300, context_length=64)
+        )
+        encoder = train_fixture_objectives(
+            corpus,
+            tokenizer,
+            encoder_policy=EncoderPolicy(hidden_size=16, heads=2, layers=1, feedforward_size=32),
+            training_policy=PretrainingPolicy(epochs=1, embedding_size=8),
+        )
+        splits = authored_transfer_splits()
+    else:
+        splits = classification_fixtures()
+        tokenizer = train_config_tokenizer(
+            splits, policy=TokenizerPolicy(vocab_size=300, context_length=32)
+        )
+        encoder = train_masked_language_model(
+            splits,
+            tokenizer,
+            encoder_policy=EncoderPolicy(hidden_size=16, heads=2, layers=1, feedforward_size=32),
+            training_policy=TrainingPolicy(epochs=1),
+        )
+    examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
     model = train_multitask(
         splits,
         encoder,
-        authored_supervision(splits, (MutationType.TELNET_ENABLED,)),
+        examples,
         head_policy=HeadPolicy(classes=("telnet_enabled",), embedding_size=8),
         training_policy=FineTunePolicy(epochs=1),
         loss_weights=LossWeights(severity=0),
+        fixture_corpus=corpus,
     )
     pin = multitask_identity(model)
     root = tmp_path_factory.mktemp("configuration-native") / "registry"
     initialize_registry(root)
-    register_model(root, model, expected_identity=pin)
-    return root, pin
+    register_model(
+        root,
+        model,
+        expected_identity=pin,
+        fixture_admission=FixtureAdmissionContext(corpus, splits, examples)
+        if corpus is not None
+        else None,
+    )
+    return root, pin, request.param
 
 
 @pytest.mark.parametrize("vendor", ["cisco", "juniper"])
@@ -418,7 +500,7 @@ def test_actual_isolated_native_saved_configuration(
     model_api, native_registry, vendor, monkeypatch
 ):
     client, _, runtime, state, _ = model_api
-    root, pin = native_registry
+    root, pin, kind = native_registry
     runtime.settings = ConfigurationModelSettings(registry_root=root, model_sha256=pin)
     monkeypatch.setattr(runtime, "infer", ConfigurationModelRuntime.infer.__get__(runtime))
     analysis, options = selected(client, vendor=vendor)
@@ -428,6 +510,20 @@ def test_actual_isolated_native_saved_configuration(
     assert result["report"]["runtime_torch_version"] != "synthetic-fixture"
     assert result["report"]["prediction"]["embedding_dimensions"] == 8
     assert result["report"]["prediction"]["severity_scores"] is None
+    card = result["report"]["model"]
+    assert card["version"] == f"config-model-card-0.{2 if kind == 'fixture' else 1}.0"
+    if kind == "fixture":
+        assert card["training_format"] == "multitask-training-0.3.0"
+        assert card["physical_pretraining_isolation_proven"] is False
+        assert card["pretraining"]["exposure"]["heldout_overlap_count"] == 0
+    assert result["risk_fused"] is False
+    assert (
+        client.get(
+            f"/api/v1/configuration-model-runs/{options['inference_id']}", headers=HEADERS
+        ).json()
+        == result
+    )
+    assert post(client, options | {"model_sha256": pin}).json() == result
     assert state["calls"] == 0  # The synthetic adapter was not used.
     assert (
         client.get(f"/api/v1/analyses/{analysis['analysis_id']}", headers=HEADERS).json()

@@ -1,0 +1,211 @@
+{
+  "version": "owned-source-fixture-registry-evidence-0.1.0",
+  "measured_on": "2026-10-11",
+  "scope": "Retained-input admission of an existing trained fixture checkpoint, saved-analysis HTTP/UI and source-bound pre/post diagnostics; not independent anomaly quality",
+  "requirements": [
+    "11.4 and 13B: actual source-aligned trained configuration heads, no invented severity labels",
+    "18 and 21: explicit model selection, durable diagnostics, source bindings and regression checks",
+    "16: actual ML rerun supplement, without formal or human-decision promotion",
+    "23: functional evidence only; full MVP and real-quality acceptance remain open"
+  ],
+  "source": {
+    "pinned_commit": "329c14bf712f81b1522147abb00419c8e34e8f4a",
+    "human_approval_sha256": "12670615fd580a455526dcf5d01851b3e174702c529ce6ac5f137596789d91e4",
+    "source_model_identity": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+    "existing_supervised_model_identity": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+    "intake_members_rechecked": 415,
+    "downstream_unique_contents_rechecked": 64,
+    "exhaustive_comparisons": 26560,
+    "observed_heldout_overlaps": 0,
+    "train_overlap_counts": {
+      "source": 0,
+      "raw": 0,
+      "sanitized": 0,
+      "normalized": 0,
+      "template": 0,
+      "near": 0
+    },
+    "physical_pretraining_isolation_proven": false,
+    "discarded_downstream_metadata_absent_from_input": "not audited or manufactured",
+    "new_data_acquisitions": 0,
+    "new_model_downloads": 0,
+    "existing_checkpoint_retrained": false,
+    "real_confirmed_annotations": null,
+    "independent_test_metrics": null,
+    "calibration_fit": null,
+    "private_configurations_admission_inputs_tokenizers_weights_or_full_inventories_published": false
+  },
+  "contracts": {
+    "training_report": "multitask-training-0.3.0",
+    "fixture_model_card": "config-model-card-0.2.0",
+    "legacy_model_card": "config-model-card-0.1.0 unchanged",
+    "entry_envelope": "config-model-entry-0.1.0",
+    "admission_input": "fixture-registry-input-0.1.0",
+    "configuration_inference": "configuration-inference-0.1.0",
+    "saved_http_run": "configuration-model-run-0.1.0",
+    "missing_or_different_admission_inputs": "refuse before entry allocation",
+    "admission_validation": "same exact source, Stage A target, annotation and exposure validator as metric adaptation",
+    "selected_load": "fresh bundle/card and independent pin verification; retained admission JSON is not an HTTP input",
+    "metadata_list": "bounded layout/checksum only, not weight authentication",
+    "test_text_use": "overlap check only, no encoded features, labels or tuning",
+    "target_semantics": "injected_mutation, not confirmed anomaly",
+    "risk_fused": false,
+    "activated": false,
+    "calibrated": false,
+    "production_quality_proven": false
+  },
+  "completed_installed_diagnostic": {
+    "private_result_sha256": "e7c285af157fe1fe689d91ad2ca79530dbaf2749b40dcb22c189e40b2aaa7e1b",
+    "source_revision": "final runtime after independent linked-path and native-only dependency review fixes",
+    "runtime_python_files": 229,
+    "runtime_bytes_match_checkout": true,
+    "isolated_package_children": 2,
+    "selected_target_parent_import_counts": [53, 166],
+    "all_parent_app_ml_imports_from_selected_targets": true,
+    "legacy_dataset_objective_supervised_and_fixture_model_files_unchanged": true,
+    "legacy_native_training_reports_and_predictions_equal": true,
+    "actual_registered_model_identity_unchanged": true,
+    "registered_card_matches_loaded_model": true,
+    "missing_admission_refused": true,
+    "duplicate_enrollment_refused": true,
+    "actual_http_workers": 2,
+    "actual_cli_review_check_processes": 4,
+    "http_cases": [
+      {
+        "vendor": "cisco",
+        "worker": "actual isolated CPU, Torch 2.14.0+cpu",
+        "status": "completed",
+        "without_consent": "refused",
+        "get_post_replay_equal": true,
+        "original_analysis_unchanged": true,
+        "severity_distribution": null,
+        "risk_fused": false
+      },
+      {
+        "vendor": "juniper",
+        "worker": "actual isolated CPU, Torch 2.14.0+cpu",
+        "status": "completed",
+        "without_consent": "refused",
+        "get_post_replay_equal": true,
+        "original_analysis_unchanged": true,
+        "severity_distribution": null,
+        "risk_fused": false
+      }
+    ],
+    "pre_post_cases": [
+      {
+        "vendor": "cisco",
+        "fresh_review_check_equal": true,
+        "local_review_unchanged": true,
+        "formal_verification": "not_run",
+        "applied": false
+      },
+      {
+        "vendor": "juniper",
+        "fresh_review_check_equal": true,
+        "local_review_unchanged": true,
+        "formal_verification": "not_run",
+        "applied": false
+      }
+    ],
+    "http_parent_imported_model_runtime_for_admission_and_parity": true,
+    "no_torch_in_http_parent_claimed": false,
+    "representative_latency_or_quality_benchmark": false,
+    "model_enabled_production_or_compose_deployment": false,
+    "additional_independent_networks_from_replay": 0
+  },
+  "verification": {
+    "full_regression": {
+      "passed": 2667,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 27,
+      "warnings": 5,
+      "seconds": 272.063,
+      "junit_sha256": "3a9b7d2f1f22c09bf8e99a9a6a3e63c4dddc1dda04eb45ace8ea2527527d0c99",
+      "coverage_lines": 20751,
+      "coverage_lines_covered": 18682,
+      "coverage_xml_sha256": "f3d955f1b594499a9bd4eedd2b32331954110c43b0c0923615f9182a59155fb8",
+      "skips": "12 optional SDK, 14 explicit owned live-engine cases, 1 PostgreSQL case",
+      "warnings_scope": "existing dependency deprecations and SQLite ResourceWarning; not model-quality evidence"
+    },
+    "source_targeted": {
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 28.535,
+      "junit_sha256": "49bc75aa242f8dd0c13ea63b3c895d101915814d70688563e0ca777e1f94ead4"
+    },
+    "source_targeted_scope": "before isolated linked-path guard fix; final guard and full suite recorded separately",
+    "pydantic_2_14_focused": {
+      "passed": 176,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.9,
+      "junit_sha256": "ac243be02205e407c1f5bc4b492e09f38854e74099c3c0eb9d41c837791f5525"
+    },
+    "post_review_source_registry": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 10.01,
+      "junit_sha256": "221b76f7a982843571e7c194143c49a10c6f725779b1f38c7faef759f5b9fb2d"
+    },
+    "independent_reviewer_guard": {
+      "passed": 6,
+      "deselected": 34,
+      "seconds": 6.22,
+      "junit_sha256": "98f5bdb2c9f9f73a76c4d495cb0f07c820eed599b41b6552b22144e8827375ad",
+      "link_checks": "modeled symlink/junction flags; refusal before file/parent/ancestor read"
+    },
+    "installed_targeted": {
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 23.569,
+      "junit_sha256": "dfe9a7b6a879275dd7fe2d291c22aa7db97e0baa8bda239cc07a07c59817e905"
+    },
+    "native_cli_without_external_retrieval_dependencies": {
+      "passed": 1,
+      "deselected": 40,
+      "seconds": 5.951,
+      "junit_sha256": "1376288630646604d2bec66acd5350d354caf74bd836fe59a309a3b78bc4a049",
+      "scope": "actual native init/register with Transformers and safetensors imports blocked in a fresh process; independently re-reviewed"
+    },
+    "frontend_unit": { "passed": 489, "failed": 0 },
+    "frontend_desktop_mobile": {
+      "passed": 156,
+      "failed": 0,
+      "model_provider": "synthetic protocol fixtures"
+    },
+    "frontend_model_patches": {
+      "passed": 22,
+      "failed": 0,
+      "junit_sha256": "333fb7c7b60e4db6c7deeb19f9b33c7a4946200f616710a3a80c2acf4884ee0d",
+      "model_provider": "synthetic loopback provider"
+    },
+    "ruff": "passed",
+    "mypy_default_linux_win32": { "result": "passed", "runtime_files": 229 },
+    "frontend_typecheck_format_build": "passed; existing build-size warning remains",
+    "metadata_without_torch_transformers": "passed with imports actively blocked in a fresh process",
+    "wheel_sha256": "dae5bb66804b2eabf01c869e47f94a8f229101e3e04317382e5da7d2e2a643fd",
+    "wheel_bytes": 708776,
+    "local_live_batfish_and_postgresql": "not run for this stage"
+  },
+  "attempt_history": {
+    "initial_metadata_test": "invalid None-module blocker affected SciPy before listing; corrected to import finder, regression passed",
+    "initial_private_installed_helper": "two HTTP cases completed, then failed on a helper-only module-name typo before CLI; partial output preserved, typo corrected",
+    "final_private_installed_helper": "complete; reported counts refer only to the final completed diagnostic, not independent data",
+    "interrupted_full_and_focused_runs": "initial runs and full run 4 interrupted by environment switches without terminal results; not counted as passed",
+    "intermediate_full_runs": "2660 and 2666 passes before the final two isolated review fixes; retained separately, not final-tree evidence",
+    "independent_review": "linked admission ancestors bypass fixed with shared safe_path before read; native-only dependency coupling fixed with a type-only import; both independently re-reviewed",
+    "pre_fix_installed_evidence": "retained separately; final installed result and wheel above include both fixes"
+  },
+  "remaining_limits": [
+    "The measured 2026-10-10 selection diagnostic still has anomaly/category F1 and line recall 0; this integration is not a new metric evaluation",
+    "Unknown physical pretraining exposure, original provenance not present in retained downstream inputs and chronology are not proved",
+    "No representative real-confirmed, independent-test, calibration-fit, unseen-site or device-syntax qualification",
+    "No risk promotion, model activation, formal pass, engineer approval or device application",
+    "Hashes bind artifacts, not human identity, source authorization truth or annotation truth"
+  ]
+}
