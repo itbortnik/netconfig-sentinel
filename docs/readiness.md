@@ -185,6 +185,46 @@ regression checks прошли; шесть actual fits/save-load round trips и�
 230 byte-equal installed runtime files. Runtime contracts и история не менялись;
 новые local live-engine/БД/browser прогоны не выполнялись.
 
+Позднее exact optimizer-report commit `60c13146100cb674dbb99a1fac69981b5fa380c4`
+получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38130301367).
+Это CI предыдущей публикации, не новой bilateral поставки и не quality gate.
+
+Следующий [explicit bilateral Telnet scenario](pretraining-transfer.md#explicit-bilateral-telnet-scenario)
+добавляет Cisco-positive supervision без изменения default legacy и истории.
+Те же 24 authored parents и entity/capture/split memberships дают 64 train/16
+selection views с positive/negative support обоих vendors; это не новые
+независимые конфигурации или физические сети. Новый source ID и raw hashes
+привязаны к действительно изменённому authored тексту до sanitizer. Generic
+dedup/split/exposure/annotation checks сохранены; reserved test не размечается.
+
+Фактический [installed run](evaluation/owned-bilateral-fixture-transfer.json)
+на default seed17/20 steps выбрал epoch20: anomaly F1 0.85714 (6/8 positives,
+0 false positives), category F1 0.66667, line recall **0** (0/8). Cisco обнаружил
+4/4 positives, JunOS 2/4; новый forest control пропустил 8/8 на той же полной
+truth table. Parent context и баланс изменились вместе, поэтому это не causal
+shortcut repair или paired improvement относительно старых 12 views. Selection
+переиспользуется; real-confirmed, independent-test и calibration fit отсутствуют.
+80 исторических файлов неизменны; оба installed packages совпали по полному
+legacy input и всем 60 predictions старой модели. Source encoder сохранён,
+80 новых predictions прошли save/load. 34860 полных content comparisons не
+доказывают физическую независимость upstream fixtures. Online activation,
+production quality и formal/vendor-syntax acceptance не заявлены.
+
+Локальная регрессия bilateral slice: 2790 passed/27 skipped/5 warnings,
+coverage 18871/20883 lines, 113 installed checks и 113 Pydantic 2.14 parent checks.
+Два последних model/admission mismatch случая включены в full/installed suites;
+ранний source-focused run содержит 111 checks до их добавления. Все 230 runtime
+files побайтно совпадают с installed package; parent каждого свежего installed
+targeted run загрузил 101 app/ml modules из выбранного target, без checkout. Проверяющий обнаружил,
+что исходные targeted children брали checkout: эти первые runs подтверждали
+installed origin только parent. Исправленные четыре fixture children выбирают
+roots фактически импортированных app/ml packages и проверяют каждый module file;
+свежие installed/compat runs повторены с этими guards. Isolated subprocesses
+используют default dependencies, не наследуют Pydantic override. Ruff и mypy
+default/Linux/win32 — pass. Новый local live Batfish/PostgreSQL/browser run не
+выполнялся; 27 explicit skips не считаются успехом, exact-commit CI ожидается
+отдельно после публикации.
+
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
 checks; ruff/default+win32 mypy 225 runtime files — pass. Installed wheel побайтно

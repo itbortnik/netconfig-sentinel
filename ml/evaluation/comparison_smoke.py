@@ -30,6 +30,7 @@ from ml.evaluation.multitask_validation import build_multitask_validation
 from ml.evaluation.probe_validation import _identity
 from ml.inference.change_cli import _native_inventory
 from ml.mutation import MutationType
+from ml.training.fixture_transfer_smoke import OWNED_TRANSFER_SCENARIOS
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
     MultiTaskFixtureTransferReport,
@@ -66,6 +67,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--foundation-sha256")
     parser.add_argument("--foundation-source", type=Path)
     parser.add_argument("--fixture-admission", type=Path)
+    parser.add_argument(
+        "--owned-scenario", choices=OWNED_TRANSFER_SCENARIOS, default="legacy-telnet-0.1.0"
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
@@ -73,6 +77,8 @@ def main(argv: list[str] | None = None) -> None:
         if args.output.exists() or not args.output.parent.is_dir():
             raise ValueError("owned comparison output must be new")
         external = (args.foundation_model, args.foundation_sha256, args.foundation_source)
+        if args.fixture_admission is None and args.owned_scenario != "legacy-telnet-0.1.0":
+            raise ValueError("bilateral owned scenario requires fixture admission")
         if (
             args.fixture_admission is not None and any(value is not None for value in external)
         ) or (args.fixture_admission is None and any(value is None for value in external)):
@@ -92,7 +98,7 @@ def main(argv: list[str] | None = None) -> None:
             if not isinstance(report, MultiTaskFixtureTransferReport):
                 raise ValueError("fixture comparison requires the explicit fixture training format")
             admission = load_fixture_admission(args.fixture_admission, native)
-            splits = authored_transfer_splits()
+            splits = authored_transfer_splits(scenario=args.owned_scenario)
             examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
             if objective_split_identity(admission.splits) != objective_split_identity(splits) or (
                 admission.examples != examples

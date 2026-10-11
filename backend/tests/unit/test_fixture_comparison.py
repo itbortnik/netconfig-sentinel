@@ -5,12 +5,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+import app
 import pytest
 import torch
 from test_fixture_registry import input_payload
 from test_fixture_transfer import fitted as fitted
 from test_fixture_transfer import inputs as inputs
 
+import ml
 from ml.evaluation.comparison import ComparisonInput, DetectionComparisonReport, compare_detectors
 from ml.evaluation.comparison_smoke import main
 from ml.evaluation.multitask_validation import build_multitask_validation
@@ -133,10 +135,13 @@ def test_comparison_modes_and_unused_output_are_explicit(
 
 def test_actual_fixture_comparison_needs_no_external_retrieval_runtime(inputs, fitted, tmp_path):
     args = arguments(inputs, fitted, tmp_path)
-    project = Path(__file__).resolve().parents[3]
+    app_root = Path(app.__file__).resolve().parent.parent
+    ml_root = Path(ml.__file__).resolve().parent.parent
     code = """
+import json
 import sys
 from importlib.abc import MetaPathFinder
+from pathlib import Path
 sys.path[:0] = [sys.argv[1], sys.argv[2]]
 class DenyExternalRuntime(MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
@@ -146,13 +151,24 @@ sys.meta_path.insert(0, DenyExternalRuntime())
 from ml.evaluation.comparison_smoke import main
 main(sys.argv[3:])
 assert 'transformers' not in sys.modules and 'safetensors' not in sys.modules
+imports = 0
+for name, module in tuple(sys.modules.items()):
+    package = name.split('.')[0]
+    if package in ('app', 'ml') and getattr(module, '__file__', None):
+        expected = Path(sys.argv[1 if package == 'app' else 2]).resolve()
+        assert Path(module.__file__).resolve().is_relative_to(expected)
+        imports += 1
+assert imports > 0
+print(json.dumps({'native_only_child_imports': imports, 'runtime_roots_pinned': True}))
 """
     completed = subprocess.run(
-        [sys.executable, "-I", "-c", code, str(project), str(project / "backend"), *args],
+        [sys.executable, "-I", "-c", code, str(app_root), str(ml_root), *args],
         capture_output=True,
         text=True,
         timeout=45,
     )
     assert completed.returncode == 0, completed.stderr
+    audit = json.loads(completed.stdout.splitlines()[-1])
+    assert audit["runtime_roots_pinned"] and audit["native_only_child_imports"] > 0
     assert (tmp_path / "output" / "report.json").is_file()
     assert "sanitized_text" not in completed.stdout and str(tmp_path) not in completed.stdout

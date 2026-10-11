@@ -8,6 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 from uuid import uuid4
 
+import app
 import pytest
 import torch
 from app.domain import Vendor
@@ -16,6 +17,7 @@ from app.patching.review import review_patch_proposal
 from test_fixture_transfer import fitted as fitted
 from test_fixture_transfer import inputs as inputs
 
+import ml
 from ml.evaluation.metrics import canonical_hash
 from ml.inference.change_contracts import MLChangeReview
 from ml.inference.change_review import review_patch_ml
@@ -184,7 +186,8 @@ def test_metadata_listing_in_fresh_process_does_not_import_optional_runtime(
         expected_identity=multitask_identity(fitted),
         fixture_admission=context(inputs),
     )
-    project = Path(__file__).resolve().parents[3]
+    app_root = Path(app.__file__).resolve().parent.parent
+    ml_root = Path(ml.__file__).resolve().parent.parent
     code = """
 import sys
 from importlib.abc import MetaPathFinder
@@ -199,10 +202,15 @@ from ml.registry.store import list_models
 cards = list_models(Path(sys.argv[3]))
 assert cards[0].version == 'config-model-card-0.2.0'
 assert 'torch' not in sys.modules and 'transformers' not in sys.modules
+for name, module in tuple(sys.modules.items()):
+    package = name.split('.')[0]
+    if package in ('app', 'ml') and getattr(module, '__file__', None):
+        expected = Path(sys.argv[1 if package == 'app' else 2]).resolve()
+        assert Path(module.__file__).resolve().is_relative_to(expected)
 print('metadata-only')
 """
     completed = subprocess.run(
-        [sys.executable, "-I", "-c", code, str(project), str(project / "backend"), str(directory)],
+        [sys.executable, "-I", "-c", code, str(app_root), str(ml_root), str(directory)],
         capture_output=True,
         text=True,
         timeout=20,
@@ -230,7 +238,8 @@ def test_bounded_private_cli_admission_is_explicit_and_general(inputs, fitted, t
 
 
 def test_native_admission_does_not_require_external_retrieval_runtime(inputs, fitted, tmp_path):
-    project = Path(__file__).resolve().parents[3]
+    app_root = Path(app.__file__).resolve().parent.parent
+    ml_root = Path(ml.__file__).resolve().parent.parent
     save_multitask(fitted, tmp_path / "model")
     (tmp_path / "admission.json").write_text(json.dumps(input_payload(inputs)))
     code = """
@@ -249,6 +258,11 @@ assert main(['init', '--root', str(root / 'registry')]) == 0
 assert main(['register', '--root', str(root / 'registry'), '--model', str(root / 'model'),
              '--model-sha256', pin, '--fixture-admission', str(root / 'admission.json')]) == 0
 assert 'transformers' not in sys.modules and 'safetensors' not in sys.modules
+for name, module in tuple(sys.modules.items()):
+    package = name.split('.')[0]
+    if package in ('app', 'ml') and getattr(module, '__file__', None):
+        expected = Path(sys.argv[1 if package == 'app' else 2]).resolve()
+        assert Path(module.__file__).resolve().is_relative_to(expected)
 print('native-admission-only')
 """
     completed = subprocess.run(
@@ -257,8 +271,8 @@ print('native-admission-only')
             "-I",
             "-c",
             code,
-            str(project),
-            str(project / "backend"),
+            str(app_root),
+            str(ml_root),
             str(tmp_path),
             multitask_identity(fitted),
         ],

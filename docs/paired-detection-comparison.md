@@ -173,3 +173,41 @@ Representative real-confirmed labels, independent test, calibration и полн�
 MVP quality gate остаются открытыми.
 Проверки installed parity и границы измерения записаны отдельно в
 [aggregate evidence](evaluation/owned-source-fixture-comparison.json).
+
+## Explicit bilateral fixture comparison
+
+The owned fixture route accepts the explicit `--owned-scenario
+bilateral-telnet-0.1.0` used by the [transfer demonstration](pretraining-transfer.md#explicit-bilateral-telnet-scenario):
+
+```powershell
+python -m ml.evaluation.comparison_smoke --native-model artifacts/new-bilateral-transfer/model --native-sha256 <full-pin> --fixture-admission private/bilateral-admission.json --owned-scenario bilateral-telnet-0.1.0 --output artifacts/new-bilateral-comparison
+```
+
+The default legacy route is unchanged. Selected scenario, complete private
+admission and actual model bindings must agree; swapping old/new splits,
+annotations or models refuses before output. Bilateral cannot be combined with
+the historical external encoder route. Both fixture routes remain native-only
+and do not import Transformers/safetensors.
+
+[Measured new-scenario evidence](evaluation/owned-bilateral-fixture-transfer.json)
+retains all sixteen selection views of four authored devices. Both vendors have
+four positives and four negatives. The two forests are fitted only on sixteen
+original train parents (eight per vendor), whereas the supervised model fits
+64 derived train views. Seed 42, 200 trees, contamination 0.1, the fixed ranking
+mapping and strict 0.5 cutoff remain unchanged. Both detectors receive exactly
+the same complete truth table, not a successful intersection or convenient
+vendor subset.
+
+| Detector | F1 @ 0.5 | AP | True positives / positives | False positives |
+| --- | ---: | ---: | ---: | ---: |
+| Isolation Forest | 0 | 0.5 | 0 / 8 | 0 |
+| Fixture-backed native encoder | 0.857143 | 1 | 6 / 8 | 0 |
+
+Native vendor F1 is 1 for Cisco and 0.666667 for JunOS; each has only two devices
+and eight dependent views. These are selection diagnostics, not demonstrated
+cross-vendor generalization, statistical superiority or acceptable deployment
+quality. Line localization still misses all eight positive lines. Real-confirmed,
+laboratory and common unseen-site comparison cohorts are absent. Timing excludes
+loading, fitting and I/O and is not an HTTP/hardware benchmark. The legacy
+twelve-case report is preserved; because its parents/truth differ, its metrics
+are not a paired baseline for this new scenario.

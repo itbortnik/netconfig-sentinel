@@ -1,0 +1,1378 @@
+{
+  "additional_physical_networks": 0,
+  "all_runtime_imports_from_selected_installed_target": true,
+  "calibration_fit": false,
+  "category": [
+    {
+      "average_precision": 1.0,
+      "calibration": {
+        "bins": [
+          {
+            "count": 0,
+            "lower": 0.0,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.1
+          },
+          {
+            "count": 0,
+            "lower": 0.1,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.2
+          },
+          {
+            "count": 0,
+            "lower": 0.2,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.3
+          },
+          {
+            "count": 0,
+            "lower": 0.3,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.4
+          },
+          {
+            "count": 12,
+            "lower": 0.4,
+            "mean_probability": 0.4779706547657649,
+            "positive_fraction": 0.3333333333333333,
+            "upper": 0.5
+          },
+          {
+            "count": 4,
+            "lower": 0.5,
+            "mean_probability": 0.5204169303178787,
+            "positive_fraction": 1.0,
+            "upper": 0.6
+          },
+          {
+            "count": 0,
+            "lower": 0.6,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.7
+          },
+          {
+            "count": 0,
+            "lower": 0.7,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.8
+          },
+          {
+            "count": 0,
+            "lower": 0.8,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 0.9
+          },
+          {
+            "count": 0,
+            "lower": 0.9,
+            "mean_probability": null,
+            "positive_fraction": null,
+            "upper": 1.0
+          }
+        ],
+        "brier": 0.23369326490274167,
+        "ece": 0.228373758494854
+      },
+      "f1": 0.6666666666666666,
+      "false_negative": 4,
+      "false_positive": 0,
+      "label": "telnet_enabled",
+      "negatives": 8,
+      "pr_auc_trapezoidal": 1.0,
+      "precision": 1.0,
+      "predicted_positive": 4,
+      "ranking_unavailable_reason": null,
+      "recall": 0.5,
+      "support": 8,
+      "true_negative": 8,
+      "true_positive": 4
+    }
+  ],
+  "checks": {
+    "full_suite": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "73f41e420ca533762be8c7847d853c4df6de6b6750d72d98ff1e5f6397275fd6",
+      "passed": 2790,
+      "seconds": 285.989,
+      "skipped": 27,
+      "tests": 2817
+    },
+    "initial_source_focused_before_two_model_mismatch_tests": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "4f8f439cca5fdd413ae80f0e80db11ab55dbfff2904a53933afe1099df1fa5af",
+      "passed": 111,
+      "seconds": 39.759,
+      "skipped": 0,
+      "tests": 111
+    },
+    "installed_focused": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "71a7c9f8ea5051d1188a7b79fba8ca0686ed23bea1d10c485884e5ac9bcb1c46",
+      "passed": 113,
+      "seconds": 31.55,
+      "skipped": 0,
+      "tests": 113
+    },
+    "pydantic_214_parent": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "df6b87ede254028f352a229d8e987e6ac3bf3dbf5e40634e0d6c96cc80ca48e7",
+      "passed": 113,
+      "seconds": 31.808,
+      "skipped": 0,
+      "tests": 113
+    },
+    "source_comparison_after_child_origin_correction": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "fe20dc4638b4c025a7a9424e626a04658402834c0e7987c6097b089a17e5f847",
+      "passed": 23,
+      "seconds": 23.742,
+      "skipped": 0,
+      "tests": 23
+    }
+  },
+  "comparison_report": {
+    "baseline": "isolation_forest",
+    "cohorts": {
+      "laboratory": {
+        "by_role": {},
+        "by_vendor": {
+          "cisco": null,
+          "juniper": null
+        },
+        "common_unseen_sites": null,
+        "status": "missing",
+        "summary": null
+      },
+      "real_confirmed": {
+        "by_role": {},
+        "by_vendor": {
+          "cisco": null,
+          "juniper": null
+        },
+        "common_unseen_sites": null,
+        "status": "missing",
+        "summary": null
+      },
+      "synthetic": {
+        "by_role": {
+          "edge-router": {
+            "configurations": 16,
+            "models": {
+              "isolation_forest": {
+                "detection": {
+                  "average_precision": 0.5,
+                  "calibration": null,
+                  "f1": 0.0,
+                  "false_negative": 8,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 8,
+                  "pr_auc_trapezoidal": 0.75,
+                  "precision": null,
+                  "predicted_positive": 0,
+                  "ranking_unavailable_reason": null,
+                  "recall": 0.0,
+                  "support": 8,
+                  "true_negative": 8,
+                  "true_positive": 0
+                },
+                "difference_from_baseline": null,
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.0007568001747131348,
+                  "mean_seconds": 0.0005013687768951058,
+                  "measured_cases": 16,
+                  "median_seconds": 0.00047990004532039165,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.000686075072735548
+                }
+              },
+              "native_encoder": {
+                "detection": {
+                  "average_precision": 1.0,
+                  "calibration": {
+                    "bins": [
+                      {
+                        "count": 0,
+                        "lower": 0.0,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.1
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.1,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.2
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.2,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.3
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.3,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.4
+                      },
+                      {
+                        "count": 10,
+                        "lower": 0.4,
+                        "mean_probability": 0.47078790664672854,
+                        "positive_fraction": 0.2,
+                        "upper": 0.5
+                      },
+                      {
+                        "count": 6,
+                        "lower": 0.5,
+                        "mean_probability": 0.5097674131393433,
+                        "positive_fraction": 1.0,
+                        "upper": 0.6
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.6,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.7
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.7,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.8
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.8,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.9
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.9,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 1.0
+                      }
+                    ],
+                    "brier": 0.23166979544798671,
+                    "ece": 0.3530796617269516
+                  },
+                  "f1": 0.8571428571428571,
+                  "false_negative": 2,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 8,
+                  "pr_auc_trapezoidal": 1.0,
+                  "precision": 1.0,
+                  "predicted_positive": 6,
+                  "ranking_unavailable_reason": null,
+                  "recall": 0.75,
+                  "support": 8,
+                  "true_negative": 8,
+                  "true_positive": 6
+                },
+                "difference_from_baseline": {
+                  "average_precision": 0.5,
+                  "f1": 0.8571428571428571,
+                  "false_positives_per_device": 0.0,
+                  "mean_seconds": 0.02363739997963421,
+                  "pr_auc_trapezoidal": 0.25
+                },
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.026980100199580193,
+                  "mean_seconds": 0.024138768756529316,
+                  "measured_cases": 16,
+                  "median_seconds": 0.024124300107359886,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.02614040009211749
+                }
+              }
+            },
+            "unique_devices": 4
+          }
+        },
+        "by_vendor": {
+          "cisco": {
+            "configurations": 8,
+            "models": {
+              "isolation_forest": {
+                "detection": {
+                  "average_precision": 0.5,
+                  "calibration": null,
+                  "f1": 0.0,
+                  "false_negative": 4,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 4,
+                  "pr_auc_trapezoidal": 0.75,
+                  "precision": null,
+                  "predicted_positive": 0,
+                  "ranking_unavailable_reason": null,
+                  "recall": 0.0,
+                  "support": 4,
+                  "true_negative": 4,
+                  "true_positive": 0
+                },
+                "difference_from_baseline": null,
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.0007568001747131348,
+                  "mean_seconds": 0.00046227494021877646,
+                  "measured_cases": 8,
+                  "median_seconds": 0.0004102000966668129,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.0006842801114544272
+                }
+              },
+              "native_encoder": {
+                "detection": {
+                  "average_precision": 1.0,
+                  "calibration": {
+                    "bins": [
+                      {
+                        "count": 0,
+                        "lower": 0.0,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.1
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.1,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.2
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.2,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.3
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.3,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.4
+                      },
+                      {
+                        "count": 4,
+                        "lower": 0.4,
+                        "mean_probability": 0.4604696109890938,
+                        "positive_fraction": 0.0,
+                        "upper": 0.5
+                      },
+                      {
+                        "count": 4,
+                        "lower": 0.5,
+                        "mean_probability": 0.5095596611499786,
+                        "positive_fraction": 1.0,
+                        "upper": 0.6
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.6,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.7
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.7,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.8
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.8,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.9
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.9,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 1.0
+                      }
+                    ],
+                    "brier": 0.22628374041155952,
+                    "ece": 0.47545497491955757
+                  },
+                  "f1": 1.0,
+                  "false_negative": 0,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 4,
+                  "pr_auc_trapezoidal": 1.0,
+                  "precision": 1.0,
+                  "predicted_positive": 4,
+                  "ranking_unavailable_reason": null,
+                  "recall": 1.0,
+                  "support": 4,
+                  "true_negative": 4,
+                  "true_positive": 4
+                },
+                "difference_from_baseline": {
+                  "average_precision": 0.5,
+                  "f1": 1.0,
+                  "false_positives_per_device": 0.0,
+                  "mean_seconds": 0.023286837618798018,
+                  "pr_auc_trapezoidal": 0.25
+                },
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.025860500056296587,
+                  "mean_seconds": 0.023749112559016794,
+                  "measured_cases": 8,
+                  "median_seconds": 0.023709250148385763,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.025290630036033688
+                }
+              }
+            },
+            "unique_devices": 2
+          },
+          "juniper": {
+            "configurations": 8,
+            "models": {
+              "isolation_forest": {
+                "detection": {
+                  "average_precision": 0.5,
+                  "calibration": null,
+                  "f1": 0.0,
+                  "false_negative": 4,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 4,
+                  "pr_auc_trapezoidal": 0.75,
+                  "precision": null,
+                  "predicted_positive": 0,
+                  "ranking_unavailable_reason": null,
+                  "recall": 0.0,
+                  "support": 4,
+                  "true_negative": 4,
+                  "true_positive": 0
+                },
+                "difference_from_baseline": null,
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.0006625000387430191,
+                  "mean_seconds": 0.0005404626135714352,
+                  "measured_cases": 8,
+                  "median_seconds": 0.0005152001976966858,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.0006542401388287544
+                }
+              },
+              "native_encoder": {
+                "detection": {
+                  "average_precision": 1.0,
+                  "calibration": {
+                    "bins": [
+                      {
+                        "count": 0,
+                        "lower": 0.0,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.1
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.1,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.2
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.2,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.3
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.3,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.4
+                      },
+                      {
+                        "count": 6,
+                        "lower": 0.4,
+                        "mean_probability": 0.477666770418485,
+                        "positive_fraction": 0.3333333333333333,
+                        "upper": 0.5
+                      },
+                      {
+                        "count": 2,
+                        "lower": 0.5,
+                        "mean_probability": 0.5101829171180725,
+                        "positive_fraction": 1.0,
+                        "upper": 0.6
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.6,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.7
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.7,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.8
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.8,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 0.9
+                      },
+                      {
+                        "count": 0,
+                        "lower": 0.9,
+                        "mean_probability": null,
+                        "positive_fraction": null,
+                        "upper": 1.0
+                      }
+                    ],
+                    "brier": 0.2370558504844139,
+                    "ece": 0.23070434853434563
+                  },
+                  "f1": 0.6666666666666666,
+                  "false_negative": 2,
+                  "false_positive": 0,
+                  "label": "anomaly",
+                  "negatives": 4,
+                  "pr_auc_trapezoidal": 1.0,
+                  "precision": 1.0,
+                  "predicted_positive": 2,
+                  "ranking_unavailable_reason": null,
+                  "recall": 0.5,
+                  "support": 4,
+                  "true_negative": 4,
+                  "true_positive": 2
+                },
+                "difference_from_baseline": {
+                  "average_precision": 0.5,
+                  "f1": 0.6666666666666666,
+                  "false_positives_per_device": 0.0,
+                  "mean_seconds": 0.023987962340470403,
+                  "pr_auc_trapezoidal": 0.25
+                },
+                "false_positives_per_device": 0.0,
+                "latency": {
+                  "max_seconds": 0.026980100199580193,
+                  "mean_seconds": 0.02452842495404184,
+                  "measured_cases": 8,
+                  "median_seconds": 0.024730049772188067,
+                  "missing_cases": 0,
+                  "p95_seconds": 0.026523210061714052
+                }
+              }
+            },
+            "unique_devices": 2
+          }
+        },
+        "common_unseen_sites": null,
+        "status": "available",
+        "summary": {
+          "configurations": 16,
+          "models": {
+            "isolation_forest": {
+              "detection": {
+                "average_precision": 0.5,
+                "calibration": null,
+                "f1": 0.0,
+                "false_negative": 8,
+                "false_positive": 0,
+                "label": "anomaly",
+                "negatives": 8,
+                "pr_auc_trapezoidal": 0.75,
+                "precision": null,
+                "predicted_positive": 0,
+                "ranking_unavailable_reason": null,
+                "recall": 0.0,
+                "support": 8,
+                "true_negative": 8,
+                "true_positive": 0
+              },
+              "difference_from_baseline": null,
+              "false_positives_per_device": 0.0,
+              "latency": {
+                "max_seconds": 0.0007568001747131348,
+                "mean_seconds": 0.0005013687768951058,
+                "measured_cases": 16,
+                "median_seconds": 0.00047990004532039165,
+                "missing_cases": 0,
+                "p95_seconds": 0.000686075072735548
+              }
+            },
+            "native_encoder": {
+              "detection": {
+                "average_precision": 1.0,
+                "calibration": {
+                  "bins": [
+                    {
+                      "count": 0,
+                      "lower": 0.0,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.1
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.1,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.2
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.2,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.3
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.3,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.4
+                    },
+                    {
+                      "count": 10,
+                      "lower": 0.4,
+                      "mean_probability": 0.47078790664672854,
+                      "positive_fraction": 0.2,
+                      "upper": 0.5
+                    },
+                    {
+                      "count": 6,
+                      "lower": 0.5,
+                      "mean_probability": 0.5097674131393433,
+                      "positive_fraction": 1.0,
+                      "upper": 0.6
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.6,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.7
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.7,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.8
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.8,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 0.9
+                    },
+                    {
+                      "count": 0,
+                      "lower": 0.9,
+                      "mean_probability": null,
+                      "positive_fraction": null,
+                      "upper": 1.0
+                    }
+                  ],
+                  "brier": 0.23166979544798671,
+                  "ece": 0.3530796617269516
+                },
+                "f1": 0.8571428571428571,
+                "false_negative": 2,
+                "false_positive": 0,
+                "label": "anomaly",
+                "negatives": 8,
+                "pr_auc_trapezoidal": 1.0,
+                "precision": 1.0,
+                "predicted_positive": 6,
+                "ranking_unavailable_reason": null,
+                "recall": 0.75,
+                "support": 8,
+                "true_negative": 8,
+                "true_positive": 6
+              },
+              "difference_from_baseline": {
+                "average_precision": 0.5,
+                "f1": 0.8571428571428571,
+                "false_positives_per_device": 0.0,
+                "mean_seconds": 0.02363739997963421,
+                "pr_auc_trapezoidal": 0.25
+              },
+              "false_positives_per_device": 0.0,
+              "latency": {
+                "max_seconds": 0.026980100199580193,
+                "mean_seconds": 0.024138768756529316,
+                "measured_cases": 16,
+                "median_seconds": 0.024124300107359886,
+                "missing_cases": 0,
+                "p95_seconds": 0.02614040009211749
+              }
+            }
+          },
+          "unique_devices": 4
+        }
+      }
+    },
+    "dataset_manifest_sha256": "1092cc7883cba3328985913cd906886adfc2646f8d5a2262d985558ed9a6e06a",
+    "external_pretraining_isolation_proven": false,
+    "input_sha256": "0f839c95c7c0f79eba5eea7f978611f080cabb126e8d5b195f36be4f4611b157",
+    "latency_scope": "parsing_and_inference",
+    "limitations": [
+      "Caller-supplied authorization, truth and grouping are not independently attested.",
+      "All models score the same complete source-bound truth table; no row intersection.",
+      "Anomaly-only comparison never invents baseline category, localization or unknown heads.",
+      "Thresholds and score kinds are recorded per model; deltas are not a universal winner.",
+      "No significance intervals treat formatting views as independent networks.",
+      "Local exposure checks do not establish external pretraining corpus isolation.",
+      "False positives per device count configuration alerts, not deduplicated incidents.",
+      "Latency deltas require the same measured cases; cold start and I/O may be excluded."
+    ],
+    "local_entity_exposure_checked": true,
+    "models": {
+      "isolation_forest": {
+        "calibration_sha256": null,
+        "detection_threshold": 0.5,
+        "model_sha256": "96cad5f2990bce6681729b369688ec7dd9003cf08d6ec7ac6a3baeb14f906f67",
+        "model_version": "owned-vendor-forest-control-0.1.0",
+        "protocol_sha256": "4ee55da44ad0f5255635a34eda8ed39fcd7afb61f1b4442b9181f36bf43ec760",
+        "role": "baseline",
+        "score_kind": "ranking",
+        "threshold_policy_sha256": "99a6ed8bc8b4acc74fb89ac0b1f6cdd67b776d0cd8e20cdc51496faa8e247f2b",
+        "tokenizer_sha256": null
+      },
+      "native_encoder": {
+        "calibration_sha256": null,
+        "detection_threshold": 0.5,
+        "model_sha256": "45a6d1cb7b9818bd1a9edcd677c8779aa4e50979fff730716e060064d3960436",
+        "model_version": "multitask-training-0.3.0",
+        "protocol_sha256": "0fa0a2f84e47d90a2e6404fc262419584b1c3b350bf5375c4fb2938c2a937851",
+        "role": "candidate",
+        "score_kind": "probability",
+        "threshold_policy_sha256": "e3b4d783bf346645f657b0f91ba80afcb87243375f0a01441b7f92bd5f240208",
+        "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0"
+      }
+    },
+    "production_quality_proven": false,
+    "purpose": "validation_diagnostic",
+    "risk_updated": false,
+    "significance_tested": false,
+    "target_semantics": "injected_mutation",
+    "truth_sha256": "cde38a993533a13d5b6875a012502170dbe5b5a5d6c734df7a2a40fc495f0518",
+    "version": "paired-detection-report-0.1.0"
+  },
+  "compatibility_scope": "Pydantic 2.14 parent; isolated subprocesses use their default installed dependencies",
+  "coverage": {
+    "lines_covered": 18871,
+    "lines_valid": 20883,
+    "xml_sha256": "3bcae1f45c6f508be48047ae9b19b023a8e74f5163f0819a1517fa6d36e3ae14"
+  },
+  "detection": {
+    "average_precision": 1.0,
+    "calibration": {
+      "bins": [
+        {
+          "count": 0,
+          "lower": 0.0,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.1
+        },
+        {
+          "count": 0,
+          "lower": 0.1,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.2
+        },
+        {
+          "count": 0,
+          "lower": 0.2,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.3
+        },
+        {
+          "count": 0,
+          "lower": 0.3,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.4
+        },
+        {
+          "count": 10,
+          "lower": 0.4,
+          "mean_probability": 0.47078790664672854,
+          "positive_fraction": 0.2,
+          "upper": 0.5
+        },
+        {
+          "count": 6,
+          "lower": 0.5,
+          "mean_probability": 0.5097674131393433,
+          "positive_fraction": 1.0,
+          "upper": 0.6
+        },
+        {
+          "count": 0,
+          "lower": 0.6,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.7
+        },
+        {
+          "count": 0,
+          "lower": 0.7,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.8
+        },
+        {
+          "count": 0,
+          "lower": 0.8,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 0.9
+        },
+        {
+          "count": 0,
+          "lower": 0.9,
+          "mean_probability": null,
+          "positive_fraction": null,
+          "upper": 1.0
+        }
+      ],
+      "brier": 0.23166979544798671,
+      "ece": 0.3530796617269516
+    },
+    "f1": 0.8571428571428571,
+    "false_negative": 2,
+    "false_positive": 0,
+    "label": "anomaly",
+    "negatives": 8,
+    "pr_auc_trapezoidal": 1.0,
+    "precision": 1.0,
+    "predicted_positive": 6,
+    "ranking_unavailable_reason": null,
+    "recall": 0.75,
+    "support": 8,
+    "true_negative": 8,
+    "true_positive": 6
+  },
+  "executed_optimizer_steps": 20,
+  "exposure": {
+    "comparisons": 34860,
+    "corpus_sha256": "777fa1df00a98f53e5dc2327c736d626c62aad142d16c2818e0ce1ee97e84278",
+    "downstream_content_sha256": "45a2ebe8bc35c333393c0e287981514fd6cb78ad2c2952f3e2b851800d04b6a0",
+    "downstream_manifest_sha256": "1092cc7883cba3328985913cd906886adfc2646f8d5a2262d985558ed9a6e06a",
+    "downstream_unique_content_count": 84,
+    "heldout_overlap_count": 0,
+    "physical_pretraining_isolation_proven": false,
+    "policy": {
+      "max_comparisons": 200000,
+      "near_duplicate_threshold": 0.82
+    },
+    "source_intake_count": 415,
+    "train_overlap_counts": {
+      "near": 0,
+      "normalized": 0,
+      "raw": 0,
+      "sanitized": 0,
+      "source": 0,
+      "template": 0
+    },
+    "version": "fixture-transfer-exposure-0.1.0"
+  },
+  "first_loss": {
+    "epoch": 1,
+    "train_components": {
+      "anomaly": 0.6942062377929688,
+      "category": 0.6946132779121399,
+      "contrastive": 0.4059634804725647,
+      "localization": 0.6247541904449463,
+      "severity": null
+    },
+    "train_total": 2.0541698932647705,
+    "validation_components": {
+      "anomaly": 0.6936838626861572,
+      "category": 0.6928381323814392,
+      "contrastive": 0.4256570041179657,
+      "localization": 0.5665583610534668,
+      "severity": null
+    },
+    "validation_total": 1.9956461191177368
+  },
+  "head_policy": {
+    "adapter_rank": 16,
+    "classes": [
+      "telnet_enabled"
+    ],
+    "contrastive_margin": 0.2,
+    "embedding_size": 64,
+    "max_blocks_per_configuration": 1024,
+    "max_examples": 128,
+    "max_feature_values": 2000000,
+    "max_lines_per_configuration": 100000,
+    "version": "multitask-heads-0.1.0"
+  },
+  "history_files_unchanged": 80,
+  "hypothetical_network_labels": 12,
+  "independent_test": false,
+  "installed_fixture_test_runtime_origin": {
+    "every_child_app_ml_module_file_asserted_under_selected_roots": true,
+    "initial_installed_test_runs_had_parent_only_import_audit": true,
+    "no_model_retraining_for_origin_correction": true,
+    "parent_app_ml_imports": 101,
+    "parent_checkout_imports": 0,
+    "parent_dependency_override_not_inherited_by_isolated_children": true,
+    "subprocess_roots_selected_from_imported_app_and_ml_packages": true,
+    "subprocesses_audited": 4
+  },
+  "last_loss": {
+    "epoch": 20,
+    "train_components": {
+      "anomaly": 0.6540292501449585,
+      "category": 0.6588340401649475,
+      "contrastive": 0.21724118292331696,
+      "localization": 0.1853378713130951,
+      "severity": null
+    },
+    "train_total": 1.5199253559112549,
+    "validation_components": {
+      "anomaly": 0.6564284563064575,
+      "category": 0.6604951620101929,
+      "contrastive": 0.2817765176296234,
+      "localization": 0.18159876763820648,
+      "severity": null
+    },
+    "validation_total": 1.5267000198364258
+  },
+  "legacy_complete_input_and_60_prediction_parity": {
+    "examples": 60,
+    "full_historical_predictions_sha256": "177a478dd3af8b91bd019f5933530a2672ac790de5e381cacbbdb17d2ea02b88",
+    "full_input_sha256": "955c0aea3fea71be537ab0c39dadf1a4669803fdb156633f11d3122f10e052bf",
+    "historical_model_identity": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+    "split_identity": "5266e170bc0547d61f544f1dc707e66ac34e1b6fef675296a894e0e3a0fb4777"
+  },
+  "legacy_paired_improvement_claimed": false,
+  "localization": {
+    "annotated_cases": 16,
+    "eligible_lines": 148,
+    "evaluated_cases": 16,
+    "excluded_deletion_cases": 0,
+    "f1": 0.0,
+    "false_negative": 8,
+    "false_positive": 0,
+    "missing_annotation_cases": 0,
+    "precision": null,
+    "recall": 0.0,
+    "scored_lines": 148,
+    "true_negative": 140,
+    "true_positive": 0,
+    "unscored_eligible_lines": 0,
+    "unscored_positive_lines": 0
+  },
+  "measured_on": "2026-10-11",
+  "model_sha256": "45a6d1cb7b9818bd1a9edcd677c8779aa4e50979fff730716e060064d3960436",
+  "native_vendor_category_and_localization": {
+    "cisco": {
+      "categories": [
+        {
+          "average_precision": 1.0,
+          "calibration": {
+            "bins": [
+              {
+                "count": 0,
+                "lower": 0.0,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.1
+              },
+              {
+                "count": 0,
+                "lower": 0.1,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.2
+              },
+              {
+                "count": 0,
+                "lower": 0.2,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.3
+              },
+              {
+                "count": 0,
+                "lower": 0.3,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.4
+              },
+              {
+                "count": 4,
+                "lower": 0.4,
+                "mean_probability": 0.4781998321413994,
+                "positive_fraction": 0.0,
+                "upper": 0.5
+              },
+              {
+                "count": 4,
+                "lower": 0.5,
+                "mean_probability": 0.5204169303178787,
+                "positive_fraction": 1.0,
+                "upper": 0.6
+              },
+              {
+                "count": 0,
+                "lower": 0.6,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.7
+              },
+              {
+                "count": 0,
+                "lower": 0.7,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.8
+              },
+              {
+                "count": 0,
+                "lower": 0.8,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.9
+              },
+              {
+                "count": 0,
+                "lower": 0.9,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 1.0
+              }
+            ],
+            "brier": 0.22933898168122668,
+            "ece": 0.47889145091176033
+          },
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "label": "telnet_enabled",
+          "negatives": 4,
+          "pr_auc_trapezoidal": 1.0,
+          "precision": 1.0,
+          "predicted_positive": 4,
+          "ranking_unavailable_reason": null,
+          "recall": 1.0,
+          "support": 4,
+          "true_negative": 4,
+          "true_positive": 4
+        }
+      ],
+      "localization": {
+        "annotated_cases": 8,
+        "eligible_lines": 84,
+        "evaluated_cases": 8,
+        "excluded_deletion_cases": 0,
+        "f1": 0.0,
+        "false_negative": 4,
+        "false_positive": 0,
+        "missing_annotation_cases": 0,
+        "precision": null,
+        "recall": 0.0,
+        "scored_lines": 84,
+        "true_negative": 80,
+        "true_positive": 0,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0
+      }
+    },
+    "juniper": {
+      "categories": [
+        {
+          "average_precision": 1.0,
+          "calibration": {
+            "bins": [
+              {
+                "count": 0,
+                "lower": 0.0,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.1
+              },
+              {
+                "count": 0,
+                "lower": 0.1,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.2
+              },
+              {
+                "count": 0,
+                "lower": 0.2,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.3
+              },
+              {
+                "count": 0,
+                "lower": 0.3,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.4
+              },
+              {
+                "count": 8,
+                "lower": 0.4,
+                "mean_probability": 0.4778560660779476,
+                "positive_fraction": 0.5,
+                "upper": 0.5
+              },
+              {
+                "count": 0,
+                "lower": 0.5,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.6
+              },
+              {
+                "count": 0,
+                "lower": 0.6,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.7
+              },
+              {
+                "count": 0,
+                "lower": 0.7,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.8
+              },
+              {
+                "count": 0,
+                "lower": 0.8,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 0.9
+              },
+              {
+                "count": 0,
+                "lower": 0.9,
+                "mean_probability": null,
+                "positive_fraction": null,
+                "upper": 1.0
+              }
+            ],
+            "brier": 0.23804754812425666,
+            "ece": 0.022143933922052383
+          },
+          "f1": 0.0,
+          "false_negative": 4,
+          "false_positive": 0,
+          "label": "telnet_enabled",
+          "negatives": 4,
+          "pr_auc_trapezoidal": 1.0,
+          "precision": null,
+          "predicted_positive": 0,
+          "ranking_unavailable_reason": null,
+          "recall": 0.0,
+          "support": 4,
+          "true_negative": 4,
+          "true_positive": 0
+        }
+      ],
+      "localization": {
+        "annotated_cases": 8,
+        "eligible_lines": 64,
+        "evaluated_cases": 8,
+        "excluded_deletion_cases": 0,
+        "f1": 0.0,
+        "false_negative": 4,
+        "false_positive": 0,
+        "missing_annotation_cases": 0,
+        "precision": null,
+        "recall": 0.0,
+        "scored_lines": 64,
+        "true_negative": 60,
+        "true_positive": 0,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0
+      }
+    }
+  },
+  "new_baseline_fit": true,
+  "new_independent_examples": 0,
+  "new_neural_fits": 1,
+  "new_scenario_data_and_truth_differ_from_legacy": true,
+  "online_activation": false,
+  "original_authored_parents": 24,
+  "owned_scenario": "bilateral-telnet-0.1.0",
+  "private_admission_sha256": "0c8d075cc1915b78910c5fc8bb3e50981fd11afdf7e143093132f27a23a60369",
+  "private_comparison_input_sha256": "cd41bbc9efcc2d63fbc7ab30faca6a3c5996237add1e67c3b50afe046e190a17",
+  "private_comparison_report_sha256": "da89223af3ab40d385a22c12ad37e6c781f8eab0ac69406cd6b2364e5a3331d6",
+  "private_metrics_sha256": "187c052ede07c4b8cbdcddcd7e4e0ca4cb93f46303e6d92e09974f095841c852",
+  "private_predictions_sha256": "de4084e3d216c6a843c6051a5f671e1875cdcd4182ad694271af61b21dd732a8",
+  "private_run_sha256": "c1962e0e094dcb550da57d49fdf8f03cc8b09163a14c79605012fda7e0fc5b7b",
+  "private_training_report_sha256": "8ece2550a9f01af3363ed893f9f58dec03112e282fd87d38aad44debdc89eb7a",
+  "production_quality_proven": false,
+  "protocol": {
+    "additional_physical_networks": 0,
+    "base_commit": "60c13146100cb674dbb99a1fac69981b5fa380c4",
+    "best_seed_selection": false,
+    "epoch_selection": "minimum_weighted_validation_loss_not_f1",
+    "epochs": 20,
+    "forest_fit": "original_train_parents_only_same_new_selection_truth",
+    "forest_random_state": 42,
+    "gradient_clip": 1.0,
+    "independent_test": false,
+    "learning_rate": 0.01,
+    "legacy_history_replaced": false,
+    "loss_weights": {
+      "anomaly": 1.0,
+      "category": 1.0,
+      "contrastive": 0.1,
+      "localization": 1.0,
+      "severity": 0.0
+    },
+    "new_encoder_fit": false,
+    "new_independent_examples": 0,
+    "online_activation": false,
+    "owned_scenario": "bilateral-telnet-0.1.0",
+    "publish_all_outcomes": true,
+    "purpose": "validation_diagnostic",
+    "seed": 17,
+    "selection_reused": true,
+    "source_identity": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+    "test_use": "content_overlap_gate_only_no_features_labels_or_tuning",
+    "threshold": 0.5,
+    "threshold_fitting": false,
+    "threshold_rule": "strict_greater_than",
+    "version": "owned-bilateral-fixture-protocol-0.1.0",
+    "weight_decay": 0.01
+  },
+  "protocol_sha256": "118081c794ff15e553bb20c649e7156808942375f51ad0fc637d028a12aa53aa",
+  "real_confirmed_quality": null,
+  "requirements": [
+    "11.4",
+    "12",
+    "13B",
+    "14",
+    "23.5"
+  ],
+  "reserved_test_parents": 4,
+  "round_trip_all_80_predictions_equal": true,
+  "runtime": {
+    "device": "cpu",
+    "pydantic": "2.13.5",
+    "python": "3.14.7",
+    "torch": "2.14.0+cpu"
+  },
+  "runtime_files_byte_equal": 230,
+  "scope": "new bounded bilateral synthetic selection diagnostic, not a paired improvement versus legacy or independent quality",
+  "selected_epoch": 20,
+  "selected_loss": {
+    "epoch": 20,
+    "train_components": {
+      "anomaly": 0.6540292501449585,
+      "category": 0.6588340401649475,
+      "contrastive": 0.21724118292331696,
+      "localization": 0.1853378713130951,
+      "severity": null
+    },
+    "train_total": 1.5199253559112549,
+    "validation_components": {
+      "anomaly": 0.6564284563064575,
+      "category": 0.6604951620101929,
+      "contrastive": 0.2817765176296234,
+      "localization": 0.18159876763820648,
+      "severity": null
+    },
+    "validation_total": 1.5267000198364258
+  },
+  "selection_eligible_lines": 148,
+  "selection_parents": 4,
+  "selection_positive_lines": 8,
+  "selection_vendor_targets": {
+    "cisco": {
+      "negative": 4,
+      "positive": 4
+    },
+    "juniper": {
+      "negative": 4,
+      "positive": 4
+    }
+  },
+  "selection_views": 16,
+  "source_base_commit": "60c13146100cb674dbb99a1fac69981b5fa380c4",
+  "source_model_sha256": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+  "split_identity": "1092cc7883cba3328985913cd906886adfc2646f8d5a2262d985558ed9a6e06a",
+  "total_parameters": 50603,
+  "train_parents": 16,
+  "train_vendor_targets": {
+    "cisco": {
+      "negative": 16,
+      "positive": 16
+    },
+    "juniper": {
+      "negative": 16,
+      "positive": 16
+    }
+  },
+  "train_views": 64,
+  "trainable_parameters": 3993,
+  "training_format": "multitask-training-0.3.0",
+  "training_policy": {
+    "epochs": 20,
+    "gradient_clip": 1.0,
+    "learning_rate": 0.01,
+    "max_feature_values": 4000000,
+    "max_total_windows": 10000,
+    "seed": 17,
+    "weight_decay": 0.01
+  },
+  "version": "owned-bilateral-fixture-evidence-0.1.0",
+  "wheel_sha256": "840d99b14853d6e4d9c899fc1057266ddc6ce13475be6a8f9e2c19b069363e50"
+}

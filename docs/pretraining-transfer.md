@@ -245,3 +245,56 @@ data, not an independent test. Raw ECE/Brier are diagnostic, not calibration fit
 Reserved test text is used only in the existing content-overlap gate, without
 features, labels or tuning. Real-confirmed, Cisco-positive, independent unknown-site,
 severity and production quality remain unqualified. There is no accepted winner.
+
+## Explicit bilateral Telnet scenario
+
+The opt-in `bilateral-telnet-0.1.0` adds positive Cisco supervision to the owned
+fixture-transfer demonstration. The default remains `legacy-telnet-0.1.0`:
+the complete old split, 48/12 train/selection views, protocol fields and saved
+checkpoints are not reinterpreted. This is a versioned authored scenario, not
+an importer of additional real configurations or an independent dataset.
+
+```powershell
+python -m ml.training.fixture_transfer_smoke --source-model private/fixture-encoder --source-sha256 <full-pin> --manifest private/fixture-manifest.json --records private/fixture-records.json --owned-scenario bilateral-telnet-0.1.0 --output artifacts/new-bilateral-transfer
+```
+
+Each Cisco authored parent gains `line vty 0 4` / `transport input ssh` before
+sanitization, so the existing generator can apply its Telnet recipe. JunOS
+parent text is unchanged. All parents have a distinct scenario source ID and
+raw SHA/byte counts derived from their actual authored pre-sanitizer bytes;
+sanitized hashes are recomputed. Entity, capture-time and 16/4/4 partition
+memberships remain the same. Existing sanitization, deduplication, splitter,
+source-exposure, annotation and reserved-test checks are not relaxed.
+
+The 24 authored parents still represent only twelve **hypothetical** network
+labels. Sixteen train parents now yield 64 views: 16 positive and 16 negative
+per vendor. Four selection parents yield 16 views: four positive and four
+negative per vendor. The leading-blank views stay bound to their parents and
+line coordinates. Four reserved parents produce no training/selection examples;
+their text is used only in the existing overlap gate. There are no new
+independent networks, confirmed anomalies, severity labels or semantic pairs.
+
+[Actual installed diagnostic](evaluation/owned-bilateral-fixture-transfer.json)
+uses the retained approved 412-fixture encoder and the unchanged default seed
+17, 20 full-batch steps, loss weights and strict 0.5 thresholds. The minimum
+weighted selection loss chooses epoch 20 (1.52670). All 415 retained upstream
+members are checked against 84 unique downstream contents: 34,860 comparisons,
+no observed overlap, and **unknown physical independence**. The encoder and
+80 historical source/model/report files remain unchanged; save/load preserves
+all 80 new predictions. Old and new installed packages also agree on the full
+legacy input and all 60 predictions of the historical model.
+
+The selected new model detects six of eight injections, with zero false
+positives: anomaly F1 0.85714, AP 1. Cisco detects four of four positives; JunOS
+detects two of four. Category F1 is 0.66667 (four of eight positives detected).
+Line recall is still **0**, missing all eight positive lines among 148 eligible
+lines. Raw ECE/Brier are not a calibration fit. The shared-case comparison fits
+new forests only on the sixteen original new-scenario train parents, with F1
+zero on exactly the same sixteen selection views.
+
+The new parent context, class balance, view count and truth table differ from
+legacy. This is **not** a paired legacy improvement or isolated causal proof
+that a vendor shortcut was removed. Reused selection data, tiny authored
+templates, formatting/recipe/length shortcuts and line-level imbalance remain
+limitations. No independent-test, real-confirmed, vendor-syntax, formal safety,
+online activation or production-quality gate is passed.

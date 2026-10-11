@@ -5,6 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Literal
+
+from app.domain import Vendor
 
 from ml.datasets import (
     DatasetSplitResult,
@@ -35,18 +38,38 @@ from ml.training.multitask_training import (
 from ml.training.pretraining import load_fixture_pretraining, pretraining_identity
 from ml.training.pretraining_smoke import pretraining_fixtures
 
+type OwnedTransferScenario = Literal["legacy-telnet-0.1.0", "bilateral-telnet-0.1.0"]
+OWNED_TRANSFER_SCENARIOS: tuple[OwnedTransferScenario, ...] = (
+    "legacy-telnet-0.1.0",
+    "bilateral-telnet-0.1.0",
+)
 
-def authored_transfer_splits() -> DatasetSplitResult:
+
+def authored_transfer_splits(
+    *, scenario: OwnedTransferScenario = "legacy-telnet-0.1.0"
+) -> DatasetSplitResult:
     """Original 24 owned fixtures, not new independent networks or real healthy labels."""
+    if scenario not in OWNED_TRANSFER_SCENARIOS:
+        raise ValueError("unknown owned transfer scenario")
     original, _ = pretraining_fixtures()
     records: list[ImportedDatasetRecord] = []
     for part in original.partitions:
         for row in part.records:
+            text = row.sanitized_text
+            if scenario == "bilateral-telnet-0.1.0" and row.vendor_hint is Vendor.CISCO:
+                text += "line vty 0 4\n transport input ssh\n"
             sanitized = sanitize_configuration(
-                row.sanitized_text,
+                text,
                 topology_id=f"{row.source_id}\0{row.network_id}",
                 pseudonymization_key=b"owned-fixture-transfer-synthetic-test-key",
             )
+            scenario_updates: dict[str, object] = {}
+            if scenario == "bilateral-telnet-0.1.0":
+                scenario_updates = {
+                    "source_id": "synthetic-fixture-transfer-bilateral-0.1.0",
+                    "raw_sha256": digest(text),
+                    "raw_byte_count": len(text.encode()),
+                }
             records.append(
                 row.model_copy(
                     update={
@@ -55,6 +78,7 @@ def authored_transfer_splits() -> DatasetSplitResult:
                         "sanitized_sha256": digest(sanitized.text),
                         "replacements": sanitized.replacements,
                         "sanitization_version": sanitized.version,
+                        **scenario_updates,
                     }
                 )
             )
@@ -89,13 +113,14 @@ def run_fixture_transfer(
     output: Path,
     *,
     epochs: int = 20,
+    scenario: OwnedTransferScenario = "legacy-telnet-0.1.0",
 ) -> dict[str, object]:
     """Fixed authored scenario; no arbitrary customer inputs or registry enrollment."""
     source = load_fixture_pretraining(source_model)
     if pretraining_identity(source) != expected_identity:
         raise ValueError("fixture source independent model pin differs")
     corpus = load_retained_fixture_corpus(manifest, records, source_model)
-    splits = authored_transfer_splits()
+    splits = authored_transfer_splits(scenario=scenario)
     examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
     output.mkdir(exist_ok=False)
     marker = output / ".incomplete"
@@ -109,6 +134,8 @@ def run_fixture_transfer(
         "fixed_threshold": 0.5,
         "test_labels_used": False,
     }
+    if scenario != "legacy-telnet-0.1.0":
+        protocol["owned_scenario"] = scenario
     (output / "protocol.json").write_text(json.dumps(protocol, sort_keys=True), encoding="utf-8")
     result = train_multitask(
         splits,
@@ -147,6 +174,8 @@ def run_fixture_transfer(
         "real_confirmed_quality": None,
         "online_activation": False,
     }
+    if scenario != "legacy-telnet-0.1.0":
+        result_summary["owned_scenario"] = scenario
     (output / "run.json").write_text(json.dumps(result_summary, sort_keys=True), encoding="utf-8")
     marker.unlink()
     return result_summary
@@ -160,6 +189,9 @@ def main() -> int:
     parser.add_argument("--records", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument(
+        "--owned-scenario", choices=OWNED_TRANSFER_SCENARIOS, default="legacy-telnet-0.1.0"
+    )
     args = parser.parse_args()
     try:
         result = run_fixture_transfer(
@@ -169,6 +201,7 @@ def main() -> int:
             args.records,
             args.output,
             epochs=args.epochs,
+            scenario=args.owned_scenario,
         )
     except (ValueError, OSError, RuntimeError):
         parser.exit(1, "Fixture transfer failed; inspect trusted local source/exposure bindings.\n")
