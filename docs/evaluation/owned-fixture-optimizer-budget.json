@@ -1,0 +1,1435 @@
+{
+  "version": "owned-fixture-optimizer-evidence-0.1.0",
+  "measured_on": "2026-10-11",
+  "requirements": [
+    "13B",
+    "14",
+    "23.5"
+  ],
+  "scope": "predeclared optimizer-budget sensitivity on reused authored selection, not independent quality or a unique causal diagnosis",
+  "source_base_commit": "48c40f4eb11c8237bb70eb9a293272c233ff48c1",
+  "protocol": {
+    "version": "owned-fixture-optimizer-protocol-0.1.0",
+    "base_commit": "48c40f4eb11c8237bb70eb9a293272c233ff48c1",
+    "source_identity": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+    "seeds": [
+      17,
+      23,
+      41
+    ],
+    "epoch_budgets": [
+      20,
+      200
+    ],
+    "learning_rate": 0.01,
+    "weight_decay": 0.01,
+    "gradient_clip": 1.0,
+    "loss_weights": {
+      "anomaly": 1.0,
+      "category": 1.0,
+      "localization": 1.0,
+      "severity": 0.0,
+      "contrastive": 0.1
+    },
+    "threshold": 0.5,
+    "threshold_rule": "strict_greater_than",
+    "epoch_selection": "minimum_weighted_validation_loss_not_f1",
+    "publish_all_six_runs": true,
+    "best_seed_selection": false,
+    "test_use": "existing_content_overlap_gate_only_no_features_labels_or_tuning",
+    "corpus_and_annotations_changed": false,
+    "independent_test": false,
+    "purpose": "optimizer_budget_diagnostic",
+    "new_stage_a_fit_or_weights_download": false,
+    "online_activation": false,
+    "positive_vendor_scope": "juniper_only_no_cisco_positive_qualification"
+  },
+  "protocol_sha256": "f68d570bcba3be76e9382b3e1454608483030906abc760046685caa4956a502a",
+  "private_run_sha256": "91f7cc00bbcaa71fbea8183476c507fbd7b85661057139e9615bda41485efd8b",
+  "private_comparison_report_sha256": "d47625c8ef608c73e5016ad3385a427f996707e687beef8b751879912b61b5a1",
+  "truth_sha256": "30ce2fbf9c0dc48ee138ad8216f4e72e3f586ef15a06ceb81d425330df34ac4b",
+  "source_model_sha256": "254f62c867724f4ebff9e2e52bdc2ef5b1f191d97fbe4fbdb851e300e32f56f1",
+  "source_parameters": 46610,
+  "head_trainable_parameters": 3993,
+  "total_parameters": 50603,
+  "original_owned_configurations": 24,
+  "original_train_parents": 16,
+  "original_selection_parents": 4,
+  "reserved_test_parents": 4,
+  "hypothetical_network_labels": 12,
+  "train_views": 48,
+  "selection_views": 12,
+  "new_independent_examples": 0,
+  "configuration_train_targets": {
+    "negative": 32,
+    "positive": 16
+  },
+  "configuration_selection_targets": {
+    "negative": 8,
+    "positive": 4
+  },
+  "selection_vendor_targets": {
+    "cisco": {
+      "negative": 4,
+      "positive": 0
+    },
+    "juniper": {
+      "negative": 4,
+      "positive": 4
+    }
+  },
+  "selection_eligible_lines": 98,
+  "selection_positive_lines": 4,
+  "authored_role": "edge-router",
+  "new_neural_fits": 6,
+  "new_baseline_fit": false,
+  "retained_actual_forest_rescored": true,
+  "histories_and_source_unchanged": true,
+  "historical_seed17_20steps_exact_model_identity": true,
+  "runtime_files_byte_equal": 230,
+  "target_imports": 94,
+  "all_runtime_imports_from_selected_installed_target": true,
+  "real_confirmed_quality": null,
+  "independent_test": false,
+  "calibration_fit": false,
+  "online_activation": false,
+  "production_quality_proven": false,
+  "significance_tested": false,
+  "runs": [
+    {
+      "seed": 17,
+      "executed_optimizer_steps": 20,
+      "selected_epoch": 20,
+      "model_sha256": "5016b5621442b84f9c44e8642bee84740ca41be5704fd327d4346a1434ff1297",
+      "fit_seconds": 12.000941399950534,
+      "private_training_report_sha256": "3b3b958dfa55afa174d8e6bafa57d6857a10467b0bb4c70daf275d8598ba7669",
+      "private_metrics_sha256": "1d169c566f9baa26cb5ffe157b58e5561db1374a98724091b53eebedbada1abc",
+      "private_prediction_file_sha256": "e8afb12307eccd3d49c774af5c6afd759e4aaebf5614d662a7a8852365d8b0db",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.0143401622772217,
+        "validation_total": 1.9180175065994263,
+        "train_components": {
+          "anomaly": 0.6805283427238464,
+          "category": 0.6799668669700623,
+          "contrastive": 0.37315255403518677,
+          "localization": 0.6165297031402588,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6573594212532043,
+          "category": 0.6625775694847107,
+          "contrastive": 0.39025697112083435,
+          "localization": 0.5590548515319824,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.3060873746871948,
+        "validation_total": 1.2916085720062256,
+        "train_components": {
+          "anomaly": 0.5724032521247864,
+          "category": 0.5738585591316223,
+          "contrastive": 0.3619351089000702,
+          "localization": 0.1236320436000824,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.5612305402755737,
+          "category": 0.5641672611236572,
+          "contrastive": 0.3871278464794159,
+          "localization": 0.12749798595905304,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.3060873746871948,
+        "validation_total": 1.2916085720062256,
+        "train_components": {
+          "anomaly": 0.5724032521247864,
+          "category": 0.5738585591316223,
+          "contrastive": 0.3619351089000702,
+          "localization": 0.1236320436000824,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.5612305402755737,
+          "category": 0.5641672611236572,
+          "contrastive": 0.3871278464794159,
+          "localization": 0.12749798595905304,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.8166666666666667,
+        "pr_auc_trapezoidal": 0.7958333333333334,
+        "raw_probability_ece": 0.15711125483115512,
+        "raw_probability_brier": 0.19147624814283615
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 1.0,
+        "pr_auc_trapezoidal": 1.0,
+        "raw_probability_ece": 0.16416828955213228,
+        "raw_probability_brier": 0.19310062659958263
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 94,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.36160436272621155,
+        "anomaly_max": 0.3785307705402374,
+        "category_min": 0.3557416796684265,
+        "category_max": 0.35893481969833374
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 0.19907760620117188,
+        "anomaly_max": 0.37420007586479187,
+        "category_min": 0.1983264982700348,
+        "category_max": 0.35427355766296387
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 0.20780684798955917,
+            "raw_probability_brier": 0.04325896762356474
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 0.8166666666666667,
+            "pr_auc_trapezoidal": 0.7958333333333334,
+            "raw_probability_ece": 0.13176345825195312,
+            "raw_probability_brier": 0.26558488840247185
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 60,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    },
+    {
+      "seed": 17,
+      "executed_optimizer_steps": 200,
+      "selected_epoch": 38,
+      "model_sha256": "d011ccb1379e11ad3b745125c6da349972b77426f2222ce1405da95563460c7a",
+      "fit_seconds": 12.975872800219804,
+      "private_training_report_sha256": "b4b4ddb37b406687fde9bd7833d1320559ee82b6d59a3bf5043c7213cbca8a31",
+      "private_metrics_sha256": "e8b08a14d97a56080267b3951a2d35ef34e904548d986dfde815edafc55f4d5b",
+      "private_prediction_file_sha256": "7931e84210b716fc5b89b201c389e3f6187638edcb2048b1ae8c36f8a5ca9629",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.0143401622772217,
+        "validation_total": 1.9180175065994263,
+        "train_components": {
+          "anomaly": 0.6805283427238464,
+          "category": 0.6799668669700623,
+          "contrastive": 0.37315255403518677,
+          "localization": 0.6165297031402588,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6573594212532043,
+          "category": 0.6625775694847107,
+          "contrastive": 0.39025697112083435,
+          "localization": 0.5590548515319824,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 38,
+        "train_total": 0.5856993198394775,
+        "validation_total": 0.9425150156021118,
+        "train_components": {
+          "anomaly": 0.27574265003204346,
+          "category": 0.27612319588661194,
+          "contrastive": 0.1518259048461914,
+          "localization": 0.01865091361105442,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.4403344690799713,
+          "category": 0.4316866397857666,
+          "contrastive": 0.36352887749671936,
+          "localization": 0.03414108231663704,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 200,
+        "train_total": 0.00022202929540071636,
+        "validation_total": 6.128864288330078,
+        "train_components": {
+          "anomaly": 4.984751285519451e-05,
+          "category": 4.5015363866696134e-05,
+          "contrastive": 4.5381802920019254e-05,
+          "localization": 0.0001226282474817708,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 2.99543833732605,
+          "category": 3.037585973739624,
+          "contrastive": 0.38788172602653503,
+          "localization": 0.05705156922340393,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 1.0,
+        "pr_auc_trapezoidal": 1.0,
+        "raw_probability_ece": 0.29532012068860547,
+        "raw_probability_brier": 0.15956747764983548
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 1.0,
+        "pr_auc_trapezoidal": 1.0,
+        "raw_probability_ece": 0.2948774637382788,
+        "raw_probability_brier": 0.15494598726402697
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 94,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.33844831585884094,
+        "anomaly_max": 0.3614228367805481,
+        "category_min": 0.3508164584636688,
+        "category_max": 0.386282354593277
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 0.0014713667333126068,
+        "anomaly_max": 0.24393793940544128,
+        "category_min": 0.0015585137298330665,
+        "category_max": 0.26300519704818726
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 0.0018059491703752428,
+            "raw_probability_brier": 3.371006900682698e-06
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "raw_probability_ece": 0.4420772064477205,
+            "raw_probability_brier": 0.23934953097130288
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 4,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 60,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    },
+    {
+      "seed": 23,
+      "executed_optimizer_steps": 20,
+      "selected_epoch": 20,
+      "model_sha256": "92faecb5cd8309e6db9d1de3cdc03ce10e88ca617d6a5ee3223720dbe79b699b",
+      "fit_seconds": 11.244177700020373,
+      "private_training_report_sha256": "03a38b91e00badd7da291068a99d7a0582d943a25649cde0db5cb7d67290dbba",
+      "private_metrics_sha256": "c3a1a82ae94f37f77ed7a19d1f88e218321a886642cc5b9feb23c4513e2a2942",
+      "private_prediction_file_sha256": "a20342734af423a1d85c1b78b920319c1a7765a7f6c74d0d6317ebc414a9adf0",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.1641948223114014,
+        "validation_total": 2.0927908420562744,
+        "train_components": {
+          "anomaly": 0.7638840675354004,
+          "category": 0.6869781613349915,
+          "contrastive": 0.3707844316959381,
+          "localization": 0.6762542128562927,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.7527361512184143,
+          "category": 0.6771220564842224,
+          "contrastive": 0.3913051187992096,
+          "localization": 0.6238023042678833,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.391054391860962,
+        "validation_total": 1.3874698877334595,
+        "train_components": {
+          "anomaly": 0.6226757168769836,
+          "category": 0.6075661778450012,
+          "contrastive": 0.362860769033432,
+          "localization": 0.12452634423971176,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6173166632652283,
+          "category": 0.6063823103904724,
+          "contrastive": 0.38768017292022705,
+          "localization": 0.1250028759241104,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.391054391860962,
+        "validation_total": 1.3874698877334595,
+        "train_components": {
+          "anomaly": 0.6226757168769836,
+          "category": 0.6075661778450012,
+          "contrastive": 0.362860769033432,
+          "localization": 0.12452634423971176,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6173166632652283,
+          "category": 0.6063823103904724,
+          "contrastive": 0.38768017292022705,
+          "localization": 0.1250028759241104,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.44375,
+        "pr_auc_trapezoidal": 0.340922619047619,
+        "raw_probability_ece": 0.03321242704987526,
+        "raw_probability_brier": 0.2142109699731715
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.7095238095238094,
+        "pr_auc_trapezoidal": 0.6672619047619048,
+        "raw_probability_ece": 0.0793910622596741,
+        "raw_probability_brier": 0.2087405134961456
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 94,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.29473504424095154,
+        "anomaly_max": 0.365342915058136,
+        "category_min": 0.3531624376773834,
+        "category_max": 0.395688533782959
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 0.2398720532655716,
+        "anomaly_max": 0.3693971037864685,
+        "category_min": 0.29090753197669983,
+        "category_max": 0.394578218460083
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 0.28227025642991066,
+            "raw_probability_brier": 0.08094656011553442
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 0.5,
+            "pr_auc_trapezoidal": 0.3952380952380953,
+            "raw_probability_ece": 0.16933399811387062,
+            "raw_probability_brier": 0.28084317490199007
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 60,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    },
+    {
+      "seed": 23,
+      "executed_optimizer_steps": 200,
+      "selected_epoch": 68,
+      "model_sha256": "0844f5feaf3faa20f795c4bc2efab1ce479bf5056f198e2d169180f8f6e154e0",
+      "fit_seconds": 13.092738799750805,
+      "private_training_report_sha256": "42149d3bd088457d859f6e40b64d955e6bf08d1797884f50241dcd89d499fb28",
+      "private_metrics_sha256": "5150a7ac243350a56ca13273e92aa15a6ba5e07955fb7616bf00c42d0dfcbdc8",
+      "private_prediction_file_sha256": "11add4f905905cc50966069395501b57cc783ffc0819ae6ec793b06ee92f39c6",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.1641948223114014,
+        "validation_total": 2.0927908420562744,
+        "train_components": {
+          "anomaly": 0.7638840675354004,
+          "category": 0.6869781613349915,
+          "contrastive": 0.3707844316959381,
+          "localization": 0.6762542128562927,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.7527361512184143,
+          "category": 0.6771220564842224,
+          "contrastive": 0.3913051187992096,
+          "localization": 0.6238023042678833,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 68,
+        "train_total": 0.05411100387573242,
+        "validation_total": 0.7124788165092468,
+        "train_components": {
+          "anomaly": 0.01795603334903717,
+          "category": 0.013009119778871536,
+          "contrastive": 0.002918959129601717,
+          "localization": 0.022853955626487732,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.33494600653648376,
+          "category": 0.34569433331489563,
+          "contrastive": 0.1946420669555664,
+          "localization": 0.012374259531497955,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 200,
+        "train_total": 0.00013224725262261927,
+        "validation_total": 3.1290464401245117,
+        "train_components": {
+          "anomaly": 5.692214836017229e-05,
+          "category": 3.5549233871279284e-05,
+          "contrastive": 0.00011510813783388585,
+          "localization": 2.8265058062970638e-05,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 1.4956955909729004,
+          "category": 1.5677567720413208,
+          "contrastive": 0.5724029541015625,
+          "localization": 0.008353915996849537,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 3,
+        "true_negative": 8,
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "average_precision": 1.0,
+        "pr_auc_trapezoidal": 1.0,
+        "raw_probability_ece": 0.20485901725430722,
+        "raw_probability_brier": 0.12954683979506834
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 3,
+        "true_negative": 8,
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "average_precision": 1.0,
+        "pr_auc_trapezoidal": 1.0,
+        "raw_probability_ece": 0.20705731908486769,
+        "raw_probability_brier": 0.13387210714693412
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 94,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.24540260434150696,
+        "anomaly_max": 0.5421573519706726,
+        "category_min": 0.22810116410255432,
+        "category_max": 0.5430821180343628
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 5.71887039768626e-06,
+        "anomaly_max": 0.010605781339108944,
+        "category_min": 2.2264041490416275e-06,
+        "category_max": 0.0060792709700763226
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 1.8338006725571177e-05,
+            "raw_probability_brier": 5.526358726319484e-10
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 1,
+            "true_positive": 1,
+            "false_positive": 0,
+            "false_negative": 3,
+            "true_negative": 4,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "average_precision": 1.0,
+            "pr_auc_trapezoidal": 1.0,
+            "raw_probability_ece": 0.30727935687809804,
+            "raw_probability_brier": 0.19432025941628459
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 4,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 60,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    },
+    {
+      "seed": 41,
+      "executed_optimizer_steps": 20,
+      "selected_epoch": 20,
+      "model_sha256": "043fbf4a83efda25ebac900c63f444c0cbbe0e3c75ee143e0ba322a3992e47c5",
+      "fit_seconds": 11.298536299727857,
+      "private_training_report_sha256": "88d2aaf92ff6e4e522180dbdabec48f212320f6a964f2077d56ff5d29af8919a",
+      "private_metrics_sha256": "508258ea5c8147ce7b337292c59b32211b7f121c3c0f5b4be2442235c3b0a365",
+      "private_prediction_file_sha256": "d1cdc46be6789529747fdae2081f37c507bc4b5267282f979a0b2ed5253c042c",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.0138328075408936,
+        "validation_total": 1.9585915803909302,
+        "train_components": {
+          "anomaly": 0.6395358443260193,
+          "category": 0.6361178159713745,
+          "contrastive": 0.38274863362312317,
+          "localization": 0.6999043226242065,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6336633563041687,
+          "category": 0.6309675574302673,
+          "contrastive": 0.3960174024105072,
+          "localization": 0.654358983039856,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.2112091779708862,
+        "validation_total": 1.2088525295257568,
+        "train_components": {
+          "anomaly": 0.5233670473098755,
+          "category": 0.5165885090827942,
+          "contrastive": 0.3630809485912323,
+          "localization": 0.13494546711444855,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.5192172527313232,
+          "category": 0.513778030872345,
+          "contrastive": 0.3878895342350006,
+          "localization": 0.13706837594509125,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 20,
+        "train_total": 1.2112091779708862,
+        "validation_total": 1.2088525295257568,
+        "train_components": {
+          "anomaly": 0.5233670473098755,
+          "category": 0.5165885090827942,
+          "contrastive": 0.3630809485912323,
+          "localization": 0.13494546711444855,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.5192172527313232,
+          "category": 0.513778030872345,
+          "contrastive": 0.3878895342350006,
+          "localization": 0.13706837594509125,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.5011904761904762,
+        "pr_auc_trapezoidal": 0.4172619047619048,
+        "raw_probability_ece": 0.1450912511597077,
+        "raw_probability_brier": 0.179873821800708
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.5011904761904762,
+        "pr_auc_trapezoidal": 0.4172619047619048,
+        "raw_probability_ece": 0.0947615820914507,
+        "raw_probability_brier": 0.1787902507450686
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 94,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.37778836488723755,
+        "anomaly_max": 0.4022546410560608,
+        "category_min": 0.3841027021408081,
+        "category_max": 0.41729068756103516
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 0.09821829199790955,
+        "anomaly_max": 0.4138453006744385,
+        "category_min": 0.08786044269800186,
+        "category_max": 0.4365840554237366
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 0.10767011530697346,
+            "raw_probability_brier": 0.01166725030616357
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 0.5011904761904762,
+            "pr_auc_trapezoidal": 0.4172619047619048,
+            "raw_probability_ece": 0.16380181908607483,
+            "raw_probability_brier": 0.2639771075479802
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 60,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    },
+    {
+      "seed": 41,
+      "executed_optimizer_steps": 200,
+      "selected_epoch": 42,
+      "model_sha256": "22b8eeb2539b69306f0882c6040c194560860c0fe7facd2afc1ef03d0e465fb9",
+      "fit_seconds": 13.269231399986893,
+      "private_training_report_sha256": "0acae2b92484cce97a6977ed34296c024c2f3183a417bd5c95d4e6d8684c56d9",
+      "private_metrics_sha256": "aea79dc68bfc0ce33c8df029b41bf4dfc0b13837e5100ff427e69ddc370e835b",
+      "private_prediction_file_sha256": "593d624b7ff41ab402bd35efe8bbc7f4fc089e32ecd1bddacc834e2d8e18e4a2",
+      "encoder_sha256": "f63b0c4f9c70a4d9d26e2566b5438f5dac92fae38d945eb8d39679206400480b",
+      "tokenizer_sha256": "1e181069b25ab1f7d6c5e1a2e8ffbfde4e4f32a15ed6dd789f82ad140e956fb0",
+      "train_annotation_fingerprint": "11628b01c1b09f4f405d1b466963793dc921b5fe0db84b8f200b2f270f63303a",
+      "selection_annotation_fingerprint": "45b4d74e4cbb91d22228b6ee1e273c7bbfd4bccdc55d54d5753faeb96df06627",
+      "first_epoch_losses": {
+        "epoch": 1,
+        "train_total": 2.0138328075408936,
+        "validation_total": 1.9585915803909302,
+        "train_components": {
+          "anomaly": 0.6395358443260193,
+          "category": 0.6361178159713745,
+          "contrastive": 0.38274863362312317,
+          "localization": 0.6999043226242065,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.6336633563041687,
+          "category": 0.6309675574302673,
+          "contrastive": 0.3960174024105072,
+          "localization": 0.654358983039856,
+          "severity": null
+        }
+      },
+      "selected_epoch_losses": {
+        "epoch": 42,
+        "train_total": 0.8882906436920166,
+        "validation_total": 0.9854715466499329,
+        "train_components": {
+          "anomaly": 0.41452741622924805,
+          "category": 0.4199276864528656,
+          "contrastive": 0.3473474085330963,
+          "localization": 0.01910075917840004,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 0.45185068249702454,
+          "category": 0.45624157786369324,
+          "contrastive": 0.374237060546875,
+          "localization": 0.03995558246970177,
+          "severity": null
+        }
+      },
+      "final_epoch_losses": {
+        "epoch": 200,
+        "train_total": 0.00044492448796518147,
+        "validation_total": 4.353481292724609,
+        "train_components": {
+          "anomaly": 0.0001339972804998979,
+          "category": 0.00013824285997543484,
+          "contrastive": 9.67510713962838e-05,
+          "localization": 0.00016300924471579492,
+          "severity": null
+        },
+        "validation_components": {
+          "anomaly": 2.154705047607422,
+          "category": 2.130932092666626,
+          "contrastive": 0.38780492544174194,
+          "localization": 0.02906373143196106,
+          "severity": null
+        }
+      },
+      "detection": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "true_negative": 8,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.8166666666666667,
+        "pr_auc_trapezoidal": 0.7958333333333334,
+        "raw_probability_ece": 0.021467476695155103,
+        "raw_probability_brier": 0.16106004931379203
+      },
+      "category": {
+        "support": 4,
+        "negatives": 8,
+        "predicted_positive": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 4,
+        "true_negative": 7,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.525,
+        "pr_auc_trapezoidal": 0.4416666666666667,
+        "raw_probability_ece": 0.10161404115691158,
+        "raw_probability_brier": 0.16331169625846273
+      },
+      "localization": {
+        "annotated_cases": 12,
+        "evaluated_cases": 12,
+        "missing_annotation_cases": 0,
+        "excluded_deletion_cases": 0,
+        "eligible_lines": 98,
+        "scored_lines": 98,
+        "unscored_eligible_lines": 0,
+        "unscored_positive_lines": 0,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 2,
+        "true_negative": 94,
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666
+      },
+      "positive_case_score_range": {
+        "cases": 4,
+        "anomaly_min": 0.46933382749557495,
+        "anomaly_max": 0.4891510009765625,
+        "category_min": 0.46869713068008423,
+        "category_max": 0.49240535497665405
+      },
+      "negative_case_score_range": {
+        "cases": 8,
+        "anomaly_min": 0.0017734564607962966,
+        "anomaly_max": 0.4847363531589508,
+        "category_min": 0.001652111066505313,
+        "category_max": 0.5007169246673584
+      },
+      "vendors": {
+        "cisco": {
+          "configurations": 4,
+          "detection": {
+            "support": 0,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 4,
+            "precision": null,
+            "recall": null,
+            "f1": null,
+            "average_precision": null,
+            "pr_auc_trapezoidal": null,
+            "raw_probability_ece": 0.003202966181561351,
+            "raw_probability_brier": 1.2254751864301356e-05
+          },
+          "localization": {
+            "annotated_cases": 4,
+            "evaluated_cases": 4,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 34,
+            "scored_lines": 34,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 0,
+            "true_negative": 34,
+            "precision": null,
+            "recall": null,
+            "f1": null
+          }
+        },
+        "juniper": {
+          "configurations": 8,
+          "detection": {
+            "support": 4,
+            "negatives": 4,
+            "predicted_positive": 0,
+            "true_positive": 0,
+            "false_positive": 0,
+            "false_negative": 4,
+            "true_negative": 4,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0,
+            "average_precision": 0.8166666666666667,
+            "pr_auc_trapezoidal": 0.7958333333333334,
+            "raw_probability_ece": 0.03059973195195198,
+            "raw_probability_brier": 0.2415839465947559
+          },
+          "localization": {
+            "annotated_cases": 8,
+            "evaluated_cases": 8,
+            "missing_annotation_cases": 0,
+            "excluded_deletion_cases": 0,
+            "eligible_lines": 64,
+            "scored_lines": 64,
+            "unscored_eligible_lines": 0,
+            "unscored_positive_lines": 0,
+            "true_positive": 2,
+            "false_positive": 0,
+            "false_negative": 2,
+            "true_negative": 60,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          }
+        }
+      },
+      "save_load_all_train_selection_predictions_equal": true
+    }
+  ],
+  "paired_budget_changes": [
+    {
+      "seed": 17,
+      "first_twenty_loss_epochs_exactly_equal": true,
+      "only_training_budget_changed": true,
+      "detection_f1_delta": 0.0,
+      "category_f1_delta": 0.0,
+      "line_recall_delta": 1.0,
+      "line_false_positive_delta": 0
+    },
+    {
+      "seed": 23,
+      "first_twenty_loss_epochs_exactly_equal": true,
+      "only_training_budget_changed": true,
+      "detection_f1_delta": 0.4,
+      "category_f1_delta": 0.4,
+      "line_recall_delta": 1.0,
+      "line_false_positive_delta": 0
+    },
+    {
+      "seed": 41,
+      "first_twenty_loss_epochs_exactly_equal": true,
+      "only_training_budget_changed": true,
+      "detection_f1_delta": 0.0,
+      "category_f1_delta": 0.0,
+      "line_recall_delta": 0.5,
+      "line_false_positive_delta": 0
+    }
+  ],
+  "baseline": {
+    "model_sha256": "b77d84e3da6369bc246889257c0a6dc4a848c7176dadb57aabfa5d265bc05c76",
+    "detection": {
+      "support": 4,
+      "negatives": 8,
+      "predicted_positive": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 4,
+      "true_negative": 8,
+      "precision": null,
+      "recall": 0.0,
+      "f1": 0.0,
+      "average_precision": 0.3333333333333333,
+      "pr_auc_trapezoidal": 0.6666666666666666,
+      "raw_probability_ece": null,
+      "raw_probability_brier": null
+    },
+    "configuration_false_positives_per_device": 0.0,
+    "current_rescoring_latency": {
+      "measured_cases": 12,
+      "missing_cases": 0,
+      "mean_seconds": 0.0004528166415790717,
+      "median_seconds": 0.00047360011376440525,
+      "p95_seconds": 0.0005083900643512607,
+      "max_seconds": 0.0005139997228980064
+    }
+  },
+  "checks": {
+    "new_targeted_regression_passed": 132,
+    "skipped": 0,
+    "junit_seconds": 15.931,
+    "junit_sha256": "31ed8522fb5e05c63ecf6ef7350236749bcef0195af7b8a68eca38e73477f3d5",
+    "application_runtime_source_changed": false,
+    "prior_exact_application_ci_commit": "48c40f4eb11c8237bb70eb9a293272c233ff48c1",
+    "prior_exact_application_ci_all_four_jobs": "success",
+    "prior_exact_application_ci_url": "https://github.com/itbortnik/netconfig-sentinel/actions/runs/38129428779",
+    "local_live_batfish_postgresql_browser_new_runs": "not_run",
+    "current_documentation_commit_ci": "not_run_before_publication"
+  },
+  "limitations": [
+    "All six results and failed detections are retained; no best-seed selection, threshold fitting or convenient truth intersection.",
+    "Epoch selection uses the same reused authored selection, not an independent test. More steps change the trajectory and selected epoch, not evidence independence.",
+    "Positive injections remain JunOS-only; absent Cisco-positive support is not qualified Cisco recall, safety or zero errors.",
+    "A one-third configuration prior and four positive lines among 98, vendor, recipe, length and formatting shortcuts remain. Budget sensitivity does not identify a unique cause of prior failure.",
+    "The fixed 0.5 scores are uncalibrated. Raw ECE/Brier on twelve selection views is not calibration-fit or operational reliability evidence.",
+    "The frozen source encoder has only 46610 parameters and two reconstruction epochs. Reused formatting/mutation views do not increase corpus or independent network counts.",
+    "Stage A physical device/network/time exposure remains unknown despite retained content-overlap checks. Reserved test text enters overlap checking only.",
+    "Severity, real-confirmed, independent unknown-site, unknown-anomaly and representative deployment quality remain absent; no online risk or status is promoted.",
+    "Fitting seconds include extraction and retained exposure checks. Current forest/neural case timings cover parsing and inference, not load, training, HTTP or SLA.",
+    "No configuration, private case/entity/source hashes, tokenizers, weights or per-case scores are published in this aggregate."
+  ]
+}

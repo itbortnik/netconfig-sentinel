@@ -193,3 +193,55 @@ detection. Positive injections are JunOS-only; Cisco views are references.
 Real-confirmed, independent-test, unknown-anomaly and calibration-fit evidence
 remain absent. No baseline superiority, corpus scale, cross-vendor quality or
 online/production readiness follows from this transfer.
+
+## Fixed optimizer-budget diagnostic
+
+[Diagnostic 2026-10-11](evaluation/owned-fixture-optimizer-budget.json) varies
+only the supervised optimizer budget: seeds 17/23/41, each at 20 and 200
+full-batch AdamW steps. The six combinations, learning rate 0.01, task weights,
+strict 0.5 thresholds and reporting of **all six** runs were fixed before fitting.
+There is no best-seed selection, threshold fitting, new Stage A training, model
+download, corpus/annotation replacement or online activation. The original
+seed-17/20-step run reproduces the historical model identity exactly.
+
+The existing API accepts these settings through
+`FineTunePolicy(seed=seed, epochs=budget)` in `train_multitask()`, with
+`authored_transfer_splits()`, the same Telnet `authored_supervision()`, retained
+approved fixture corpus, `HeadPolicy(classes=("telnet_enabled",), max_examples=128)`
+and `LossWeights(severity=0)`. Each epoch is one full-batch update, not a pass
+with multiple minibatch optimizer steps. The minimum weighted validation loss
+still selects the saved epoch; detection F1 does not select it.
+
+| Seed | Executed steps | Selected epoch | Anomaly/category F1 @ 0.5 | Line recall @ 0.5 |
+| --- | ---: | ---: | ---: | ---: |
+| 17 | 20 | 20 | 0 | 0 |
+| 17 | 200 | 38 | 0 | 1 |
+| 23 | 20 | 20 | 0 | 0 |
+| 23 | 200 | 68 | 0.4 | 1 |
+| 41 | 20 | 20 | 0 | 0 |
+| 41 | 200 | 42 | 0 | 0.5 |
+
+Metrics belong to the restored selected checkpoint, **not** the final epoch 200.
+For seeds 17/23/41, weighted validation loss rises from selected minima
+0.943/0.712/0.985 to final 6.129/3.129/4.353 while training loss falls below
+0.0005. This divergence is consistent with late overfitting on this tiny selection;
+it does not establish a unique explanation of the original fixed-threshold failure.
+
+Within each seed pair, all first twenty train/validation component losses are
+exactly equal, as are encoder/tokenizer, annotation fingerprints, source exposure,
+head settings and task weights. The report preserves first/selected/final losses,
+positive/negative score ranges and each complete outcome. All six save/load checks
+preserve every train/selection prediction; previous source and reports are unchanged.
+Execution uses an isolated installed package with 230 byte-equal runtime files.
+The same retained actual forests are rescored on all twelve shared cases, with
+numeric parity and F1 zero; they are not fitted again or assigned neural heads.
+
+This shows sensitivity to training budget, not a unique cause or a general repair.
+Two longer runs still miss all four positives; the other detects only one. Better
+line recall on four positive lines among 98 does not qualify detection. All
+positives remain JunOS-only, with possible vendor/recipe/length/format shortcuts.
+The four selection devices and their twelve views are reused epoch-selection
+data, not an independent test. Raw ECE/Brier are diagnostic, not calibration fit.
+Reserved test text is used only in the existing content-overlap gate, without
+features, labels or tuning. Real-confirmed, Cisco-positive, independent unknown-site,
+severity and production quality remain unqualified. There is no accepted winner.

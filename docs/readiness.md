@@ -163,6 +163,27 @@ targeted checks и 225 Pydantic 2.14 parent checks; ruff/mypy default/Linux/win3
 230 runtime files — pass. Все 230 files побайтно совпали с installed target;
 actual API и GPU imports исключают checkout. Live Batfish/PostgreSQL/browser
 локально не запускались; предыдущий parser CI не считается CI этой поставки.
+Позднее exact explanation commit `48c40f4eb11c8237bb70eb9a293272c233ff48c1`
+получил [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38129428779),
+включая PostgreSQL, Compose/browser и owned live-engine scenarios. Это evidence
+точной поставки, не semantic quality или CI следующего ML diagnostic report.
+
+Следующая [диагностика бюджета Stage B](pretraining-transfer.md#fixed-optimizer-budget-diagnostic)
+фактически обучила шесть заранее заданных моделей на прежних 48 train/12 selection
+views: seeds 17/23/41 × 20/200 full-batch updates, без изменения source, labels,
+весов компонентов loss или strict 0.5 thresholds. Первые 20 losses каждой пары совпали точно;
+исходная seed-17 модель побайтно воспроизведена. Все шесть исходов сохранены.
+При 200 шагах selected epochs 38/68/42 дают anomaly/category F1 0/0.4/0 и line
+recall 1/1/0.5; тот же rescored forest имеет F1 0. Это sensitivity diagnostic,
+не выбранный лучший checkpoint, уникальная причина отказа или quality pass.
+Метрики относятся к restored selected epochs, не последнему шагу 200; к нему
+validation loss выросла до 6.129/3.129/4.353 при падающей train loss.
+Один длинный run обнаружил только один из четырёх positives, остальные — ни одного.
+Cisco-positive support всё ещё отсутствует; generator/vendor/line imbalance,
+calibration и independent real test остаются открытыми. Новые 132 связанные
+regression checks прошли; шесть actual fits/save-load round trips использовали
+230 byte-equal installed runtime files. Runtime contracts и история не менялись;
+новые local live-engine/БД/browser прогоны не выполнялись.
 
 Локальная проверка [этой интеграции](evaluation/owned-source-fixture-pretraining.json):
 2575 full passes/27 skips/5 warnings, 156 nearest regression и 156 Pydantic 2.14
