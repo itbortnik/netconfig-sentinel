@@ -12,6 +12,9 @@ const localStorageState = (page: Page) =>
 
 async function connect(page: Page) {
   await page.goto("/ui/");
+  await login(page);
+}
+async function login(page: Page) {
   await page.getByLabel("API-токен", { exact: true }).fill(TOKEN);
   await page.getByRole("button", { name: "Подключиться", exact: true }).click();
   await expect(
@@ -677,17 +680,25 @@ test("explicit training, model selection, held-out analysis and persisted ML his
   await page.getByRole("button", { name: "Отключиться", exact: true }).click();
   expect(await localStorageState(page)).toEqual({ local: {}, session: {} });
   const historyResponse = () =>
-    page.waitForResponse(
-      (item) =>
-        item.request().method() === "GET" &&
-        new URL(item.url()).pathname === "/api/v1/analyses",
-    );
+    page
+      .waitForResponse(
+        (item) =>
+          item.request().method() === "GET" &&
+          new URL(item.url()).pathname === "/api/v1/analyses",
+      )
+      .then(async (response): Promise<{ analysis_id: string }[]> => {
+        expect(response.status()).toBe(200);
+        return await response.json();
+      });
+  // A response handle belongs to its document. Do not capture before navigation,
+  // and consume the body immediately instead of after later UI interactions.
+  await page.goto("/ui/");
   let history = historyResponse();
-  await connect(page);
+  await login(page);
   await expect(registry).toContainText("Не выбрана — ML не запускается");
   await expect(registry).toContainText("Обучающие снимки: 0");
   await page.getByRole("button", { name: "Анализы", exact: true }).click();
-  let records: { analysis_id: string }[] = await (await history).json();
+  let records = await history;
   for (
     let index = 0;
     index < 10 &&
@@ -696,7 +707,7 @@ test("explicit training, model selection, held-out analysis and persisted ML his
   ) {
     history = historyResponse();
     await page.getByRole("button", { name: "Далее", exact: true }).click();
-    records = await (await history).json();
+    records = await history;
   }
   const savedAnalysis = page
     .locator(".history-item")
