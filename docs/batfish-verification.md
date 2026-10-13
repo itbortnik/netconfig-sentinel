@@ -10,6 +10,16 @@
 и [извлечённый числовой отчёт](evaluation/owned-batfish.json).
 Это узкий diagnostic integration, не квалификация production или модельного патча.
 
+На 2026-10-14 подтверждён и локальный Linux engine на Windows через разрешённый
+per-user Docker Desktop 4.95.0 / WSL2: [installed проверка](evaluation/owned-windows-linux-batfish.json)
+дала 25 passed, 14 actual verifier attempts и 14 успешных SDK network cleanup.
+Отдельный [standalone Compose запуск](evaluation/owned-standalone-verification-compose.json)
+дал 10 passed / шесть actual queries, затем удалены только его контейнер, сеть и
+volume. В обоих запусках использованы прежние собственные toy fixtures, не
+пользовательские или upstream-конфигурации; повторение не увеличивает корпус.
+Свежий Qwen candidate также прошёл [отдельную фактическую цепочку](saved-model-patch-reviews.md#fresh-qwen-cpu-ml-and-live-linux-engine),
+но не получил approval и не был применён.
+
 На 2026-10-08 временный официальный JAR
 `2026.08.27.3685` запущен на уже установленной Java 21 в Windows. Проверено,
 что его единственный listener — `127.0.0.1:9996`; после проверки собственный
@@ -68,8 +78,10 @@ SDK-процесс запускается без унаследованных HT
 SDK — необязательная зависимость: `pip install -e ".[verification]"`.
 Зафиксирован [официальный pybatfish 2026.8.19.3660](https://pypi.org/project/pybatfish/2026.8.19.3660/).
 Ранее указанная `0.36.0` отсутствует в каталоге пакетов; эта ошибка исправлена
-после реального отказа установки. Новый SDK установлен в отдельную лабораторную
-среду; основной CPU/ML environment не изменён. SHA256 wheel опубликован на
+после реального отказа установки. Первоначально SDK был установлен только в
+лабораторную среду. Для новой совместной CPU ML/engine проверки 2026-10-13 он
+добавлен и в CPU environment: 74 прежние версии пакетов сохранены, добавлены
+13 SDK dependencies; веса и обучение не менялись. SHA256 wheel опубликован на
 PyPI: `6ce1d0c2346a67b27665f341e69837ee7711734a7859cd12259b6e08c5c19621`.
 
 Python worker получает только минимальные OS/runtime переменные и не наследует
@@ -90,11 +102,12 @@ Redirect following отключён для всех запросов; response h
 
 ## Отдельный контейнер
 
-Опциональный Compose profile не активирует verifier в HTTP и не передаёт входы
+Отдельный файл запускает только Batfish: ключи API и пароль БД не нужны, API,
+БД и LLM не запускаются. Он не активирует verifier в HTTP и не передаёт входы
 самостоятельно. Только после решения оператора запустить доверенный движок:
 
 ```powershell
-docker compose --profile verification up -d batfish
+docker compose -f docker-compose.verification.yml up -d batfish
 ```
 
 Контейнер закреплён official release digest
@@ -103,11 +116,23 @@ docker compose --profile verification up -d batfish
 Лимиты — 4 GiB RAM и два CPU, root filesystem read-only, `/tmp` временный,
 `/data` отдельный volume. Внутренний контейнерный listener не равен ограничению
 host networking: доверие к сети/контейнеру остаётся обязанностью оператора.
-Volume может сохранять сырые снимки при сбое/timeout. Compose profile локально
-не запускался, поскольку Docker CLI отсутствует; его hardening ещё не квалифицирован.
+Volume может сохранять сырые снимки при сбое/timeout. Standalone startup,
+фактические limits/host binding и teardown проверены отдельным новым Compose
+project, без application credentials. Bridge имеет `internal=false`: loopback
+bind не является запретом внешнего трафика или OS sandbox. Общий исторический
+`docker-compose.yml --profile verification` не квалифицирован этим запуском:
+он по-прежнему требует application credentials при разборе других сервисов.
+Config-only regression проверяет standalone contract без работающего engine;
+отсутствие optional Docker/Compose CLI отмечается skip, не runtime pass.
 Registry/layer digests проверяют целостность, не publisher signature, эксплуатационную
 безопасность или корректность сети. JAR из этого image не заменяет контейнер:
 нативный Windows запуск получил описанный выше отказ.
+
+`docker compose -f docker-compose.verification.yml down` останавливает этот
+project, но сохраняет volume. Удалять его можно только после отдельной проверки
+владельца и необходимости сохранения снимков. SDK DELETE и Docker volume removal
+не являются гарантией secure disk erasure. Выполненный diagnostic teardown не
+удалял image cache, установщики, рабочие файлы или чужие Docker resources.
 
 ## Лимиты и удаление собственных снимков
 

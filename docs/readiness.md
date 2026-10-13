@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-13 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-14 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -17,7 +17,7 @@
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [saved-analysis inference](configuration-model-inference.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified operational inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md); [saved draft/review/decision API/UI](model-patch-interface.md) | Schema-valid outputs всё ещё содержат unsupported claims; independent semantic quality и квалификация полного реального candidate workflow не закрыты; vendor/internal library требует прав и отбора |
-| Patch/formal gate | Native/normalized/source-bound model drafts; persisted replayable reviews и append-only decisions; [six owned Linux queries](evaluation/owned-batfish.json), [saved HTTP candidate live scope](evaluation/owned-saved-model-review-live.json) и [fresh saved-HTTP Qwen → CPU ML](evaluation/owned-joint-candidate-functional.json); no promotion without complete formal/ML/attestation gates | Live engine evidence — игрушечные сети/explicit IPv4 scope с synthetic provider. Fresh Qwen/ML slice сохранил unavailable formal result, не engine pass. Не полная топология, management access, device syntax, individual identity или approved real engineer workflow |
+| Patch/formal gate | Native/normalized/source-bound model drafts; persisted replayable reviews и append-only decisions; [owned installed Linux queries](evaluation/owned-windows-linux-batfish.json), [standalone Compose](evaluation/owned-standalone-verification-compose.json) и [fresh saved-HTTP Qwen → CPU ML → live engine](evaluation/owned-joint-candidate-live-functional.json); no promotion without complete formal/ML/attestation gates | Один свежий JunOS draft получил actual scoped engine result; status остаётся needs_review, Telnet-only ML не квалифицирует SSHv1. Toy networks/explicit IPv4 scope не доказывают полную topology, management access, device syntax, individual identity или approved real engineer workflow |
 | Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/tests/browser`; [owned model browser workflow](evaluation/owned-model-candidate-browser-workflow.json) | Browser provider — synthetic loopback, не real inference. Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
 | Секреты/access/audit | Sanitization, encrypted at-rest API payload, service RBAC, receipt/completion journal, bounded uploads | Не доказательство отсутствия всех секретов; production secret scan/pentest/SSO/tenant/TLS/backup квалификация открыты |
 | Запуск и демонстрация | README, [API](persistent-api.md), [UI](web-interface.md), [автоматический demo](demo-runbook.md) | Local demo — ASGI/SQLite, не production deploy или live network test |
@@ -584,6 +584,43 @@ browser и 156 regular browser pass, без retries. После первонач
 не считаются равно доказанными ошибками. Unsupported не означает доказанно false;
 exhaustive semantic review и independent quality gate по-прежнему не заявлены.
 
+На следующем разрешённом этапе per-user Docker Desktop 4.95.0 / WSL2 запущен
+без новых admin actions или reboot. [Installed Linux run](evaluation/owned-windows-linux-batfish.json)
+с pinned Batfish 2026.08.27.3685 дал 25 pass / 88 deselected / zero skips:
+14 real verifier attempts, 3 differences / 6 no differences / 5 inconclusive,
+14 successful SDK network cleanup. Два saved HTTP случая здесь используют
+synthetic provider, не новую модель. [Отдельный standalone Compose run](evaluation/owned-standalone-verification-compose.json)
+не требует API/DB credentials и не запускает их сервисы: 10 pass / шесть real
+queries (по два differences/no differences/inconclusive), затем zero own
+container/network/volume resources. Старые own diagnostic resources тоже
+удалены после ID/label проверки; unrelated resources не удалялись. Это не secure
+disk erasure или air-gap: actual bridge `internal=false`, host bind loopback.
+Общий application Compose profile этим отдельным запуском не квалифицирован.
+
+[Новый fresh Qwen/CPU ML/live-engine run](evaluation/owned-joint-candidate-live-functional.json)
+сохраняет четыре новых model generations: один Cisco SSH API failure, два
+Telnet declines и один JunOS SSH draft, без retries/fallback. Неуспешный raw
+output не принят. Только draft получил actual CPU rerun и actual IPv4 Batfish:
+1→1 reachable / diff=0 / cleanup=true. Raw uncalibrated anomaly score вырос
+0.3296065629→0.3307287693; Telnet-only модель не поддерживает SSHv1. Approval
+заблокирован, status needs_review, applied=false. Device syntax/access/rollback
+не объявлены выполненными, diagnostic service-role decision не human identity.
+Все 231 runtime files byte-equal, 240 прежних hashes сохранены; источники старше
+generation, но topology_pinned_at_generation=false. Предыдущий sdk_missing run
+остаётся историческим unavailable, не переписан. Новый [bounded support audit](evaluation/owned-joint-candidate-live-source-support.json)
+снова подтвердил unsupported baseline approval claim; последующая engine
+проверка не исправляет model truth. Independent review проверил bindings,
+projection и bounded claims, не независимое качество моделей или новых сетей.
+
+Локальный backend regression run с установленным optional SDK: 2855 pass /
+15 skips / 5 warnings, total line coverage 90%, 343.68 s. Live opt-in и PostgreSQL
+skips не считаются pass; отдельные разрешённые engine runs перечислены выше.
+Full run собран до добавления трёх optional-Compose regression cases; отдельный
+финальный config-only набор дал 4 pass. Ruff и mypy (231 source files) прошли.
+UI-код не менялся; новый local browser или PostgreSQL run не выполнялся.
+Это проверки функциональной поставки, не independent quality; новый exact-commit
+CI следует проверять отдельно после публикации.
+
 Runtime/test commit `5ff1c8fab24f7b8719d07c93be0579c1e0369438` имеет
 [все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38357446237).
 Предыдущий `58b88f97e20e5bc76a23741620cffb76d17d6e87` сохраняет
@@ -619,12 +656,12 @@ Production, реальные подтверждённые labels и calibration 
 - Авторизованные обезличиваемые конфигурации, provenance/license/allowed uses,
   реальные подтверждённые annotations и entity-isolated networks/sites/time cohorts.
 - Квалифицированный instruct service, independent/adversarial/semantic/citation
-  evaluation actual outputs: pinned checkpoint уже выбран и 16 owned генераций
-  выполнены, но schema validity не устраняет наблюдённые неподтверждённые утверждения.
+  evaluation actual outputs: pinned checkpoint и owned генерации уже доступны,
+  но schema validity не устраняет наблюдённые неподтверждённые утверждения.
 - Доверенный deployment Batfish engine и разрешение явно выбранных loopback uploads;
   полные реальные network inputs/scope, candidate-specific before/after results
-  и representative failure coverage. Шесть owned Linux queries подтверждены,
-  но не заменяют эти условия.
+  и representative failure coverage. Локальный Windows/WSL2 Linux engine и один
+  свежий scoped candidate теперь фактически проверены, но не заменяют эти условия.
 - Разрешённая vendor/internal документация и reviewed ingestion, retrieval quality
   на независимых queries; project policies не заменяют vendor corpus.
 - Representative model/baseline evaluation, неизвестные площадки, обе платформы,

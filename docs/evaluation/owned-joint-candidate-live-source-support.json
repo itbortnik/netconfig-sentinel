@@ -1,0 +1,32 @@
+{
+  "case_count": 4,
+  "confirmed_unsupported_claims": [
+    {
+      "case": "juniper-telnet",
+      "claim": "baseline_approval_asserted_without_evidence",
+      "classification": "unsupported",
+      "demonstrated_false": false,
+      "field": "answer.summary",
+      "field_sha256": "128620320639d09d72564f5469633cc5e05202a91528fc9f6d0aae9b7d9d8f15",
+      "supplied_approval_fact": "not_proven"
+    }
+  ],
+  "exhaustive_semantic_review": false,
+  "failed_api_raw_output_not_adopted": true,
+  "generation_formal_context": "not_run/candidate_not_generated for all four; later engine result cannot backfill earlier model claims",
+  "independent_quality_proven": false,
+  "private_completion_sha256": "f0725ff5914ae6dcffda2affd2192d9b774da3fba78cf8359038e80fdb1616e5",
+  "private_protocol_sha256": "727685b164ed083271f5bf9dc7c6818c829b7cea1036556deb86c0f48c1216ef",
+  "raw_outputs_reviewed": 4,
+  "raw_prose_publication": false,
+  "raw_schema_source_and_citation_membership_checks": 4,
+  "removal_limitation": "Ambiguous wording, not a demonstrated error: allowed null deletion is not device syntax/access validation",
+  "saved_answers_reviewed": 3,
+  "semantic_quality_proven": false,
+  "version": "owned-joint-candidate-live-source-support-0.1.0",
+  "weaker_baseline_normative_interpretation": {
+    "classification": "inference, not equally confirmed approval errors",
+    "raw_answers_with_selected_wording": 4,
+    "semantic_error_rate": null
+  }
+}

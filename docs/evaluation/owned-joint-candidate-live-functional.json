@@ -1,0 +1,189 @@
+{
+  "accepted_drafts": 1,
+  "actual_cpu_ml_workers": 1,
+  "actual_engine_verifier_attempts": 1,
+  "actual_llm_invocations": 4,
+  "all_requests_one_attempt_no_fallback": true,
+  "applied": false,
+  "case_count": 4,
+  "checks": {
+    "ephemeral_database_removed": true,
+    "ephemeral_key_persisted": false,
+    "operator_environment_activated": false,
+    "parent_imported_torch_or_transformers": false,
+    "replay_restart_source_encryption_passed": true
+  },
+  "completed_engine_scopes": 1,
+  "declined": 2,
+  "device_syntax_verified": false,
+  "engine_image_digest": "sha256:7909378197c5a3974f2e8180af58cef0ca17b74d1cd9ba39f2d1fddb64737e55",
+  "failed": 1,
+  "fresh_model_outputs_used_directly_in_saved_http_review": true,
+  "generation_limits": {
+    "attempts_per_context": 1,
+    "fallback": false,
+    "generation_deadline_seconds": 20,
+    "greedy": true,
+    "http_deadline_seconds": 20,
+    "max_new_tokens": 1024,
+    "max_prompt_tokens": 4096,
+    "operator_default_http_deadline_unchanged": 10
+  },
+  "human_approval": false,
+  "hypothetical_network_families": 2,
+  "independent_quality_proven": false,
+  "management_access_verified": false,
+  "model_identity": {
+    "attention_implementation": "sdpa",
+    "automatic_activation": false,
+    "device_name": "NVIDIA GeForce RTX 5080",
+    "dtype": "bfloat16",
+    "external_training_exposure": "unknown",
+    "model_id": "Qwen/Qwen3-4B-Instruct-2507",
+    "parameter_count": 4022468096,
+    "pipeline_version": "qwen3-fixed-roles-greedy-0.1.0",
+    "production_quality_proven": false,
+    "publisher_license_declaration": "Apache-2.0",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "runtime_versions": [
+      "torch=2.14.0+cu130",
+      "transformers=5.19.0",
+      "tokenizers=0.23.2",
+      "safetensors=0.8.0",
+      "numpy=2.5.3"
+    ],
+    "source_inventory_sha256": "4060051515ca2008ca1d43b8179d2ac3332407626cbb19fa6d439d8dbe8e5d26"
+  },
+  "native_model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+  "old_history_files_unchanged": 240,
+  "outcomes": [
+    {
+      "accepted_patch": false,
+      "candidate_matches_owned_baseline": null,
+      "case": "cisco-ssh",
+      "category": "management.ssh_version_1",
+      "generation": {
+        "completed": true,
+        "generated_tokens": 274,
+        "prompt_tokens": 1803,
+        "rejection": null,
+        "seconds": 19.912032100000943
+      },
+      "http_status": 503,
+      "saved_status": "failed",
+      "vendor": "cisco",
+      "verification": null,
+      "wire_status": 200
+    },
+    {
+      "accepted_patch": false,
+      "candidate_matches_owned_baseline": null,
+      "case": "cisco-telnet",
+      "category": "management.telnet_enabled",
+      "generation": {
+        "completed": true,
+        "generated_tokens": 240,
+        "prompt_tokens": 1816,
+        "rejection": null,
+        "seconds": 6.992720899997948
+      },
+      "http_status": 201,
+      "saved_status": "declined",
+      "vendor": "cisco",
+      "verification": null,
+      "wire_status": 200
+    },
+    {
+      "accepted_patch": true,
+      "candidate_matches_owned_baseline": true,
+      "case": "juniper-ssh",
+      "category": "management.ssh_version_1",
+      "generation": {
+        "completed": true,
+        "generated_tokens": 282,
+        "prompt_tokens": 1790,
+        "rejection": null,
+        "seconds": 8.512621599998965
+      },
+      "http_status": 201,
+      "saved_status": "draft",
+      "vendor": "juniper",
+      "verification": {
+        "after_anomaly_score": 0.33072876930236816,
+        "after_reachable_count": 1,
+        "all_network_sources_before_generation": true,
+        "applied": false,
+        "approval_blockers": [
+          "selected_ml_category_not_supported"
+        ],
+        "before_anomaly_score": 0.3296065628528595,
+        "before_reachable_count": 1,
+        "blocked_approval_request": true,
+        "cleanup_complete": true,
+        "difference_count": 0,
+        "engine_version": {
+          "Batfish": "2026.08.27.3685",
+          "api_version": "0.0.0"
+        },
+        "execution_status": "completed",
+        "formal_reason": "query_completed",
+        "formal_status": "no_differences_in_scope",
+        "individual_identity_verified": false,
+        "introduced_policy_findings": 0,
+        "local_parser_after_complete": true,
+        "local_parser_before_complete": true,
+        "missing_checks": [
+          "human_review_required",
+          "device_syntax_not_verified",
+          "management_access_not_verified",
+          "rollback_not_verified",
+          "operational_topology_not_verified",
+          "execution_not_authenticated_by_report",
+          "baseline_approval_not_established",
+          "explicit_scope_not_full_network_qualification",
+          "ml_quality_not_qualified",
+          "current_policy_findings",
+          "ml_selected_category_not_supported"
+        ],
+        "ml_execution": "completed",
+        "network_devices": 2,
+        "resolved_policy_findings": 1,
+        "runtime_torch_version": "2.14.0+cpu",
+        "selected_category_supported": false,
+        "status": "needs_review",
+        "synthetic_service_role_decision": "needs_more_information",
+        "topology_pinned_at_generation": false,
+        "training_format": "multitask-training-0.2.0"
+      },
+      "wire_status": 200
+    },
+    {
+      "accepted_patch": false,
+      "candidate_matches_owned_baseline": null,
+      "case": "juniper-telnet",
+      "category": "management.telnet_enabled",
+      "generation": {
+        "completed": true,
+        "generated_tokens": 262,
+        "prompt_tokens": 1792,
+        "rejection": null,
+        "seconds": 7.604388200001267
+      },
+      "http_status": 201,
+      "saved_status": "declined",
+      "vendor": "juniper",
+      "verification": null,
+      "wire_status": 200
+    }
+  ],
+  "private_completion_sha256": "f0725ff5914ae6dcffda2affd2192d9b774da3fba78cf8359038e80fdb1616e5",
+  "private_protocol_sha256": "727685b164ed083271f5bf9dc7c6818c829b7cea1036556deb86c0f48c1216ef",
+  "runtime_files_byte_equal": 231,
+  "scope_note": "Four reused authored cases on derivatives of two toy networks; not independent test data or corpus growth. Accepted fresh candidates alone receive actual installed CPU ML and explicit IPv4 loopback engine checks. Declines/errors are retained; no device syntax, SSH/AAA access, calibrated quality, baseline approval or identified-human approval is proven.",
+  "sdk_version": "2026.8.19.3660",
+  "semantic_quality_proven": false,
+  "source_commit": "7115b93d3c2ab7485b2d648c2515ba8e798a22fa",
+  "successful_nonempty_engine_scopes": 1,
+  "version": "owned-joint-candidate-live-functional-0.1.0",
+  "wheel_sha256": "60f118b14b561d3459d086c440a02a45da3e401011e99ba12dd42337c3d800de"
+}

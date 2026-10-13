@@ -1,0 +1,204 @@
+{
+  "applied": false,
+  "batfish_version": "2026.08.27.3685",
+  "checkout_import_count": 0,
+  "compose_profile_executed": false,
+  "container_limits": {
+    "cpu_count": 2,
+    "memory_bytes": 4294967296,
+    "root_read_only": true,
+    "tmpfs_tmp_bytes": 1073741824
+  },
+  "device_syntax_verified": false,
+  "docker_desktop_version": "4.95.0.242831",
+  "docker_engine_version": "29.8.2",
+  "engine_image_digest": "sha256:7909378197c5a3974f2e8180af58cef0ca17b74d1cd9ba39f2d1fddb64737e55",
+  "full_topology_qualified": false,
+  "host_binding": "127.0.0.1:9996",
+  "host_platform": "Windows x64",
+  "human_approval": false,
+  "independent_quality_proven": false,
+  "initial_attempts": {
+    "image_pull_missing_helper_path": "failed before transfer; diagnosed and fixed process PATH only",
+    "internal_network_startup": "running container without actual host port mapping; no snapshots uploaded; owned container removed before separately bound bridge startup",
+    "metadata_entrypoint_optional_key": "preflight error before resource creation; diagnosed and fixed inspection"
+  },
+  "installed_import_count": 146,
+  "installed_runtime_files_byte_equal": 231,
+  "management_access_verified": false,
+  "network_internal": false,
+  "new_ml_workers": 0,
+  "new_model_calls": 0,
+  "old_history_hashes_unchanged": 236,
+  "outcomes": [
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 1,
+      "group": "static_route",
+      "scenario": "route_loss",
+      "status": "differences_found",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 1,
+      "group": "static_route",
+      "scenario": "route_loss",
+      "status": "differences_found",
+      "vendor": "juniper"
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "static_route",
+      "scenario": "unchanged_reachable",
+      "status": "no_differences_in_scope",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "static_route",
+      "scenario": "unchanged_reachable",
+      "status": "no_differences_in_scope",
+      "vendor": "juniper"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "static_route",
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "static_route",
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": "juniper"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 1,
+      "group": "generated_hierarchical_route",
+      "scenario": "generated_route_loss",
+      "status": "differences_found",
+      "vendor": null
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "generated_hierarchical_route",
+      "scenario": "unchanged_reachable_control",
+      "status": "no_differences_in_scope",
+      "vendor": null
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "generated_hierarchical_route",
+      "scenario": "generated_direct_peer_control",
+      "status": "no_differences_in_scope",
+      "vendor": null
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "generated_hierarchical_route",
+      "scenario": "generated_empty_scope",
+      "status": "inconclusive",
+      "vendor": null
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "recorded_own_candidate",
+      "scenario": "reachable",
+      "status": "no_differences_in_scope",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "recorded_own_candidate",
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "saved_http_synthetic_provider",
+      "scenario": "reachable",
+      "status": "no_differences_in_scope",
+      "vendor": null
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "group": "saved_http_synthetic_provider",
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": null
+    }
+  ],
+  "private_completion_sha256": "aeb071641b8cf3d0a85ae67a009c746bca07f38ae6ea512168d52c41561d02d2",
+  "private_protocol_sha256": "c8b0cc082a5d717e8cd9707daaf1c50d78b4173ffe2221e3751f6a52fd710720",
+  "real_verifier_attempts": 14,
+  "runtime": "Docker Desktop per-user WSL2, Linux engine",
+  "scenario_groups": {
+    "generated_hierarchical_route": 4,
+    "recorded_own_candidate": 2,
+    "saved_http_synthetic_provider": 2,
+    "static_route": 6
+  },
+  "scope_note": "Successful SDK DELETE of each verifier network is distinct from Docker container/volume teardown. These reused scenarios are not independent networks or real confirmed anomalies.",
+  "sdk_version": "2026.8.19.3660",
+  "source_commit": "7115b93d3c2ab7485b2d648c2515ba8e798a22fa",
+  "source_scope": "Reused authored toy fixtures and recorded own edits; two saved HTTP cases use a synthetic provider",
+  "statuses": {
+    "differences_found": 3,
+    "inconclusive": 5,
+    "no_differences_in_scope": 6
+  },
+  "tests": {
+    "deselected": 88,
+    "failed": 0,
+    "passed": 25,
+    "pytest_seconds": 45.33,
+    "skipped": 0,
+    "warnings": 1
+  },
+  "verifier_network_cleanup_completed": 14,
+  "version": "owned-windows-linux-batfish-0.1.0"
+}

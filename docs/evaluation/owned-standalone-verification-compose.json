@@ -1,0 +1,109 @@
+{
+  "application_credentials_supplied": false,
+  "applied": false,
+  "batfish_version": "2026.08.27.3685",
+  "checkout_import_count": 0,
+  "compose_cli_version": "5.6.0",
+  "compose_file_sha256": "d24c5bb53912dc2f8e06d611e91575ea50305935c1370591c9d8922d2cf7dd51",
+  "container_limits": {
+    "cpu_count": 2,
+    "memory_bytes": 4294967296,
+    "root_read_only": true,
+    "tmpfs_tmp_bytes": 1073741824
+  },
+  "device_syntax_verified": false,
+  "engine_image_digest": "sha256:7909378197c5a3974f2e8180af58cef0ca17b74d1cd9ba39f2d1fddb64737e55",
+  "full_topology_qualified": false,
+  "host_binding": "127.0.0.1:9996",
+  "human_approval": false,
+  "independent_quality_proven": false,
+  "installed_import_count": 18,
+  "installed_runtime_files_byte_equal": 231,
+  "legacy_application_profile_executed": false,
+  "management_access_verified": false,
+  "network_internal": false,
+  "new_llm_invocations": 0,
+  "new_ml_workers": 0,
+  "old_history_hashes_unchanged": 250,
+  "other_services_started": 0,
+  "outcomes": [
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 1,
+      "scenario": "route_loss",
+      "status": "differences_found",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 1,
+      "scenario": "route_loss",
+      "status": "differences_found",
+      "vendor": "juniper"
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "scenario": "unchanged_reachable",
+      "status": "no_differences_in_scope",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 1,
+      "before_reachable_count": 1,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "scenario": "unchanged_reachable",
+      "status": "no_differences_in_scope",
+      "vendor": "juniper"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": "cisco"
+    },
+    {
+      "after_reachable_count": 0,
+      "before_reachable_count": 0,
+      "cleanup_complete": true,
+      "difference_count": 0,
+      "scenario": "empty_scope",
+      "status": "inconclusive",
+      "vendor": "juniper"
+    }
+  ],
+  "owned_compose_resources_after_teardown": 0,
+  "previous_owned_resources_removed": {
+    "containers": 1,
+    "networks": 2,
+    "volumes": 2
+  },
+  "private_completion_sha256": "a0230c77c7a7f50a0a1d77505d773bc20cea710744bdd5be7b66c9d353dfc92f",
+  "private_protocol_sha256": "5052257e248fd3150302c61f8d176b8d2f5e5e1c66345d6c7f2579e8c66efcb1",
+  "real_verifier_attempts": 6,
+  "scope_note": "Repeated own two-device Cisco/JunOS fixtures qualify the standalone startup path, not new networks or independent quality. SDK network DELETE, Docker teardown and secure disk erasure are different claims. Bridge networking is not external-traffic isolation.",
+  "sdk_network_count_after_tests": 0,
+  "sdk_version": "2026.8.19.3660",
+  "secure_disk_erasure_claimed": false,
+  "source_commit": "7115b93d3c2ab7485b2d648c2515ba8e798a22fa",
+  "standalone_compose_executed": true,
+  "tests": {
+    "failed": 0,
+    "passed": 10,
+    "pytest_seconds": 17.139,
+    "skipped": 0
+  },
+  "unrelated_resources_removed": 0,
+  "verifier_network_cleanup_completed": 6,
+  "version": "owned-standalone-compose-0.1.0"
+}

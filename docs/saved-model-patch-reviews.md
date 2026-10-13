@@ -245,3 +245,62 @@ UI type/format/build and 489 unit checks passed. All 22 synthetic model-candidat
 browser cases passed, including saved baseline/form reset and reader reconnect;
 all 156 regular browser cases passed too, with zero retries. These browser checks
 do not constitute new Qwen, ML or engine measurements.
+
+### Fresh Qwen, CPU ML and live Linux engine
+
+The next [four-request report](evaluation/owned-joint-candidate-live-functional.json)
+uses fresh Qwen outputs in the same saved HTTP workflow with the installed
+optional SDK and actual local Linux Batfish. Its v2 protocol was frozen before
+generation, including the CPU package inventory and owned engine/image/limits
+bindings. An earlier frozen v1 was not executed: independent preflight found
+a missing environment guard; its helper and protocol remain unchanged.
+
+| Case | Saved API result | Actual CPU ML | Actual formal result |
+| --- | --- | --- | --- |
+| Cisco SSHv1 | `failed`, HTTP 503 | not run | not run |
+| Cisco Telnet | `declined` | not run | not run |
+| JunOS SSHv1 | `draft` | completed | `no_differences_in_scope` |
+| JunOS Telnet | `declined` | not run | not run |
+
+Four real greedy model generations completed, with exactly one attempt per
+context and no retry, fallback or substitute patch. The first took 19.9120 s
+at the explicit diagnostic 20 s deadline; its gateway returned 200, but saved
+API generation failed with no adopted answer. Local replay found its raw schema
+and source bindings valid. The 20.0316 s intent-to-completion interval is
+consistent with transport/framing overhead at the deadline boundary, but the
+saved generic failure does not establish the exact exception cause. The other
+generations took 6.9927–8.5126 s. Default 10 s behavior is still unqualified.
+Failed raw output was not adopted or silently retried.
+
+The accepted JunOS candidate exactly matched the authored baseline, resolved
+one policy finding and introduced none; other findings remain. Actual isolated
+CPU inference with the same Telnet-only native 0.2.0 pin completed. Its raw
+uncalibrated anomaly score **increased**, 0.3296065629 → 0.3307287693; this is not
+an improvement or a measurement of SSH quality. `selected_ml_category_not_supported`
+keeps approval blocked. Actual Batfish 2026.08.27.3685 returned 1 → 1 reachable,
+zero differences and completed SDK network cleanup for the chosen IPv4 scope.
+Neither this query nor local parsing verifies SSH access or device syntax.
+
+Status remains `needs_review`. An approval request was rejected; no positive
+device/access/rollback attestations were fabricated. The diagnostic service-role
+`needs_more_information` decision is not an identified human's approval, and
+`applied=false`. Sources predate generation, but topology selection still has
+`topology_pinned_at_generation=false`. Baseline approval, operational completeness,
+vendor syntax, management access, rollback and independent model quality remain
+unknown. Later engine evidence cannot backfill generation-time `formal.not_run`.
+
+Installed runtime/source equality (231 files), 240 old history hashes, replay,
+restart, consents, encryption and temporary DB/key/gateway cleanup passed.
+Independent read-only review checked bindings and the closed public projection.
+These are the same four reused development cases on two toy network families,
+not four new independent samples. The earlier unavailable run is preserved,
+not upgraded. Raw prompts, configurations, model prose and UUIDs remain private.
+
+The new [bounded source-support audit](evaluation/owned-joint-candidate-live-source-support.json)
+again reproduced the unsupported assertion of approved baseline in JunOS Telnet
+`answer.summary`, with the same field hash as the earlier finding and input
+`approval=not_proven`. All four raw schema/source/citation membership checks
+passed, but only three answers were saved. Null patches/declines do not establish
+truthfulness; weaker normative-baseline wording and an ambiguous removal limitation
+are not counted as equally established errors. This is not an exhaustive semantic
+grade, demonstrated falsity or an independent quality benchmark.
