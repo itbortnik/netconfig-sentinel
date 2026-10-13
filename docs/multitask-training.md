@@ -164,3 +164,36 @@ head makes no false positive on these six views but misses half the positive
 lines. This is not an independent-test improvement or baseline-superiority claim.
 Missing JunOS/real cohorts, unknown-anomaly labels, severity supervision and
 calibration remain explicit. See [offline evaluation](offline-evaluation.md).
+
+## Explicit train-balanced localization (fixture format 0.4)
+
+`train_multitask(..., localization_objective=TrainBalancedLocalization())` is an
+opt-in offline intervention for native fixture encoders only. Import the request
+from `ml.training.localization_objective`. It is separate from `FineTunePolicy`
+and the five `LossWeights`: default numerical branches, serialized fields and
+historical 0.1/0.2/0.3/foundation identities remain unchanged.
+
+The coefficient is `eligible_train_negative_lines / eligible_train_positive_lines`,
+computed once from aligned `_targets` after train feature extraction. Unknown,
+unreviewed, ignored and deletion-only targets do not contribute. Missing either
+train class or disabled localization refuses; selection/test prevalence never
+fits or updates the coefficient. The same coefficient applies to train and
+validation localization BCE. Other four component formulas are unchanged.
+
+The [PyTorch positive-weight loss](https://docs.pytorch.org/docs/2.14/generated/torch.nn.BCEWithLogitsLoss.html)
+weights the positive log term, with mean reduction over eligible lines, **not**
+division by the sum of class weights. This changes both class cost and objective
+scale; the shared residual adapter and global gradient clipping can affect every
+head. Each arm selects the first minimum of its own recorded validation total;
+weighted and unweighted selection losses are not directly comparable as quality.
+Cost-sensitive line sigmoid outputs are not calibrated posterior probabilities.
+
+Mandatory `multitask-training-0.4.0` evidence records the closed policy, train
+fingerprint, positive/negative/eligible counts and exact coefficient. Save/load,
+prediction and the existing validation adapter support this explicit format.
+Retained-input validation reconstructs eligible train targets and checks the
+evidence, rather than trusting annotation counts alone. The 0.4 format is **not**
+accepted by the current registry/admission/owned comparison route, saved HTTP
+inference or change-review selection. It cannot silently become an online model.
+For actual paired seeds and the resulting task tradeoffs, see
+[the fixed experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective).

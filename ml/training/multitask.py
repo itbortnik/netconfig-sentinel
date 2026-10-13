@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Annotated, cast
 
 import torch
@@ -213,6 +214,8 @@ def multitask_loss(
     output: HeadOutputs,
     targets: SupervisedTargets,
     weights: LossWeights,
+    *,
+    localization_positive_weight: float | None = None,
 ) -> MultiTaskLoss:
     """L=w1 anomaly+w2 category+w3 localization+w4 severity+w5 contrastive.
 
@@ -220,6 +223,13 @@ def multitask_loss(
     fails explicitly; callers must choose and record a zero weight to disable it.
     """
     weights = LossWeights.model_validate(weights.model_dump())
+    if localization_positive_weight is not None and (
+        type(localization_positive_weight) is not float
+        or not isfinite(localization_positive_weight)
+        or localization_positive_weight <= 0
+        or weights.localization == 0
+    ):
+        raise ValueError("explicit localization coefficient requires finite positive enabled loss")
     _validate_targets(output, targets)
     components: dict[str, Tensor | None] = {}
     counts = {}
@@ -231,7 +241,13 @@ def multitask_loss(
         mask = labels != IGNORE_TARGET
         counts[name] = int(mask.sum())
         components[name] = (
-            nn.functional.binary_cross_entropy_with_logits(logits[mask], labels[mask])
+            nn.functional.binary_cross_entropy_with_logits(
+                logits[mask],
+                labels[mask],
+                pos_weight=logits.new_tensor(localization_positive_weight),
+            )
+            if counts[name] and name == "localization" and localization_positive_weight is not None
+            else nn.functional.binary_cross_entropy_with_logits(logits[mask], labels[mask])
             if counts[name]
             else None
         )

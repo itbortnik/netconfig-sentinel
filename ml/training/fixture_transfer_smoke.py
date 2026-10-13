@@ -25,6 +25,7 @@ from ml.mutation import MutationType
 from ml.preprocessing import sanitize_configuration
 from ml.preprocessing.blocks import digest
 from ml.training.fixture_pretraining_cli import _read_json
+from ml.training.localization_objective import TrainBalancedLocalization
 from ml.training.multitask import HeadPolicy, LossWeights
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
@@ -114,6 +115,8 @@ def run_fixture_transfer(
     *,
     epochs: int = 20,
     scenario: OwnedTransferScenario = "legacy-telnet-0.1.0",
+    seed: int = 17,
+    localization_objective: TrainBalancedLocalization | None = None,
 ) -> dict[str, object]:
     """Fixed authored scenario; no arbitrary customer inputs or registry enrollment."""
     source = load_fixture_pretraining(source_model)
@@ -136,6 +139,10 @@ def run_fixture_transfer(
     }
     if scenario != "legacy-telnet-0.1.0":
         protocol["owned_scenario"] = scenario
+    if seed != 17:
+        protocol["seed"] = seed
+    if localization_objective is not None:
+        protocol["localization_objective"] = localization_objective.model_dump(mode="json")
     (output / "protocol.json").write_text(json.dumps(protocol, sort_keys=True), encoding="utf-8")
     result = train_multitask(
         splits,
@@ -143,8 +150,9 @@ def run_fixture_transfer(
         examples,
         fixture_corpus=corpus,
         head_policy=HeadPolicy(classes=("telnet_enabled",), max_examples=128),
-        training_policy=FineTunePolicy(epochs=epochs),
+        training_policy=FineTunePolicy(epochs=epochs, seed=seed),
         loss_weights=LossWeights(severity=0),
+        localization_objective=localization_objective,
     )
     identity = multitask_identity(result)
     save_multitask(result, output / "model")
@@ -189,6 +197,10 @@ def main() -> int:
     parser.add_argument("--records", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument(
+        "--line-objective", choices=("unweighted", "train-balanced"), default="unweighted"
+    )
     parser.add_argument(
         "--owned-scenario", choices=OWNED_TRANSFER_SCENARIOS, default="legacy-telnet-0.1.0"
     )
@@ -202,6 +214,10 @@ def main() -> int:
             args.output,
             epochs=args.epochs,
             scenario=args.owned_scenario,
+            seed=args.seed,
+            localization_objective=(
+                TrainBalancedLocalization() if args.line_objective == "train-balanced" else None
+            ),
         )
     except (ValueError, OSError, RuntimeError):
         parser.exit(1, "Fixture transfer failed; inspect trusted local source/exposure bindings.\n")

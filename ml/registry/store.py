@@ -136,6 +136,7 @@ def list_models(root: Path) -> tuple[RegistryModelCard, ...]:
 
 def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryModelCard:
     from ml.training.multitask_training import (
+        MultiTaskBalancedFixtureReport,
         MultiTaskFixtureTransferReport,
         MultiTaskResult,
         MultiTaskTransferReport,
@@ -151,7 +152,12 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryMo
     )
     kind: Literal["native", "foundation"]
     if isinstance(model, MultiTaskResult):
-        report = _verified_report(model)
+        native_report = _verified_report(model)
+        if isinstance(native_report, MultiTaskBalancedFixtureReport):
+            raise ValueError(
+                "weighted fixture training format 0.4 is offline-only; registry refuses it"
+            )
+        report = native_report
         identity = multitask_identity(model)
         manifest = (
             report.pretraining.source_manifest_sha256

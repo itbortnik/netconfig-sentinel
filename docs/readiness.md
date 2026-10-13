@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-11 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-13 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -24,6 +24,24 @@
 | Раздельные метрики | [Общий evaluator](offline-evaluation.md) и origin/vendor/role/unseen slices; measured synthetic reports | Real-confirmed/independent-test данные отсутствуют; `missing` не означает ноль ошибок или пройденный gate |
 
 ## Количественные и модельные ограничения
+
+Последний [train-balanced localization experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective)
+добавляет фактически работающий opt-in Stage B loss и отдельный offline формат 0.4.
+Шесть заранее фиксированных fits (seeds17/23/41 × unweighted/train-balanced,
+20 updates) используют прежние 64 train/16 selection views; новых независимых
+данных нет. Train-only коэффициент 560/32=17.5 поднимает line recall 0→0.75 во
+всех трёх парах, но добавляет 4/4/8 ложных строк и неоднозначные anomaly/category
+tradeoffs. Ни новый default, ни лучший seed, ни приёмка качества не объявлены.
+Поддержаны source binding, save/load и общий evaluator; registry/HTTP/change
+selection явно не принимают 0.4. Старые форматы/policies, seed17 model identity
+и 97 исторических файлов сохранены. [Numeric evidence](evaluation/owned-train-balanced-localization.json)
+различает собственный weighted selection objective, common unweighted BCE,
+AP/PR-AUC и все исходы; descriptive cluster intervals имеют только две authored
+сети и не являются независимой оценкой. 2832 full passes/27 skips, 133 focused,
+283 installed и 283 Pydantic2.14 parent checks; ruff/mypy default/Linux/win32 — pass,
+231 installed runtime files побайтно совпадают. Новые local live-engine/БД/browser
+runs не выполнялись. §13B/14 продвинуты в этом functional diagnostic slice;
+representative real labels, calibration/test, model quality и полный MVP открыты.
 
 Dataset pipeline проверяет manifest/use authorization, consistency sanitization,
 deduplication, network/site/device/time isolation, mutations и фактические counts.

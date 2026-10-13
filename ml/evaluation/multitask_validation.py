@@ -27,7 +27,7 @@ from ml.mutation import MutationType
 from ml.training.classification_smoke import classification_fixtures
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
-    MultiTaskFixtureTransferReport,
+    FIXTURE_REPORTS,
     MultiTaskPrediction,
     MultiTaskResult,
     MultiTaskTransferReport,
@@ -60,7 +60,7 @@ def build_multitask_validation(
         model_sha256=multitask_identity(result),
         tokenizer_sha256=result.report.tokenizer_sha256,
         dataset_manifest_sha256=objective_split_identity(splits)
-        if isinstance(bound_report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport))
+        if isinstance(bound_report, (MultiTaskTransferReport, *FIXTURE_REPORTS))
         else canonical_hash(splits.model_dump(mode="json")),
         threshold_policy_sha256=canonical_hash("recorded-strict-0.5-supervised-head-thresholds-1"),
         classes=result.report.head_policy.classes,

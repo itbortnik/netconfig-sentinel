@@ -352,3 +352,73 @@ or online decisions change. Reserved test features/labels remain unused;
 calibration, independent localization quality and real-confirmed labels remain
 open. A useful repair requires a separately fixed experiment or a reproduced
 implementation defect, not post-hoc selection tuning presented as acceptance.
+
+## Train-balanced bilateral line objective
+
+The explicit intervention follows the preceding alignment diagnostic and
+implements supervised localization rather than only reporting a hypothetical
+repair. The default is still unweighted. The existing fixture smoke accepts
+`--seed` and `--line-objective train-balanced` without a new training/evaluation
+subsystem:
+
+```powershell
+python -m ml.training.fixture_transfer_smoke --source-model private/fixture-encoder --source-sha256 <full-pin> --manifest private/fixture-manifest.json --records private/fixture-records.json --owned-scenario bilateral-telnet-0.1.0 --seed 17 --epochs 20 --line-objective train-balanced --output artifacts/new-balanced-transfer
+```
+
+Use a new output for every arm/seed. This is native fixture format 0.4,
+[explicitly offline-only](multitask-training.md#explicit-train-balanced-localization-fixture-format-04),
+not enrollment or a change to the default inference model.
+
+[Actual installed evidence](evaluation/owned-train-balanced-localization.json)
+retains all six predetermined CPU fits: seeds 17/23/41 × unweighted/train-balanced,
+20 full-batch AdamW updates per run. The protocol was frozen before fitting.
+Each pair shares initialization seed, source encoder, policies, full downstream
+truth table and strict `score > 0.5` decisions. The same 24 authored parents yield
+64 train/16 selection views, not new data. Severity stays disabled. There are
+32 positive and 560 negative eligible train lines: the fixed positive coefficient
+is 17.5. Selection has eight positives and 140 negatives and does not determine
+the coefficient. No reserved-test features/labels, threshold fit or calibration
+fit are used. Epochs are selected by each arm's own recorded validation objective.
+
+| Seed | Objective | Selected epoch | Line TP / FP / FN | Line F1 | Line AP | Anomaly F1 | Category F1 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 17 | Unweighted | 20 | 0 / 0 / 8 | 0 | 0.42500 | 0.85714 | 0.66667 |
+| 17 | Train-balanced | 20 | 6 / 4 / 2 | 0.66667 | 0.75000 | 0.40000 | 0.40000 |
+| 23 | Unweighted | 20 | 0 / 0 / 8 | 0 | 0.46245 | 0.50000 | 0.80000 |
+| 23 | Train-balanced | 15 | 6 / 4 / 2 | 0.66667 | 0.75000 | 0.57143 | 0.36364 |
+| 41 | Unweighted | 20 | 0 / 0 / 8 | 0 | 0.21741 | 0.50000 | 0 |
+| 41 | Train-balanced | 20 | 6 / 8 / 2 | 0.54545 | 0.83333 | 0 | 0.40000 |
+
+The line metric includes eligible lines on **all** cases, including negative
+configurations. Weighted reference-only line false alerts are 2/2/4, on two/two/
+four of eight negative views; full line false positives are 4/4/8. Every weighted
+arm recovers four Cisco positives and two of four JunOS positives. This is
+reused synthetic selection, not proved cross-vendor generalization or acceptable
+false-alert volume. All outcomes are retained; no best seed/checkpoint is promoted.
+
+Common **unweighted** selection line BCE changes 0.18160→0.12053,
+0.16551→0.16834 and 0.18658→0.11333 for the three pairs. It does not improve in
+every seed. Full traces preserve pre-update train and post-update validation
+losses; saved-checkpoint diagnostics measure both after the selected update.
+The coefficient increases zero-logit line loss scale by 1120/592 ≈ 1.89189,
+so this intervention does not isolate class cost from shared-task optimization
+or clipping. Anomaly/category tradeoffs prevent an all-tasks improvement claim.
+
+The same single-record sigmoid scores feed every ranking/vendor slice without
+slice-shaped sigmoid recomputation; BCE uses full-batch logits to reproduce
+the saved objective. AP and trapezoidal PR-AUC are recorded separately. Paired
+network-cluster uncertainty enumerates all four ordered resamples of the **two**
+authored selection networks and retains every delta plus descriptive 95-percentile
+intervals. These intervals condition on fitted/selected checkpoints, exclude
+retraining/selection uncertainty and do not constitute significance, physical
+independence, representative coverage or an independent quality interval.
+
+All six save/load prediction comparisons passed. The seed-17 default report,
+weights and model identity exactly reproduce the previous bilateral checkpoint;
+97 retained historical/source files remain byte-identical. The installed runtime
+has 231 byte-equal source files. Independent review, lint, default/Linux/win32
+type checks, 133 source-focused checks, 283 installed checks, 283 Pydantic 2.14
+parent checks and 2832 full passes/27 skips support this implementation slice.
+New local live-engine/PostgreSQL/browser runs were not performed. Independent
+real-confirmed quality, corpus scale, calibration and the full MVP gate remain
+open; the weighted format is not activated.

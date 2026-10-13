@@ -34,6 +34,11 @@ from ml.training.fixture_transfer import (
     validate_fixture_source,
     verify_fixture_binding,
 )
+from ml.training.localization_objective import (
+    FittedLocalizationObjective,
+    TrainBalancedLocalization,
+    fit_localization_objective,
+)
 from ml.training.multitask import (
     IGNORE_TARGET,
     SEVERITY_CLASSES,
@@ -234,14 +239,39 @@ class MultiTaskFixtureTransferReport(_MultiTaskReportFields):
     pretraining: FixtureSourceBinding
 
 
+class MultiTaskBalancedFixtureReport(_MultiTaskReportFields):
+    """Explicit cost-sensitive line objective; old report identities stay unchanged."""
+
+    version: Literal["multitask-training-0.4.0"] = "multitask-training-0.4.0"
+    pretraining: FixtureSourceBinding
+    localization_objective: FittedLocalizationObjective
+
+    @model_validator(mode="after")
+    def objective_binding(self) -> Self:
+        if (
+            not self.loss_weights.localization
+            or self.localization_objective.train_fingerprint != self.train_fingerprint
+            or self.localization_objective.eligible_lines != self.supervised_counts["localization"]
+        ):
+            raise ValueError("fitted localization objective differs from train supervision binding")
+        return self
+
+
+type Report = (
+    MultiTaskReport
+    | MultiTaskTransferReport
+    | MultiTaskFixtureTransferReport
+    | MultiTaskBalancedFixtureReport
+)
+
+FIXTURE_REPORTS = (MultiTaskFixtureTransferReport, MultiTaskBalancedFixtureReport)
+
 type MultiTaskReportPayload = Annotated[
-    MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport,
+    Report,
     Field(discriminator="version"),
 ]
 
-_REPORT: TypeAdapter[MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport] = (
-    TypeAdapter(MultiTaskReportPayload)
-)
+_REPORT: TypeAdapter[Report] = TypeAdapter(MultiTaskReportPayload)
 
 
 def _encoder_model(pretrained: PretrainedEncoder) -> ConfigEncoderMLM:
@@ -256,14 +286,14 @@ def _encoder_model(pretrained: PretrainedEncoder) -> ConfigEncoderMLM:
 class MultiTaskResult:
     pretrained: PretrainedEncoder
     heads: MultiTaskHeads
-    report: MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport
+    report: Report
 
 
 def _verified_report(
     result: MultiTaskResult,
-) -> MultiTaskReport | MultiTaskTransferReport | MultiTaskFixtureTransferReport:
+) -> Report:
     report = _REPORT.validate_python(result.report.model_dump())
-    if isinstance(report, MultiTaskFixtureTransferReport):
+    if isinstance(report, FIXTURE_REPORTS):
         if not isinstance(result.pretrained, FixturePretrainingResult):
             raise ValueError("fixture-backed report requires a native fixture source")
         verify_fixture_binding(result.pretrained, report.pretraining)
@@ -300,7 +330,7 @@ def validate_multitask_inputs(
     """Shared exact source/annotation/exposure validation; no predictions or weight updates."""
     report = _verified_report(result)
     pairs: tuple[SemanticPair, ...] = ()
-    if isinstance(report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport)):
+    if isinstance(report, (MultiTaskTransferReport, *FIXTURE_REPORTS)):
         if objective_split_identity(splits) != report.pretraining.source_manifest_sha256:
             raise ValueError("evaluation source manifest binding differs from transferred corpus")
         if isinstance(report, MultiTaskTransferReport):
@@ -312,11 +342,9 @@ def validate_multitask_inputs(
         report.head_policy,
         pairs,
         fixture_corpus,
-        report.pretraining.exposure.policy
-        if isinstance(report, MultiTaskFixtureTransferReport)
-        else None,
+        report.pretraining.exposure.policy if isinstance(report, FIXTURE_REPORTS) else None,
     )
-    if isinstance(report, MultiTaskFixtureTransferReport):
+    if isinstance(report, FIXTURE_REPORTS):
         if not isinstance(result.pretrained, FixturePretrainingResult) or fixture_corpus is None:
             raise ValueError("fixture evaluation requires the bound source corpus/encoder")
         if (
@@ -334,6 +362,31 @@ def validate_multitask_inputs(
         _fingerprint(rows[DatasetSplit.VALIDATION]) != report.validation_fingerprint
     ):
         raise ValueError("evaluation differs from the supervised training/selection corpus")
+    if isinstance(report, MultiTaskBalancedFixtureReport):
+        # Rebuild eligible TRAIN targets, not annotation counts or selection prevalence.
+        features = []
+        windows = values = 0
+        for row in rows[DatasetSplit.TRAIN]:
+            aligned = extract_aligned_features(
+                row.record,
+                result.pretrained,
+                max_windows=report.training_policy.max_total_windows,
+                max_feature_values=report.training_policy.max_feature_values,
+            )
+            windows += aligned.windows
+            values += aligned.blocks.numel() + aligned.lines.numel()
+            if windows > report.training_policy.max_total_windows or (
+                values > report.training_policy.max_feature_values
+            ):
+                raise ValueError("localization validation feature/window budget exceeded")
+            features.append(aligned)
+        objective = fit_localization_objective(
+            _targets(rows[DatasetSplit.TRAIN], tuple(features)).lines,
+            report.train_fingerprint,
+            report.localization_objective.policy,
+        )
+        if objective != report.localization_objective:
+            raise ValueError("localization objective differs from retained aligned train targets")
     return rows
 
 
@@ -597,6 +650,7 @@ class FittedHeads:
     best_epoch: int
     supervised_counts: dict[str, int]
     validation_supervised_counts: dict[str, int]
+    localization_objective: FittedLocalizationObjective | None = None
 
 
 def fit_aligned_heads(
@@ -606,9 +660,23 @@ def fit_aligned_heads(
     head_policy: HeadPolicy,
     policy: FineTunePolicy,
     weights: LossWeights,
+    *,
+    localization_objective: TrainBalancedLocalization | None = None,
 ) -> FittedHeads:
     """Shared numerical fit; caller binds provenance, budgets and RNG/runtime state."""
     targets = {split: _targets(rows[split], feature) for split, feature in features.items()}
+    if localization_objective is not None and not weights.localization:
+        raise ValueError("train-balanced localization requires an enabled localization objective")
+    fitted_objective = (
+        fit_localization_objective(
+            targets[DatasetSplit.TRAIN].lines,
+            _fingerprint(rows[DatasetSplit.TRAIN]),
+            localization_objective,
+        )
+        if localization_objective is not None
+        else None
+    )
+    positive_weight = fitted_objective.positive_weight if fitted_objective is not None else None
     heads = MultiTaskHeads(hidden_size, head_policy)
     optimizer = torch.optim.AdamW(
         heads.parameters(), lr=policy.learning_rate, weight_decay=policy.weight_decay
@@ -622,7 +690,12 @@ def fit_aligned_heads(
             tuple(item.blocks for item in train_features),
             tuple(item.lines for item in train_features),
         )
-        train_loss = multitask_loss(train_output, targets[DatasetSplit.TRAIN], weights)
+        train_loss = multitask_loss(
+            train_output,
+            targets[DatasetSplit.TRAIN],
+            weights,
+            localization_positive_weight=positive_weight,
+        )
         optimizer.zero_grad(set_to_none=True)
         train_loss.total.backward()  # type: ignore[no-untyped-call]
         torch.nn.utils.clip_grad_norm_(
@@ -636,7 +709,12 @@ def fit_aligned_heads(
                 tuple(item.blocks for item in validation_features),
                 tuple(item.lines for item in validation_features),
             )
-            val_loss = multitask_loss(validation_output, targets[DatasetSplit.VALIDATION], weights)
+            val_loss = multitask_loss(
+                validation_output,
+                targets[DatasetSplit.VALIDATION],
+                weights,
+                localization_positive_weight=positive_weight,
+            )
         val = float(val_loss.total)
         losses.append(
             SupervisedEpoch(
@@ -666,6 +744,7 @@ def fit_aligned_heads(
         selected_epoch,
         train_loss.supervised_counts,
         val_loss.supervised_counts,
+        fitted_objective,
     )
 
 
@@ -680,11 +759,20 @@ def train_multitask(
     semantic_pairs: tuple[SemanticPair, ...] = (),
     fixture_corpus: FixtureTrainingCorpus | None = None,
     fixture_policy: FixtureTransferPolicy | None = None,
+    localization_objective: TrainBalancedLocalization | None = None,
 ) -> MultiTaskResult:
     """Train residual feature adapter/heads; select epoch on validation, never test labels."""
     head_policy = HeadPolicy.model_validate(head_policy.model_dump())
     policy = FineTunePolicy.model_validate((training_policy or FineTunePolicy()).model_dump())
     weights = LossWeights.model_validate((loss_weights or LossWeights()).model_dump())
+    if localization_objective is not None:
+        localization_objective = TrainBalancedLocalization.model_validate(
+            localization_objective.model_dump()
+        )
+        if not isinstance(pretrained, FixturePretrainingResult) or not weights.localization:
+            raise ValueError(
+                "balanced localization requires native fixture source and enabled loss"
+            )
     rows = _rows(
         splits, pretrained, examples, head_policy, semantic_pairs, fixture_corpus, fixture_policy
     )
@@ -725,6 +813,7 @@ def train_multitask(
                 head_policy,
                 policy,
                 weights,
+                localization_objective=localization_objective,
             )
     finally:
         torch.use_deterministic_algorithms(deterministic, warn_only=warn)
@@ -763,15 +852,23 @@ def train_multitask(
     if isinstance(encoder, FixturePretrainingResult):
         if fixture_corpus is None:
             raise ValueError("fixture transfer source corpus is unavailable")
+        binding = validate_fixture_source(
+            fixture_corpus,
+            encoder,
+            splits,
+            tuple(row.record for group in rows.values() for row in group),
+            policy=fixture_policy,
+        )
+        if fitted.localization_objective is not None:
+            balanced_report = MultiTaskBalancedFixtureReport(
+                **report.model_dump(exclude={"version"}),
+                pretraining=binding,
+                localization_objective=fitted.localization_objective,
+            )
+            return MultiTaskResult(encoder, fitted.heads, balanced_report)
         fixture_report = MultiTaskFixtureTransferReport(
             **report.model_dump(exclude={"version"}),
-            pretraining=validate_fixture_source(
-                fixture_corpus,
-                encoder,
-                splits,
-                tuple(row.record for group in rows.values() for row in group),
-                policy=fixture_policy,
-            ),
+            pretraining=binding,
         )
         return MultiTaskResult(encoder, fitted.heads, fixture_report)
     if isinstance(encoder, PretrainingResult):
@@ -921,7 +1018,7 @@ def load_multitask(path: Path) -> MultiTaskResult:
     report = _REPORT.validate_python(payload["report"])
     encoder: PretrainedEncoder = (
         load_fixture_pretraining(path / "encoder")
-        if isinstance(report, MultiTaskFixtureTransferReport)
+        if isinstance(report, FIXTURE_REPORTS)
         else load_pretraining(path / "encoder")
         if isinstance(report, MultiTaskTransferReport)
         else load_checkpoint(path / "encoder")
