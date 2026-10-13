@@ -197,3 +197,11 @@ accepted by the current registry/admission/owned comparison route, saved HTTP
 inference or change-review selection. It cannot silently become an online model.
 For actual paired seeds and the resulting task tradeoffs, see
 [the fixed experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective).
+
+The owned fixture CLI also accepts `--localization-task-weight` to configure the
+existing `LossWeights.localization` (`w3`), independently of the train-fitted
+positive class coefficient. The default remains `1.0`: absent/explicit unit
+weight preserve protocol bytes and model identity for both objectives. Invalid
+weights and train-balanced plus zero localization refuse before loading the
+source or creating output. This does not add a policy mode, reduction or bundle
+version. See the [fixed task-rescaling ablation](pretraining-transfer.md#controlled-localization-task-rescaling).

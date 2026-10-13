@@ -1,6 +1,8 @@
 """Train-only line balance, historical parity, strict format and offline gates."""
 
 import copy
+import json
+import sys
 from dataclasses import replace
 
 import pytest
@@ -307,7 +309,10 @@ def test_disabled_loss_and_online_admission_explicitly_refuse(inputs, balanced, 
 
 
 @pytest.mark.parametrize("objective", ["unweighted", "train-balanced"])
-def test_cli_explicit_objective_and_seed_are_forwarded(objective, tmp_path, monkeypatch):
+@pytest.mark.parametrize("task_weight", [None, 592 / 1120])
+def test_cli_explicit_objective_and_seed_are_forwarded(
+    objective, task_weight, tmp_path, monkeypatch
+):
     from ml.training import fixture_transfer_smoke
 
     calls = []
@@ -338,8 +343,11 @@ def test_cli_explicit_objective_and_seed_are_forwarded(objective, tmp_path, monk
             "bilateral-telnet-0.1.0",
         ],
     )
+    if task_weight is not None:
+        monkeypatch.setattr("sys.argv", [*sys.argv, "--localization-task-weight", str(task_weight)])
     assert fixture_transfer_smoke.main() == 0
     assert calls[0]["seed"] == 41 and calls[0]["epochs"] == 20
+    assert calls[0]["localization_task_weight"] == (1 if task_weight is None else task_weight)
     assert calls[0]["localization_objective"] == (
         TrainBalancedLocalization() if objective == "train-balanced" else None
     )
@@ -384,3 +392,91 @@ def test_legacy_encoder_cannot_silently_accept_balanced_request():
     legacy = legacy_fixture.__wrapped__()
     with pytest.raises(ValueError, match="native fixture source"):
         legacy_train(legacy, localization_objective=TrainBalancedLocalization())
+
+
+@pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf"), 101.0, 0.0])
+def test_invalid_scaled_task_weight_refuses_before_source_or_output(value, tmp_path, monkeypatch):
+    from ml.training.fixture_transfer_smoke import run_fixture_transfer
+
+    monkeypatch.setattr(
+        "ml.training.fixture_transfer_smoke.load_fixture_pretraining",
+        lambda *_: pytest.fail("invalid task weight must refuse before source loading"),
+    )
+    output = tmp_path / "output"
+    with pytest.raises(ValueError):
+        run_fixture_transfer(
+            tmp_path / "source",
+            "f" * 64,
+            tmp_path / "manifest",
+            tmp_path / "records",
+            output,
+            localization_objective=TrainBalancedLocalization(),
+            localization_task_weight=value,
+        )
+    assert not output.exists()
+
+
+def test_task_rescaling_changes_only_total_weight_not_component_and_train_mass():
+    model = MultiTaskHeads(16, HeadPolicy(classes=("routing", "management")))
+    logits = torch.zeros(593, requires_grad=True)
+    output = replace(outputs(model), line_logits=logits)
+    annotation = targets(
+        lines=torch.cat((torch.ones(32), torch.zeros(560), torch.tensor([-100.0])))
+    )
+    disabled = dict(anomaly=0, category=0, severity=0, contrastive=0)
+    unweighted = multitask_loss(output, annotation, LossWeights(localization=1, **disabled))
+    balanced = multitask_loss(
+        output,
+        annotation,
+        LossWeights(localization=1, **disabled),
+        localization_positive_weight=17.5,
+    )
+    scaled = multitask_loss(
+        output,
+        annotation,
+        LossWeights(localization=592 / 1120, **disabled),
+        localization_positive_weight=17.5,
+    )
+    assert torch.equal(balanced.components["localization"], scaled.components["localization"])
+    assert torch.allclose(scaled.total, unweighted.total, atol=1e-6)
+    assert torch.allclose(scaled.total, (592 / 1120) * balanced.total, atol=1e-7)
+    before = torch.autograd.grad(balanced.total, logits, retain_graph=True)[0]
+    after = torch.autograd.grad(scaled.total, logits)[0]
+    assert torch.allclose(after, (592 / 1120) * before, atol=1e-8)
+    assert after[-1] == 0
+
+
+@pytest.mark.parametrize("balanced", [False, True])
+def test_actual_cli_default_and_explicit_unit_task_weight_preserve_protocol_and_model(
+    inputs, balanced, tmp_path
+):
+    from ml.training.fixture_transfer_smoke import run_fixture_transfer
+    from ml.training.pretraining import save_pretraining
+
+    corpus, source = inputs[:2]
+    source_path = tmp_path / "source"
+    save_pretraining(source, source_path)
+    manifest, records = tmp_path / "manifest.json", tmp_path / "records.json"
+    manifest.write_text(corpus.manifest.model_dump_json(), encoding="utf-8")
+    records.write_text(
+        json.dumps([row.model_dump(mode="json") for row in corpus.imported]), encoding="utf-8"
+    )
+    options = dict(
+        epochs=1, localization_objective=TrainBalancedLocalization() if balanced else None
+    )
+    first, second = tmp_path / "absent", tmp_path / "explicit"
+    default = run_fixture_transfer(
+        source_path, pretraining_identity(source), manifest, records, first, **options
+    )
+    explicit = run_fixture_transfer(
+        source_path,
+        pretraining_identity(source),
+        manifest,
+        records,
+        second,
+        localization_task_weight=1.0,
+        **options,
+    )
+    assert default["model_identity"] == explicit["model_identity"]
+    assert (first / "protocol.json").read_bytes() == (second / "protocol.json").read_bytes()
+    assert (first / "model/heads.json").read_bytes() == (second / "model/heads.json").read_bytes()

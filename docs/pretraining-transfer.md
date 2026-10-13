@@ -422,3 +422,73 @@ parent checks and 2832 full passes/27 skips support this implementation slice.
 New local live-engine/PostgreSQL/browser runs were not performed. Independent
 real-confirmed quality, corpus scale, calibration and the full MVP gate remain
 open; the weighted format is not activated.
+
+## Controlled localization task rescaling
+
+The follow-up [installed experiment](evaluation/owned-localization-task-rescaling.json)
+changes only the existing localization task coefficient `w3`, keeping the
+train-balanced positive/negative cost ratio 17.5. It adds three predetermined
+fits (seeds 17/23/41, 20 updates) and retains all six preceding controls without
+retraining or overwriting them. Nine outcomes, including failures to improve,
+are available on the same complete authored truth table.
+
+Before fitting, eligible TRAIN counts determine
+`w3 = (positive + negative) / (negative + positive * class_ratio) = 592/1120`.
+Effective negative/positive row weights become 0.5285714286/9.25, still in ratio
+17.5, with total train mass 592. This normalizes mean train row weight and
+zero-logit loss, **not** gradient norm, clipping frequency, AdamW trajectory or
+epoch-selection effects. Those mechanisms were not separately measured. The
+factor is fixed for validation too; selection prevalence does not recalculate it.
+
+```powershell
+python -m ml.training.fixture_transfer_smoke --source-model private/fixture-encoder --source-sha256 <full-pin> --manifest private/fixture-manifest.json --records private/fixture-records.json --owned-scenario bilateral-telnet-0.1.0 --seed 17 --epochs 20 --line-objective train-balanced --localization-task-weight 0.5285714285714286 --output artifacts/new-task-rescaled-transfer
+```
+
+The CLI uses existing `LossWeights` validation before reading source files or
+creating output. No new training format, loss reduction or evaluator is added.
+Default/explicit `1.0` keep the previous protocol and model identity; severity
+and the other four task coefficients stay unchanged in the measured runs.
+Train-balanced with zero task weight refuses, not silent untrained localization.
+
+| Seed | Selected epoch | Line TP / FP / FN | Line F1 | Line AP | Anomaly F1 | Category F1 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 17 | 20 | 6 / 4 / 2 | 0.66667 | 0.77500 | 0.54545 | 0.54545 |
+| 23 | 15 | 6 / 4 / 2 | 0.66667 | 0.75000 | 0.50000 | 0.36364 |
+| 41 | 20 | 6 / 12 / 2 | 0.46154 | 0.83333 | 0 | 0.40000 |
+
+The [preceding table](#train-balanced-bilateral-line-objective) retains the six
+unweighted/unit-task-weight controls. Relative to train-balanced `w3=1`, scaling
+improves the first seed's anomaly/category F1, worsens the second seed's anomaly
+F1 and increases the third seed's false lines from 8 to 12. Negative-reference
+line alerts are 2/2/6 on two/two/six of eight negative views. Common unweighted
+line BCE is 0.14302/0.17837/0.14679: worse than each unit-task-weight balanced
+control. The intervention is therefore **not** a general repair, a selected
+winning coefficient or proof of why the models fail. Default training and online
+selection remain unchanged; all three 0.4 models stay offline.
+
+All five first pre-update loss components exactly match each same-seed balanced
+control, including localization; only the total is reweighted. Subsequent
+components/weights/checkpoints can differ. Each run selects the first minimum
+of its own validation total; these differently scaled totals are not a quality
+comparison. Common unweighted BCE, exact single-record AP/trapezoidal PR-AUC,
+strict 0.5 line decisions and anomaly/category outcomes are recorded separately.
+The public comparison labels explicitly identify the scaled candidate and either
+the balanced or unweighted reference; an inherited private diagnostic key was
+renamed in the projection without changing any numbers or original evidence.
+
+Six predeclared pair comparisons enumerate all four ordered network-cluster
+resamples, with descriptive percentile endpoints. Only two hypothetical
+selection networks contribute. These conditional intervals exclude retraining
+and model-selection uncertainty and do not establish significance, physical
+independence or representative quality. Formatting views do not become new data.
+Reserved-test features/labels, calibration/threshold fitting and activation
+remain unused.
+
+All three actual save/load prediction checks passed, six historical identities
+and 173 historical files remain unchanged. The new installed package has 231
+byte-equal runtime source files; actual diagnostics checked 55 target-only imports,
+installed regressions 110. Checks: 91 focused plus 32 final-module cases,
+293 installed and 293 Pydantic 2.14 parent cases, 2842 full passes/27 skips;
+ruff/mypy default/Linux/win32 pass. No new local live-engine/PostgreSQL/browser
+run was performed. This is a functional §13B/14 optimization experiment, not
+independent real quality, corpus-scale completion, calibration or the full MVP.

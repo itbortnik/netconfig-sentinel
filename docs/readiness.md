@@ -25,7 +25,23 @@
 
 ## Количественные и модельные ограничения
 
-Последний [train-balanced localization experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective)
+Последующий [task-rescaling experiment](pretraining-transfer.md#controlled-localization-task-rescaling)
+добавляет три фактических fits к шести сохранённым контролям, не новые данные.
+CLI позволяет явно настроить существующий `w3` без нового loss/report формата:
+592/1120 из TRAIN при прежнем class ratio 17.5. Это нормирует средний row weight,
+не градиенты/clipping/Adam или выбор эпохи. Девять исходов показывают неоднозначные
+tradeoffs: line recall остаётся 0.75, FP 4/4/12; общий repair или winning coefficient
+не подтверждён. Default/explicit 1 protocol/model parity, все пять first components,
+173 исторических hashes и 231 installed files сохранены. [Отчёт](evaluation/owned-localization-task-rescaling.json)
+раздельно называет candidate/reference в шести paired comparisons; описательные intervals
+по двум hypothetical networks не являются independent quality. 2842 full passes /
+27 skips, 91 focused + 32 final-module, 293 installed + 293 Pydantic 2.14 parent;
+ruff/mypy default/Linux/win32 — pass. Новые local live-engine/БД/browser не запускались;
+online workflow неизменён.
+§13B/14 продвинуты как functional optimization; representative real labels,
+independent test/calibration, модельное качество и полный MVP остаются открытыми.
+
+Предыдущий [train-balanced localization experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective)
 добавляет фактически работающий opt-in Stage B loss и отдельный offline формат 0.4.
 Шесть заранее фиксированных fits (seeds17/23/41 × unweighted/train-balanced,
 20 updates) используют прежние 64 train/16 selection views; новых независимых

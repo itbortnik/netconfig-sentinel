@@ -117,8 +117,12 @@ def run_fixture_transfer(
     scenario: OwnedTransferScenario = "legacy-telnet-0.1.0",
     seed: int = 17,
     localization_objective: TrainBalancedLocalization | None = None,
+    localization_task_weight: float = 1.0,
 ) -> dict[str, object]:
     """Fixed authored scenario; no arbitrary customer inputs or registry enrollment."""
+    weights = LossWeights(severity=0, localization=localization_task_weight)
+    if localization_objective is not None and not weights.localization:
+        raise ValueError("train-balanced localization requires an enabled task weight")
     source = load_fixture_pretraining(source_model)
     if pretraining_identity(source) != expected_identity:
         raise ValueError("fixture source independent model pin differs")
@@ -143,6 +147,8 @@ def run_fixture_transfer(
         protocol["seed"] = seed
     if localization_objective is not None:
         protocol["localization_objective"] = localization_objective.model_dump(mode="json")
+    if localization_task_weight != 1:
+        protocol["localization_task_weight"] = weights.localization
     (output / "protocol.json").write_text(json.dumps(protocol, sort_keys=True), encoding="utf-8")
     result = train_multitask(
         splits,
@@ -151,7 +157,7 @@ def run_fixture_transfer(
         fixture_corpus=corpus,
         head_policy=HeadPolicy(classes=("telnet_enabled",), max_examples=128),
         training_policy=FineTunePolicy(epochs=epochs, seed=seed),
-        loss_weights=LossWeights(severity=0),
+        loss_weights=weights,
         localization_objective=localization_objective,
     )
     identity = multitask_identity(result)
@@ -198,6 +204,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument("--localization-task-weight", type=float, default=1.0)
     parser.add_argument(
         "--line-objective", choices=("unweighted", "train-balanced"), default="unweighted"
     )
@@ -215,6 +222,7 @@ def main() -> int:
             epochs=args.epochs,
             scenario=args.owned_scenario,
             seed=args.seed,
+            localization_task_weight=args.localization_task_weight,
             localization_objective=(
                 TrainBalancedLocalization() if args.line_objective == "train-balanced" else None
             ),
