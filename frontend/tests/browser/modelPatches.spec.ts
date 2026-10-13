@@ -410,6 +410,11 @@ test("reader reconnect reads the persisted model proposal without generation or 
     await expect(
       panel(page).getByRole("button", { name, exact: true }),
     ).toHaveCount(0);
+  await expect(
+    panel(page).getByText("Эталон для этого черновика не выбран.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await cleanBrowser(page);
 });
 
@@ -463,6 +468,21 @@ test("only an explicitly selected older same-device baseline and bounded pre-gen
   ).json();
   const draft = await generate(page);
   expect(draft.baseline.configuration_id).toBe(baseline.configuration_id);
+  const savedDraft = panel(page).getByRole("region", {
+    name: "Сохранённый модельный черновик",
+    exact: true,
+  });
+  await expect(savedDraft).toContainText(
+    `Сохранённый эталон: ${baseline.configuration_id}`,
+  );
+  await expect(savedDraft).toContainText("Одобрение эталона не установлено.");
+  // An unsent form selection cannot rewrite the saved proposal's baseline facts.
+  await panel(page)
+    .getByLabel("Эталон для генерации", { exact: true })
+    .selectOption("");
+  await expect(savedDraft).toContainText(
+    `Сохранённый эталон: ${baseline.configuration_id}`,
+  );
   const future = await (
     await page.request.post("/api/v1/configurations", {
       headers,
@@ -498,6 +518,30 @@ test("only an explicitly selected older same-device baseline and bounded pre-gen
       source_sha256: peer.canonical.source.sha256,
     },
   ]);
+  await page.getByRole("button", { name: "Отключиться", exact: true }).click();
+  await connect(page, READER);
+  await page.getByRole("button", { name: "Анализы", exact: true }).click();
+  await page
+    .locator(".history-item")
+    .filter({ hasText: `Анализ ${draft.analysis_id.slice(0, 8)}` })
+    .click();
+  await page
+    .locator(".finding-button")
+    .filter({ hasText: "management.ssh_version_1" })
+    .click();
+  await panel(page)
+    .getByRole("button", { name: "Открыть модельные исправления", exact: true })
+    .click();
+  await panel(page)
+    .getByRole("button", { name: new RegExp(draft.patch_id) })
+    .click();
+  await expect(savedDraft).toContainText(
+    `Сохранённый эталон: ${baseline.configuration_id}`,
+  );
+  await expect(savedDraft).toContainText("Одобрение эталона не установлено.");
+  await expect(
+    panel(page).getByLabel("Эталон для генерации", { exact: true }),
+  ).toHaveCount(0);
   await cleanBrowser(page);
 });
 test("a returned running record blocks decisions and resolves with read-only reconciliation", async ({

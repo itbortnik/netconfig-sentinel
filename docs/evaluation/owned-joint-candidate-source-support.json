@@ -1,0 +1,64 @@
+{
+  "ambiguous_observation": {
+    "case": "juniper-telnet",
+    "category": "telnet_removal_scope_limitation",
+    "classification": "ambiguous_not_counted_as_error",
+    "reason": "Deletion on the supplied anchor and SSH alternative are allowed, but actual device syntax/access remain unknown. Do not infer that null is an error or that every missing fact is invented."
+  },
+  "answer_binding_checks": 4,
+  "confirmed_bounded_observations": [
+    {
+      "case": "juniper-telnet",
+      "claim_category": "baseline_approval_asserted_without_evidence",
+      "classification": "unsupported",
+      "field": "answer.summary",
+      "source_fact": "context.baseline.approval=not_proven"
+    }
+  ],
+  "exhaustive_semantic_review": false,
+  "initial_interruption_preserved": true,
+  "limitation": "After the initial resource interruption, read-only follow-up completed binding/projection/UI review and bounded source-support review of all four answers. Schema and citation membership do not establish factual or citation-support quality; one draft and three declines remain the full denominator. No exhaustive error count, independent quality benchmark, formal pass, baseline approval or human approval is claimed.",
+  "new_model_calls": 0,
+  "numeric_report": "owned-joint-candidate-functional.json",
+  "numeric_report_sha256": "95fb7945c371528b750b378bd61a0c4cd8c2c518b81398d769cc20922b2ef7ff",
+  "post_run_independent_binding_review_complete": true,
+  "post_run_independent_bounded_source_support_review_complete": true,
+  "prior_private_support_receipt_sha256": "d8b1d43fb678409c222682a59bec74434544d8b0af5a7c5ed39eeecd3c5b0959",
+  "private_followup_receipt_sha256": "cc785d878e5584a88161deb3ffbf651373c81b76b1e62e599250cc17ea00e6d9",
+  "semantic_quality_proven": false,
+  "unsupported_does_not_prove_factually_false": true,
+  "version": "owned-joint-candidate-source-support-0.2.0",
+  "weaker_observation": {
+    "category": "baseline_normative_policy_inference",
+    "classification": "interpretation_not_counted_as_confirmed_error",
+    "locations": [
+      {
+        "case": "cisco-ssh",
+        "fields": [
+          "answer.summary",
+          "answer.technical_explanation",
+          "answer.recommendation"
+        ]
+      },
+      {
+        "case": "cisco-telnet",
+        "fields": [
+          "answer.summary"
+        ]
+      },
+      {
+        "case": "juniper-ssh",
+        "fields": [
+          "answer.summary",
+          "answer.technical_explanation"
+        ]
+      },
+      {
+        "case": "juniper-telnet",
+        "fields": [
+          "answer.technical_explanation"
+        ]
+      }
+    ]
+  }
+}

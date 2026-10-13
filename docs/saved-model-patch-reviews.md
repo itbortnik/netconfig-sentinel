@@ -175,3 +175,73 @@ was removed passed, and status was not promoted. Earlier library/transport check
 also passed separately (26 tests / 29.00 s). None of these runs proves SSH access,
 device syntax, complete operational topology, independent ML quality or a human's
 approval. The synthetic provider is not a new model generation measurement.
+
+### Fresh Qwen output and CPU ML in the same saved HTTP workflow
+
+The [four-request functional report](evaluation/owned-joint-candidate-functional.json)
+binds fresh local Qwen output directly to saved generation and candidate verification,
+not a replay of an older answer. Its fixed protocol precedes all four calls:
+Cisco/JunOS × SSHv1/Telnet, derivatives of two previously authored toy networks.
+These reused cases are not an independent quality benchmark or new corpus size.
+All retained baseline, edge and core snapshots precede generation; verification
+selects the exact two-device network. The existing intent still records
+`topology_pinned_at_generation=false`: creation time does not establish generation-time
+topology selection or operational completeness.
+
+| Case | Saved model result | Actual CPU ML | Formal result |
+| --- | --- | --- | --- |
+| Cisco SSHv1 | `draft` | completed | unavailable / `sdk_missing` |
+| Cisco Telnet | `declined` | not run | not run |
+| JunOS SSHv1 | `declined` | not run | not run |
+| JunOS Telnet | `declined` | not run | not run |
+
+There were four real greedy generations, one attempt per context, no retries,
+fallback or substituted edits. The accepted Cisco candidate matched the authored
+baseline exactly, resolved one local policy finding and introduced none. Other
+policy findings remained; full local parsing is not vendor syntax validation.
+The HTTP diagnostic deadline was explicitly 20 s, not a change to the 10 s default.
+The first generation took 19.5304 s; the other three took 6.9084–7.3810 s. These
+are generation timings, not end-to-end latency or a claim about the default deadline.
+
+The unchanged experimental native 0.2.0 model ran in an isolated installed CPU
+worker. Its uncalibrated anomaly score was 0.3128271103 → 0.3110353649, but its
+only category is Telnet, so it does not qualify SSHv1. Missing local SDK retained
+an unavailable formal report with **null**, not zero, reachability/difference counts
+and unknown cleanup. No engine query was executed. The saved verification remained
+`needs_review`; approval was rejected even with all synthetic attestation flags set.
+The separate `needs_more_information` decision used a diagnostic service-role key,
+not an identified human engineer. Nothing was approved or applied.
+
+Consent/reader refusals preceded workers; wrong source pins were rejected.
+Generation, verification and decision replay after disabling providers, restart,
+unchanged analyses/sources and encrypted domain history passed. All 231 Python
+runtime files matched the installed package, and 226 old artifact/registry hashes
+remained unchanged. The temporary DB/key and gateway were removed; no operator
+configuration was activated. Raw sources, model prose, prompts and UUID bindings
+remain private. This closes the available fresh-LLM-to-CPU-ML functional slice,
+not factual/citation quality, a live-engine chain, device syntax/access/rollback,
+approved baseline, independent ML quality or human approval.
+
+A separate [bounded source-support audit](evaluation/owned-joint-candidate-source-support.json)
+reproduced an unsupported assertion of baseline approval in the JunOS Telnet
+answer, although the supplied fact was `approval=not_proven`. A schema-valid null
+patch is not proof of truthful prose. The audit is not an exhaustive content grade
+or an independent quality benchmark. After an initial resource interruption,
+independent read-only follow-up completed binding/projection/UI checks and bounded
+source-support review of all four answers. The interruption and earlier receipt
+remain recorded; weaker baseline-as-obligation wording and an ambiguous removal
+limitation are not counted as equally established errors. Unsupported does not
+mean demonstrated factually false. Raw model answers remain
+unchanged and private. The saved-draft view now shows baseline selection and unknown
+approval separately from model text, also for read-only users; changing an unsent
+form selection cannot rewrite the saved baseline facts. This warning does not
+automatically validate all model statements.
+
+Related installed regressions passed 223 tests under both Pydantic 2.13.5 and the
+parent-only 2.14.0 compatibility overlay; two live-engine cases were skipped in
+each run. All 166 imported application/model modules came from the installed
+target, with no checkout imports; isolated worker dependencies were not overridden.
+UI type/format/build and 489 unit checks passed. All 22 synthetic model-candidate
+browser cases passed, including saved baseline/form reset and reader reconnect;
+all 156 regular browser cases passed too, with zero retries. These browser checks
+do not constitute new Qwen, ML or engine measurements.

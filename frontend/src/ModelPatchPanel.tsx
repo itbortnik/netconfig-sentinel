@@ -714,6 +714,19 @@ export function ModelPatchPanel({
               <p className="hash">
                 Привязка предложения: {proposal.proposal_sha256}
               </p>
+              {proposal.baseline ? (
+                <>
+                  <p className="hash">
+                    Сохранённый эталон: {proposal.baseline.configuration_id}
+                  </p>
+                  <p className="notice warning">
+                    Одобрение эталона не установлено. Выбор снимка и текст
+                    модели не подтверждают его утверждение.
+                  </p>
+                </>
+              ) : (
+                <p className="hint">Эталон для этого черновика не выбран.</p>
+              )}
               <p className="notice warning">
                 Текст модели недоверенный. Формальная проверка и ML не
                 выполнялись при генерации. Утверждение и применение отсутствуют.

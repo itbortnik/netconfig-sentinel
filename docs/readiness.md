@@ -17,7 +17,7 @@
 | Transformer pipeline и контрольные сравнения | Train-only native tokenizer, joint objectives/heads, source binding/save/load; [native transfer](pretraining-transfer.md), [external frozen transfer](foundation-config-transfer.md), [private registry](transformer-model-registry.md), [saved-analysis inference](configuration-model-inference.md), [парное anomaly-only сравнение с forest](paired-detection-comparison.md), [lexical control](lexical-line-baseline.md) | Tiny synthetic validation; недостаточный корпус, независимый paired benchmark/real calibration и qualified operational inference не закрыты |
 | Finding evidence | UUID/source hashes/lines/provenance, detector-specific recomputation, golden finding snapshots | Отсутствующая настройка не получает вымышленную строку; статистическая attribution ограничена |
 | Объяснение/RAG/LLM | Детерминированное объяснение, sealed versioned sources, actual document encoder, schema/citation-constrained transport, [actual offline instruct](local-instruct-runtime.md); [saved draft/review/decision API/UI](model-patch-interface.md) | Schema-valid outputs всё ещё содержат unsupported claims; independent semantic quality и квалификация полного реального candidate workflow не закрыты; vendor/internal library требует прав и отбора |
-| Patch/formal gate | Native/normalized/source-bound model drafts; persisted replayable reviews и append-only decisions; [six owned Linux queries](evaluation/owned-batfish.json) и [saved HTTP candidate live scope](evaluation/owned-saved-model-review-live.json); no promotion without complete formal/ML/attestation gates | Live evidence — игрушечные сети/explicit IPv4 scope с synthetic provider; отдельные actual ML workers — replay старого draft. Не полная топология, management access, device syntax, individual identity или approved real engineer workflow |
+| Patch/formal gate | Native/normalized/source-bound model drafts; persisted replayable reviews и append-only decisions; [six owned Linux queries](evaluation/owned-batfish.json), [saved HTTP candidate live scope](evaluation/owned-saved-model-review-live.json) и [fresh saved-HTTP Qwen → CPU ML](evaluation/owned-joint-candidate-functional.json); no promotion without complete formal/ML/attestation gates | Live engine evidence — игрушечные сети/explicit IPv4 scope с synthetic provider. Fresh Qwen/ML slice сохранил unavailable formal result, не engine pass. Не полная топология, management access, device syntax, individual identity или approved real engineer workflow |
 | Unit/golden/integration/UI/CI | Actual checks и SQLite/PostgreSQL/Compose jobs; tests в `backend/tests`, `frontend/src`, `frontend/tests/browser`; [owned model browser workflow](evaluation/owned-model-candidate-browser-workflow.json) | Browser provider — synthetic loopback, не real inference. Passing fixture coverage не доказывает все реальные конструкции/деплой/hardware |
 | Секреты/access/audit | Sanitization, encrypted at-rest API payload, service RBAC, receipt/completion journal, bounded uploads | Не доказательство отсутствия всех секретов; production secret scan/pentest/SSO/tenant/TLS/backup квалификация открыты |
 | Запуск и демонстрация | README, [API](persistent-api.md), [UI](web-interface.md), [автоматический demo](demo-runbook.md) | Local demo — ASGI/SQLite, не production deploy или live network test |
@@ -554,6 +554,44 @@ Independent quality остаётся открытым. Исторический 
 type-check failure своего общего run отдельно от успешного engine job; последующие
 [четыре CI jobs UI-поставки](https://github.com/itbortnik/netconfig-sentinel/actions/runs/37962285379)
 успешны для commit `acececd3a324e0fb5ad350e07c44977cbf1e729c`.
+
+Следующий [fresh saved-HTTP functional run](evaluation/owned-joint-candidate-functional.json)
+связывает новые четыре Qwen outputs непосредственно с durable generation/review,
+а не replay старого ответа: один Cisco SSHv1 draft и три declines (Cisco Telnet,
+JunOS SSHv1/Telnet), без retries или fallback. Для принятого exact candidate
+выполнен один actual installed CPU ML worker; native модель только Telnet не
+квалифицирует SSHv1. Local SDK отсутствует: formal `unavailable/sdk_missing`,
+counts/cleanup неизвестны, engine executions — ноль. Approval заблокирован даже
+при всех synthetic attestations; диагностическое `needs_more_information` не
+является решением установленного человека. Replay/restart/consent/encryption/
+неизменность source/analysis прошли, 231 runtime files byte-equal и 226 прежних
+hashes сохранены. Четыре reused cases — производные двух toy networks, не
+independent test и не прирост корпуса. Полный actual engine/human workflow,
+device syntax/access/rollback, ML calibration и semantic/citation quality открыты.
+
+[Bounded source-support audit](evaluation/owned-joint-candidate-source-support.json)
+отдельно воспроизвёл неподтверждённое утверждение модели об одобрении baseline;
+во входе было `approval=not_proven`. Null/schema validity не доказывают truth.
+Сохранённая UI-подпись теперь явно отделяет baseline selection/unknown approval
+от model prose, доступна reader и не меняется от несохранённого выбора формы.
+Это не автоматический semantic verifier. Related installed checks: 223 pass и
+два live skips на каждом parent Pydantic 2.13.5/2.14.0, 166 target imports,
+без checkout imports. UI: typecheck/format/build, 489 unit и 22 synthetic model
+browser и 156 regular browser pass, без retries. После первоначального прерывания
+по ресурсу read-only follow-up завершил независимые binding/projection/UI checks
+и bounded source-support audit всех четырёх ответов; прежняя receipt сохранена.
+Более слабое baseline-as-obligation interpretation и ambiguous removal limitation
+не считаются равно доказанными ошибками. Unsupported не означает доказанно false;
+exhaustive semantic review и independent quality gate по-прежнему не заявлены.
+
+Runtime/test commit `5ff1c8fab24f7b8719d07c93be0579c1e0369438` имеет
+[все четыре успешных CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38357446237).
+Предыдущий `58b88f97e20e5bc76a23741620cffb76d17d6e87` сохраняет
+[frontend failure](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38354602394):
+browser history читала тело HTTP response после навигации. Узкая test-only правка
+подписывает waiter после `goto` и читает body сразу, без retries/timeout увеличения
+или ослабления ML/history assertions. Этот CI относится к указанному commit,
+не переносится на последующие UI/evidence изменения.
 
 [Expanded local comparison evidence](evaluation/owned-expanded-local-comparisons.json)
 фиксирует новую opt-in 0.2 реализацию management/VLAN/ACL/routing comparisons,
