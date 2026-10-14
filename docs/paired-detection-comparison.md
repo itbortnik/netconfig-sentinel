@@ -211,3 +211,51 @@ laboratory and common unseen-site comparison cohorts are absent. Timing excludes
 loading, fitting and I/O and is not an HTTP/hardware benchmark. The legacy
 twelve-case report is preserved; because its parents/truth differ, its metrics
 are not a paired baseline for this new scenario.
+
+## Explicit train-balanced fixture format 0.4
+
+The same owned route also accepts `multitask-training-0.4.0` with complete
+`--fixture-admission` and the exact selected authored scenario. Commands and
+fixed forest defaults are unchanged. Admission reconstructs eligible encoded
+TRAIN targets and the fitted negative/positive coefficient before forest fitting
+or output allocation; a self-consistent forged ratio is not sufficient.
+Each detector still receives the entire same anomaly truth table at strict 0.5.
+
+Only this new format adds private `fixture-training.json`, containing the exact
+verified native report, localization objective and task weight. Historical
+0.3 output layouts and reports are not rewritten. This is still anomaly-only
+comparison, not a baseline with invented localization/category heads. Weighted
+line scores are cost-sensitive and uncalibrated; they are not calibrated
+posterior probabilities. No native training, threshold/calibration fitting,
+downloads, activation or risk updates follow from comparison.
+
+Every successful invocation actually fits two control forests on the same
+sixteen original TRAIN parents, one per vendor. Repeated fits or selection views
+are not new data. Binding/admission reconstruction, checkpoint loading, fitting
+and artifact I/O are outside the recorded parsing+inference intervals. Neither
+latency nor a comparison against forest establishes hardware/HTTP performance,
+independent quality or superiority over another native checkpoint.
+
+[Installed diagnostic from 2026-10-14](evaluation/paired-owned-balanced-validation.json)
+uses the existing seed17 balanced `w3=1` pin
+`42cb90bdb8247eddc061993699287eb95645bb6051c50b4cfa532c108f90f206`,
+not a newly fitted or selected native model. All sixteen reused selection views
+are retained: eight positives/eight negatives, four authored devices, eight views
+per vendor. At fixed 0.5 the native model finds two of eight positives (F1 0.4)
+and forest finds none (F1 0); both have zero false positives. Native AP is
+0.970486 and trapezoidal PR-AUC 0.968502, not proof of adequate detection.
+Cisco recall is 0.5 and JunOS recall is 0; two devices per vendor do not qualify
+cross-vendor generalization. Raw selection ECE/Brier are not a calibration fit.
+Real-confirmed, laboratory and common unseen-site cohorts remain missing.
+
+[Aggregate bindings](evaluation/owned-balanced-comparison.json) record three
+installed invocations, six actual control fits and zero native fits. Separate
+old/new0.3 runs preserve the legacy twelve-case predictions, forests, source
+binding and layout; the new0.4 predictions equal their retained training-run
+diagnostic. The full objective remains in private `fixture-training.json`.
+OLD232/NEW232 runtime, 306 historical hashes and 87 package versions are bound;
+each child imports 100 app/ml modules from its selected installed target and
+no checkout or external neural runtime. This compatibility check is not a
+paired0.3-vs0.4 quality improvement. No old report, model, threshold or history
+is recomputed in place. Broader representative labels and independent partitions
+are still required; these same toy examples cannot close those gates.

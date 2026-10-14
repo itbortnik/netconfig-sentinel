@@ -33,7 +33,8 @@ from ml.mutation import MutationType
 from ml.training.fixture_transfer_smoke import OWNED_TRANSFER_SCENARIOS
 from ml.training.multitask_smoke import authored_supervision
 from ml.training.multitask_training import (
-    MultiTaskFixtureTransferReport,
+    FIXTURE_REPORTS,
+    MultiTaskBalancedFixtureReport,
     _verified_report,
     load_multitask,
     multitask_identity,
@@ -90,12 +91,13 @@ def main(argv: list[str] | None = None) -> None:
         if native.report.head_policy.classes != ("telnet_enabled",):
             raise ValueError("owned comparison requires the exact authored Telnet objective")
         fixture_source = None
+        balanced_training = None
         if args.fixture_admission is not None:
             from ml.registry.admission import load_fixture_admission
             from ml.training.fixture_transfer_smoke import authored_transfer_splits
 
             report = _verified_report(native)
-            if not isinstance(report, MultiTaskFixtureTransferReport):
+            if not isinstance(report, FIXTURE_REPORTS):
                 raise ValueError("fixture comparison requires the explicit fixture training format")
             admission = load_fixture_admission(args.fixture_admission, native)
             splits = authored_transfer_splits(scenario=args.owned_scenario)
@@ -110,6 +112,8 @@ def main(argv: list[str] | None = None) -> None:
                 native, splits, examples, fixture_corpus=admission.corpus
             )
             fixture_source = report.pretraining
+            if isinstance(report, MultiTaskBalancedFixtureReport):
+                balanced_training = report
             batches = [("native_encoder", native_batch)]
         else:
             from ml.evaluation.foundation_validation import build_foundation_validation
@@ -264,6 +268,12 @@ def main(argv: list[str] | None = None) -> None:
                 "x", encoding="utf-8", newline="\n"
             ) as stream:
                 stream.write(fixture_source.model_dump_json(indent=2) + "\n")
+        if balanced_training is not None:
+            # Private exact objective/task evidence; no historical layout is rewritten.
+            with (args.output / "fixture-training.json").open(
+                "x", encoding="utf-8", newline="\n"
+            ) as stream:
+                stream.write(balanced_training.model_dump_json(indent=2) + "\n")
         if compare_main(
             [
                 "--input",

@@ -197,8 +197,10 @@ evidence, rather than trusting annotation counts alone. Explicit retained-input
 [registry admission](transformer-model-registry.md#explicit-train-balanced-format-04)
 now supports the separately versioned card 0.3 and opt-in saved HTTP/change
 diagnostics. It cannot silently become the default or an activated online model.
-The separate owned comparison CLI still refuses 0.4; this integration does not
-claim a new baseline comparison, calibration or independent quality evaluation.
+The separate [owned comparison CLI](paired-detection-comparison.md) also accepts
+explicit retained 0.4 inputs through the same authored-scenario gate. Registry
+integration itself does not claim a new baseline comparison, calibration or
+independent quality evaluation.
 For actual paired seeds and the resulting task tradeoffs, see
 [the fixed experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective).
 

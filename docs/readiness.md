@@ -25,6 +25,30 @@
 
 ## Количественные и модельные ограничения
 
+Последующее [explicit 0.4 anomaly-only comparison](evaluation/owned-balanced-comparison.json)
+закрывает отдельный CLI-разрыв для exact owned scenarios через тот же retained
+source/encoded-TRAIN validator, не произвольные downstream configs. У старого0.3
+сохранён layout; только0.4 добавляет private exact `fixture-training.json`.
+Fixed seed17 balanced w3=1 checkpoint сравнивается с forest на всех 16 прежних
+bilateral selection views (8 positives/8 negatives, четыре authored devices).
+[Numerical report](evaluation/paired-owned-balanced-validation.json): native
+TP2/FN6/FP0/F1 0.4, forest TP0/FN8/FP0/F1 0. Cisco recall0.5, JunOS recall0;
+AP/PR-AUC и отсутствие FP не означают хорошую detection или calibration.
+Три actual installed invocations обучили шесть control forests, но ни одного
+native checkpoint. OLD/New0.3 parity относится к другому legacy12-case truth,
+не парному improvement0.3→0.4. Prior native predictions, old layouts, OLD232/
+NEW232 runtime,306history hashes и87packages сохранены;100installed imports
+в каждом child/zero checkout. Никаких новых данных, thresholds/calibration,
+LLM/engine calls или автоматической activation/risk fusion. Representative
+real-confirmed, independent test/calibration и физическая изоляция не закрыты.
+Связанная локальная регрессия:2907 pass/15explicit skips/5warnings/90%coverage;
+Ruff и232-file mypy default/Linux/win32 pass. Browser/API business contracts
+этой доработкой не менялись; предыдущие browser checks не выдаются за новые.
+Installed related tests:69 pass на каждом parent Pydantic2.13.5 и2.14.0,
+без checkout imports; tiny synthetic training в тестах не является новым fit
+или приёмкой существующей measured модели. Exact-commit CI comparison поставки
+фиксируется отдельно от предыдущего зелёного registry/API run.
+
 Новая [explicit 0.4 registry/API/change интеграция](evaluation/owned-balanced-registry.json)
 подключает существующий seed17 train-balanced checkpoint, не новый fit или
 winning seed. Card 0.3 сохраняет TRAIN counts 32/560/592, coefficient 17.5,
@@ -54,6 +78,11 @@ Browser provider/score fixtures не actual ML quality. Exact-commit CI этой
 [c36b4d0 engine/evidence run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38471600178)
 имеет четыре success, но не принимается за CI текущего diff. Эта интеграция
 продвигает §11.4/13B/16 функционально, не independent quality или полный MVP.
+
+Опубликованный registry/API/change commit `007100c7c10526716707908393e460f5ec47bb8c`
+получил [все четыре CI success](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38578488113):
+test/frontend/batfish-live/postgres-api. Это проверка именно той поставки,
+не текущего последующего comparison diff или независимого качества модели.
 
 Последующий [task-rescaling experiment](pretraining-transfer.md#controlled-localization-task-rescaling)
 добавляет три фактических fits к шести сохранённым контролям, не новые данные.

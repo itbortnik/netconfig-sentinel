@@ -88,7 +88,9 @@ automatically activated. Metadata-only readers and API parents use lightweight
 localization contracts without importing Torch. Historical 0.1/0.2/0.3 reports
 and card 0.1/0.2 remain separate and readable. The shared prediction path now
 supports explicit saved-analysis and change diagnostics for registered 0.4.
-This does not expand the separately gated owned comparison CLI.
+The separately gated [owned comparison CLI](paired-detection-comparison.md)
+also accepts retained 0.4 inputs; it still cannot accept arbitrary downstream
+sources or imply independent model quality.
 
 ## Команды
 
