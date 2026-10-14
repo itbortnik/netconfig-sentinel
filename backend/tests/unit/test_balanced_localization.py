@@ -1,4 +1,4 @@
-"""Train-only line balance, historical parity, strict format and offline gates."""
+"""Train-only line balance, historical parity and explicit retained-input admission."""
 
 import copy
 import json
@@ -283,7 +283,7 @@ def test_ignored_deletion_and_unreviewed_are_excluded_and_selection_cannot_fit_r
     )
 
 
-def test_disabled_loss_and_online_admission_explicitly_refuse(inputs, balanced, tmp_path):
+def test_disabled_loss_and_admission_without_retained_inputs_refuse(inputs, balanced, tmp_path):
     with pytest.raises(ValueError, match="enabled loss"):
         train(
             inputs,
@@ -297,14 +297,14 @@ def test_disabled_loss_and_online_admission_explicitly_refuse(inputs, balanced, 
         for path in registry.rglob("*")
         if path.is_file()
     }
-    with pytest.raises(ValueError, match="offline-only"):
+    with pytest.raises(ValueError, match="retained source/downstream"):
         register_model(registry, balanced, expected_identity=multitask_identity(balanced))
     assert before == {
         path.relative_to(registry): path.read_bytes()
         for path in registry.rglob("*")
         if path.is_file()
     }
-    with pytest.raises(ValueError, match="explicit fixture transfer"):
+    with pytest.raises(ValueError, match="unsafe fixture training input"):
         load_fixture_admission(tmp_path / "nonexistent.json", balanced)
 
 

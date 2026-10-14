@@ -63,6 +63,33 @@ Model status всегда `experimental`; `calibrated`, `production_quality_prov
 а не придуманные аннотации. Реестр не подставляет severity labels, calibration
 artifact или quality metrics.
 
+## Explicit train-balanced format 0.4
+
+Native `multitask-training-0.4.0` uses a new discriminated
+`config-model-card-0.3.0`, not a widened or rewritten historical card.
+It retains the same fixture source/exposure binding plus the exact
+`localization_objective`: closed policy, TRAIN fingerprint, positive/negative/
+eligible encoded line counts and fitted negative/positive ratio. The separate
+`localization_task_weight` records the existing task coefficient `w3`.
+`line_score_semantics=cost_sensitive_uncalibrated` makes the cost-sensitive
+line scores explicit; they are not calibrated posterior probabilities.
+
+Admission requires the same complete retained corpus/splits/annotations as 0.3.
+`validate_multitask_inputs` also reconstructs eligible encoded TRAIN targets
+under the recorded cumulative feature/window budgets and checks the fitted
+coefficient. Selection/test prevalence cannot supply it. Missing or altered
+inputs, even a self-consistent forged count/ratio with a new model pin, refuse
+before entry allocation. Selected loads recompute the card from the bundle;
+rehashing modified card metadata cannot substitute its objective or task weight.
+
+The CLI/input layout and independent pin/explicit operator choice stay the same.
+No registration fits new weights, thresholds or calibration, and no entry is
+automatically activated. Metadata-only readers and API parents use lightweight
+localization contracts without importing Torch. Historical 0.1/0.2/0.3 reports
+and card 0.1/0.2 remain separate and readable. The shared prediction path now
+supports explicit saved-analysis and change diagnostics for registered 0.4.
+This does not expand the separately gated owned comparison CLI.
+
 ## Команды
 
 Нужна установка проекта и training extra для native выбранных моделей;
@@ -128,6 +155,23 @@ policy/reference оценку, risk, patch status, formal status или исхо
 не получает invented scores. Device connections/apply/commit не добавлено.
 
 ## Фактические проверки и открытые gates
+
+На 2026-10-14 [installed 0.4 diagnostic](evaluation/owned-balanced-registry.json)
+зарегистрировал существующий seed17 checkpoint
+`42cb90bdb8247eddc061993699287eb95645bb6051c50b4cfa532c108f90f206`
+через direct enrollment API с complete retained inputs, не CLI register или
+новое обучение. TRAIN ratio 560/32=17.5 и task weight 1 остались прежними.
+Два actual saved-HTTP CPU workers и четыре actual CLI review/check processes
+завершились на own Cisco/JunOS texts. API/CLI parents не импортировали optional
+runtime; consent/reader/wrong pins отказаны, replay/restart при disabled модели
+не повторили inference, analyses/исторические файлы не изменились, temporary
+DB/key удалены. OLD231/NEW232 runtime bindings и 266 historical hashes сохранены.
+Native 0.1/0.2/0.3 reports/predictions и foundation **card** совпали с historical
+installed runtime; новый foundation inference не заявляется. Старые ошибки
+диагностики сохранены; только третий frozen run завершён полностью.
+Scores по-прежнему некалиброваны: Cisco CLI anomaly score вырос, JunOS снизился;
+это не ремонт качества или доказательство безопасности. SSH class остаётся
+неподдержанным выбранной Telnet-only моделью.
 
 На 2026-10-07 реально зарегистрированы и повторно загружены owned native 0.2
 checkpoint `289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4`

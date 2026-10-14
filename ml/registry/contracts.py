@@ -7,6 +7,7 @@ from pydantic import Field, StrictBool, field_validator, model_validator
 from ml.evaluation.contracts import Digest, Frozen, Label
 from ml.evaluation.metrics import canonical_hash
 from ml.training.fixture_contracts import FixtureSourceBinding
+from ml.training.localization_contracts import FittedLocalizationObjective
 
 TASKS = frozenset(("anomaly", "category", "localization", "severity", "contrastive"))
 
@@ -112,7 +113,67 @@ class FixtureModelCard(Frozen):
         return self
 
 
-type RegistryModelCard = Annotated[ModelCard | FixtureModelCard, Field(discriminator="version")]
+class BalancedFixtureModelCard(Frozen):
+    """Cost-sensitive fixture heads; historical cards are not widened or rewritten."""
+
+    version: Literal["config-model-card-0.3.0"] = "config-model-card-0.3.0"
+    kind: Literal["native"] = "native"
+    model_sha256: Digest
+    training_format: Literal["multitask-training-0.4.0"] = "multitask-training-0.4.0"
+    report_sha256: Digest
+    encoder_sha256: Digest
+    tokenizer_sha256: Digest
+    source_manifest_sha256: Digest
+    train_fingerprint: Digest
+    selection_fingerprint: Digest
+    classes: tuple[Label, ...] = Field(min_length=1, max_length=64)
+    enabled_heads: dict[str, StrictBool]
+    parameter_count: int = Field(ge=1, strict=True)
+    trainable_parameters: int = Field(ge=1, strict=True)
+    train_examples: int = Field(ge=1, strict=True)
+    selection_examples: int = Field(ge=1, strict=True)
+    target_semantics: Literal["injected_mutation", "confirmed_anomaly"]
+    external_pretraining_exposure: Literal["not_applicable"] = "not_applicable"
+    pretraining: FixtureSourceBinding
+    localization_objective: FittedLocalizationObjective
+    localization_task_weight: float = Field(gt=0, le=100, strict=True)
+    line_score_semantics: Literal["cost_sensitive_uncalibrated"] = "cost_sensitive_uncalibrated"
+    physical_pretraining_isolation_proven: Literal[False] = False
+    status: Literal["experimental"] = "experimental"
+    calibrated: Literal[False] = False
+    production_quality_proven: Literal[False] = False
+    activated: Literal[False] = False
+
+    @field_validator(
+        "physical_pretraining_isolation_proven",
+        "calibrated",
+        "production_quality_proven",
+        "activated",
+        mode="before",
+    )
+    @classmethod
+    def exact_false(cls, value: object) -> bool:
+        if value is not False:
+            raise ValueError("balanced fixture experimental/isolation flags must be exact false")
+        return value
+
+    @model_validator(mode="after")
+    def consistent(self) -> Self:
+        if (
+            self.source_manifest_sha256 != self.pretraining.source_manifest_sha256
+            or self.trainable_parameters >= self.parameter_count
+            or set(self.enabled_heads) != TASKS
+            or len(set(self.classes)) != len(self.classes)
+            or not self.enabled_heads["localization"]
+            or self.localization_objective.train_fingerprint != self.train_fingerprint
+        ):
+            raise ValueError("balanced fixture registry card bindings differ")
+        return self
+
+
+type RegistryModelCard = Annotated[
+    ModelCard | FixtureModelCard | BalancedFixtureModelCard, Field(discriminator="version")
+]
 
 
 class EntryEnvelope(Frozen):

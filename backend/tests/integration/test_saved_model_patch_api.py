@@ -18,6 +18,7 @@ from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import event, text
 from sqlalchemy.engine import make_url
+from test_configuration_model_api import native_registry as native_registry
 
 TOKEN = "saved-model-patch-owned-admin-token-001"
 ENGINEER = "saved-model-patch-owned-engineer-token-001"
@@ -1223,40 +1224,9 @@ def test_saved_http_candidate_with_actual_engine_and_restart(model_patch_api, sc
 
 
 @pytest.fixture(scope="module")
-def owned_patch_native_registry(tmp_path_factory):
-    # Actual tiny authored training/inference; not an independent quality evaluation.
-    from ml.mutation import MutationType
-    from ml.preprocessing.tokenization import TokenizerPolicy, train_config_tokenizer
-    from ml.registry.store import initialize_registry, register_model
-    from ml.training.classification_smoke import classification_fixtures
-    from ml.training.multitask import HeadPolicy, LossWeights
-    from ml.training.multitask_smoke import authored_supervision
-    from ml.training.multitask_training import FineTunePolicy, multitask_identity, train_multitask
-    from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_language_model
-
-    splits = classification_fixtures()
-    tokenizer = train_config_tokenizer(
-        splits, policy=TokenizerPolicy(vocab_size=300, context_length=16)
-    )
-    encoder = train_masked_language_model(
-        splits,
-        tokenizer,
-        encoder_policy=EncoderPolicy(hidden_size=16, heads=2, layers=1, feedforward_size=32),
-        training_policy=TrainingPolicy(epochs=1),
-    )
-    examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
-    model = train_multitask(
-        splits,
-        encoder,
-        examples,
-        head_policy=HeadPolicy(classes=("telnet_enabled",), embedding_size=8),
-        training_policy=FineTunePolicy(epochs=1),
-        loss_weights=LossWeights(severity=0),
-    )
-    root = tmp_path_factory.mktemp("owned-native-patch-model") / "registry"
-    initialize_registry(root)
-    pin = multitask_identity(model)
-    register_model(root, model, expected_identity=pin)
+def owned_patch_native_registry(native_registry):
+    # Tiny legacy/fixture/balanced models only exercise the saved worker contract.
+    root, pin, _ = native_registry
     return root, pin
 
 

@@ -12,6 +12,7 @@ from ml.evaluation.cli import _unique_pairs
 from ml.evaluation.metrics import canonical_hash
 from ml.inference.change_artifacts import safe_path
 from ml.registry.contracts import (
+    BalancedFixtureModelCard,
     EntryEnvelope,
     FixtureModelCard,
     ModelCard,
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
     from ml.datasets.fixture_training import FixtureTrainingCorpus
     from ml.training.foundation_transfer import FoundationTransferReport, FoundationTransferResult
     from ml.training.multitask_training import (
+        MultiTaskBalancedFixtureReport,
         MultiTaskFixtureTransferReport,
         MultiTaskReport,
         MultiTaskResult,
@@ -136,6 +138,7 @@ def list_models(root: Path) -> tuple[RegistryModelCard, ...]:
 
 def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryModelCard:
     from ml.training.multitask_training import (
+        FIXTURE_REPORTS,
         MultiTaskBalancedFixtureReport,
         MultiTaskFixtureTransferReport,
         MultiTaskResult,
@@ -148,20 +151,17 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryMo
         MultiTaskReport
         | MultiTaskTransferReport
         | MultiTaskFixtureTransferReport
+        | MultiTaskBalancedFixtureReport
         | FoundationTransferReport
     )
     kind: Literal["native", "foundation"]
     if isinstance(model, MultiTaskResult):
         native_report = _verified_report(model)
-        if isinstance(native_report, MultiTaskBalancedFixtureReport):
-            raise ValueError(
-                "weighted fixture training format 0.4 is offline-only; registry refuses it"
-            )
         report = native_report
         identity = multitask_identity(model)
         manifest = (
             report.pretraining.source_manifest_sha256
-            if isinstance(report, (MultiTaskTransferReport, MultiTaskFixtureTransferReport))
+            if isinstance(report, (MultiTaskTransferReport, *FIXTURE_REPORTS))
             else None
         )
         kind = "native"
@@ -200,6 +200,13 @@ def _model_card(model: MultiTaskResult | FoundationTransferResult) -> RegistryMo
         target_semantics=report.target_semantics,
         external_pretraining_exposure="unknown" if kind == "foundation" else "not_applicable",
     )
+    if isinstance(report, MultiTaskBalancedFixtureReport):
+        return BalancedFixtureModelCard(
+            **values,
+            pretraining=report.pretraining,
+            localization_objective=report.localization_objective,
+            localization_task_weight=report.loss_weights.localization,
+        )
     if isinstance(report, MultiTaskFixtureTransferReport):
         return FixtureModelCard(**values, pretraining=report.pretraining)
     return ModelCard(**values)
@@ -223,7 +230,7 @@ def register_model(
     card = _model_card(model)
     if card.model_sha256 != pin or (card.kind == "foundation") != (foundation_source is not None):
         raise ValueError("registry independent pin or explicit source selection differs")
-    if isinstance(card, FixtureModelCard):
+    if isinstance(card, (FixtureModelCard, BalancedFixtureModelCard)):
         from ml.training.multitask_training import MultiTaskResult, validate_multitask_inputs
 
         if not isinstance(model, MultiTaskResult) or fixture_admission is None:

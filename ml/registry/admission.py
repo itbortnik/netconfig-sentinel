@@ -15,7 +15,7 @@ from ml.inference.change_artifacts import safe_path
 from ml.registry.store import FixtureAdmissionContext
 from ml.training.fixture_pretraining_cli import _read_json
 from ml.training.multitask_training import (
-    MultiTaskFixtureTransferReport,
+    FIXTURE_REPORTS,
     MultiTaskResult,
     SupervisedAnnotation,
     SupervisedExample,
@@ -50,7 +50,7 @@ def load_fixture_admission(
     if (
         not isinstance(model, MultiTaskResult)
         or not isinstance(model.pretrained, FixturePretrainingResult)
-        or not isinstance(_verified_report(model), MultiTaskFixtureTransferReport)
+        or not isinstance(_verified_report(model), FIXTURE_REPORTS)
     ):
         raise ValueError("fixture admission input requires an explicit fixture transfer model")
     safe_path(path)

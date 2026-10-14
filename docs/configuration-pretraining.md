@@ -178,8 +178,11 @@ resume, downstream fixture-aware transfer and registry/online activation are not
 implemented by this slice.
 The subsequent [explicit fixture transfer](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)
 now connects this native bundle to the shared supervised heads and validation
-adapter after retained-input/exposure checks. Registry/online activation is still
-unsupported; ordinary objective-transfer validation is not relaxed.
+adapter after retained-input/exposure checks. Subsequent explicit
+[registry admission](transformer-model-registry.md) and opt-in saved diagnostics
+support fixture heads without automatic activation; ordinary objective-transfer
+validation is not relaxed. These integrations were absent at the original
+source-pretraining measurement and do not rewrite its historical evidence.
 
 The runnable path accepts a private fixture manifest, a JSON list of **all**
 sanitized imported records (not merely representatives when duplicates exist),

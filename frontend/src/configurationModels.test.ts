@@ -137,6 +137,80 @@ export function fixtureConfigurationFixture(): ConfigurationModelRun {
   };
   return row;
 }
+export function balancedConfigurationFixture(): ConfigurationModelRun {
+  const row = fixtureConfigurationFixture(),
+    card = row.report!.model;
+  if (card.version !== "config-model-card-0.2.0")
+    throw new Error("fixture card required");
+  row.report!.model = {
+    ...card,
+    version: "config-model-card-0.3.0",
+    training_format: "multitask-training-0.4.0",
+    localization_objective: {
+      policy: {
+        version: "train-balanced-localization-0.1.0",
+        mode: "train_negative_over_positive",
+        reduction: "mean_eligible_lines",
+      },
+      train_fingerprint: card.train_fingerprint,
+      positive_lines: 1,
+      negative_lines: 2,
+      eligible_lines: 3,
+      positive_weight: 2,
+    },
+    localization_task_weight: 1,
+    line_score_semantics: "cost_sensitive_uncalibrated",
+  };
+  return row;
+}
+it("accepts explicit cost-sensitive fixture metadata without calibration", () => {
+  const value = balancedConfigurationFixture();
+  expect(configurationModelRunSchema.parse(value)).toEqual(value);
+});
+it.each([
+  "ratio",
+  "counts",
+  "train",
+  "policy",
+  "reduction",
+  "objective",
+  "task_weight",
+  "semantics",
+  "head",
+  "legacy",
+  "physical",
+  "activated",
+  "calibrated",
+])("rejects malformed balanced fixture %s", (damage) => {
+  const value = balancedConfigurationFixture(),
+    card = value.report!.model;
+  if (card.version !== "config-model-card-0.3.0")
+    throw new Error("balanced card required");
+  if (damage === "ratio") card.localization_objective.positive_weight = 3;
+  if (damage === "counts") card.localization_objective.eligible_lines++;
+  if (damage === "train")
+    card.localization_objective.train_fingerprint = "b".repeat(64);
+  if (damage === "policy")
+    Object.assign(card.localization_objective.policy, { mode: "selection" });
+  if (damage === "reduction")
+    Object.assign(card.localization_objective.policy, { reduction: "sum" });
+  if (damage === "objective")
+    Reflect.deleteProperty(card, "localization_objective");
+  if (damage === "task_weight") card.localization_task_weight = 0;
+  if (damage === "semantics")
+    Object.assign(card, { line_score_semantics: "calibrated_probability" });
+  if (damage === "head") card.enabled_heads.localization = false;
+  if (damage === "legacy")
+    Object.assign(card, {
+      version: "config-model-card-0.2.0",
+      training_format: "multitask-training-0.3.0",
+    });
+  if (damage === "physical")
+    Object.assign(card, { physical_pretraining_isolation_proven: true });
+  if (damage === "activated") Object.assign(card, { activated: true });
+  if (damage === "calibrated") Object.assign(card, { calibrated: true });
+  expect(configurationModelRunSchema.safeParse(value).success).toBe(false);
+});
 it("accepts explicit fixture provenance without manufacturing independent quality", () => {
   const value = fixtureConfigurationFixture();
   expect(configurationModelRunSchema.parse(value)).toEqual(value);

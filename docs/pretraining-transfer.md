@@ -365,9 +365,10 @@ subsystem:
 python -m ml.training.fixture_transfer_smoke --source-model private/fixture-encoder --source-sha256 <full-pin> --manifest private/fixture-manifest.json --records private/fixture-records.json --owned-scenario bilateral-telnet-0.1.0 --seed 17 --epochs 20 --line-objective train-balanced --output artifacts/new-balanced-transfer
 ```
 
-Use a new output for every arm/seed. This is native fixture format 0.4,
-[explicitly offline-only](multitask-training.md#explicit-train-balanced-localization-fixture-format-04),
-not enrollment or a change to the default inference model.
+Use a new output for every arm/seed. This is native fixture format 0.4.
+At the original measurement it was offline-only. Subsequent
+[explicit registry/diagnostic selection](transformer-model-registry.md#explicit-train-balanced-format-04)
+does not rewrite that run, select a winning seed or change the default model.
 
 [Actual installed evidence](evaluation/owned-train-balanced-localization.json)
 retains all six predetermined CPU fits: seeds 17/23/41 × unweighted/train-balanced,

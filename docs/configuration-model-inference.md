@@ -101,7 +101,27 @@ status, не scores. Hashes linkable и конфиденциальны; ACL/back
 real-anomaly quality при запуске и повторном чтении истории. Старые 0.1 cards,
 outcome bindings, default disabled behavior и правила consent не пересчитываются.
 
+Native train-balanced 0.4 также доступен только через explicit registered pin.
+Новая `config-model-card-0.3.0` сохраняет fitted TRAIN objective и task weight;
+старые cards не расширяются. UI сохраняет предупреждение об неизвестной
+физической изоляции и отдельно называет cost-sensitive line scores
+некалиброванными, при запуске и чтении истории. Это не новые labels/thresholds,
+качество модели, default activation или изменение риска. Admission JSON и
+private paths по-прежнему не принимаются через HTTP.
+
 ## Проверки и незакрытые gates
+
+На 2026-10-14 [existing balanced checkpoint diagnostic](evaluation/owned-balanced-registry.json)
+использует новый installed wheel и прежний 0.4 model pin: два actual CPU workers
+Cisco/JunOS, четыре consent/reader refusals и два wrong-pin refusals, неизменность
+analysis и read/replay после disabled restart. Новый API parent блокирует imports
+Torch/Transformers/Safetensors и при этом принимает результаты настоящих children;
+temporary SQLite/key удалены. Direct registration отдельно выполнялась в процессе
+с Torch, не приписывается API parent. Нет нового обучения или threshold fit;
+native historical parity и foundation-card parity не являются новой quality
+оценкой. Два значения anomaly score не доказывают detection/line accuracy;
+fresh per-attempt sanitization key исключает обещание одинаковых scores новых
+попыток. История повторно возвращает прежние scores без inference.
 
 Unit/API tests проверяют tiny actual native inference, pins, private sanitization,
 сохранение RNG/threads, disabled heads, source/analysis binding, corruption,

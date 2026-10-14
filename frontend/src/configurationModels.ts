@@ -118,9 +118,45 @@ const fixtureCard = z
       card.trainable_parameters < card.parameter_count &&
       new Set(card.classes).size === card.classes.length,
   );
+const localizationObjective = z
+  .strictObject({
+    policy: z.strictObject({
+      version: z.literal("train-balanced-localization-0.1.0"),
+      mode: z.literal("train_negative_over_positive"),
+      reduction: z.literal("mean_eligible_lines"),
+    }),
+    train_fingerprint: hash,
+    positive_lines: count,
+    negative_lines: count,
+    eligible_lines: count.min(2),
+    positive_weight: z.number().positive(),
+  })
+  .refine(
+    (value) =>
+      value.eligible_lines === value.positive_lines + value.negative_lines &&
+      value.positive_weight === value.negative_lines / value.positive_lines,
+  );
+const balancedFixtureCard = z
+  .strictObject({
+    ...fixtureCard.shape,
+    version: z.literal("config-model-card-0.3.0"),
+    training_format: z.literal("multitask-training-0.4.0"),
+    localization_objective: localizationObjective,
+    localization_task_weight: z.number().positive().max(100),
+    line_score_semantics: z.literal("cost_sensitive_uncalibrated"),
+  })
+  .refine(
+    (card) =>
+      card.source_manifest_sha256 === card.pretraining.source_manifest_sha256 &&
+      card.trainable_parameters < card.parameter_count &&
+      new Set(card.classes).size === card.classes.length &&
+      card.enabled_heads.localization &&
+      card.localization_objective.train_fingerprint === card.train_fingerprint,
+  );
 export const modelCardSchema = z.discriminatedUnion("version", [
   modelCard,
   fixtureCard,
+  balancedFixtureCard,
 ]);
 export const configurationInferenceSchema = z
   .strictObject({

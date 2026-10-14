@@ -51,7 +51,7 @@ function syntheticResult(
   analysis: AnalysisResult,
   source: { created_at: string },
   request: RunConfigurationModel,
-  fixture = false,
+  fixture: false | "fixture" | "balanced" = false,
 ): ConfigurationModelRun {
   const result: ConfigurationModelRun = {
     version: "configuration-model-run-0.1.0",
@@ -166,10 +166,40 @@ function syntheticResult(
         },
       },
     };
+    if (fixture === "balanced") {
+      const card = result.report!.model;
+      if (card.version !== "config-model-card-0.2.0")
+        throw new Error("fixture card required");
+      result.report!.model = {
+        ...card,
+        version: "config-model-card-0.3.0",
+        training_format: "multitask-training-0.4.0",
+        localization_objective: {
+          policy: {
+            version: "train-balanced-localization-0.1.0",
+            mode: "train_negative_over_positive",
+            reduction: "mean_eligible_lines",
+          },
+          train_fingerprint: PIN,
+          positive_lines: 1,
+          negative_lines: 2,
+          eligible_lines: 3,
+          positive_weight: 2,
+        },
+        localization_task_weight: 1,
+        line_score_semantics: "cost_sensitive_uncalibrated",
+      };
+    }
   }
   return result;
 }
-for (const mode of ["normal", "fixture", "lost", "tampered"] as const) {
+for (const mode of [
+  "normal",
+  "fixture",
+  "balanced",
+  "lost",
+  "tampered",
+] as const) {
   test(`synthetic configuration model ${mode}: consent, immutable history and no POST retry`, async ({
     page,
   }) => {
@@ -194,7 +224,12 @@ for (const mode of ["normal", "fixture", "lost", "tampered"] as const) {
         expect(options.analysis_id).toBe(analysis.analysis_id);
         expect(options.source_sha256).toBe(analysis.source_sha256);
         expect(options.allow_local_model_context).toBe(true);
-        saved = syntheticResult(analysis, source, options, mode === "fixture");
+        saved = syntheticResult(
+          analysis,
+          source,
+          options,
+          mode === "fixture" || mode === "balanced" ? mode : false,
+        );
         if (mode === "lost")
           return route.fulfill({
             status: 503,
@@ -243,10 +278,20 @@ for (const mode of ["normal", "fixture", "lost", "tampered"] as const) {
     await expect(
       panel.getByText(/Некалиброванный anomaly score:/),
     ).toBeVisible();
-    if (mode === "fixture")
+    if (mode === "fixture" || mode === "balanced")
       await expect(
         panel.getByText(/Физическая изоляция pretraining-данных/),
       ).toBeVisible();
+    if (mode === "balanced") {
+      await expect(
+        panel.getByText(
+          /Scores строк не являются калиброванными вероятностями/,
+        ),
+      ).toBeVisible();
+      await expect(
+        panel.getByText(/Эта модель не активирована автоматически/),
+      ).toBeVisible();
+    }
     expect(posts).toBe(1);
     expect(gets).toBe(mode === "lost" || mode === "tampered" ? 1 : 0);
     expect(
@@ -271,9 +316,15 @@ for (const mode of ["normal", "fixture", "lost", "tampered"] as const) {
       panel.getByText("Сохранённый результат: completed"),
     ).toBeVisible();
     await expect(panel.getByRole("checkbox")).not.toBeChecked();
-    if (mode === "fixture")
+    if (mode === "fixture" || mode === "balanced")
       await expect(
         panel.getByText(/Физическая изоляция pretraining-данных/),
+      ).toBeVisible();
+    if (mode === "balanced")
+      await expect(
+        panel.getByText(
+          /Scores строк не являются калиброванными вероятностями/,
+        ),
       ).toBeVisible();
     expect(posts).toBe(1);
     expect(

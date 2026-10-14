@@ -25,6 +25,36 @@
 
 ## Количественные и модельные ограничения
 
+Новая [explicit 0.4 registry/API/change интеграция](evaluation/owned-balanced-registry.json)
+подключает существующий seed17 train-balanced checkpoint, не новый fit или
+winning seed. Card 0.3 сохраняет TRAIN counts 32/560/592, coefficient 17.5,
+task weight 1 и cost-sensitive/uncalibrated semantics. Complete retained
+source/splits/annotations и encoded TRAIN ratio повторно проверяются до
+allocation; rehashed metadata не подменяет objective. Actual installed run
+выполнил два saved-HTTP CPU workers и четыре CLI review/check processes.
+API/CLI parents не импортировали optional runtime; replay/restart после
+отключения модели, consent/reader/wrong-pin refusals и удаление ephemeral DB
+прошли. 266 старых hashes, OLD231 runtime files и NEW232 source byte equality
+сохранены. Native 0.1/0.2/0.3 report/prediction parity и foundation-card parity
+проверены; нового foundation inference не было. Все used sources — прежние
+own toy inputs; новые реальные данные, calibration/threshold/LLM/engine calls
+не добавлены. Telnet-only модель не квалифицирует SSH; needs_review/applied=false
+сохраняются. Первый protocol не исполнялся из-за missing historical bindings;
+второй завершил prediction parity/enrollment, но helper ошибся в поле upload
+response до saved-HTTP ML workers. Эти попытки сохранены отдельно от completed
+третьей, не выданы за pass.
+
+Регрессия: 2891 backend pass / 15 skips / 5 warnings / 90% line coverage,
+232-file mypy default/Linux/win32 и Ruff pass. Related installed regressions:
+330 pass / два live skips на каждом parent Pydantic 2.13.5 и 2.14.0; worker
+dependencies не наследуют overlay, checkout imports — zero. UI type/format/build,
+503 unit, 158 regular и 22 model-candidate browser cases pass, zero retries.
+Browser provider/score fixtures не actual ML quality. Exact-commit CI этой
+новой поставки фиксируется отдельно; предшествующий
+[c36b4d0 engine/evidence run](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38471600178)
+имеет четыре success, но не принимается за CI текущего diff. Эта интеграция
+продвигает §11.4/13B/16 функционально, не independent quality или полный MVP.
+
 Последующий [task-rescaling experiment](pretraining-transfer.md#controlled-localization-task-rescaling)
 добавляет три фактических fits к шести сохранённым контролям, не новые данные.
 CLI позволяет явно настроить существующий `w3` без нового loss/report формата:
@@ -48,8 +78,9 @@ independent test/calibration, модельное качество и полны�
 данных нет. Train-only коэффициент 560/32=17.5 поднимает line recall 0→0.75 во
 всех трёх парах, но добавляет 4/4/8 ложных строк и неоднозначные anomaly/category
 tradeoffs. Ни новый default, ни лучший seed, ни приёмка качества не объявлены.
-Поддержаны source binding, save/load и общий evaluator; registry/HTTP/change
-selection явно не принимают 0.4. Старые форматы/policies, seed17 model identity
+Поддержаны source binding, save/load и общий evaluator; на момент этого
+эксперимента registry/HTTP/change selection ещё не принимали 0.4. Последующая
+explicit интеграция выше не переписывает эти результаты. Старые formats/policies, seed17 model identity
 и 97 исторических файлов сохранены. [Numeric evidence](evaluation/owned-train-balanced-localization.json)
 различает собственный weighted selection objective, common unweighted BCE,
 AP/PR-AUC и все исходы; descriptive cluster intervals имеют только две authored

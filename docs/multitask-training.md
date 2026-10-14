@@ -79,7 +79,8 @@ six-objective checkpoints with regenerated exposure and retained semantic labels
 The explicit [fixture transfer](pretraining-transfer.md#approved-train-only-source-fixtures---supervised-heads)
 adds native train-only fixture checkpoints with complete retained upstream inputs,
 bounded downstream contamination checks and unknown physical exposure. It has a
-separate 0.3 report and remains offline-only, not registry/HTTP activation.
+separate 0.3 report; explicit retained-input registry admission and opt-in
+saved-analysis/change diagnostics are available. No automatic activation follows.
 The separately versioned [external foundation path](foundation-config-transfer.md)
 uses a fixed reviewed publisher tokenizer/weights and explicitly unknown external
 pretraining exposure, not a fabricated native pretraining report.
@@ -192,9 +193,12 @@ Mandatory `multitask-training-0.4.0` evidence records the closed policy, train
 fingerprint, positive/negative/eligible counts and exact coefficient. Save/load,
 prediction and the existing validation adapter support this explicit format.
 Retained-input validation reconstructs eligible train targets and checks the
-evidence, rather than trusting annotation counts alone. The 0.4 format is **not**
-accepted by the current registry/admission/owned comparison route, saved HTTP
-inference or change-review selection. It cannot silently become an online model.
+evidence, rather than trusting annotation counts alone. Explicit retained-input
+[registry admission](transformer-model-registry.md#explicit-train-balanced-format-04)
+now supports the separately versioned card 0.3 and opt-in saved HTTP/change
+diagnostics. It cannot silently become the default or an activated online model.
+The separate owned comparison CLI still refuses 0.4; this integration does not
+claim a new baseline comparison, calibration or independent quality evaluation.
 For actual paired seeds and the resulting task tradeoffs, see
 [the fixed experiment](pretraining-transfer.md#train-balanced-bilateral-line-objective).
 

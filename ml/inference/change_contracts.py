@@ -62,6 +62,7 @@ class TransformerSupplement(Frozen):
             "multitask-training-0.1.0",
             "multitask-training-0.2.0",
             "multitask-training-0.3.0",
+            "multitask-training-0.4.0",
             "foundation-config-transfer-0.1.0",
         ]
         | None

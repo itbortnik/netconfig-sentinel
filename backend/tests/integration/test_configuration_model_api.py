@@ -377,7 +377,7 @@ def test_audit_records_metadata_not_model_scores(model_api):
     assert "anomaly_score" not in audit.text and "telnet_enabled" not in audit.text
 
 
-@pytest.fixture(scope="module", params=["legacy", "fixture"])
+@pytest.fixture(scope="module", params=["legacy", "fixture", "balanced_fixture"])
 def native_registry(tmp_path_factory, request):
     pytest.importorskip("torch")
     from ml.mutation import MutationType
@@ -390,7 +390,7 @@ def native_registry(tmp_path_factory, request):
     from ml.training.transformer import EncoderPolicy, TrainingPolicy, train_masked_language_model
 
     corpus = None
-    if request.param == "fixture":
+    if request.param in {"fixture", "balanced_fixture"}:
         from ml.datasets import DatasetFixtureManifest, DatasetUse, import_local_dataset
         from ml.datasets.fixture_training import prepare_fixture_training_corpus
         from ml.preprocessing import SanitizationPolicy
@@ -472,6 +472,8 @@ def native_registry(tmp_path_factory, request):
             training_policy=TrainingPolicy(epochs=1),
         )
     examples = authored_supervision(splits, (MutationType.TELNET_ENABLED,))
+    from ml.training.localization_contracts import TrainBalancedLocalization
+
     model = train_multitask(
         splits,
         encoder,
@@ -480,6 +482,9 @@ def native_registry(tmp_path_factory, request):
         training_policy=FineTunePolicy(epochs=1),
         loss_weights=LossWeights(severity=0),
         fixture_corpus=corpus,
+        localization_objective=TrainBalancedLocalization()
+        if request.param == "balanced_fixture"
+        else None,
     )
     pin = multitask_identity(model)
     root = tmp_path_factory.mktemp("configuration-native") / "registry"
@@ -511,11 +516,18 @@ def test_actual_isolated_native_saved_configuration(
     assert result["report"]["prediction"]["embedding_dimensions"] == 8
     assert result["report"]["prediction"]["severity_scores"] is None
     card = result["report"]["model"]
-    assert card["version"] == f"config-model-card-0.{2 if kind == 'fixture' else 1}.0"
-    if kind == "fixture":
-        assert card["training_format"] == "multitask-training-0.3.0"
+    card_version = dict(legacy=1, fixture=2, balanced_fixture=3)[kind]
+    assert card["version"] == f"config-model-card-0.{card_version}.0"
+    if kind in {"fixture", "balanced_fixture"}:
+        training_version = 4 if kind == "balanced_fixture" else 3
+        assert card["training_format"] == f"multitask-training-0.{training_version}.0"
         assert card["physical_pretraining_isolation_proven"] is False
         assert card["pretraining"]["exposure"]["heldout_overlap_count"] == 0
+    if kind == "balanced_fixture":
+        assert card["localization_objective"]["positive_weight"] > 0
+        assert card["localization_objective"]["train_fingerprint"] == card["train_fingerprint"]
+        assert card["localization_task_weight"] == 1
+        assert card["line_score_semantics"] == "cost_sensitive_uncalibrated"
     assert result["risk_fused"] is False
     assert (
         client.get(

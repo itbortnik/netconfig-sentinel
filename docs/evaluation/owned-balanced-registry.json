@@ -1,0 +1,126 @@
+{
+  "actual_cli_processes": 4,
+  "actual_http_cpu_workers": 2,
+  "analysis_unchanged": true,
+  "api_and_cli_parent_optional_runtime_imports": 0,
+  "api_outcomes": [
+    {
+      "anomaly_score": 0.21552148461341858,
+      "calibrated": false,
+      "risk_fused": false,
+      "runtime_torch_version": "2.14.0+cpu",
+      "scored_source_lines": 2,
+      "status": "completed",
+      "total_source_lines": 2,
+      "vendor": "cisco"
+    },
+    {
+      "anomaly_score": 0.3280455470085144,
+      "calibrated": false,
+      "risk_fused": false,
+      "runtime_torch_version": "2.14.0+cpu",
+      "scored_source_lines": 2,
+      "status": "completed",
+      "total_source_lines": 2,
+      "vendor": "juniper"
+    }
+  ],
+  "applied": false,
+  "automatically_activated": false,
+  "calibrated": false,
+  "checkout_import_count": 0,
+  "classes": [
+    "telnet_enabled"
+  ],
+  "cli_outcomes": [
+    {
+      "after_anomaly_score": 0.31249162554740906,
+      "applied": false,
+      "before_anomaly_score": 0.2993757128715515,
+      "calibrated": false,
+      "formal_verification": "not_run",
+      "review_check_completed": true,
+      "risk_fused": false,
+      "status": "needs_review",
+      "vendor": "cisco"
+    },
+    {
+      "after_anomaly_score": 0.4253506362438202,
+      "applied": false,
+      "before_anomaly_score": 0.45454511046409607,
+      "calibrated": false,
+      "formal_verification": "not_run",
+      "review_check_completed": true,
+      "risk_fused": false,
+      "status": "needs_review",
+      "vendor": "juniper"
+    }
+  ],
+  "consent_and_reader_refusals": 4,
+  "ephemeral_database_removed": true,
+  "ephemeral_key_persisted": false,
+  "historical_foundation_card_equal": true,
+  "historical_runtime_hashes_unchanged": 231,
+  "human_approval": false,
+  "independent_quality_proven": false,
+  "initial_attempts": {
+    "protocol_1": "frozen but unexecuted; independent review found missing historical runtime and native0.2 bundle bindings",
+    "protocol_2": "historical prediction parity and enrollment completed; diagnostic script failed before saved-HTTP ML workers on wrong upload-response field; partial receipt preserved",
+    "protocol_3": "corrected source pin from saved analysis, fresh immutable protocol and output; completed"
+  },
+  "installed_import_counts": [
+    89,
+    90,
+    96,
+    124,
+    47
+  ],
+  "installed_runtime_files_byte_equal": 232,
+  "legacy_native_reports_and_predictions_equal": [
+    "multitask-training-0.1.0",
+    "multitask-training-0.2.0",
+    "multitask-training-0.3.0"
+  ],
+  "line_score_semantics": "cost_sensitive_uncalibrated",
+  "localization_objective": {
+    "eligible_lines": 592,
+    "negative_lines": 560,
+    "policy": {
+      "mode": "train_negative_over_positive",
+      "reduction": "mean_eligible_lines",
+      "version": "train-balanced-localization-0.1.0"
+    },
+    "positive_lines": 32,
+    "positive_weight": 17.5
+  },
+  "localization_task_weight": 1.0,
+  "missing_admission_refused_before_entry": true,
+  "model_card_version": "config-model-card-0.3.0",
+  "model_status": "experimental",
+  "new_engine_queries": 0,
+  "new_foundation_inference": false,
+  "new_llm_invocations": 0,
+  "new_threshold_or_calibration_fits": 0,
+  "new_training_runs": 0,
+  "old_history_hashes_unchanged": 266,
+  "package_versions_unchanged": 87,
+  "parameter_count": 50603,
+  "physical_pretraining_isolation_proven": false,
+  "private_completion_sha256": "404bec595ade9e9b6d6908223276d6184b0db40828b8b42c10371a32a66fb053",
+  "private_protocol_sha256": "c5607f06cce133dd8d715dc6fdc7c38b61e2657e19f62925c699ca6b26939bf5",
+  "replay_after_disabled_restart_equal": true,
+  "retained_admission_revalidated": true,
+  "scope_note": "Explicit diagnostic selection of an unchanged cost-sensitive Telnet-only checkpoint; reused own toy sources, not new data or independent quality. Foundation compatibility checks cards only. Direct enrollment API is distinct from CLI register. Tiny source/API tests use separate synthetic training fixtures, not this retained checkpoint's training or acceptance.",
+  "selected_existing_model_sha256": "42cb90bdb8247eddc061993699287eb95645bb6051c50b4cfa532c108f90f206",
+  "selected_existing_seed": 17,
+  "selection_examples": 16,
+  "selection_reason": "Fixed existing seed17 balanced w3=1, not a selected winner",
+  "source_commit": "c36b4d0202dd6d1f536958f8e4e51d874ca46b71",
+  "ssh_category_supported": false,
+  "train_examples": 64,
+  "trainable_parameters": 3993,
+  "training_format": "multitask-training-0.4.0",
+  "version": "owned-balanced-registry-0.1.1",
+  "wheel_sha256": "74653fdd228aed0a27de8da1754baba6c6536a73764e6989209be5f26d9f149f",
+  "wrong_pin_refusals": 2
+}

@@ -210,12 +210,23 @@ export function ConfigurationModelPanel({
           {result.status === "failed" && (
             <p>Попытка завершилась отказом. Принятых scores нет.</p>
           )}
-          {result.report?.model.version === "config-model-card-0.2.0" && (
+          {(result.report?.model.version === "config-model-card-0.2.0" ||
+            result.report?.model.version === "config-model-card-0.3.0") && (
             <p className="notice warning">
               Энкодер обучен на тестовых конфигурациях. Физическая изоляция
               pretraining-данных и качество на реальных аномалиях не
               подтверждены. Проверка пересечений не доказывает независимость
               сетей.
+            </p>
+          )}
+          {result.report?.model.version === "config-model-card-0.3.0" && (
+            <p className="notice warning">
+              Локализация обучена с разной стоимостью классов строк. Коэффициент
+              определён только на train:{" "}
+              {result.report.model.localization_objective.positive_weight}; вес
+              задачи: {result.report.model.localization_task_weight}. Scores
+              строк не являются калиброванными вероятностями. Эта модель не
+              активирована автоматически и не подтверждает исправление патча.
             </p>
           )}
           {prediction && (
