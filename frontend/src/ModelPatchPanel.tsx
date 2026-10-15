@@ -11,11 +11,16 @@ import {
   generateModelPatchSchema,
   generationMatches,
   proposalMatches,
+  commonModelPatch,
+  proposalProtocol,
+  savedProposalContinues,
 } from "./modelPatches";
 import type {
   GenerateModelPatch,
-  ModelPatchCapabilities,
   ModelPatchProposal,
+  SavedModelPatchProposal,
+  SavedModelPatchCapabilities,
+  PatchProtocol,
 } from "./modelPatches";
 import {
   decideModelPatchSchema,
@@ -34,15 +39,17 @@ import { ModelReviewView, limitationLabel } from "./ModelReviewView";
 import { date } from "./format";
 
 type Intent =
-  | { kind: "generation"; request: GenerateModelPatch }
+  | { kind: "generation"; protocol: PatchProtocol; request: GenerateModelPatch }
   | {
       kind: "verification";
       patch: ModelPatchProposal;
+      saved: SavedModelPatchProposal;
       request: VerifyModelPatch;
     }
   | {
       kind: "decision";
       patch: ModelPatchProposal;
+      saved: SavedModelPatchProposal;
       run: SavedModelReview;
       request: DecideModelPatch;
     };
@@ -73,14 +80,28 @@ export function ModelPatchPanel({
 }) {
   const [open, setOpen] = useState(false),
     [loading, setLoading] = useState(false);
-  const [capabilities, setCapabilities] =
-    useState<ModelPatchCapabilities | null>(null);
-  const [history, setHistory] = useState<ModelPatchProposal[]>([]),
+  const [savedCapabilities, setCapabilities] =
+    useState<SavedModelPatchCapabilities | null>(null);
+  const capabilities = savedCapabilities?.legacy;
+  const [protocol, setProtocol] = useState<PatchProtocol | "">("");
+  const generationConfigured =
+    protocol === "grounded-model-patch-0.1.0"
+      ? savedCapabilities?.grounded_generation === "configured"
+      : protocol === "legacy-model-patch-0.1.0" &&
+        capabilities?.generation === "configured";
+  const [history, setHistory] = useState<SavedModelPatchProposal[]>([]),
     [historyOffset, setHistoryOffset] = useState(0),
     [historyCount, setHistoryCount] = useState(0),
     [historyReady, setHistoryReady] = useState(false);
-  const [proposal, setProposal] = useState<ModelPatchProposal | null>(null),
+  const [savedProposal, setProposal] = useState<SavedModelPatchProposal | null>(
+      null,
+    ),
     [run, setRun] = useState<SavedModelReview | null>(null);
+  const proposal = savedProposal ? commonModelPatch(savedProposal) : null;
+  const grounded =
+    savedProposal?.version === "grounded-source-bound-patch-proposal-0.1.0"
+      ? savedProposal
+      : null;
   const [reviews, setReviews] = useState<SavedModelReview[]>([]),
     [reviewOffset, setReviewOffset] = useState(0);
   const [decisions, setDecisions] = useState<SavedModelDecision[]>([]),
@@ -160,8 +181,13 @@ export function ModelPatchPanel({
     setRun(value);
     resetDecision();
   }
-  function showProposal(value: ModelPatchProposal) {
-    if (!proposalMatches(value, analysis, finding)) throw bindingError();
+  function showProposal(value: SavedModelPatchProposal) {
+    if (
+      !proposalMatches(commonModelPatch(value), analysis, finding) ||
+      (value.version === "grounded-source-bound-patch-proposal-0.1.0" &&
+        value.source_facts.category !== finding.category)
+    )
+      throw bindingError();
     setProposal(value);
     setRun(null);
     setReviews([]);
@@ -191,21 +217,31 @@ export function ModelPatchPanel({
   async function loadHistory(offset = historyOffset) {
     setHistoryReady(false);
     const [caps, rows] = await Promise.all([
-      client.modelPatchCapabilities(),
-      client.modelPatches(analysis.analysis_id, offset),
+      client.savedModelPatchCapabilities(),
+      client.savedModelPatches(analysis.analysis_id, offset),
     ]);
     if (!alive.current) return;
     if (
       rows.some((row) => {
+        const view = commonModelPatch(row);
         const origin = analysis.findings.find(
-          (item) => item.finding_id === row.finding_id,
+          (item) => item.finding_id === view.finding_id,
         );
-        return !origin || !proposalMatches(row, analysis, origin);
+        return (
+          !origin ||
+          !proposalMatches(view, analysis, origin) ||
+          (row.version === "grounded-source-bound-patch-proposal-0.1.0" &&
+            row.source_facts.category !== origin.category)
+        );
       })
     )
       throw bindingError();
     setCapabilities(caps);
-    setHistory(rows.filter((row) => row.finding_id === finding.finding_id));
+    setHistory(
+      rows.filter(
+        (row) => commonModelPatch(row).finding_id === finding.finding_id,
+      ),
+    );
     setHistoryOffset(offset);
     setHistoryCount(rows.length);
     setHistoryReady(true);
@@ -284,10 +320,18 @@ export function ModelPatchPanel({
     setAllowML(false);
     try {
       if (next.kind === "generation") {
-        const value = await client.generateModelPatch(next.request);
+        const value =
+          next.protocol === "grounded-model-patch-0.1.0"
+            ? await client.generateGroundedModelPatch(next.request)
+            : await client.generateModelPatch(next.request);
         if (!alive.current) return;
+        if (
+          proposalProtocol(value) !== next.protocol ||
+          !generationMatches(commonModelPatch(value), next.request)
+        )
+          throw bindingError();
         showProposal(value);
-        if (value.status === "generating") {
+        if (commonModelPatch(value).status === "generating") {
           setNotice(
             "Генерация ещё не завершена. Читайте сохранённую попытку без повторной отправки.",
           );
@@ -339,11 +383,22 @@ export function ModelPatchPanel({
     if (!current) return;
     try {
       if (current.kind === "generation") {
-        const row = await client.modelPatch(current.request.patch_id);
+        const row =
+          current.protocol === "grounded-model-patch-0.1.0"
+            ? await client.savedModelPatch(current.request.patch_id)
+            : await client.modelPatch(current.request.patch_id);
         if (!alive.current) return;
-        if (!generationMatches(row, current.request)) throw bindingError();
+        if (
+          proposalProtocol(row) !== current.protocol ||
+          !generationMatches(commonModelPatch(row), current.request) ||
+          (savedProposal !== null &&
+            commonModelPatch(savedProposal).patch_id ===
+              current.request.patch_id &&
+            !savedProposalContinues(savedProposal, row))
+        )
+          throw bindingError();
         showProposal(row);
-        if (row.status === "generating") {
+        if (commonModelPatch(row).status === "generating") {
           setNotice(
             "Сохранено намерение генерации; завершённого ответа пока нет.",
           );
@@ -400,7 +455,8 @@ export function ModelPatchPanel({
       !supported ||
       !allowGeneration ||
       !canGenerate ||
-      capabilities?.generation !== "configured" ||
+      !protocol ||
+      !generationConfigured ||
       locked
     )
       return;
@@ -414,11 +470,12 @@ export function ModelPatchPanel({
       baseline_source_sha256: baseline?.source_sha256 ?? null,
       allow_local_model_context: true,
     });
-    return write({ kind: "generation", request });
+    return write({ kind: "generation", protocol, request });
   }
   function verify() {
     if (
       !proposal ||
+      !savedProposal ||
       proposal.status !== "draft" ||
       !client.permits("verify") ||
       locked ||
@@ -439,7 +496,12 @@ export function ModelPatchPanel({
       transformer_sha256: allowML ? capabilities?.transformer_sha256 : null,
       allow_local_model_context: allowML,
     });
-    return write({ kind: "verification", patch: proposal, request });
+    return write({
+      kind: "verification",
+      patch: proposal,
+      saved: savedProposal,
+      request,
+    });
   }
   const decisionReady =
     !!run &&
@@ -454,6 +516,7 @@ export function ModelPatchPanel({
   function decide() {
     if (
       !proposal ||
+      !savedProposal ||
       !run ||
       !decisionReady ||
       !client.permits("feedback") ||
@@ -472,7 +535,13 @@ export function ModelPatchPanel({
       management_access_checked: access,
       rollback_ready: rollback,
     });
-    return write({ kind: "decision", patch: proposal, run, request });
+    return write({
+      kind: "decision",
+      patch: proposal,
+      saved: savedProposal,
+      run,
+      request,
+    });
   }
   const pending = intent.current,
     pendingId =
@@ -506,10 +575,15 @@ export function ModelPatchPanel({
       {open && (
         <>
           <p className="hint">
+            Legacy:{" "}
             {capabilities?.generation === "configured"
-              ? "Генерация настроена; готовность проверяется отдельным запросом."
-              : "Генерация выключена или настройки ещё не получены."}{" "}
-            История доступна без запуска моделей.
+              ? "настроен"
+              : "выключен"}
+            . Закрытые факты:{" "}
+            {savedCapabilities?.grounded_generation === "configured"
+              ? "настроен"
+              : "выключен"}
+            . История доступна без запуска моделей.
           </p>
           {notice && (
             <p role="status" className="notice warning">
@@ -526,6 +600,11 @@ export function ModelPatchPanel({
                 заблокирован.
               </p>
               <p className="mono">Идентификатор: {pendingId}</p>
+              {pending?.kind === "generation" && (
+                <p className="mono">
+                  Режим сохранённой попытки: {pending.protocol}
+                </p>
+              )}
               <button
                 className="button secondary"
                 disabled={disabled}
@@ -548,28 +627,33 @@ export function ModelPatchPanel({
             Обновить историю черновиков
           </button>
           <ul>
-            {history.map((row) => (
-              <li key={row.patch_id}>
-                <button
-                  className="button secondary"
-                  disabled={locked}
-                  onClick={() =>
-                    void action(async () => {
-                      const value = await client.modelPatch(row.patch_id);
-                      if (!alive.current) return;
-                      if (
-                        row.status !== "generating" &&
-                        stableJson(value) !== stableJson(row)
-                      )
-                        throw bindingError();
-                      if (alive.current) showProposal(value);
-                    })
-                  }
-                >
-                  {row.status} · {date(row.created_at)} · {row.patch_id}
-                </button>
-              </li>
-            ))}
+            {history.map((saved) => {
+              const row = commonModelPatch(saved);
+              return (
+                <li key={row.patch_id}>
+                  <button
+                    className="button secondary"
+                    disabled={locked}
+                    onClick={() =>
+                      void action(async () => {
+                        const value = await client.savedModelPatch(
+                          row.patch_id,
+                        );
+                        if (!alive.current) return;
+                        if (!savedProposalContinues(saved, value))
+                          throw bindingError();
+                        if (alive.current) showProposal(value);
+                      })
+                    }
+                  >
+                    {proposalProtocol(saved) === "grounded-model-patch-0.1.0"
+                      ? "Закрытые факты"
+                      : "Legacy"}{" "}
+                    · {row.status} · {date(row.created_at)} · {row.patch_id}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
           {historyReady && !history.length && (
             <p className="hint">
@@ -595,6 +679,42 @@ export function ModelPatchPanel({
           {canGenerate && supported && (
             <fieldset disabled={locked}>
               <legend>Создать непроверенный черновик</legend>
+              <label htmlFor={`model-protocol-${finding.finding_id}`}>
+                Режим генерации исправления
+              </label>
+              <select
+                id={`model-protocol-${finding.finding_id}`}
+                value={protocol}
+                onChange={(event) => {
+                  setProtocol(event.target.value as PatchProtocol | "");
+                  setAllowGeneration(false);
+                  setAllowEngine(false);
+                  setAllowML(false);
+                }}
+              >
+                <option value="">Выберите режим явно</option>
+                <option
+                  value="legacy-model-patch-0.1.0"
+                  disabled={capabilities?.generation !== "configured"}
+                >
+                  Legacy — недоверенный свободный текст модели
+                </option>
+                <option
+                  value="grounded-model-patch-0.1.0"
+                  disabled={
+                    savedCapabilities?.grounded_generation !== "configured"
+                  }
+                >
+                  Закрытые факты — серверное представление BEFORE
+                </option>
+              </select>
+              {protocol === "grounded-model-patch-0.1.0" && (
+                <p className="hint">
+                  Модель выбирает закрытые ссылки, коды и изменения строк либо
+                  null. Текст BEFORE создаёт сервер из переданных фактов. Это не
+                  оценка качества модели, не проверка AFTER и не одобрение.
+                </p>
+              )}
               <button
                 className="button secondary"
                 onClick={() => void action(() => loadBaselines(0))}
@@ -662,9 +782,7 @@ export function ModelPatchPanel({
                 <input
                   type="checkbox"
                   checked={allowGeneration}
-                  disabled={
-                    capabilities?.generation !== "configured" || !historyReady
-                  }
+                  disabled={!generationConfigured || !historyReady}
                   onChange={(event) => setAllowGeneration(event.target.checked)}
                 />{" "}
                 Разрешаю контекст этого исправления локальной модели
@@ -677,9 +795,7 @@ export function ModelPatchPanel({
               <button
                 className="button"
                 disabled={
-                  !allowGeneration ||
-                  !historyReady ||
-                  capabilities?.generation !== "configured"
+                  !allowGeneration || !historyReady || !generationConfigured
                 }
                 onClick={() =>
                   void action(async () => {
@@ -706,6 +822,57 @@ export function ModelPatchPanel({
           {proposal && (
             <section aria-label="Сохранённый модельный черновик">
               <h5>Черновик: {proposal.status}</h5>
+              {grounded ? (
+                <>
+                  <p className="notice warning">
+                    Серверное представление BEFORE / этап генерации; это не
+                    исходная проза модели и не результат проверки AFTER.
+                    Одобрение эталона не доказано; formal verification и ML
+                    recheck не выполнялись. Vendor syntax, management access и
+                    rollback не проверены. Наличие проверок вне сценария
+                    неизвестно.
+                  </p>
+                  <details>
+                    <summary>Закрытые факты, выбор модели и привязки</summary>
+                    <p className="mono">Версия: {grounded.version}</p>
+                    <p className="hash">
+                      Контекст генерации: {grounded.context_sha256}
+                    </p>
+                    <p className="hash">
+                      Контекст проверки изменений:{" "}
+                      {grounded.edit_context_sha256}
+                    </p>
+                    <p className="hash">
+                      Факты: {grounded.facts_binding_sha256}
+                    </p>
+                    <p className="hash">
+                      Инструкции: {grounded.instructions_sha256}
+                    </p>
+                    <p className="hash">
+                      Схема ответа: {grounded.answer_schema_sha256}
+                    </p>
+                    <p className="mono">
+                      Представление: {grounded.renderer_version}
+                    </p>
+                    <p className="hash">
+                      Политика представления: {grounded.renderer_policy_sha256}
+                    </p>
+                    <p className="hash">
+                      Представление ответа:{" "}
+                      {grounded.projection_sha256 ?? "Не создано"}
+                    </p>
+                    <pre>{JSON.stringify(grounded.source_facts, null, 2)}</pre>
+                    <h5>Типизированный выбор модели</h5>
+                    <pre>{JSON.stringify(grounded.model_answer, null, 2)}</pre>
+                  </details>
+                </>
+              ) : (
+                <p className="notice warning">
+                  Legacy: текст модели недоверенный. Формальная проверка и ML не
+                  выполнялись при генерации. Утверждение и применение
+                  отсутствуют.
+                </p>
+              )}
               <p className="mono">{proposal.patch_id}</p>
               <p className="hash">Исходник: {proposal.source_sha256}</p>
               <p className="hash">
@@ -727,10 +894,6 @@ export function ModelPatchPanel({
               ) : (
                 <p className="hint">Эталон для этого черновика не выбран.</p>
               )}
-              <p className="notice warning">
-                Текст модели недоверенный. Формальная проверка и ML не
-                выполнялись при генерации. Утверждение и применение отсутствуют.
-              </p>
               {proposal.answer && (
                 <>
                   <p>{proposal.answer.summary}</p>
@@ -754,7 +917,11 @@ export function ModelPatchPanel({
                   <details>
                     <summary>Рекомендация, гипотезы и источники</summary>
                     <pre>{proposal.answer.recommendation}</pre>
-                    <h5>Возможное влияние — гипотезы модели</h5>
+                    <h5>
+                      {grounded
+                        ? "Условное влияние — серверное представление выбранного кода"
+                        : "Возможное влияние — гипотезы модели"}
+                    </h5>
                     <ul>
                       {proposal.answer.possible_impact.map((value, index) => (
                         <li key={index}>{value}</li>
@@ -1018,6 +1185,9 @@ export function ModelPatchPanel({
                   </div>
                   {run && (
                     <>
+                      {grounded && (
+                        <h5>AFTER — отдельная проверка точного кандидата</h5>
+                      )}
                       <ModelReviewView run={run} />
                       {client.permits("feedback") &&
                         run.execution_status !== "running" && (

@@ -41,6 +41,10 @@ class SyntheticProvider(BaseHTTPRequestHandler):
                 raise ValueError("invalid owned fixture request")
             wire = json.loads(self.rfile.read(size))
             context = json.loads(wire["messages"][1]["content"])
+            supplied = context
+            grounded = context.get("version") == "source-bound-grounded-patch-context-0.1.0"
+            if grounded:
+                context = context["supplied_patch_context"]
             patch = None
             if context["vendor"] == "cisco":
                 patch = {
@@ -64,6 +68,26 @@ class SyntheticProvider(BaseHTTPRequestHandler):
                 "citations": [context["documents"][0]["citation"]],
                 "requires_human_review": True,
             }
+            if grounded:
+                answer = {
+                    "version": "grounded-model-patch-answer-0.1.0",
+                    "facts_binding_sha256": supplied["facts_binding_sha256"],
+                    "fact_refs": ["selected_finding_before", "source_management_observation"],
+                    "possible_impact_codes": [],
+                    "recommendation_code": "request_human_review_and_missing_checks",
+                    "missing_information_codes": ["baseline_approval", "formal_verification"],
+                    "patch_draft": patch,
+                    "citations": answer["citations"],
+                    "requires_human_review": True,
+                }
+                # Explicit authored browser failure fixture, never a production provider:
+                # Cisco SSHv1 placed on line4 returns a forbidden positive check code.
+                if (
+                    context["vendor"] == "cisco"
+                    and context["finding"]["category"] == "management.ssh_version_1"
+                    and context["affected_block"][0]["source_line"] == 4
+                ):
+                    answer["fact_refs"] = ["formal_passed"]
             payload = json.dumps(
                 {
                     "choices": [
@@ -117,6 +141,7 @@ def main() -> None:
                 "owned-synthetic-browser-fixture",
                 allow_local_context=True,
                 allow_patch_draft=True,
+                allow_grounded_patch_draft=True,
             )
         try:
             application = create_app(

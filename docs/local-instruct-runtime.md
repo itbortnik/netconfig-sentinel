@@ -248,4 +248,6 @@ Model prose не меняет risk/history/formal status и не применя�
 free factual prose. Старый `allow_patch_draft` его не разрешает. Четыре actual
 installed обращения completed/accepted, но все четыре выбрали null: это evidence
 работающего отказа и receipt/replay, не actual candidate generation или общей
-семантической достоверности. HTTP/UI contracts и предыдущая история не изменены.
+семантической достоверности. [Saved API/UI writer](saved-grounded-model-patches.md)
+использует отдельные versions и independent operator flag; legacy contracts
+и предыдущая история не переинтерпретируются.

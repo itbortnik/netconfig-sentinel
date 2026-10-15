@@ -27,14 +27,15 @@
 
 Отдельный [closed-fact patch mode](grounded-model-patches.md) ограничивает новую
 wire schema refs/codes/actual edits-or-null и рендерит обязательные BEFORE
-unknown/not-run сведения на сервере. Это opt-in library/offline путь, не замена
-старых free-prose HTTP/UI contracts или independent semantic/citation quality.
+unknown/not-run сведения на сервере. [Saved API/UI integration](saved-grounded-model-patches.md)
+добавляет отдельный v2 writer, mixed-version reader и migration0010, не меняя
+legacy free-prose records. Это не independent semantic/citation quality.
 Новый encrypted receipt0.2 связывает actual new prompt, typed answer, ledger,
 renderer policy и server projection; старые schemas/instructions/receipt0.1 и
 история сохранены, loaders не делают downgrade/fallback. Exact bool opt-in
 независим от старого patch flag; false/unknown approval не смешиваются.
 
-[Новый actual installed run](evaluation/owned-grounded-model-patches.json):
+[Исторический actual installed library run](evaluation/owned-grounded-model-patches.json):
 четыре completed accepted ответа, но четыре null и ноль model candidates.
 Четыре immediate encrypted replays прошли; positive edits проверены только
 synthetic unit cases. Все попытки сохранены; retry/warm-up/substitution нет.
@@ -47,6 +48,24 @@ privacy дефекта. Эти guards не закрывают actual new-mode ca
 general semantic quality, formal safety или §23 целиком. Пользователь подтвердил
 отсутствие разрешённого representative real-confirmed набора; independent
 real test/calibration и метаданные §§12–14 остаются missing, не нулевыми метриками.
+
+Saved grounded integration отдельно проверена:3068full pass/15explicit live+DB
+skips/5warnings/91%coverage;239-file mypy default/Linux/win32 и Ruff pass.
+Installed394pass/2live skips/6deselected на каждом Pydantic2.13.5/2.14.0;
+239runtime/3assets совпали с source, прежние234installed files и306history hashes
+сохранены. UI556unit и36synthetic model-profile browser checks pass. Два общих
+browser запуска дали157pass/1fail каждый (разные отказы, последний transport
+`ERR_NO_BUFFER_SPACE` до HTTP response); local full browser gate не объявлен
+зелёным. [Подробности и границы](saved-grounded-model-patches.md) отличают
+version-aware persistence/UI tests от actual inference и model quality.
+
+[Actual installed saved-grounded run](evaluation/owned-grounded-saved-http.json)
+содержит4backend generations: первый explicit20s deadline failure с terminal
+failed, затем3accepted null,0actual candidates. Все4attempts сохранены, consent/
+replay/new-app-instance reads не вызвали дополнительных обращений; drain полный,
+incomplete0. Это не fresh-process restart, новый положительный model patch,
+qualification default10s или independent semantic/citation quality. Рабочая БД,
+operator activation, engine/ML/device checks не затронуты.
 
 Последующее [explicit 0.4 anomaly-only comparison](evaluation/owned-balanced-comparison.json)
 закрывает отдельный CLI-разрыв для exact owned scenarios через тот же retained

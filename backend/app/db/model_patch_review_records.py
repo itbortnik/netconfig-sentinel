@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.contracts import SnapshotBinding
+from app.api.grounded_patch_contracts import common_proposal
 from app.api.model_patch_contracts import fingerprint
 from app.api.model_patch_review_contracts import (
     SavedPatchDecision,
@@ -69,9 +70,7 @@ class ModelPatchReviewRecords:
             records = ModelPatchRecords(self.store)
             generation = records._intent(session, parent)
             outcome = records._outcome(result, generation)
-            from app.api.model_patch_contracts import ModelPatchProposal
-
-            proposal = ModelPatchProposal.from_records(generation, outcome)
+            proposal = common_proposal(generation, outcome)
             if (
                 proposal.status != "draft"
                 or proposal.proposal_sha256 != intent.request.proposal_sha256

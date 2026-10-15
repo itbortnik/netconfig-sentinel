@@ -64,10 +64,23 @@ async function prepare(
       { exact: true },
     ),
   ).toBeVisible();
+  await expect(
+    panel(page).getByLabel("Режим генерации исправления", { exact: true }),
+  ).toHaveValue("");
+  await panel(page)
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("legacy-model-patch-0.1.0");
   return { snapshot, analysis };
 }
 async function generate(page: Page) {
   const target = panel(page);
+  const mode = target.getByLabel("Режим генерации исправления", {
+    exact: true,
+  });
+  if (!(await mode.inputValue()))
+    await mode.selectOption("legacy-model-patch-0.1.0");
+  const version =
+    (await mode.inputValue()) === "grounded-model-patch-0.1.0" ? "v2" : "v1";
   await expect(
     target.getByRole("button", {
       name: "Создать модельное исправление",
@@ -81,7 +94,7 @@ async function generate(page: Page) {
     .check();
   const created = page.waitForResponse(
     (response) =>
-      response.url().endsWith("/api/v1/model-patches") &&
+      response.url().endsWith(`/api/${version}/model-patches`) &&
       response.request().method() === "POST",
   );
   await target
@@ -339,6 +352,373 @@ test("a lost verification response preserves its identity and resolves from the 
   ).json();
   expect(rows).toHaveLength(1);
   expect(posts).toBe(1);
+});
+
+test("grounded selection is explicit, resets consent and retains server-derived BEFORE facts after separate AFTER review", async ({
+  page,
+}) => {
+  await prepare(page);
+  const target = panel(page);
+  const mode = target.getByLabel("Режим генерации исправления", {
+    exact: true,
+  });
+  const consent = target.getByLabel(
+    "Разрешаю контекст этого исправления локальной модели",
+    { exact: true },
+  );
+  await consent.check();
+  await mode.selectOption("grounded-model-patch-0.1.0");
+  await expect(consent).not.toBeChecked();
+  await expect(
+    target.getByRole("button", {
+      name: "Создать модельное исправление",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  const saved = await generate(page);
+  expect(saved.version).toBe("grounded-source-bound-patch-proposal-0.1.0");
+  expect(saved.presentation_kind).toBe("server_derived");
+  expect(saved.model_answer.patch_draft).toEqual(
+    saved.projection.answer.patch_draft,
+  );
+  expect(saved.context_sha256).not.toBe(saved.edit_context_sha256);
+  expect(saved.projection.context_sha256).toBe(saved.edit_context_sha256);
+  const region = target.getByRole("region", {
+    name: "Сохранённый модельный черновик",
+    exact: true,
+  });
+  await expect(region).toContainText(
+    "Серверное представление BEFORE / этап генерации",
+  );
+  await expect(region).toContainText(
+    "Vendor syntax, management access и rollback не проверены.",
+  );
+  const checked = await verify(page);
+  expect(checked.execution_status).toBe("completed");
+  expect(checked.report.context_sha256).toBe(saved.edit_context_sha256);
+  expect(checked.report.context_sha256).not.toBe(saved.context_sha256);
+  await expect(region).toContainText(
+    "AFTER — отдельная проверка точного кандидата",
+  );
+  expect(saved.source_facts.formal_verification).toBe("not_run");
+  expect(saved.source_facts.ml_recheck).toBe("not_run");
+  await expect(
+    target.getByRole("option", {
+      name: "Утвердить после независимых проверок",
+    }),
+  ).toBeDisabled();
+  await target
+    .getByLabel("Комментарий к решению", { exact: true })
+    .fill("Synthetic grounded candidate still needs independent checks.");
+  await target
+    .getByRole("button", { name: "Записать решение инженера", exact: true })
+    .click();
+  await expect(
+    target.getByRole("list", { name: "Сохранённые решения инженера" }),
+  ).toContainText("Нужны дополнительные сведения");
+  const reread = await (
+    await page.request.get(
+      `/api/v2/model-patches/${saved.projection.patch_id}`,
+      { headers },
+    )
+  ).json();
+  expect(reread).toEqual(saved);
+  await cleanBrowser(page);
+});
+
+test("grounded JunOS null remains declined without a substitute and every mandatory unknown is displayed", async ({
+  page,
+}) => {
+  await prepare(
+    page,
+    true,
+    "set system host-name browser-junos\nset system services ssh protocol-version v1\n",
+  );
+  await panel(page)
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  const saved = await generate(page);
+  expect(saved.projection.status).toBe("declined");
+  expect(saved.model_answer.patch_draft).toBeNull();
+  expect(saved.projection.answer.patch_draft).toBeNull();
+  expect(saved.projection.candidate_sha256).toBeNull();
+  const region = panel(page).getByRole("region", {
+    name: "Сохранённый модельный черновик",
+    exact: true,
+  });
+  await expect(region).toContainText(
+    "Модель отказалась от создания патча; кандидат не подставлен.",
+  );
+  await expect(region).toContainText("Одобрение эталона не доказано");
+  await expect(region).toContainText(
+    "formal verification и ML recheck не выполнялись",
+  );
+  await expect(region).toContainText(
+    "Vendor syntax, management access и rollback не проверены.",
+  );
+  await expect(
+    region.getByRole("button", {
+      name: "Сохранить проверку кандидата",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await cleanBrowser(page);
+});
+
+test("mixed history survives browser restart and reader reads preserve both protocols without generation", async ({
+  page,
+}) => {
+  const { analysis } = await prepare(page);
+  const legacy = await generate(page);
+  await panel(page)
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  const grounded = await generate(page);
+  await page.reload();
+  await connect(page, READER);
+  await page.getByRole("button", { name: "Анализы", exact: true }).click();
+  await page
+    .locator(".history-item")
+    .filter({ hasText: `Анализ ${analysis.analysis_id.slice(0, 8)}` })
+    .click();
+  await page
+    .locator(".finding-button")
+    .filter({ hasText: "management.ssh_version_1" })
+    .click();
+  const target = panel(page);
+  await target
+    .getByRole("button", { name: "Открыть модельные исправления", exact: true })
+    .click();
+  const closed = target.getByRole("button", {
+    name: new RegExp(grounded.projection.patch_id),
+  });
+  await expect(closed).toContainText("Закрытые факты");
+  await expect(
+    target.getByRole("button", { name: new RegExp(legacy.patch_id) }),
+  ).toContainText("Legacy");
+  await closed.click();
+  await expect(target).toContainText(
+    "Серверное представление BEFORE / этап генерации",
+  );
+  await target
+    .getByText("Закрытые факты, выбор модели и привязки", { exact: true })
+    .click();
+  await expect(target).toContainText(grounded.context_sha256);
+  await expect(target).toContainText(grounded.facts_binding_sha256);
+  await expect(target).toContainText(grounded.projection_sha256);
+  await target
+    .getByRole("button", { name: new RegExp(legacy.patch_id) })
+    .click();
+  await expect(target).toContainText("Legacy: текст модели недоверенный.");
+  await expect(
+    target.getByLabel("Режим генерации исправления", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    target.getByRole("button", {
+      name: "Создать модельное исправление",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  const saved = await (
+    await page.request.get(
+      `/api/v2/model-patches/${grounded.projection.patch_id}`,
+      { headers },
+    )
+  ).json();
+  expect(saved).toEqual(grounded);
+  await cleanBrowser(page);
+});
+
+test("wrong wrapper cannot downgrade a grounded pending intent on POST or reconciliation GET", async ({
+  page,
+}) => {
+  await prepare(page);
+  const target = panel(page);
+  await target
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  let posts = 0,
+    savedId = "";
+  await page.route("**/api/v2/model-patches", async (route) => {
+    posts++;
+    const response = await route.fetch();
+    const saved = await response.json();
+    savedId = saved.projection.patch_id;
+    await route.fulfill({ response, json: saved.projection });
+  });
+  await generate(page);
+  await expect(target).toContainText(
+    "Неопределённый или незавершённый итог. Новый запуск заблокирован.",
+  );
+  await expect(
+    target.getByLabel("Режим генерации исправления", { exact: true }),
+  ).toBeDisabled();
+  await expect(
+    target.getByRole("region", {
+      name: "Сохранённый модельный черновик",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.route(`**/api/v2/model-patches/${savedId}`, async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, json: (await response.json()).projection });
+  });
+  await target
+    .getByRole("button", { name: "Прочитать сохранённую попытку", exact: true })
+    .click();
+  await expect(target).toContainText(
+    "Режим сохранённой попытки: grounded-model-patch-0.1.0",
+  );
+  await expect(
+    target.getByRole("region", {
+      name: "Сохранённый модельный черновик",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.unroute(`**/api/v2/model-patches/${savedId}`);
+  await target
+    .getByRole("button", { name: "Прочитать сохранённую попытку", exact: true })
+    .click();
+  await expect(target).toContainText(
+    "Серверное представление BEFORE / этап генерации",
+  );
+  expect(posts).toBe(1);
+  await cleanBrowser(page);
+});
+
+test("lost grounded response is reconciled through v2 GET with original protocol and no second POST", async ({
+  page,
+}) => {
+  await prepare(page);
+  const target = panel(page);
+  await target
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  let posts = 0,
+    savedId = "";
+  await page.route("**/api/v2/model-patches", async (route) => {
+    posts++;
+    savedId = route.request().postDataJSON().patch_id;
+    const response = await route.fetch();
+    expect(response.status()).toBe(201);
+    await route.abort("failed");
+  });
+  await target
+    .getByLabel("Разрешаю контекст этого исправления локальной модели", {
+      exact: true,
+    })
+    .check();
+  await target
+    .getByRole("button", { name: "Создать модельное исправление", exact: true })
+    .click();
+  await expect(target).toContainText(
+    "Неопределённый или незавершённый итог. Новый запуск заблокирован.",
+  );
+  await expect(target).toContainText(savedId);
+  await target
+    .getByRole("button", { name: "Прочитать сохранённую попытку", exact: true })
+    .click();
+  await expect(target).toContainText("Черновик: draft");
+  await expect(target).toContainText(
+    "Серверное представление BEFORE / этап генерации",
+  );
+  expect(posts).toBe(1);
+  await expect(
+    target.getByLabel("Разрешаю контекст этого исправления локальной модели", {
+      exact: true,
+    }),
+  ).not.toBeChecked();
+  await cleanBrowser(page);
+});
+
+test("grounded generating wrapper preserves its immutable prompt and facts when reconciled to completion", async ({
+  page,
+}) => {
+  await prepare(page);
+  const target = panel(page);
+  await target
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  let posts = 0;
+  await page.route("**/api/v2/model-patches", async (route) => {
+    posts++;
+    const response = await route.fetch();
+    const value = await response.json();
+    await route.fulfill({
+      response,
+      json: {
+        ...value,
+        projection: {
+          ...value.projection,
+          status: "generating",
+          completed_at: null,
+          answer: null,
+          candidate_sha256: null,
+        },
+        model_answer: null,
+        projection_sha256: null,
+      },
+    });
+  });
+  await generate(page);
+  await expect(target).toContainText("Черновик: generating");
+  await expect(target).toContainText("Генерация ещё не завершена.");
+  await target
+    .getByRole("button", { name: "Прочитать сохранённую попытку", exact: true })
+    .click();
+  await expect(target).toContainText("Черновик: draft");
+  expect(posts).toBe(1);
+  await cleanBrowser(page);
+});
+
+test("a forbidden synthetic model claim persists failed without raw answer, fallback or second generation", async ({
+  page,
+}) => {
+  await prepare(
+    page,
+    true,
+    source.replace("aaa new-model\n", "aaa new-model\n!\n"),
+  );
+  const target = panel(page);
+  await target
+    .getByLabel("Режим генерации исправления", { exact: true })
+    .selectOption("grounded-model-patch-0.1.0");
+  let posts = 0,
+    savedId = "";
+  page.on("request", (request) => {
+    if (
+      request.url().endsWith("/api/v2/model-patches") &&
+      request.method() === "POST"
+    ) {
+      posts++;
+      savedId = request.postDataJSON().patch_id;
+    }
+  });
+  const result = await generate(page);
+  expect(result.http_status).toBe(503);
+  await expect(target).toContainText(
+    "Неопределённый или незавершённый итог. Новый запуск заблокирован.",
+  );
+  await target
+    .getByRole("button", { name: "Прочитать сохранённую попытку", exact: true })
+    .click();
+  await expect(target).toContainText("Черновик: failed");
+  const saved = await (
+    await page.request.get(`/api/v2/model-patches/${savedId}`, { headers })
+  ).json();
+  expect(saved.model_answer).toBeNull();
+  expect(saved.projection.answer).toBeNull();
+  expect(saved.projection.candidate_sha256).toBeNull();
+  expect(saved.projection_sha256).toBeNull();
+  expect(JSON.stringify(saved)).not.toContain("formal_passed");
+  await expect(
+    target.getByRole("button", {
+      name: "Сохранить проверку кандидата",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  expect(posts).toBe(1);
+  await cleanBrowser(page);
 });
 test("changing findings resets unsent model consent and hides the old candidate", async ({
   page,

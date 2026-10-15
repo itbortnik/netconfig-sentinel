@@ -8,6 +8,11 @@ Generation маршрут не применяет изменения, не за�
 Последующая [saved candidate verification и решения](saved-model-patch-reviews.md)
 имеют отдельные permissions, intent/result records и explicit worker opt-ins.
 
+Прежние free-prose `/api/v1/model-patches` сохранены. Новый
+[closed-fact writer и mixed-version reader](saved-grounded-model-patches.md)
+в `/api/v2/model-patches` имеют независимый operator flag, explicit versions
+и server-derived BEFORE presentation; они не исправляют старую модельную прозу.
+
 ## Three independent permissions
 
 1. При загрузке нужен `retain_original_source=true`: разрешение на encrypted

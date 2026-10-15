@@ -4,7 +4,8 @@ from contextlib import nullcontext
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.api.model_patch_contracts import ModelPatchIntent, fingerprint
+from app.api.grounded_patch_contracts import SavedPatchIntent
+from app.api.model_patch_contracts import fingerprint
 from app.api.model_patch_review_contracts import (
     ReviewSavedModelPatch,
     SavedPatchDecision,
@@ -25,10 +26,10 @@ from app.detection.statistical.features import extract_structured_features
 from app.explanation.patch_provider import (
     GeneratedModelPatch,
     PreparedPatchPrompt,
-    validate_patch_answer,
 )
 from app.patching.candidate_review import CandidateReviewUnavailable, build_candidate_review
-from app.patching.saved_model import SavedModelPatchNotFound, SavedModelPatchWorkflow
+from app.patching.saved_model import SavedModelPatchNotFound
+from app.patching.saved_patch_access import SavedModelPatchAccess
 from app.verification.model_patch import check_model_patch_with_batfish
 from app.verification.patch_runtime import (
     PatchMLUnavailable,
@@ -46,28 +47,25 @@ class SavedPatchReviewFailed(Exception):
 class SavedPatchReviewWorkflow:
     def __init__(self, service: AnalysisService) -> None:
         self.service = service
-        self.generation = SavedModelPatchWorkflow(service)
+        self.generation = SavedModelPatchAccess(service)
         self.records = ModelPatchReviewRecords(service.store)
 
     def _prepare(
         self, patch_id: UUID, options: VerifySavedModelPatch
     ) -> tuple[
-        ModelPatchIntent,
+        SavedPatchIntent,
         GeneratedModelPatch,
         PreparedPatchPrompt,
         NetworkSnapshot,
         SavedPatchReviewIntent,
     ]:
-        proposal = self.generation.get(patch_id)
+        replay = self.generation.replay(patch_id)
+        proposal = replay.projection
         if proposal.status != "draft" or proposal.proposal_sha256 != options.proposal_sha256:
             raise ModelPatchConflict("Selected proposal is unavailable or differs.")
-        saved = self.generation.records.get(patch_id)
-        if saved is None or saved[1] is None or saved[1].answer is None:
+        if replay.generated is None:
             raise SavedModelPatchNotFound()
-        generation, outcome = saved
-        assert outcome is not None and outcome.answer is not None
-        prepared, _, _ = self.generation.prepare(generation.request)
-        generated = validate_patch_answer(outcome.answer.model_dump_json().encode(), prepared)
+        generation, generated, prepared = replay.intent, replay.generated, replay.edit_prepared
         bindings, contents = [], {}
         try:
             for selected in options.network:
@@ -101,7 +99,7 @@ class SavedPatchReviewWorkflow:
             ) from None
 
     def _statistical(
-        self, generation: ModelPatchIntent, generated: GeneratedModelPatch
+        self, generation: SavedPatchIntent, generated: GeneratedModelPatch
     ) -> StatisticalRecheck | None:
         analysis = self.service.store.get_analysis(generation.request.analysis_id)
         if analysis is None:

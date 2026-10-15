@@ -65,6 +65,7 @@ def test_environment_is_opt_in_and_missing_fields_fail_closed(monkeypatch):
         "NETCONFIG_LLM_API_KEY",
         "NETCONFIG_LLM_ALLOW_LOCAL_CONTEXT",
         "NETCONFIG_LLM_ALLOW_PATCH_DRAFT",
+        "NETCONFIG_LLM_ALLOW_GROUNDED_PATCH_DRAFT",
     ):
         monkeypatch.delenv(name, raising=False)
     assert LocalModelSettings.from_environment() is None

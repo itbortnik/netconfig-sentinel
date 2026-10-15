@@ -107,12 +107,25 @@ class ModelPatchIntentRow(Base):
     __tablename__ = "model_patch_intents"
     __table_args__ = (
         Index("ix_model_patch_intents_analysis_created_at", "analysis_id", "created_at", "id"),
+        Index(
+            "ix_model_patch_intents_protocol_analysis_created",
+            "protocol",
+            "analysis_id",
+            "created_at",
+            "id",
+        ),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     analysis_id: Mapped[str] = mapped_column(ForeignKey("analyses.id"))
     configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[str] = mapped_column(Text)
+    protocol: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+        default="legacy-model-patch-0.1.0",
+        server_default="legacy-model-patch-0.1.0",
+    )
 
 
 class ModelPatchOutcomeRow(Base):

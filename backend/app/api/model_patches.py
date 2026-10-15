@@ -115,18 +115,18 @@ def list_model_patches(
 
 @router.get("/capabilities", response_model=ModelPatchCapabilities)
 def model_patch_capabilities(request: Request, service: Service) -> ModelPatchCapabilities:
+    return capture_result(request, configured_patch_capabilities(request))
+
+
+def configured_patch_capabilities(request: Request) -> ModelPatchCapabilities:
+    """Metadata only, shared by explicitly versioned capability projections."""
     runtime = cast(LocalModelRuntime | None, request.app.state.local_model)
     verification = cast(PatchVerificationRuntime, request.app.state.patch_verification).settings
-    return capture_result(
-        request,
-        ModelPatchCapabilities(
-            generation="configured"
-            if runtime and runtime.settings.allow_patch_draft
-            else "disabled",
-            network_engine="configured" if verification.allow_engine_upload else "disabled",
-            transformer="configured" if verification.registry_root is not None else "disabled",
-            transformer_sha256=verification.transformer_sha256,
-        ),
+    return ModelPatchCapabilities(
+        generation="configured" if runtime and runtime.settings.allow_patch_draft else "disabled",
+        network_engine="configured" if verification.allow_engine_upload else "disabled",
+        transformer="configured" if verification.registry_root is not None else "disabled",
+        transformer_sha256=verification.transformer_sha256,
     )
 
 

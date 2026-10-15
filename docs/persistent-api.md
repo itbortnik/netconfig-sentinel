@@ -109,6 +109,10 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | История model attempts выбранного анализа | `GET /api/v1/model-patches?analysis_id=<UUID>` |
 | Сохранённый model attempt | `GET /api/v1/model-patches/<UUID>` |
 | Operator selection без вызова workers/readiness | `GET /api/v1/model-patches/capabilities` |
+| Явно запросить closed-fact model draft | `POST /api/v2/model-patches` |
+| Mixed-version history выбранного анализа | `GET /api/v2/model-patches?analysis_id=<UUID>` |
+| Version-bound legacy/grounded attempt | `GET /api/v2/model-patches/<UUID>` |
+| Независимые legacy/grounded capabilities | `GET /api/v2/model-patches/capabilities` |
 | Проверить exact model candidate | `POST /api/v1/model-patches/<UUID>/verify` |
 | История проверок model candidate | `GET /api/v1/model-patches/<UUID>/verifications` |
 | Точная сохранённая проверка | `GET /api/v1/model-patches/<UUID>/verifications/<UUID>` |

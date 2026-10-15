@@ -40,6 +40,10 @@ def model_patch_api(tmp_path):
             wire = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             state["requests"].append(wire)
             context = json.loads(wire["messages"][1]["content"])
+            grounded = context.get("version") == "source-bound-grounded-patch-context-0.1.0"
+            supplied = context
+            if grounded:
+                context = context["supplied_patch_context"]
             answer = {
                 "summary": "Owned synthetic answer; not a model measurement.",
                 "technical_explanation": "The supplied source explicitly selects SSHv1.",
@@ -55,6 +59,8 @@ def model_patch_api(tmp_path):
                                 else "ip ssh version 2"
                             )
                             if context["vendor"] == "cisco"
+                            else None
+                            if context["finding"]["category"] == "management.telnet_enabled"
                             else "set system services ssh protocol-version v2",
                         }
                     ]
@@ -64,6 +70,18 @@ def model_patch_api(tmp_path):
                 "citations": [context["documents"][0]["citation"]],
                 "requires_human_review": True,
             }
+            if grounded:
+                answer = {
+                    "version": "grounded-model-patch-answer-0.1.0",
+                    "facts_binding_sha256": supplied["facts_binding_sha256"],
+                    "fact_refs": ["selected_finding_before", "source_management_observation"],
+                    "possible_impact_codes": [],
+                    "recommendation_code": "request_human_review_and_missing_checks",
+                    "missing_information_codes": ["baseline_approval", "formal_verification"],
+                    "patch_draft": answer["patch_draft"],
+                    "citations": answer["citations"],
+                    "requires_human_review": True,
+                }
             damage = state["damage"]
             if damage == "decline":
                 answer["patch_draft"] = None
@@ -77,9 +95,17 @@ def model_patch_api(tmp_path):
                 answer["approved"] = True
             elif damage == "review":
                 answer["requires_human_review"] = 1
+            elif damage == "facts":
+                answer["facts_binding_sha256"] = "0" * 64
+            elif damage == "prose":
+                answer["summary"] = "Unsupported approval claim from a synthetic fixture."
             answer_text = json.dumps(answer)
             if damage == "duplicate":
-                answer_text = answer_text.replace('"summary":', '"summary":"bad","summary":', 1)
+                answer_text = (
+                    '{"facts_binding_sha256":"' + "0" * 64 + '",' + answer_text[1:]
+                    if grounded
+                    else answer_text.replace('"summary":', '"summary":"bad","summary":', 1)
+                )
             payload = json.dumps(
                 {
                     "choices": [

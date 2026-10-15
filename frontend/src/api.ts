@@ -32,6 +32,11 @@ import {
   generationMatches,
   modelPatchCapabilitiesSchema,
   modelPatchProposalSchema,
+  commonModelPatch,
+  groundedBindingsMatch,
+  groundedModelPatchProposalSchema,
+  savedModelPatchCapabilitiesSchema,
+  savedModelPatchProposalSchema,
 } from "./modelPatches";
 import type { GenerateModelPatch } from "./modelPatches";
 import {
@@ -156,12 +161,13 @@ export class ApiClient {
       | VerifyModelPatch
       | DecideModelPatch
       | RunConfigurationModel,
+    namespace: "v1" | "v2" = "v1",
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
     const timeout = AbortSignal.timeout(30_000);
     try {
-      const response = await this.transport(`/api/v1${path}`, {
+      const response = await this.transport(`/api/${namespace}${path}`, {
         method:
           body === undefined && !path.endsWith("/analyze") ? "GET" : "POST",
         headers: {
@@ -428,6 +434,70 @@ export class ApiClient {
     );
     if (!generationMatches(row, request))
       throw new ApiError(0, "Черновик не соответствует запросу.");
+    return row;
+  }
+  savedModelPatchCapabilities() {
+    return this.request(
+      "/model-patches/capabilities",
+      savedModelPatchCapabilitiesSchema,
+      undefined,
+      "v2",
+    );
+  }
+  async savedModelPatches(analysis: string, offset = 0) {
+    const query = new URLSearchParams({
+      analysis_id: analysis,
+      limit: "20",
+      offset: String(offset),
+    });
+    const rows = await this.request(
+      `/model-patches?${query}`,
+      z.array(savedModelPatchProposalSchema).max(20),
+      undefined,
+      "v2",
+    );
+    const views = rows.map(commonModelPatch);
+    if (
+      views.some((row) => row.analysis_id !== analysis) ||
+      new Set(views.map((row) => row.patch_id)).size !== rows.length ||
+      !(await Promise.all(rows.map(groundedBindingsMatch))).every(Boolean)
+    )
+      throw new ApiError(0, "История черновиков не соответствует анализу.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return rows;
+  }
+  async savedModelPatch(id: string) {
+    const row = await this.request(
+      `/model-patches/${encodeURIComponent(id)}`,
+      savedModelPatchProposalSchema,
+      undefined,
+      "v2",
+    );
+    if (
+      commonModelPatch(row).patch_id !== id ||
+      !(await groundedBindingsMatch(row))
+    )
+      throw new ApiError(0, "Привязка черновика не подтверждена.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async generateGroundedModelPatch(options: GenerateModelPatch) {
+    const request = generateModelPatchSchema.parse(options);
+    const row = await this.request(
+      "/model-patches",
+      groundedModelPatchProposalSchema,
+      request,
+      "v2",
+    );
+    if (
+      !generationMatches(row.projection, request) ||
+      !(await groundedBindingsMatch(row))
+    )
+      throw new ApiError(0, "Черновик не соответствует запросу.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
     return row;
   }
   async modelReviews(patch: string, offset = 0) {

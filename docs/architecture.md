@@ -330,6 +330,15 @@ is an independent atomic record. Readers receive minimized untrusted answer and
 hash bindings, never full source/candidate or prompt. Existing null-only explanations
 and normalized object proposals are not broadened or reinterpreted.
 
+The [closed-fact saved writer](saved-grounded-model-patches.md) uses explicit
+grounded intent/outcome/outer response versions and an independent operator flag.
+V2 readers dispatch both known families without downgrade, while v1 generation
+reads remain legacy-only. Migration0010 adds a protocol discriminator with a
+legacy default and no ciphertext rewrite. Actual generation prompt and component
+edit-review context have separate pins; whole-record proposal fingerprints bind
+the actual new pair. Raw typed model choices and server-derived BEFORE display
+are separate; existing candidate/decision gates receive exact replayed edits.
+
 [Saved candidate verification](saved-model-patch-reviews.md) separately reserves
 an immutable attempt before selected engine/ML workers. Exact retained network
 and proposal pins are independent of the untrusted model prose. Outcomes preserve

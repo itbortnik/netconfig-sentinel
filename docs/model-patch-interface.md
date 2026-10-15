@@ -14,9 +14,10 @@ source-line workflow, не переименование существующег
    Cisco/JunOS, без автоматической подстановки патча при отказе модели.
 2. Обновите историю. При желании явно выберите более ранний снимок **того же
    устройства** как контекст генерации. Его утверждение не установлено.
-3. Если оператор настроил generation, отдельно разрешите минимальный
+3. Если оператор настроил generation, явно выберите legacy либо
+   [закрытые факты](saved-grounded-model-patches.md), затем отдельно разрешите минимальный
    псевдонимизированный контекст локальной модели. Согласие unchecked,
-   действует на одну отправку и сбрасывается при смене эталона/находки.
+   действует на одну отправку и сбрасывается при смене режима/эталона/находки.
    Генерация сохраняет одну попытку под новым UUID; результат `declined`,
    `failed` или `generating` не превращается в готовый кандидат.
 4. Для `draft` выберите сеть: исходный снимок обязателен, дополнительные
@@ -59,7 +60,8 @@ baseline, exact candidate, scope, network, model pins и review decision.
 Late response после смены finding/logout игнорируется. Hashes projection
 авторитетно рассчитывает и заново проверяет сервер; UI сопоставляет их с
 выбранным intent. Это **не** цифровая подпись и не независимое удостоверение
-исполнения. Клиент не подменяет Python JSON hashing своим JSON serializer.
+исполнения. Whole-record proposal/review SHA остаются серверными; для нового
+closed-fact envelope UI отдельно проверяет canonical fact/projection SHA.
 Comment/answer показываются React-текстом, без HTML или активных untrusted links.
 Токен, context consent и IDs не записываются в browser storage.
 
@@ -71,7 +73,9 @@ Comment/answer показываются React-текстом, без HTML или
 
 ## Настройки без исполнения
 
-`GET /api/v1/model-patches/capabilities` доступен всем read roles. Возвращает
+`GET /api/v2/model-patches/capabilities` доступен всем read roles. Возвращает
+независимые capabilities legacy и closed-fact generation; v1 endpoint сохранён.
+Каждый возвращает
 только `configured` / `disabled` для generation, network engine, Transformer
 и независимый model SHA-256, если модель выбрана оператором. Endpoint/path/key
 не возвращаются. Этот GET не вызывает provider/workers, не загружает checkpoint

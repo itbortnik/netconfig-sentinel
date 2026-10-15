@@ -27,6 +27,7 @@ from app.api.explanation_contracts import (
     ModelExplanationBundle,
 )
 from app.api.feedback_contracts import FeedbackRecord
+from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedModelPatchCapabilities
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
@@ -81,6 +82,8 @@ _SUPPORTED = (
     VerificationSummary,
     ModelPatchProposal,
     ModelPatchCapabilities,
+    GroundedModelPatchProposal,
+    SavedModelPatchCapabilities,
     SavedPatchVerification,
     SavedPatchDecision,
     Finding,
@@ -129,6 +132,31 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["network_engine"] = value.network_engine
         selected["transformer"] = value.transformer
         selected["transformer_sha256"] = value.transformer_sha256
+    if isinstance(value, GroundedModelPatchProposal):
+        # Never recurse into raw model choices, facts values, answer, edits or prose.
+        common = _selected(value.projection)
+        selected["projection"] = common
+        # ResultMetadata previews read only the top-level allowlist. Keep the same
+        # visible patch/analysis/finding correlation as the legacy common view.
+        for name in (
+            *_IDENTIFIERS,
+            "source_sha256",
+            "finding_sha256",
+            "knowledge_sha256",
+            "model_alias_sha256",
+        ):
+            if name in common:
+                selected[name] = common[name]
+        selected["facts_binding_sha256"] = value.facts_binding_sha256
+        selected["edit_context_sha256"] = value.edit_context_sha256
+        selected["instructions_sha256"] = value.instructions_sha256
+        selected["answer_schema_sha256"] = value.answer_schema_sha256
+        selected["renderer_policy_sha256"] = value.renderer_policy_sha256
+        selected["versions"] = [value.renderer_version]
+    if isinstance(value, SavedModelPatchCapabilities):
+        selected["legacy"] = _selected(value.legacy)
+        selected["grounded_generation"] = value.grounded_generation
+        selected["versions"] = [value.grounded_protocol]
     if isinstance(value, SavedPatchVerification):
         selected["proposal_sha256"] = value.proposal_sha256
         selected["review_sha256"] = value.review_sha256

@@ -15,6 +15,7 @@ from app.api.configuration_models import router as configuration_model_router
 from app.api.configurations import router as configuration_router
 from app.api.explanations import router as explanation_router
 from app.api.feedback import router as feedback_router
+from app.api.grounded_model_patches import router as grounded_model_patch_router
 from app.api.health import router as health_router
 from app.api.model_patch_reviews import router as model_patch_review_router
 from app.api.model_patches import router as model_patch_router
@@ -47,7 +48,9 @@ def create_app(
     configuration_model: ConfigurationModelSettings | None = None,
 ) -> FastAPI:
     if (
-        local_model is not None or document_retrieval is not None or patch_verification is not None
+        local_model is not None
+        or document_retrieval is not None
+        or patch_verification is not None
         or configuration_model is not None
     ) and settings is None:
         raise ValueError("local model requires an authenticated persistent API")
@@ -82,6 +85,7 @@ def create_app(
             explanation_router,
             patch_router,
             model_patch_router,
+            grounded_model_patch_router,
             model_patch_review_router,
             operation_audit_router,
         )
@@ -135,6 +139,7 @@ def create_app(
     application.include_router(explanation_router)
     application.include_router(patch_router)
     application.include_router(model_patch_router)
+    application.include_router(grounded_model_patch_router)
     application.include_router(model_patch_review_router)
     application.include_router(operation_audit_router)
     mount_frontend(application, frontend_dir)

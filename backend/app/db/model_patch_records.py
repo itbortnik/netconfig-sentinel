@@ -1,5 +1,6 @@
 """Reserve before inference; completion and domain audit commit atomically."""
 
+import json
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -8,10 +9,19 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.contracts import SnapshotBinding
+from app.api.grounded_patch_contracts import (
+    INTENT_ADAPTER,
+    LEGACY_PROTOCOL,
+    OUTCOME_ADAPTER,
+    GroundedModelPatchIntent,
+    GroundedModelPatchOutcome,
+    PatchProtocol,
+    SavedPatchIntent,
+    SavedPatchOutcome,
+    protocol_for,
+)
 from app.api.model_patch_contracts import (
     MAX_MODEL_PATCH_BYTES,
-    ModelPatchIntent,
-    ModelPatchOutcome,
     fingerprint,
 )
 from app.db.store import StorageIntegrityError, Store
@@ -23,6 +33,7 @@ from app.db.tables import (
     ModelPatchOutcomeRow,
 )
 from app.domain.fingerprints import finding_fingerprint
+from app.explanation.provider import _unique_keys
 
 
 class ModelPatchConflict(ValueError):
@@ -41,11 +52,16 @@ class ModelPatchRecords:
             raise ValueError("oversized model patch record")
         return value
 
-    def _intent(self, session: Session, row: ModelPatchIntentRow) -> ModelPatchIntent:
+    def _intent(self, session: Session, row: ModelPatchIntentRow) -> SavedPatchIntent:
         try:
-            intent = ModelPatchIntent.model_validate_json(
-                self._plain(row.payload, "model_patch_intent", row.id)
+            intent = INTENT_ADAPTER.validate_python(
+                json.loads(
+                    self._plain(row.payload, "model_patch_intent", row.id),
+                    object_pairs_hook=_unique_keys,
+                )
             )
+            if row.protocol != protocol_for(intent):
+                raise ValueError("model patch row protocol differs")
             timestamp = (
                 row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
             )
@@ -81,14 +97,28 @@ class ModelPatchRecords:
             ):
                 raise ValueError("model patch selected facts differ")
             return intent
-        except ValueError:
+        except (ValueError, RecursionError):
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def _outcome(self, row: ModelPatchOutcomeRow, intent: ModelPatchIntent) -> ModelPatchOutcome:
+    def _outcome(self, row: ModelPatchOutcomeRow, intent: SavedPatchIntent) -> SavedPatchOutcome:
         try:
-            outcome = ModelPatchOutcome.model_validate_json(
-                self._plain(row.payload, "model_patch_outcome", row.patch_id)
+            outcome = OUTCOME_ADAPTER.validate_python(
+                json.loads(
+                    self._plain(row.payload, "model_patch_outcome", row.patch_id),
+                    object_pairs_hook=_unique_keys,
+                )
             )
+            if isinstance(intent, GroundedModelPatchIntent) != isinstance(
+                outcome, GroundedModelPatchOutcome
+            ):
+                raise ValueError("model patch completion protocol differs")
+            if (
+                isinstance(intent, GroundedModelPatchIntent)
+                and isinstance(outcome, GroundedModelPatchOutcome)
+                and outcome.model_answer is not None
+                and (outcome.model_answer.facts_binding_sha256 != intent.facts_binding_sha256)
+            ):
+                raise ValueError("grounded completion facts binding differs")
             if (
                 outcome.patch_id != intent.request.patch_id
                 or str(outcome.patch_id) != row.patch_id
@@ -97,10 +127,10 @@ class ModelPatchRecords:
             ):
                 raise ValueError("model patch completion binding differs")
             return outcome
-        except ValueError:
+        except (ValueError, RecursionError):
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def get(self, patch_id: UUID) -> tuple[ModelPatchIntent, ModelPatchOutcome | None] | None:
+    def get(self, patch_id: UUID) -> tuple[SavedPatchIntent, SavedPatchOutcome | None] | None:
         with self.store._sessions() as session:
             row = session.get(ModelPatchIntentRow, str(patch_id))
             if row is None:
@@ -110,13 +140,13 @@ class ModelPatchRecords:
             return intent, self._outcome(outcome, intent) if outcome else None
 
     @staticmethod
-    def _same_intent(stored: ModelPatchIntent, incoming: ModelPatchIntent) -> None:
+    def _same_intent(stored: SavedPatchIntent, incoming: SavedPatchIntent) -> None:
         # Alias/context already selected by the first request, never replaced on replay.
-        if stored.request != incoming.request:
+        if protocol_for(stored) != protocol_for(incoming) or stored.request != incoming.request:
             raise ModelPatchConflict("Model patch identity conflicts.")
 
-    def reserve(self, intent: ModelPatchIntent) -> bool:
-        intent = ModelPatchIntent.model_validate_json(intent.model_dump_json())
+    def reserve(self, intent: SavedPatchIntent) -> bool:
+        intent = INTENT_ADAPTER.validate_json(intent.model_dump_json(warnings=False))
         key = str(intent.request.patch_id)
         try:
             with self.store._sessions.begin() as session:
@@ -129,6 +159,7 @@ class ModelPatchRecords:
                     analysis_id=str(intent.request.analysis_id),
                     configuration_id=str(intent.source.configuration_id),
                     created_at=intent.created_at,
+                    protocol=protocol_for(intent),
                     payload=self.store._encode(
                         intent.model_dump_json(), kind="model_patch_intent", row_id=key
                     ),
@@ -151,8 +182,8 @@ class ModelPatchRecords:
             self._same_intent(stored[0], intent)
             return False
 
-    def complete(self, outcome: ModelPatchOutcome) -> None:
-        outcome = ModelPatchOutcome.model_validate_json(outcome.model_dump_json())
+    def complete(self, outcome: SavedPatchOutcome) -> None:
+        outcome = OUTCOME_ADAPTER.validate_json(outcome.model_dump_json(warnings=False))
         key = str(outcome.patch_id)
         with self.store._sessions.begin() as session:
             parent = session.get(ModelPatchIntentRow, key)
@@ -183,11 +214,20 @@ class ModelPatchRecords:
                 )
             )
 
-    def list_ids(self, *, analysis_id: UUID, limit: int, offset: int) -> list[UUID]:
+    def list_ids(
+        self,
+        *,
+        analysis_id: UUID,
+        limit: int,
+        offset: int,
+        protocol: PatchProtocol | None = LEGACY_PROTOCOL,
+    ) -> list[UUID]:
         query = (
             select(ModelPatchIntentRow.id)
             .where(ModelPatchIntentRow.analysis_id == str(analysis_id))
             .order_by(ModelPatchIntentRow.created_at.desc(), ModelPatchIntentRow.id.desc())
         )
+        if protocol is not None:
+            query = query.where(ModelPatchIntentRow.protocol == protocol)
         with self.store._sessions() as session:
             return [UUID(value) for value in session.scalars(query.limit(limit).offset(offset))]

@@ -1,9 +1,10 @@
 # Закрытые факты и модельный source-bound patch
 
-Этот отдельный opt-in library/offline режим продвигает ограничение §17: модель
+Этот отдельный opt-in режим продвигает ограничение §17: модель
 не может выдавать свободную фактическую прозу с вымышленным approval или verifier
-pass. Он не меняет прежние explanation/draft/review HTTP contracts и сохранённую
-историю. Свободные legacy answers по-прежнему требуют отдельной проверки содержания.
+pass. Library workflow описан ниже; [отдельная saved API/UI integration](saved-grounded-model-patches.md)
+имеет собственные persisted versions и не переинтерпретирует старую историю.
+Свободные legacy answers по-прежнему требуют отдельной проверки содержания.
 
 ## Что действительно выбирает модель
 
@@ -100,12 +101,12 @@ exclusive creation, path restrictions и operator key responsibilities те же
 удостоверяет model/GPU identity, consent, инженерную identity или истинность;
 соответствующие truth/activation/application flags остаются false.
 
-HTTP/UI внедрение этого contract требует отдельной persisted policy/version и
-version-aware replay. Текущие saved intents не переинтерпретируются автоматически.
+[Saved API/UI integration](saved-grounded-model-patches.md) использует отдельную
+persisted policy/version и version-aware replay, не меняя старые saved intents.
 Independent/adversarial model quality, реальная разметка, vendor/internal corpus,
 device/access/rollback и полный approved engineer workflow остаются открытыми.
 
-## Фактически выполненная диагностика
+## Историческая library диагностика (до saved API/UI integration)
 
 [Installed owned report](evaluation/owned-grounded-model-patches.json) сохраняет
 все четыре actual Qwen3-4B обращения на прежних authored Cisco/JunOS Telnet/SSHv1

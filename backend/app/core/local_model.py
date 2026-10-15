@@ -14,6 +14,7 @@ class LocalModelSettings:
     api_key: str = field(default="", repr=False)
     timeout_seconds: int = 10
     allow_patch_draft: bool = False
+    allow_grounded_patch_draft: bool = False
 
     def __post_init__(self) -> None:
         try:
@@ -31,6 +32,7 @@ class LocalModelSettings:
                 or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", self.model)
                 or self.allow_local_context is not True
                 or type(self.allow_patch_draft) is not bool
+                or type(self.allow_grounded_patch_draft) is not bool
                 or type(self.timeout_seconds) is not int
                 or not 1 <= self.timeout_seconds <= 20
                 or (
@@ -59,9 +61,16 @@ class LocalModelSettings:
             )
         )
         patch_permission = os.environ.get("NETCONFIG_LLM_ALLOW_PATCH_DRAFT", "")
-        if not any((endpoint, model, permission, key, patch_permission)):
+        grounded_permission = os.environ.get("NETCONFIG_LLM_ALLOW_GROUNDED_PATCH_DRAFT", "")
+        if not any((endpoint, model, permission, key, patch_permission, grounded_permission)):
             return None
-        if not endpoint or not model or permission != "1" or patch_permission not in {"", "0", "1"}:
+        if (
+            not endpoint
+            or not model
+            or permission != "1"
+            or patch_permission not in {"", "0", "1"}
+            or grounded_permission not in {"", "0", "1"}
+        ):
             raise ValueError(
                 "local model endpoint, alias and explicit context permission are required"
             )
@@ -71,4 +80,5 @@ class LocalModelSettings:
             allow_local_context=True,
             api_key=key,
             allow_patch_draft=patch_permission == "1",
+            allow_grounded_patch_draft=grounded_permission == "1",
         )

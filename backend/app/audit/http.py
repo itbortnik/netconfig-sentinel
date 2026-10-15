@@ -50,7 +50,10 @@ async def journal_response(
     if (
         journal is None
         or settings is None
-        or not (request.url.path == "/api/v1" or request.url.path.startswith("/api/v1/"))
+        or not any(
+            request.url.path == prefix or request.url.path.startswith(prefix + "/")
+            for prefix in ("/api/v1", "/api/v2")
+        )
     ):
         return await call_next(request)
     try:

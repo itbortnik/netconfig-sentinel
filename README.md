@@ -313,6 +313,10 @@ scoped review описана в [`docs/model-patch-network-review.md`](docs/mode
 Сохранённые candidate-specific проверки и append-only решения инженера описаны в
 [`docs/saved-model-patch-reviews.md`](docs/saved-model-patch-reviews.md), отдельный
 браузерный workflow — в [`docs/model-patch-interface.md`](docs/model-patch-interface.md).
+Новый [closed-fact режим](docs/saved-grounded-model-patches.md) имеет отдельный
+operator opt-in и version-bound v2 API: модель выбирает закрытые references/codes
+и edits либо null, сервер показывает BEFORE факты отдельно от AFTER review.
+Legacy свободный текст и исторические records не переинтерпретируются.
 Классификатор синтетических мутаций поверх замороженного encoder описан в
 [`docs/mutation-classification.md`](docs/mutation-classification.md).
 Локализация добавленных и изменённых строк, включая ограничения для удалений,

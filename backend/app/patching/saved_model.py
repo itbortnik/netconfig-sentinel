@@ -21,6 +21,7 @@ from app.domain.fingerprints import finding_fingerprint
 from app.explanation.knowledge import text_sha256
 from app.explanation.local_model import LocalModelRuntime, ModelPatchDisabled
 from app.explanation.patch_provider import (
+    GeneratedModelPatch,
     PreparedPatchPrompt,
     build_patch_prompt,
     generate_patch_draft,
@@ -103,9 +104,9 @@ class SavedModelPatchWorkflow:
                 "Exact retained source or supported patch context is unavailable."
             ) from None
 
-    def _validated(
+    def replay(
         self, intent: ModelPatchIntent, outcome: ModelPatchOutcome | None
-    ) -> ModelPatchProposal:
+    ) -> tuple[PreparedPatchPrompt, GeneratedModelPatch | None, ModelPatchProposal]:
         try:
             prepared, source, baseline = self.prepare(intent.request)
             context = json.loads(prepared.prompt.context_json)
@@ -117,8 +118,11 @@ class SavedModelPatchWorkflow:
                 or context["knowledge_sha256"] != intent.knowledge_sha256
             ):
                 raise ValueError("stored prompt binding differs")
+            checked = None
             if outcome is not None and outcome.answer is not None:
-                checked = validate_patch_answer(outcome.answer.model_dump_json().encode(), prepared)
+                checked = validate_patch_answer(
+                    outcome.answer.model_dump_json(warnings=False).encode(), prepared
+                )
                 candidate_hash = (
                     text_sha256(checked.candidate_text)
                     if checked.candidate_text is not None
@@ -126,15 +130,25 @@ class SavedModelPatchWorkflow:
                 )
                 if candidate_hash != outcome.candidate_sha256:
                     raise ValueError("stored candidate binding differs")
-            return ModelPatchProposal.from_records(intent, outcome)
+            return prepared, checked, ModelPatchProposal.from_records(intent, outcome)
         except (ValueError, SavedModelPatchNotFound, InvalidProviderAnswer):
             raise StorageIntegrityError("Stored data is unavailable.") from None
+
+    def _validated(
+        self, intent: ModelPatchIntent, outcome: ModelPatchOutcome | None
+    ) -> ModelPatchProposal:
+        return self.replay(intent, outcome)[2]
 
     def get(self, patch_id: UUID) -> ModelPatchProposal:
         saved = self.records.get(patch_id)
         if saved is None:
             raise SavedModelPatchNotFound()
-        return self._validated(*saved)
+        intent, outcome = saved
+        if not isinstance(intent, ModelPatchIntent) or (
+            outcome is not None and not isinstance(outcome, ModelPatchOutcome)
+        ):
+            raise SavedModelPatchNotFound()
+        return self._validated(intent, outcome)
 
     def generate(
         self, options: GenerateModelPatch, runtime: LocalModelRuntime | None
@@ -144,9 +158,14 @@ class SavedModelPatchWorkflow:
             raise SavedModelPatchUnavailable("Explicit local model context permission is required.")
         saved = self.records.get(options.patch_id)
         if saved is not None:
-            if saved[0].request != options:
+            intent, outcome = saved
+            if (
+                not isinstance(intent, ModelPatchIntent)
+                or (outcome is not None and not isinstance(outcome, ModelPatchOutcome))
+                or intent.request != options
+            ):
                 raise ModelPatchConflict("Model patch identity conflicts.")
-            return self._validated(*saved), False
+            return self._validated(intent, outcome), False
         if runtime is None:
             raise ModelPatchDisabled()
         with runtime.patch_provider() as provider:

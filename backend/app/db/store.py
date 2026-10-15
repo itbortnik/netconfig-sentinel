@@ -22,6 +22,7 @@ from app.db.tables import (
     ConfigurationSourceRow,
     DeviceRow,
     FeedbackRow,
+    ModelPatchIntentRow,
     ModelRow,
 )
 from app.domain.fingerprints import finding_fingerprint
@@ -95,6 +96,8 @@ class Store:
                     "configuration_model_outcomes",
                 ):
                     connection.execute(text(f"SELECT 1 FROM {table} WHERE 1=0"))
+                # Revision alone does not prove the protocol-routing column exists.
+                connection.execute(select(ModelPatchIntentRow.protocol).limit(0))
             return True
         except Exception:
             return False

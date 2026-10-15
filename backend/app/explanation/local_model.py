@@ -108,6 +108,18 @@ class LocalModelRuntime:
         finally:
             self._lock.release()
 
+    @contextmanager
+    def grounded_patch_provider(self) -> Iterator[ExplanationProvider]:
+        """Independent explicit policy opt-in, using the same nonblocking worker slot."""
+        if self.settings.allow_grounded_patch_draft is not True:
+            raise ModelPatchDisabled()
+        if not self._lock.acquire(blocking=False):
+            raise ModelBusy()
+        try:
+            yield self.provider
+        finally:
+            self._lock.release()
+
     def explain(
         self, prompt: ProviderPrompt, chunks: tuple[DocumentChunk, ...]
     ) -> tuple[DraftAnswer, str]:
