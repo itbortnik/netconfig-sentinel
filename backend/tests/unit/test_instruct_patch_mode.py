@@ -154,3 +154,61 @@ def test_non_boolean_review_permission_rejected_before_allocation(tmp_path, monk
             allow_local_context=True,
             allow_candidate_review=flag,
         )
+
+
+def grounded_prompt():
+    from app.explanation.grounded_patch import build_grounded_patch_prompt
+
+    from ml.instruct.patch_smoke import authored_patch_cases
+
+    old = authored_patch_cases()[1].prepared
+    return build_grounded_patch_prompt(
+        old.before,
+        finding=old.finding,
+        source_sha256=old.source_sha256,
+        reference_id=old.reference_id,
+        baseline=old.baseline,
+        chunks=old.chunks,
+        allow_local_context=True,
+    ).prompt
+
+
+@pytest.mark.parametrize("old_flag", [False, True])
+@pytest.mark.parametrize("new_flag", [False, True])
+def test_grounded_contract_has_independent_opt_in_and_preserves_old_contract(
+    tmp_path, monkeypatch, old_flag, new_flag
+):
+    selected = provider(
+        tmp_path, monkeypatch, allow_patch_draft=old_flag, allow_grounded_patch_draft=new_flag
+    )
+    assert selected.grounded_patch_generation_enabled is new_flag
+    assert selected.patch_generation_enabled is old_flag
+    for prompt, allowed in ((selected_prompt(), old_flag), (grounded_prompt(), new_flag)):
+        if allowed:
+            assert selected.generate(prompt) == b"actual-model-output"
+        else:
+            with pytest.raises(InvalidProviderAnswer):
+                selected.generate(prompt)
+            assert selected.last_generation is None
+    for changed in (
+        replace(grounded_prompt(), instructions="approved"),
+        replace(grounded_prompt(), answer_schema_json="{}"),
+        review_prompt(),
+    ):
+        with pytest.raises(InvalidProviderAnswer):
+            selected.generate(changed)
+        assert selected.last_generation is None
+    with pytest.raises(AttributeError):
+        selected.grounded_patch_generation_enabled = False
+
+
+@pytest.mark.parametrize("flag", [1, None, "true"])
+def test_non_boolean_grounded_flag_rejected_before_files_or_gpu(tmp_path, monkeypatch, flag):
+    monkeypatch.setattr(runtime, "verify_model_files", lambda *args, **kwargs: pytest.fail("load"))
+    with pytest.raises(ValueError):
+        runtime.LocalInstructProvider(
+            tmp_path,
+            expected_inventory_sha256=source.inventory_sha256(),
+            allow_local_context=True,
+            allow_grounded_patch_draft=flag,
+        )

@@ -190,6 +190,7 @@ class LocalInstructProvider:
         allow_local_context: bool,
         allow_patch_draft: bool = False,
         allow_candidate_review: bool = False,
+        allow_grounded_patch_draft: bool = False,
         limits: GenerationLimits | None = None,
     ) -> None:
         if allow_local_context is not True:
@@ -200,6 +201,9 @@ class LocalInstructProvider:
         if type(allow_candidate_review) is not bool:
             raise ValueError("unsupported instruct candidate review permission")
         self._candidate_review_enabled = allow_candidate_review
+        if type(allow_grounded_patch_draft) is not bool:
+            raise ValueError("unsupported instruct grounded patch permission")
+        self._grounded_patch_generation_enabled = allow_grounded_patch_draft
         limits = limits or GenerationLimits()
         self._limits = GenerationLimits(
             limits.max_prompt_tokens,
@@ -228,6 +232,10 @@ class LocalInstructProvider:
     def candidate_review_enabled(self) -> bool:
         return self._candidate_review_enabled
 
+    @property
+    def grounded_patch_generation_enabled(self) -> bool:
+        return self._grounded_patch_generation_enabled
+
     def generate(self, prompt: ProviderPrompt) -> bytes:
         if not self._lock.acquire(blocking=False):
             raise InvalidProviderAnswer("Local instruct generation is unavailable.")
@@ -252,6 +260,18 @@ class LocalInstructProvider:
                     (
                         REVIEW_INSTRUCTIONS,
                         json.dumps(ReviewDraftAnswer.model_json_schema(), sort_keys=True),
+                    )
+                )
+            if self._grounded_patch_generation_enabled:
+                from app.explanation.grounded_patch import (
+                    GROUND_PATCH_INSTRUCTIONS,
+                    GroundedPatchAnswer,
+                )
+
+                contracts.add(
+                    (
+                        GROUND_PATCH_INSTRUCTIONS,
+                        json.dumps(GroundedPatchAnswer.model_json_schema(), sort_keys=True),
                     )
                 )
             if (prompt.instructions, prompt.answer_schema_json) not in contracts:

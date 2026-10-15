@@ -242,3 +242,10 @@ human approval round trip, arbitrary vendor patches или semantic truth. Не 
 independent/adversarial/semantic/citation quality, vendor/internal corpus,
 реальные конфигурации, нагрузка, production deployment и access/rollback.
 Model prose не меняет risk/history/formal status и не применяется.
+
+Отдельный [closed-fact model-patch mode](grounded-model-patches.md) имеет новый
+независимый `allow_grounded_patch_draft=False` flag и фиксированную schema без
+free factual prose. Старый `allow_patch_draft` его не разрешает. Четыре actual
+installed обращения completed/accepted, но все четыре выбрали null: это evidence
+работающего отказа и receipt/replay, не actual candidate generation или общей
+семантической достоверности. HTTP/UI contracts и предыдущая история не изменены.

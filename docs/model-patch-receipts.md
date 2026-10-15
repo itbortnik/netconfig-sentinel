@@ -5,6 +5,12 @@
 Это отдельный offline artifact, не database migration, API activation или
 согласование патча. Используется уже имеющаяся зависимость `cryptography`.
 
+Этот документ описывает неизменённый receipt0.1/free-prose contract. Отдельный
+[closed-fact режим](grounded-model-patches.md) использует receipt0.2 и другую
+magic/version; оба loaders взаимно отклоняют чужой протокол без downgrade.
+В0.2 raw typed model output отделён от server-derived presentation и привязан
+к fact ledger и renderer policy. Исторические0.1 записи не переписываются.
+
 ## Контракт записи
 
 `create_patch_receipt(generated, prepared=..., identity=..., observation=...,
