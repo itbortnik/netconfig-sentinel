@@ -1,5 +1,9 @@
 # Явная offline instruct-модель
 
+[Закрытые ordinary explanations](grounded-explanations.md) используют независимый
+exact-bool `allow_grounded_explanation=True` и фиксированные новые instruction/schema.
+Он не включает patch/review режимы, не активирует API и не меняет прежнюю генерацию.
+
 `ml.instruct` добавляет отдельный opt-in runtime для
 [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507),
 revision `cdbee75f17c01a7cc42f958dc650907174af0554`. Publisher декларирует

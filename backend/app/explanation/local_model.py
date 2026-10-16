@@ -30,6 +30,10 @@ class ModelPatchDisabled(Exception):
     pass
 
 
+class GroundedExplanationDisabled(Exception):
+    pass
+
+
 class LoopbackProvider:
     def __init__(self, settings: LocalModelSettings) -> None:
         self.settings = settings
@@ -113,6 +117,18 @@ class LocalModelRuntime:
         """Independent explicit policy opt-in, using the same nonblocking worker slot."""
         if self.settings.allow_grounded_patch_draft is not True:
             raise ModelPatchDisabled()
+        if not self._lock.acquire(blocking=False):
+            raise ModelBusy()
+        try:
+            yield self.provider
+        finally:
+            self._lock.release()
+
+    @contextmanager
+    def grounded_explanation_provider(self) -> Iterator[ExplanationProvider]:
+        """Pass an independently prepared closed prompt without legacy re-redaction."""
+        if self.settings.allow_grounded_explanation is not True:
+            raise GroundedExplanationDisabled()
         if not self._lock.acquire(blocking=False):
             raise ModelBusy()
         try:

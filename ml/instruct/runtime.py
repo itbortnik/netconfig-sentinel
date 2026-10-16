@@ -191,6 +191,7 @@ class LocalInstructProvider:
         allow_patch_draft: bool = False,
         allow_candidate_review: bool = False,
         allow_grounded_patch_draft: bool = False,
+        allow_grounded_explanation: bool = False,
         limits: GenerationLimits | None = None,
     ) -> None:
         if allow_local_context is not True:
@@ -204,6 +205,9 @@ class LocalInstructProvider:
         if type(allow_grounded_patch_draft) is not bool:
             raise ValueError("unsupported instruct grounded patch permission")
         self._grounded_patch_generation_enabled = allow_grounded_patch_draft
+        if type(allow_grounded_explanation) is not bool:
+            raise ValueError("unsupported instruct grounded explanation permission")
+        self._grounded_explanation_enabled = allow_grounded_explanation
         limits = limits or GenerationLimits()
         self._limits = GenerationLimits(
             limits.max_prompt_tokens,
@@ -235,6 +239,10 @@ class LocalInstructProvider:
     @property
     def grounded_patch_generation_enabled(self) -> bool:
         return self._grounded_patch_generation_enabled
+
+    @property
+    def grounded_explanation_enabled(self) -> bool:
+        return self._grounded_explanation_enabled
 
     def generate(self, prompt: ProviderPrompt) -> bytes:
         if not self._lock.acquire(blocking=False):
@@ -272,6 +280,18 @@ class LocalInstructProvider:
                     (
                         GROUND_PATCH_INSTRUCTIONS,
                         json.dumps(GroundedPatchAnswer.model_json_schema(), sort_keys=True),
+                    )
+                )
+            if self._grounded_explanation_enabled:
+                from app.explanation.grounded_explanation import (
+                    GROUNDED_EXPLANATION_INSTRUCTIONS,
+                    GroundedExplanationAnswer,
+                )
+
+                contracts.add(
+                    (
+                        GROUNDED_EXPLANATION_INSTRUCTIONS,
+                        json.dumps(GroundedExplanationAnswer.model_json_schema(), sort_keys=True),
                     )
                 )
             if (prompt.instructions, prompt.answer_schema_json) not in contracts:

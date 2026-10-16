@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import type {
   AnalysisResult,
@@ -6,45 +6,101 @@ import type {
   Finding,
   ModelExplanation,
   ExplanationCapabilities,
+  ConfigurationSnapshot,
 } from "./contracts";
 import { explanationMatches } from "./explanation";
+import {
+  ExplanationRequestGate,
+  groundedExplanationMatches,
+  groundedExplanationPresentation,
+  sameExplanationScope,
+} from "./groundedExplanation";
+import type {
+  GroundedExplanation,
+  GroundedExplanationCapabilities,
+  ExplanationRequestScope,
+} from "./groundedExplanation";
 
 export function ExplanationPanel({
   analysis,
   finding,
+  snapshot,
   client,
   busy,
   onError,
 }: {
   analysis: AnalysisResult;
   finding: Finding;
+  snapshot?: ConfigurationSnapshot | null;
   client: ApiClient;
   busy: boolean;
   onError: (problem: unknown) => void;
 }) {
-  const [bundle, setBundle] = useState<
-    ExplanationBundle | ModelExplanation | null
-  >(null);
-  const [capabilities, setCapabilities] =
-    useState<ExplanationCapabilities | null>(null);
-  const [permission, setPermission] = useState(false);
+  const [receivedBundle, setBundle] = useState<{
+    value: ExplanationBundle | ModelExplanation | GroundedExplanation;
+    scope: ExplanationRequestScope;
+  } | null>(null);
+  const [legacyCapabilities, setCapabilities] = useState<{
+    client: ApiClient;
+    value: ExplanationCapabilities;
+  } | null>(null);
+  const [groundedCapabilities, setGroundedCapabilities] = useState<{
+    client: ApiClient;
+    value: GroundedExplanationCapabilities;
+  } | null>(null);
+  const capabilities =
+    legacyCapabilities?.client === client ? legacyCapabilities.value : null;
+  const groundedConfigured =
+    groundedCapabilities?.client === client &&
+    groundedCapabilities.value.grounded_explanation === "configured";
+  const [mode, setMode] = useState<"legacy" | "grounded">("legacy");
   const [semantic, setSemantic] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [, redraw] = useReducer((n: number) => n + 1, 0);
+  const gateRef = useRef<ExplanationRequestGate | null>(null);
+  if (!gateRef.current) gateRef.current = new ExplanationRequestGate();
+  const gate = gateRef.current;
+  const scope: ExplanationRequestScope = {
+    client,
+    analysis,
+    finding,
+    snapshot: snapshot ?? null,
+    mode,
+    retrieval: semantic ? "semantic_supplement" : "explicit_reference",
+  };
+  gate.bind(scope);
+  const { loading, permission } = gate;
+  const bundle =
+    receivedBundle && sameExplanationScope(receivedBundle.scope, scope)
+      ? receivedBundle.value
+      : null;
+  const grounded =
+    bundle?.version === "grounded-model-explanation-0.1.0" ? bundle : null;
+  const presentation = grounded
+    ? groundedExplanationPresentation(grounded)
+    : null;
   const mounted = useRef(true);
-  const sequence = useRef(0);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
-      sequence.current += 1;
+      gate.invalidate();
     };
-  }, []);
+  }, [gate]);
   useEffect(() => {
     let alive = true;
     void client
       .explanationCapabilities()
       .then((received) => {
-        if (alive) setCapabilities(received);
+        if (alive) setCapabilities({ client, value: received });
+      })
+      .catch((problem: unknown) => {
+        if (alive && problem instanceof ApiError && problem.status === 401)
+          onError(problem);
+      });
+    void client
+      .groundedExplanationCapabilities()
+      .then((received) => {
+        if (alive) setGroundedCapabilities({ client, value: received });
       })
       .catch((problem: unknown) => {
         if (alive && problem instanceof ApiError && problem.status === 401)
@@ -69,16 +125,19 @@ export function ExplanationPanel({
       model &&
       (!client.permits("model_explanation") ||
         !permission ||
-        capabilities?.local_model !== "configured")
+        (mode === "grounded"
+          ? !groundedConfigured || !snapshot
+          : capabilities?.local_model !== "configured"))
     )
       return;
     const saved = analysis.explanations.find(
       (item) => item.finding_id === finding.finding_id,
     );
     if (!saved) return;
-    const request = ++sequence.current;
-    const current = () => mounted.current && request === sequence.current;
-    setLoading(true);
+    const request = gate.begin(model);
+    if (request === null) return;
+    const current = () => mounted.current && gate.current(request);
+    redraw();
     setBundle(null);
     try {
       const options = {
@@ -89,11 +148,17 @@ export function ExplanationPanel({
           : ("explicit_reference" as const),
       };
       const result = model
-        ? await client.explainModel(finding.finding_id, {
-            ...options,
-            provider: "llm",
-            allow_local_model_context: true,
-          })
+        ? mode === "grounded"
+          ? await client.explainGrounded(finding.finding_id, {
+              ...options,
+              provider: "llm",
+              allow_local_model_context: true,
+            })
+          : await client.explainModel(finding.finding_id, {
+              ...options,
+              provider: "llm",
+              allow_local_model_context: true,
+            })
         : await client.explain(finding.finding_id, {
             ...options,
             provider: "local",
@@ -101,17 +166,27 @@ export function ExplanationPanel({
       if (!current()) return;
       if (
         result.retrieval !== options.retrieval ||
-        !(await explanationMatches(result, analysis, finding))
+        !(result.version === "grounded-model-explanation-0.1.0"
+          ? await groundedExplanationMatches(
+              result,
+              analysis,
+              finding,
+              snapshot,
+            )
+          : await explanationMatches(result, analysis, finding))
       )
         throw new ApiError(
           0,
           "Источники или объяснение не соответствуют выбранной находке.",
         );
-      if (current()) setBundle(result);
+      if (current()) setBundle({ value: result, scope });
     } catch (problem: unknown) {
       if (current()) onError(problem);
     } finally {
-      if (current()) setLoading(false);
+      if (current()) {
+        gate.finish(request);
+        redraw();
+      }
     }
   }
   return (
@@ -148,9 +223,37 @@ export function ExplanationPanel({
       >
         {loading ? "Загрузка источников…" : "Показать источники объяснения"}
       </button>
-      {capabilities?.local_model === "configured" &&
+      {(capabilities?.local_model === "configured" || groundedConfigured) &&
         client.permits("model_explanation") && (
           <div className="model-explanation-controls">
+            <label>
+              Режим объяснения модели
+              <select
+                value={mode}
+                disabled={busy}
+                onChange={(event) =>
+                  setMode(event.target.value as "legacy" | "grounded")
+                }
+              >
+                <option value="legacy">
+                  Прежний режим — непроверенный текст
+                </option>
+                <option value="grounded">
+                  Закрытые факты — серверное объяснение
+                </option>
+              </select>
+            </label>
+            <p className="hint">
+              {mode === "grounded"
+                ? "Модель выбирает ссылки на факты и коды. Текст составляет сервер. Это не новая проверка и не доказательство безопасности."
+                : "Модель пишет свободный текст, достоверность которого не установлена."}
+              {mode === "grounded" &&
+                !groundedConfigured &&
+                " Закрытый режим не настроен."}
+              {mode === "grounded" &&
+                !snapshot &&
+                " Для сверки фактов требуется связанный снимок конфигурации."}
+            </p>
             <p className="notice warning">
               В модель на этом компьютере будут отправлены псевдонимизированные
               факты и публичные разделы документов. Числа, hashes и номера строк
@@ -162,16 +265,28 @@ export function ExplanationPanel({
                 type="checkbox"
                 checked={permission}
                 disabled={busy || loading}
-                onChange={(event) => setPermission(event.target.checked)}
+                onChange={(event) => {
+                  gate.allow(event.target.checked);
+                  redraw();
+                }}
               />{" "}
               Разрешаю передачу этого контекста локальной модели
             </label>
             <button
               className="button secondary"
-              disabled={busy || loading || !permission}
+              disabled={
+                busy ||
+                loading ||
+                !permission ||
+                (mode === "grounded"
+                  ? !groundedConfigured || !snapshot
+                  : capabilities?.local_model !== "configured")
+              }
               onClick={() => void load(true)}
             >
-              Запросить черновик у локальной модели
+              {mode === "grounded"
+                ? "Запросить серверное объяснение фактов"
+                : "Запросить черновик у локальной модели"}
             </button>
           </div>
         )}
@@ -228,6 +343,70 @@ export function ExplanationPanel({
                 <p>{bundle.privacy_version}</p>
                 <ul>
                   {bundle.answer.citations.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
+          {grounded && presentation && (
+            <div aria-label="Серверное объяснение выбранных фактов">
+              <h4>Серверное объяснение — закрытый ответ модели</h4>
+              <p className="notice warning">
+                Текст сформирован сервером из предоставленных фактов и закрытых
+                выборов модели. Требуется проверка инженером. Новая проверка
+                детектора, vendor syntax, сетевого влияния, доступа и rollback
+                здесь не выполнялась. Оценки и формальные статусы не изменены.
+              </p>
+              <p>{presentation.summary}</p>
+              <pre>{presentation.technical_explanation}</pre>
+              <h5>Границы сведений о влиянии</h5>
+              <ul>
+                {presentation.possible_impact.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+              <h5>Рекомендация для рассмотрения</h5>
+              <pre>{presentation.recommendation}</pre>
+              <h5>Допущения</h5>
+              <ul>
+                {presentation.assumptions.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+              <h5>Недостающие сведения</h5>
+              <ul>
+                {presentation.missing_information.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+              <p className="hint">
+                Исполняемый патч не создаётся. Ответ не сохранён как новый
+                анализ.
+              </p>
+              <details>
+                <summary>Привязка закрытого ответа и серверного текста</summary>
+                <p>
+                  {grounded.version} · {grounded.renderer_version}
+                </p>
+                <p>Настроенный alias: {grounded.model_alias}</p>
+                <p className="hash">Контекст: {grounded.context_sha256}</p>
+                <p className="hash">Факты: {grounded.facts_binding_sha256}</p>
+                <p className="hash">Ответ: {grounded.model_answer_sha256}</p>
+                <p className="hash">Текст: {grounded.projection_sha256}</p>
+                <p className="hash">
+                  Инструкции: {grounded.instructions_sha256}
+                </p>
+                <p className="hash">Схема: {grounded.answer_schema_sha256}</p>
+                <p className="hash">
+                  Правила отображения: {grounded.renderer_policy_sha256}
+                </p>
+                <p>
+                  Хеши связывают содержимое; они не подтверждают истинность
+                  фактов, личность инженера или веса модели.
+                </p>
+                <ul>
+                  {presentation.citations.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>

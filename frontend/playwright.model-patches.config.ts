@@ -6,7 +6,7 @@ const python =
 // This profile always owns its ephemeral backend; never target a deployed database/provider.
 export default defineConfig({
   testDir: "tests/browser",
-  testMatch: "modelPatches.spec.ts",
+  testMatch: ["modelPatches.spec.ts", "groundedExplanation.spec.ts"],
   outputDir: "../artifacts/browser-model-patches",
   timeout: 30_000,
   expect: { timeout: 10_000 },

@@ -41,6 +41,26 @@ class SyntheticProvider(BaseHTTPRequestHandler):
                 raise ValueError("invalid owned fixture request")
             wire = json.loads(self.rfile.read(size))
             context = json.loads(wire["messages"][1]["content"])
+            if context.get("version") == "grounded-explanation-context-0.1.0":
+                answer = {
+                    "version": "grounded-explanation-answer-0.1.0",
+                    "facts_binding_sha256": context["facts_binding_sha256"],
+                    "fact_refs": context["available_fact_refs"],
+                    "recommendation_code": context["recommendation_code"],
+                    "missing_information_codes": [],
+                    "patch_draft": None,
+                    "citations": context["required_citations"],
+                    "requires_human_review": True,
+                }
+                # Authored rejection input: SSHv1's current source anchor is line4.
+                # This explicit software fixture has no production/model behavior.
+                facts = context["source_facts"]
+                if facts["vendor"] == "cisco" and any(
+                    anchor["lines"] == [4] for anchor in facts["anchors"]
+                ):
+                    answer["fact_refs"] = ["formal_passed"]
+                self.send_answer(answer)
+                return
             supplied = context
             grounded = context.get("version") == "source-bound-grounded-patch-context-0.1.0"
             if grounded:
@@ -88,22 +108,25 @@ class SyntheticProvider(BaseHTTPRequestHandler):
                     and context["affected_block"][0]["source_line"] == 4
                 ):
                     answer["fact_refs"] = ["formal_passed"]
-            payload = json.dumps(
-                {
-                    "choices": [
-                        {
-                            "finish_reason": "stop",
-                            "message": {
-                                "role": "assistant",
-                                "content": json.dumps(answer),
-                            },
-                        }
-                    ]
-                }
-            ).encode()
         except (ValueError, KeyError, IndexError, TypeError):
             self.send_error(400, "Invalid owned fixture request")
             return
+        self.send_answer(answer)
+
+    def send_answer(self, answer):
+        payload = json.dumps(
+            {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "role": "assistant",
+                            "content": json.dumps(answer),
+                        },
+                    }
+                ]
+            }
+        ).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
@@ -142,6 +165,7 @@ def main() -> None:
                 allow_local_context=True,
                 allow_patch_draft=True,
                 allow_grounded_patch_draft=True,
+                allow_grounded_explanation=True,
             )
         try:
             application = create_app(

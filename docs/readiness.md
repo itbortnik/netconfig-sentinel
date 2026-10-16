@@ -25,6 +25,25 @@
 
 ## Количественные и модельные ограничения
 
+Новый opt-in [ordinary closed-fact explanation](grounded-explanations.md) добавляет
+отдельный v2 API/UI путь §§17/23.7. Модель выбирает только bound refs/codes, server
+renderer сохраняет mandatory unknown/not-run; старые свободные ответы не изменены.
+Это исключает произвольную model prose в новом протоколе, но не удостоверяет
+истинность исходных facts, vendor guidance или независимое semantic/citation quality.
+Никакого formal promotion, повторного ML/детектора, approval или применения нет.
+Регрессия этого среза:3259pass/15explicit live+DB skips/5warnings/91%coverage;
+242-file mypy на трёх platform modes и Ruff pass. Installed420pass на каждом
+Pydantic2.13.5/2.14.0,242runtime/3assets source equality,239oldinstalled и371history
+hashes сохранены. UI596unit и48synthetic model-browser checks прошли. Это не
+actual inference или независимая semantic quality; их evidence не подменяются
+успехом synthetic workflow.
+[Отдельный actual installed HTTP run](evaluation/owned-grounded-explanations.json)
+проверил4прежних authored policy cases:4backend calls/4accepted closed answers,
+без retry/warm-up/fallback;4pure replays без модели. Server-derived текст не
+выдаётся за свободную модельную прозу. Explicit20s, default10s не квалифицирован;
+drain полный/incomplete0. Это не actual reference/peer/forest qualification,
+independent semantic/citation quality или полный §17/23.
+
 Отдельный [closed-fact patch mode](grounded-model-patches.md) ограничивает новую
 wire schema refs/codes/actual edits-or-null и рендерит обязательные BEFORE
 unknown/not-run сведения на сервере. [Saved API/UI integration](saved-grounded-model-patches.md)

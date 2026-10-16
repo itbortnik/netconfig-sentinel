@@ -15,6 +15,7 @@ class LocalModelSettings:
     timeout_seconds: int = 10
     allow_patch_draft: bool = False
     allow_grounded_patch_draft: bool = False
+    allow_grounded_explanation: bool = False
 
     def __post_init__(self) -> None:
         try:
@@ -33,6 +34,7 @@ class LocalModelSettings:
                 or self.allow_local_context is not True
                 or type(self.allow_patch_draft) is not bool
                 or type(self.allow_grounded_patch_draft) is not bool
+                or type(self.allow_grounded_explanation) is not bool
                 or type(self.timeout_seconds) is not int
                 or not 1 <= self.timeout_seconds <= 20
                 or (
@@ -62,7 +64,11 @@ class LocalModelSettings:
         )
         patch_permission = os.environ.get("NETCONFIG_LLM_ALLOW_PATCH_DRAFT", "")
         grounded_permission = os.environ.get("NETCONFIG_LLM_ALLOW_GROUNDED_PATCH_DRAFT", "")
-        if not any((endpoint, model, permission, key, patch_permission, grounded_permission)):
+        grounded_explanation = os.environ.get("NETCONFIG_LLM_ALLOW_GROUNDED_EXPLANATION", "")
+        modes = (patch_permission, grounded_permission, grounded_explanation)
+        if not any((endpoint, model, permission, key)) and all(
+            value in {"", "0"} for value in modes
+        ):
             return None
         if (
             not endpoint
@@ -70,6 +76,7 @@ class LocalModelSettings:
             or permission != "1"
             or patch_permission not in {"", "0", "1"}
             or grounded_permission not in {"", "0", "1"}
+            or grounded_explanation not in {"", "0", "1"}
         ):
             raise ValueError(
                 "local model endpoint, alias and explicit context permission are required"
@@ -81,4 +88,5 @@ class LocalModelSettings:
             api_key=key,
             allow_patch_draft=patch_permission == "1",
             allow_grounded_patch_draft=grounded_permission == "1",
+            allow_grounded_explanation=grounded_explanation == "1",
         )

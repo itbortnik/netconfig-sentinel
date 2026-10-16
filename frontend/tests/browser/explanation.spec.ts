@@ -320,11 +320,12 @@ test("unsafe model contracts and foreign binding are rejected without showing a 
     await route.fulfill({ json: body });
   });
   const result = await analyze(page);
-  await permission(page).check();
   for (let index = 0; index < 4; index++) {
+    await expect(permission(page)).not.toBeChecked();
+    await permission(page).check();
     await modelButton(page).click();
     await expect.poll(() => calls).toBe(index + 1);
-    await expect(modelButton(page)).toBeEnabled();
+    await expect(modelButton(page)).toBeDisabled();
     await expect(page.getByRole("alert")).toContainText(
       index === 3
         ? "не соответствуют выбранной находке"

@@ -424,6 +424,13 @@ export function AnalysisView({
                 key={`sources:${result.analysis_id}:${finding.finding_id}`}
                 analysis={result}
                 finding={finding}
+                snapshot={
+                  snapshot?.configuration_id === result.configuration_id &&
+                  snapshot.device_id === result.device_id &&
+                  snapshot.canonical.source.sha256 === result.source_sha256
+                    ? snapshot
+                    : null
+                }
                 client={client}
                 busy={busy}
                 onError={onError}

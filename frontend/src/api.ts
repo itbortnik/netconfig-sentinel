@@ -48,6 +48,11 @@ import {
 import type { DecideModelPatch, VerifyModelPatch } from "./modelReviews";
 import { stableJson } from "./contracts";
 import {
+  groundedExplanationCapabilitiesSchema,
+  groundedExplanationSchema,
+  groundedExplanationBindingsMatch,
+} from "./groundedExplanation";
+import {
   configurationModelCapabilitiesSchema,
   configurationModelRunSchema,
   runConfigurationModelSchema,
@@ -343,6 +348,42 @@ export class ApiClient {
       "/explanation-capabilities",
       explanationCapabilitiesSchema,
     );
+  }
+  groundedExplanationCapabilities() {
+    return this.request(
+      "/explanation-capabilities",
+      groundedExplanationCapabilitiesSchema,
+      undefined,
+      "v2",
+    );
+  }
+  async explainGrounded(
+    finding: string,
+    options: ExplainFinding & {
+      provider: "llm";
+      allow_local_model_context: true;
+    },
+  ) {
+    if (
+      options.provider !== "llm" ||
+      options.allow_local_model_context !== true
+    )
+      throw new ApiError(403, messages[403]!);
+    const result = await this.request(
+      `/findings/${encodeURIComponent(finding)}/explain`,
+      groundedExplanationSchema,
+      options,
+      "v2",
+    );
+    if (
+      result.finding_id !== finding ||
+      result.analysis_id !== options.analysis_id ||
+      result.finding_sha256 !== options.finding_sha256 ||
+      result.retrieval !== (options.retrieval ?? "explicit_reference") ||
+      !(await groundedExplanationBindingsMatch(result))
+    )
+      throw new ApiError(0, "Привязки закрытого объяснения не подтверждены.");
+    return result;
   }
   explainModel(
     finding: string,

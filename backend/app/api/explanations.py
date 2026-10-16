@@ -8,7 +8,12 @@ from starlette.concurrency import run_in_threadpool
 
 from app.api.access import authorize
 from app.api.configurations import Service, _request_body, _request_schema, _unique_keys
-from app.api.contracts import ExpandedComparisonContext, MeasuredComparisonContext
+from app.api.contracts import (
+    AnalysisResult,
+    ConfigurationSnapshot,
+    ExpandedComparisonContext,
+    MeasuredComparisonContext,
+)
 from app.api.explanation_contracts import (
     ExplainFinding,
     ExplanationBundle,
@@ -19,6 +24,7 @@ from app.api.explanation_contracts import (
 from app.api.service import AnalysisService, FeedbackTargetNotFound
 from app.audit.results import capture_result
 from app.db.store import StorageIntegrityError
+from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
 from app.explanation.facts import (
     ExplanationAnalysisFacts,
@@ -43,23 +49,14 @@ from app.explanation.vector_index import RetrievalUnavailable
 router = APIRouter(prefix="/api/v1", tags=["explanation"])
 
 
-def _explain(
+def selected_explanation_context(
     service: AnalysisService,
-    finding_id: UUID,
+    analysis: AnalysisResult,
+    finding: Finding,
     options: ExplainFinding,
-    runtime: LocalModelRuntime | None = None,
     retrieval_runtime: DocumentRetrievalRuntime | None = None,
-) -> ExplanationBundle | ModelExplanationBundle:
-    analysis, finding = service.feedback_target(options.analysis_id, finding_id)
-    if finding_fingerprint(finding) != options.finding_sha256:
-        raise HTTPException(status_code=409, detail="Finding binding conflicts.")
-    if options.provider == "llm":
-        if runtime is None:
-            raise HTTPException(status_code=503, detail="Language model provider is unavailable.")
-        if not options.allow_local_model_context:
-            raise HTTPException(
-                status_code=403, detail="Local model context permission is required."
-            )
+) -> tuple[ExplanationContext, ConfigurationSnapshot]:
+    """Shared exact saved-source and sealed-retrieval selection, never model execution."""
     snapshot = service.store.get_configuration(analysis.configuration_id)
     if (
         snapshot is None
@@ -93,13 +90,15 @@ def _explain(
             ),
         )
         documents = (*documents, *(item.document for item in supplements))
-    explanation = next(item for item in analysis.explanations if item.finding_id == finding_id)
+    explanation = next(
+        item for item in analysis.explanations if item.finding_id == finding.finding_id
+    )
     common = ExplanationContext(
         analysis_id=analysis.analysis_id,
         configuration_id=analysis.configuration_id,
         device_id=analysis.device_id,
         source_sha256=analysis.source_sha256,
-        finding_id=finding_id,
+        finding_id=finding.finding_id,
         finding_sha256=options.finding_sha256,
         knowledge_version=catalog.version,
         knowledge_sha256=catalog.sha256,
@@ -124,13 +123,13 @@ def _explain(
             "remain in the original explanation.",
         ),
     )
-    if options.provider == "local":
-        return ExplanationBundle(
-            **common.model_dump(),
-            version="finding-context-0.2.0" if semantic else "finding-context-0.1.0",
-        )
-    assert runtime is not None
-    config = snapshot.canonical
+    return common, snapshot
+
+
+def saved_explanation_facts(
+    analysis: AnalysisResult, finding: Finding
+) -> tuple[ExplanationAnalysisFacts, ExplanationInvocationFacts]:
+    """Facts for the selected finding, not other comparisons in the same analysis."""
     peer_facts = None
     comparison = analysis.comparison
     if finding.detector == "peer_baseline" and isinstance(
@@ -146,6 +145,57 @@ def _explain(
             compared_feature_count=len(report.compared_features),
             skipped_feature_count=len(report.skipped_features),
         )
+    return (
+        ExplanationAnalysisFacts(analysis_status=analysis.status, peer_report=peer_facts),
+        ExplanationInvocationFacts(
+            entrypoint="saved_analysis_http",
+            analysis_storage="stored_analysis",
+            model_answer_storage="not_stored_in_analysis",
+            selected_finding_peer_profile_storage=(
+                "not_applicable"
+                if finding.detector != "peer_baseline"
+                else (
+                    "stored_in_analysis"
+                    if comparison is not None and comparison.peer_baseline is not None
+                    else "not_supplied"
+                )
+            ),
+        ),
+    )
+
+
+def _explain(
+    service: AnalysisService,
+    finding_id: UUID,
+    options: ExplainFinding,
+    runtime: LocalModelRuntime | None = None,
+    retrieval_runtime: DocumentRetrievalRuntime | None = None,
+) -> ExplanationBundle | ModelExplanationBundle:
+    # Preserve legacy validation/error ordering and output serializers.
+    analysis, finding = service.feedback_target(options.analysis_id, finding_id)
+    if finding_fingerprint(finding) != options.finding_sha256:
+        raise HTTPException(status_code=409, detail="Finding binding conflicts.")
+    if options.provider == "llm":
+        if runtime is None:
+            raise HTTPException(status_code=503, detail="Language model provider is unavailable.")
+        if not options.allow_local_model_context:
+            raise HTTPException(
+                status_code=403, detail="Local model context permission is required."
+            )
+    common, snapshot = selected_explanation_context(
+        service, analysis, finding, options, retrieval_runtime
+    )
+    if options.provider == "local":
+        return ExplanationBundle(
+            **common.model_dump(),
+            version="finding-context-0.2.0"
+            if common.semantic_retrieval
+            else "finding-context-0.1.0",
+        )
+    assert runtime is not None
+    config = snapshot.canonical
+    facts, invocation = saved_explanation_facts(analysis, finding)
+    explanation = common.explanation
     try:
         prompt = build_prompt(
             finding,
@@ -156,23 +206,8 @@ def _explain(
             parser_confidence=config.parser_confidence,
             warning_count=len(config.parse_warnings),
             unparsed_count=len(config.unparsed_fragments),
-            analysis_facts=ExplanationAnalysisFacts(
-                analysis_status=analysis.status, peer_report=peer_facts
-            ),
-            invocation_facts=ExplanationInvocationFacts(
-                entrypoint="saved_analysis_http",
-                analysis_storage="stored_analysis",
-                model_answer_storage="not_stored_in_analysis",
-                selected_finding_peer_profile_storage=(
-                    "not_applicable"
-                    if finding.detector != "peer_baseline"
-                    else (
-                        "stored_in_analysis"
-                        if comparison is not None and comparison.peer_baseline is not None
-                        else "not_supplied"
-                    )
-                ),
-            ),
+            analysis_facts=facts,
+            invocation_facts=invocation,
         )
         answer, context_sha = runtime.explain(prompt, common.documents)
     except ModelBusy:
@@ -199,7 +234,9 @@ def _explain(
         context_sha256=context_sha,
         model_alias=runtime.settings.model,
         answer=answer,
-        version="model-explanation-0.2.0" if semantic else "model-explanation-0.1.0",
+        version="model-explanation-0.2.0"
+        if common.semantic_retrieval
+        else "model-explanation-0.1.0",
     )
 
 

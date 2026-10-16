@@ -27,6 +27,10 @@ from app.api.explanation_contracts import (
     ModelExplanationBundle,
 )
 from app.api.feedback_contracts import FeedbackRecord
+from app.api.grounded_explanation_contracts import (
+    GroundedExplanationBundle,
+    GroundedExplanationCapabilities,
+)
 from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedModelPatchCapabilities
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
@@ -75,6 +79,7 @@ _SUPPORTED = (
     SnapshotDiff,
     ExplanationContext,
     ExplanationCapabilities,
+    GroundedExplanationCapabilities,
     FeedbackRecord,
     PatchDraft,
     PatchSummary,
@@ -157,6 +162,21 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["legacy"] = _selected(value.legacy)
         selected["grounded_generation"] = value.grounded_generation
         selected["versions"] = [value.grounded_protocol]
+    if isinstance(value, GroundedExplanationCapabilities):
+        selected["legacy"] = _selected(value.legacy)
+        selected["grounded_explanation"] = value.grounded_explanation
+        selected["versions"] = [value.protocol]
+    if isinstance(value, GroundedExplanationBundle):
+        # Explicit pins only. Never journal source values, model choices or presentation.
+        for name in (
+            "facts_binding_sha256",
+            "model_answer_sha256",
+            "instructions_sha256",
+            "answer_schema_sha256",
+            "renderer_policy_sha256",
+        ):
+            selected[name] = getattr(value, name)
+        selected["versions"] = [value.renderer_version]
     if isinstance(value, SavedPatchVerification):
         selected["proposal_sha256"] = value.proposal_sha256
         selected["review_sha256"] = value.review_sha256
@@ -205,8 +225,10 @@ def _selected(value: BaseModel) -> dict[str, object]:
                 semantic.encoder.model_dump(mode="json")
             )
             selected["query_sha256"] = semantic.query_sha256
-            selected["versions"] = [semantic.encoder.pipeline_version]
-        if isinstance(value, ModelExplanationBundle):
+            versions = selected.get("versions", [])
+            assert isinstance(versions, list)
+            selected["versions"] = [*versions, semantic.encoder.pipeline_version]
+        if isinstance(value, (ModelExplanationBundle, GroundedExplanationBundle)):
             selected["model_alias_sha256"] = metadata_hash(value.model_alias)
     if isinstance(value, (SnapshotDiff, PatchSummary, VerificationRun)):
         selected["before"] = _selected(value.before)
