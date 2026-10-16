@@ -59,6 +59,24 @@ installed 191 pass на каждом Pydantic 2.13.5/2.14.0, Ruff/mypy 242 defau
 это не independent semantic quality. Actual successful forest explanation
 и вся peer matrix остаются незакрытыми; полный suite/UI/engine/DB не перезапускались.
 
+Последующий [scoped ordinary protocol 0.2](evaluation/owned-scoped-grounded-explanations.json)
+добавляет явный answer layout и per-facts schema в prompt, exact native-runtime
+reconstruction и version-aware reader 0.1/0.2 без изменения старых bytes.
+Новые 16 actual generations приняты: reference 4/4, peer 10/10, forest 2/2;
+тот же authored scenario generator, новые run identities, без retry/repair/fallback.
+Все 16 pure replays и mandatory unknown/not-run checks прошли, analyses/snapshots
+не изменились. Это функциональное evidence данной матрицы, не causal experiment,
+independent quality, реальная calibration или полная приёмка §17/23.
+Explicit deadline 20 s; три HTTP ответа >10 s, default 10 s не квалифицирован.
+Source: 3309 pass/15 explicit live+DB skips/5 warnings/91% coverage; installed:
+466 pass на каждом Pydantic 2.13.5/2.14.0, 13 прежних actual envelopes 0.1 читаются.
+242 runtime/3 assets source-equal, 242 old installed/379 history hashes сохранены.
+Ruff/mypy default/Linux/win32, UI 606 unit/48 synthetic model-browser/158 regular
+browser cases прошли. Начальный full failure в SDK redirect test и private
+postcheck filename error сохранены отдельно; исправлена обработка upload test
+fixture без ослабления redirect guard. Live engine/DB в новом local run skipped,
+не pass. Независимое bounded review не заменяет semantic/citation quality.
+
 Поставка ordinary closed-fact explanation опубликована в commit
 `bb09f14f379ddc6e8fd443fc73e757f4a20ade7e`:
 [CI точного commit](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38870335271)

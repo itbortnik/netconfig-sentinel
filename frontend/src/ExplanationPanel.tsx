@@ -74,7 +74,10 @@ export function ExplanationPanel({
       ? receivedBundle.value
       : null;
   const grounded =
-    bundle?.version === "grounded-model-explanation-0.1.0" ? bundle : null;
+    bundle?.version === "grounded-model-explanation-0.1.0" ||
+    bundle?.version === "grounded-model-explanation-0.2.0"
+      ? bundle
+      : null;
   const presentation = grounded
     ? groundedExplanationPresentation(grounded)
     : null;
@@ -166,7 +169,8 @@ export function ExplanationPanel({
       if (!current()) return;
       if (
         result.retrieval !== options.retrieval ||
-        !(result.version === "grounded-model-explanation-0.1.0"
+        !(result.version === "grounded-model-explanation-0.1.0" ||
+        result.version === "grounded-model-explanation-0.2.0"
           ? await groundedExplanationMatches(
               result,
               analysis,

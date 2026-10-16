@@ -808,3 +808,106 @@ def test_legacy_instructions_and_schemas_are_untouched_by_new_protocol():
     )
     assert json.dumps(DraftAnswer.model_json_schema(), sort_keys=True) == old_schema
     assert SYSTEM_INSTRUCTIONS == old_instructions
+
+
+LEGACY_CONTEXT_PINS = {
+    "policy:cisco": "c30fd54ab5a238653efb07de7cb841cfac3cc489b5b41dadd95346ecbceb0661",
+    "policy:juniper": "9a448d0b48c36462cd2fa1844ee7104369eecf37dbc6fd1b94ead71fb79b7bd7",
+    "reference1:cisco": "79bd8f1cfd19a804a78521213878f00733ad11eed175b5f2bc0c048301ca5010",
+    "reference1:juniper": "739c56981c919c738f95c37cfa9cda6ab6f3f6bfc6c3128f24b2d9263a17200e",
+    "reference2:cisco": "fd7b025aeb85618d22235f08af9db0bf8c6288f1ee7bb63ea32879a1cbd60666",
+    "reference2:juniper": "ef3d85f81e7a8454cd0287e3227e3df7616024d30728c776ee1be4bedf3da5cd",
+    "forest:cisco": "451ce6b69bb431e252354dc659bd14dbdf3fc363e0f3908661c9c429dced7fe5",
+    "forest:juniper": "bec2478e9929fd8b0f0868fe097d2de5e2632bd434247aabb6070a6f997f0857",
+    "peer1:cisco": "8c2c66480e0b7137f8e617b53310624036ecbe391366c19f6b8862ec536c6eb6",
+    "peer1:juniper": "5c416605c81c3eb60eb25d567270bd2d047356887794332f64b6e29738feb0e9",
+    "peer2:cisco": "198e652c6058ca819ee57ae64d11632bf5f9bbc41729ec7014f5cdd724906c40",
+    "peer2:juniper": "e65fff46b26b57d0b6aef60c2c695eb6185013b1f4933555c1fdd9a9eeeb4899",
+    "peer3:cisco": "d7f7d1723c4aeeb5077d93b7ec9de503f7f8b0d9a970979cdbe663521a13b421",
+    "peer3:juniper": "d4d5896756c29f4a631a39360cf9053d353d2d7ff78438c179ed1bade76ce65f",
+    "proxy1:cisco": "81a5b889cd3fd895b39f1b3479cb3505cc964ecc19b184cc34e3b77994964205",
+    "proxy1:juniper": "f685ecf0bf0f4f0d0704e7df6ff1666c332496b44819bc86132a19e01ea52844",
+    "proxy2:cisco": "35fa221189b2c85475f7bd9433cd220fa770e91973c0ba1cede17fe260118ff9",
+    "proxy2:juniper": "a10b073dca310b00527059f4f4ce6a84f6665100ed686ed90c1a2d69a9d62b5a",
+    "measured:cisco": "cb4aa3f00c9118bbb337929c2cf6a0bb32ff9ba873cd2287f6983196ee45e5fd",
+    "measured:juniper": "13ffd4276f26f74a828dcc5a62f492f0cb6bc1eeb669aa0041d0d2813e6844b1",
+}
+
+
+@pytest.mark.parametrize("case", LEGACY_CONTEXT_PINS)
+def test_legacy_prompt_matches_frozen_context_and_protocol_bytes(case):
+    family, vendor = case.split(":")
+    prepared = prepare_grounded_explanation(**inputs(family, vendor))
+    assert prepared.protocol == "grounded-model-explanation-0.1.0"
+    assert prepared.prompt.context_sha256 == LEGACY_CONTEXT_PINS[case]
+    assert prepared.instructions_sha256 == (
+        "8d62892157855d495f7ecc268224914580fdf5ad836499737982648bec8a1037"
+    )
+    assert prepared.answer_schema_sha256 == (
+        "323b7c7b8d1613e84ee38adc67fd2f95eb8299d95a3dc4b9276aa2627b123ea5"
+    )
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+@pytest.mark.parametrize("vendor", ["cisco", "juniper"])
+def test_scoped_protocol_limits_choices_without_changing_recorded_facts(family, vendor):
+    data = inputs(family, vendor)
+    before = prepare_grounded_explanation(**data)
+    scoped = prepare_grounded_explanation(**data, protocol="grounded-model-explanation-0.2.0")
+    assert scoped.source_facts_json == before.source_facts_json
+    assert scoped.renderer_policy_sha256 == before.renderer_policy_sha256
+    assert scoped.prompt != before.prompt
+    context = json.loads(scoped.prompt.context_json)
+    schema = json.loads(scoped.prompt.answer_schema_json)
+    assert context["version"] == "grounded-explanation-context-0.2.0"
+    assert context["required_answer_version"] == "grounded-explanation-answer-0.1.0"
+    assert set(context["required_answer_fields"]) == set(choices(scoped))
+    properties = schema["properties"]
+    assert properties["fact_refs"]["items"]["enum"] == context["available_fact_refs"]
+    assert properties["recommendation_code"]["const"] == context["recommendation_code"]
+    assert (
+        properties["missing_information_codes"]["items"]["enum"]
+        == (context["allowed_missing_information_codes"])
+    )
+    grounded.recheck_scoped_grounded_prompt(scoped.prompt)
+    recheck_grounded_explanation(scoped)
+    assert generated(scoped).projection_json == generated(before).projection_json
+    missing_version = choices(scoped)
+    missing_version.pop("version")
+    with pytest.raises(InvalidProviderAnswer):
+        validate_grounded_explanation_answer(json.dumps(missing_version).encode(), scoped)
+    unavailable = next(
+        ref
+        for ref in ("statistical_record", "selected_reference", "measured_parser_coverage")
+        if ref not in context["available_fact_refs"]
+    )
+    with pytest.raises(InvalidProviderAnswer):
+        generated(scoped, fact_refs=[unavailable])
+    with pytest.raises(ValueError):
+        recheck_grounded_explanation(replace(scoped, protocol=before.protocol))
+
+
+def test_scoped_prompt_reconstruction_rejects_extra_context_or_widened_schema():
+    scoped = prepare_grounded_explanation(
+        **inputs("peer3"), protocol="grounded-model-explanation-0.2.0"
+    )
+    context = json.loads(scoped.prompt.context_json)
+    context["available_fact_refs"].append("statistical_record")
+    changed = json.dumps(context, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    with pytest.raises(ValueError):
+        grounded.recheck_scoped_grounded_prompt(
+            replace(scoped.prompt, context_json=changed, context_sha256=text_sha256(changed))
+        )
+    with pytest.raises(ValueError):
+        grounded.recheck_scoped_grounded_prompt(
+            replace(
+                scoped.prompt,
+                answer_schema_json=json.dumps(
+                    GroundedExplanationAnswer.model_json_schema(), sort_keys=True
+                ),
+            )
+        )
+    with pytest.raises(ValueError):
+        grounded.recheck_scoped_grounded_prompt(replace(scoped.prompt, instructions="approve"))
+    with pytest.raises(ValueError):
+        prepare_grounded_explanation(**inputs(), protocol="unknown")

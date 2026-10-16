@@ -22,7 +22,7 @@ patch не включают ordinary explanation и наоборот. Все ф�
 отклоняется. Модель не загружается и не проверяется при чтении capabilities.
 
 `GET /api/v2/explanation-capabilities` возвращает отдельный envelope
-`grounded-explanation-capabilities-0.1.0`, прежние capabilities в `legacy`,
+`grounded-explanation-capabilities-0.2.0`, прежние capabilities в `legacy`,
 `grounded_explanation=disabled|configured` и `model_health_checked=false`.
 Configured обозначает настройку, не проверенное здоровье модели.
 
@@ -77,7 +77,7 @@ versioned detector. Semantic supplements дают контекст, не пол�
 
 ## Wire и представление
 
-`grounded-model-explanation-0.1.0` содержит прежние source/document bindings и
+Текущий writer `grounded-model-explanation-0.2.0` содержит прежние source/document bindings и
 отдельные `model_answer`, `source_facts_json`, `projection_json`.
 Model answer допускает только существующие fact refs, scope-specific recommendation,
 missing-information codes, все обязательные citations по порядку,
@@ -104,6 +104,40 @@ Model answer не добавляется в сохранённый анализ.
 хранения клиентом, gateway или сторонними logs. Журнал HTTP фиксирует metadata-only
 receipt/completion, IDs и hashes/versions, без значений фактов, choices или текста.
 Новой миграции, persisted explanation registry, review/approval/apply перехода нет.
+
+### Версионированный scoped prompt 0.2
+
+Новый HTTP writer явно выбирает protocol 0.2. Модель по-прежнему возвращает
+`grounded-explanation-answer-0.1.0`: восемь обязательных ключей, включая точный
+`version`, перечислены в отдельной инструкции. Context 0.2 также содержит
+`required_answer_version` и `required_answer_fields`. JSON Schema в prompt
+ограничивает enum ссылок и missing codes текущими доступными значениями,
+а recommendation — текущим const. Выборы других детекторов не предлагаются
+в этой схеме. Эти ограничения направляют генерацию; фактический raw output
+всё равно проходит строгие server-side schema, membership и binding checks.
+Ответ без `version`, недоступная ссылка или произвольная проза отклоняются
+без исправления JSON, повторной генерации или подстановки ответа.
+
+Старые instructions, static answer schema и context 0.1 сохранены. Библиотечные
+`prepare_grounded_explanation` и `grounded_prompt_for_facts` по умолчанию
+используют 0.1; новая версия выбирается явным `protocol`.
+Prepared inputs сохраняют версию для recheck. Envelope reader восстанавливает
+prompt по известной `version`, а не по новейшему default. Изменение одного
+discriminator без соответствующих hashes отклоняется. Typed answer, source facts,
+renderer policy и exact projection bytes сохраняют прежние контракты.
+
+Native runtime принимает переменную новую schema только после восстановления
+целого prompt из typed facts и точных sealed chunks; instructions, context bytes,
+context hash и schema должны совпасть. Старый static allowlist остаётся отдельным.
+Операторский opt-in, одноразовый request consent, permissions, loopback transport,
+deadline, один worker slot и запрет новых detector/formal/approval переходов прежние.
+Никакого автоматического включения сервиса или загрузки иных weights нет.
+
+UI читает envelopes и capabilities 0.1/0.2, требует согласованную пару
+capabilities version/protocol и отвергает неизвестные версии. API paths и request
+body не изменены. Клиентам с reader, ограниченным 0.1, нужен reader 0.2 для новых
+ответов; старые responses остаются читаемыми обновлённым reader. Сохранённые
+анализы, findings и ранее опубликованные evidence не пересчитываются.
 
 ## Границы проверки
 
@@ -207,3 +241,52 @@ encryption key не сохранён. Независимый review провер
 choices/support, включая два scope-invalid selections. Independent semantic/
 citation quality, реальные данные, calibration, vendor/device/network safety,
 approval и полный MVP этим запуском не подтверждены.
+
+### Actual scoped protocol 0.2 diagnostic
+
+[Новый отчёт](evaluation/owned-scoped-grounded-explanations.json) сохраняет
+16 новых generations через installed HTTP writer 0.2: reference 4/4, peer 10/10,
+Isolation Forest 2/2 приняты. Использованы те же 16 authored scenario definitions
+для обеих платформ, но новые run identities, source bindings и context hashes.
+Прежний результат 9/16 остаётся неизменным; это наблюдаемое функциональное
+улучшение в этих сценариях, без causal attribution или independent quality.
+Все ответы включили required `version` и только доступные текущим facts выборы.
+Raw output не исправлялся; retry/warm-up/fallback отсутствуют.
+
+Проверены 16 exact typed envelopes, context/schema reconstruction, server-derived
+projection и pure replay. Пустые model missing codes не скрывают mandatory
+unknown/not-run. Сохранены все 16 analyses и 48 synthetic snapshots; два forest
+fits относятся к setup, explanation fit/predict/score reruns отсутствуют.
+Все 16 request/provider/backend starts завершены, incomplete 0, drain полный,
+remaining handlers 0, exit 0 без forced kill. Device/network/formal/ML checks
+и решение инженера этим explanation workflow не выполняются.
+
+Generation заняла 7.039–19.726 s, HTTP 7.279–19.977 s. Использован explicit
+deadline 20 s. Три HTTP ответа превысили 10 s: стандартный deadline 10 s
+не квалифицирован и не изменён. Новая schema — guidance в prompt, а не constrained
+decoding или гарантия соблюдения требований на следующих входах.
+
+Все 242 installed runtime files и 3 served assets совпадают с source; 242 старых
+installed runtime files и 379 history hashes сохранены. Обе версии Pydantic
+2.13.5/2.14.0 прошли по 466 related installed tests и прочитали те же 13 прежних
+actual envelopes 0.1, без checkout imports. 20 frozen family/vendor context hashes
+закрепляют старые prompt bytes. Полная source regression: 3309 pass, 15 explicit
+live-engine/PostgreSQL skips, 5 warnings, 91% line coverage; Ruff и 242-file mypy
+default/Linux/win32 прошли. UI: 606 unit, typecheck/format/build, 48 synthetic
+model-browser и 158 regular browser cases, retries 0. Bundle warning >500 KiB прежний.
+
+Первоначальный source run дал 3308 pass/1 fail/15 skips: owned SDK test handler
+возвращал redirect, не прочитав POST body, и Windows transport error вызвал retry.
+Fixture теперь полностью читает upload и дополнительно сверяет method/length/bytes;
+прежние redirect=1/collector=0 assertions и production transport не ослаблены.
+Этот failed run сохранён. Первые installed tests дали по 466 pass, но отдельный
+private helper postcheck ошибочно выбрал HTTP wrappers вместе с legacy envelopes.
+После исправления filename pattern оба qualification runs повторены полностью;
+wire data, старые ответы и runtime для этого не менялись.
+
+Независимое read-only ревью проверило код, helper, actual raw support, envelopes,
+replay и исторические bindings. Это не independent semantic/citation benchmark
+или подтверждение качества исходных facts. Новых neural weights, detector
+calibration, real-confirmed данных, engine queries или document encoder calls нет.
+Проверка новой app instance по-прежнему относится к тому же Python process,
+не fresh-process restart; explanation registry отсутствует, ephemeral key не сохранён.

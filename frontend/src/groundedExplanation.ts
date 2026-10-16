@@ -352,21 +352,36 @@ export function groundedExplanationPresentation(bundle: {
   );
 }
 
-export const groundedExplanationCapabilitiesSchema = z.strictObject({
-  version: z.literal("grounded-explanation-capabilities-0.1.0"),
-  legacy: explanationCapabilitiesSchema,
-  grounded_explanation: z.enum(["disabled", "configured"]),
-  protocol: z.literal("grounded-model-explanation-0.1.0"),
-  model_health_checked: z.literal(false),
-  explicit_request_permission_required: z.literal(true),
-});
+export const groundedExplanationCapabilitiesSchema = z
+  .strictObject({
+    version: z.enum([
+      "grounded-explanation-capabilities-0.1.0",
+      "grounded-explanation-capabilities-0.2.0",
+    ]),
+    legacy: explanationCapabilitiesSchema,
+    grounded_explanation: z.enum(["disabled", "configured"]),
+    protocol: z.enum([
+      "grounded-model-explanation-0.1.0",
+      "grounded-model-explanation-0.2.0",
+    ]),
+    model_health_checked: z.literal(false),
+    explicit_request_permission_required: z.literal(true),
+  })
+  .refine(
+    (capabilities) =>
+      (capabilities.version === "grounded-explanation-capabilities-0.1.0") ===
+      (capabilities.protocol === "grounded-model-explanation-0.1.0"),
+  );
 export type GroundedExplanationCapabilities = z.infer<
   typeof groundedExplanationCapabilitiesSchema
 >;
 export const groundedExplanationSchema = z
   .strictObject({
     ...explanationBundleSchema.shape,
-    version: z.literal("grounded-model-explanation-0.1.0"),
+    version: z.enum([
+      "grounded-model-explanation-0.1.0",
+      "grounded-model-explanation-0.2.0",
+    ]),
     provider: z.literal("loopback_grounded_language_model"),
     llm_status: z.literal("draft"),
     presentation_kind: z.literal("server_derived"),

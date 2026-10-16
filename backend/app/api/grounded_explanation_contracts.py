@@ -9,11 +9,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.api.explanation_contracts import ExplanationCapabilities, ExplanationContext
 from app.explanation.grounded_explanation import (
-    GROUNDED_EXPLANATION_INSTRUCTIONS,
     RENDERER_VERSION,
     GroundedExplanationAnswer,
     GroundedExplanationFacts,
     GroundedExplanationPresentation,
+    GroundedExplanationProtocol,
     grounded_prompt_for_facts,
     render_grounded_explanation,
     renderer_policy_sha256,
@@ -28,7 +28,7 @@ def _canonical(value: object) -> str:
 
 
 class GroundedExplanationBundle(ExplanationContext):
-    version: Literal["grounded-model-explanation-0.1.0"] = "grounded-model-explanation-0.1.0"
+    version: GroundedExplanationProtocol = "grounded-model-explanation-0.2.0"
     provider: Literal["loopback_grounded_language_model"] = "loopback_grounded_language_model"
     llm_status: Literal["draft"] = "draft"
     presentation_kind: Literal["server_derived"] = "server_derived"
@@ -103,10 +103,10 @@ class GroundedExplanationBundle(ExplanationContext):
             )
         ):
             raise ValueError("grounded explanation document bindings differ")
-        prompt = grounded_prompt_for_facts(facts, self.documents)
+        prompt = grounded_prompt_for_facts(facts, self.documents, protocol=self.version)
         if (
             self.context_sha256 != prompt.context_sha256
-            or self.instructions_sha256 != text_sha256(GROUNDED_EXPLANATION_INSTRUCTIONS)
+            or self.instructions_sha256 != text_sha256(prompt.instructions)
             or self.answer_schema_sha256 != text_sha256(prompt.answer_schema_json)
             or self.renderer_policy_sha256 != renderer_policy_sha256()
         ):
@@ -116,11 +116,19 @@ class GroundedExplanationBundle(ExplanationContext):
 
 class GroundedExplanationCapabilities(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    version: Literal["grounded-explanation-capabilities-0.1.0"] = (
-        "grounded-explanation-capabilities-0.1.0"
-    )
+    version: Literal[
+        "grounded-explanation-capabilities-0.1.0", "grounded-explanation-capabilities-0.2.0"
+    ] = "grounded-explanation-capabilities-0.2.0"
     legacy: ExplanationCapabilities
     grounded_explanation: Literal["disabled", "configured"]
-    protocol: Literal["grounded-model-explanation-0.1.0"] = "grounded-model-explanation-0.1.0"
+    protocol: GroundedExplanationProtocol = "grounded-model-explanation-0.2.0"
     model_health_checked: Literal[False] = False
     explicit_request_permission_required: Literal[True] = True
+
+    @model_validator(mode="after")
+    def known_protocol_pair(self) -> Self:
+        if self.version.removeprefix("grounded-explanation-capabilities-") != (
+            self.protocol.removeprefix("grounded-model-explanation-")
+        ):
+            raise ValueError("grounded explanation capability protocol differs")
+        return self

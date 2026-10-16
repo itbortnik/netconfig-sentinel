@@ -285,7 +285,9 @@ class LocalInstructProvider:
             if self._grounded_explanation_enabled:
                 from app.explanation.grounded_explanation import (
                     GROUNDED_EXPLANATION_INSTRUCTIONS,
+                    SCOPED_GROUNDED_EXPLANATION_INSTRUCTIONS,
                     GroundedExplanationAnswer,
+                    recheck_scoped_grounded_prompt,
                 )
 
                 contracts.add(
@@ -294,6 +296,9 @@ class LocalInstructProvider:
                         json.dumps(GroundedExplanationAnswer.model_json_schema(), sort_keys=True),
                     )
                 )
+                if prompt.instructions == SCOPED_GROUNDED_EXPLANATION_INSTRUCTIONS:
+                    recheck_scoped_grounded_prompt(prompt)
+                    contracts.add((prompt.instructions, prompt.answer_schema_json))
             if (prompt.instructions, prompt.answer_schema_json) not in contracts:
                 raise ValueError("instruct instructions or answer schema differs")
             ids = frame_prompt(self._tokenizer, prompt, self._limits)

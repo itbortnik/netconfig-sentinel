@@ -1,5 +1,6 @@
 """Fake GPU checks qualify only the independent instruction/schema allowlist."""
 
+import json
 from dataclasses import replace
 from uuid import UUID
 
@@ -15,7 +16,7 @@ from test_instruct_patch_mode import grounded_prompt, provider, review_prompt, s
 from ml.instruct import runtime, source
 
 
-def prompt():
+def prompt(protocol="grounded-model-explanation-0.1.0"):
     config = parse_configuration("hostname owned\nip ssh version 1\n", filename="owned.cfg")
     finding = next(
         item
@@ -36,16 +37,22 @@ def prompt():
         knowledge_version=catalog.version,
         knowledge_sha256=catalog.sha256,
         required_citations=tuple(chunk.citation for chunk in chunks),
+        protocol=protocol,
     ).prompt
 
 
 @pytest.mark.parametrize("enabled", [False, True])
-def test_explanation_mode_is_independent_and_whitelist_only(tmp_path, monkeypatch, enabled):
+@pytest.mark.parametrize(
+    "protocol", ["grounded-model-explanation-0.1.0", "grounded-model-explanation-0.2.0"]
+)
+def test_explanation_mode_is_independent_and_whitelist_only(
+    tmp_path, monkeypatch, enabled, protocol
+):
     selected = provider(tmp_path, monkeypatch, allow_grounded_explanation=enabled)
     assert selected.grounded_explanation_enabled is enabled
     assert not selected.patch_generation_enabled and not selected.candidate_review_enabled
     assert not selected.grounded_patch_generation_enabled
-    current = prompt()
+    current = prompt(protocol)
     if enabled:
         assert selected.generate(current) == b"actual-model-output"
     else:
@@ -63,6 +70,22 @@ def test_explanation_mode_is_independent_and_whitelist_only(tmp_path, monkeypatc
         assert selected.last_generation is None
     with pytest.raises(AttributeError):
         selected.grounded_explanation_enabled = False
+
+
+def test_scoped_generation_rechecks_context_before_backend(tmp_path, monkeypatch):
+    selected = provider(tmp_path, monkeypatch, allow_grounded_explanation=True)
+    current = prompt("grounded-model-explanation-0.2.0")
+    context = json.loads(current.context_json)
+    context["available_fact_refs"].append("statistical_record")
+    altered = json.dumps(context, sort_keys=True)
+    from app.explanation.knowledge import text_sha256
+
+    monkeypatch.setattr(runtime, "_generate", lambda *a, **k: pytest.fail("unexpected generation"))
+    with pytest.raises(InvalidProviderAnswer):
+        selected.generate(
+            replace(current, context_json=altered, context_sha256=text_sha256(altered))
+        )
+    assert selected.last_generation is None
 
 
 @pytest.mark.parametrize("flag", [1, 0, None, "true", [], {}])

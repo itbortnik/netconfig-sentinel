@@ -8,12 +8,17 @@ import {
   explanationTextDigest,
   groundedExplanationSchema,
 } from "./groundedExplanation";
-import type { GroundedExplanationFacts } from "./groundedExplanation";
+import type {
+  GroundedExplanation,
+  GroundedExplanationFacts,
+} from "./groundedExplanation";
 
 // Authored software-contract data. No model, network or verifier runs here.
 export const explanationFixtureId = (n: number) =>
   `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
-export async function groundedExplanationFixture() {
+export async function groundedExplanationFixture(
+  version: GroundedExplanation["version"] = "grounded-model-explanation-0.2.0",
+) {
   const id = explanationFixtureId;
   const source = "b".repeat(64),
     fingerprint = "a".repeat(64),
@@ -207,7 +212,7 @@ export async function groundedExplanationFixture() {
     requires_human_review: true,
   });
   const bundle = groundedExplanationSchema.parse({
-    version: "grounded-model-explanation-0.1.0",
+    version,
     provider: "loopback_grounded_language_model",
     llm_status: "draft",
     presentation_kind: "server_derived",

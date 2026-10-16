@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { ApiClient } from "./api";
 import { stableJson } from "./contracts";
 import { ExplanationPanel } from "./ExplanationPanel";
@@ -18,35 +18,49 @@ import {
 import type { ExplanationRequestScope } from "./groundedExplanation";
 import { groundedExplanationFixture } from "./groundedExplanation.fixtures";
 
-it("keeps exact Python JSON bytes authoritative and parses only one facts/presentation authority", async () => {
-  const { bundle, facts, analysis, finding, snapshot } =
-    await groundedExplanationFixture();
-  expect(bundle.source_facts_json).toContain("1e-07");
-  expect(stableJson(facts)).toContain("1e-7");
-  expect(await explanationTextDigest(stableJson(facts))).not.toBe(
-    bundle.facts_binding_sha256,
-  );
-  expect(groundedExplanationFacts(bundle)).toEqual(facts);
-  expect(groundedExplanationPresentation(bundle)?.presentation_kind).toBe(
-    "server_derived",
-  );
-  expect(
-    await groundedExplanationMatches(bundle, analysis, finding, snapshot),
-  ).toBe(true);
-  expect(await groundedExplanationMatches(bundle, analysis, finding)).toBe(
-    false,
-  );
-  expect(
-    groundedExplanationSchema.safeParse({ ...bundle, source_facts: facts })
-      .success,
-  ).toBe(false);
-  expect(
-    groundedExplanationSchema.safeParse({
-      ...bundle,
-      presentation: groundedExplanationPresentation(bundle),
-    }).success,
-  ).toBe(false);
-});
+it.each([
+  "grounded-model-explanation-0.1.0",
+  "grounded-model-explanation-0.2.0",
+] as const)(
+  "keeps exact Python JSON bytes authoritative for %s",
+  async (version) => {
+    const { bundle, facts, analysis, finding, snapshot } =
+      await groundedExplanationFixture(version);
+    expect(bundle.version).toBe(version);
+    expect(bundle.model_answer.version).toBe(
+      "grounded-explanation-answer-0.1.0",
+    );
+    expect(facts.version).toBe("grounded-explanation-source-facts-0.1.0");
+    expect(bundle.renderer_version).toBe(
+      "grounded-explanation-presentation-0.1.0",
+    );
+    expect(bundle.source_facts_json).toContain("1e-07");
+    expect(stableJson(facts)).toContain("1e-7");
+    expect(await explanationTextDigest(stableJson(facts))).not.toBe(
+      bundle.facts_binding_sha256,
+    );
+    expect(groundedExplanationFacts(bundle)).toEqual(facts);
+    expect(groundedExplanationPresentation(bundle)?.presentation_kind).toBe(
+      "server_derived",
+    );
+    expect(
+      await groundedExplanationMatches(bundle, analysis, finding, snapshot),
+    ).toBe(true);
+    expect(await groundedExplanationMatches(bundle, analysis, finding)).toBe(
+      false,
+    );
+    expect(
+      groundedExplanationSchema.safeParse({ ...bundle, source_facts: facts })
+        .success,
+    ).toBe(false);
+    expect(
+      groundedExplanationSchema.safeParse({
+        ...bundle,
+        presentation: groundedExplanationPresentation(bundle),
+      }).success,
+    ).toBe(false);
+  },
+);
 
 it.each([
   { title: "Foreign unsaved title" },
@@ -86,6 +100,7 @@ it("rejects a selected Finding absent from saved analysis.findings", async () =>
 
 it.each([
   { version: "model-explanation-0.1.0" },
+  { version: "grounded-model-explanation-0.3.0" },
   { provider: "loopback_language_model" },
   { presentation_kind: "model_prose" },
   { renderer_version: "future" },
@@ -103,6 +118,7 @@ it.each([
 });
 
 it.each([
+  { version: "grounded-explanation-answer-0.2.0" },
   { summary: "Free model prose" },
   { fact_refs: ["formal_passed"] },
   { fact_refs: ["selected_finding", "selected_finding"] },
@@ -310,31 +326,109 @@ it("detects stale hashes and mismatched selected source, parser, finding, or ana
   }
 });
 
-it("keeps capability configuration distinct from checked health", () => {
-  const value = {
-    version: "grounded-explanation-capabilities-0.1.0",
+const capabilityVersions = [
+  [
+    "grounded-explanation-capabilities-0.1.0",
+    "grounded-model-explanation-0.1.0",
+  ],
+  [
+    "grounded-explanation-capabilities-0.2.0",
+    "grounded-model-explanation-0.2.0",
+  ],
+] as const;
+function capabilities(version: string, protocol: string) {
+  return {
+    version,
     legacy: {
       version: "explanation-capabilities-0.2.0",
       local_model: "configured",
       model_health_checked: false,
+      semantic_retrieval: "disabled",
+      retrieval_health_checked: false,
       transport: "literal_loopback_only",
       explicit_request_permission_required: true,
     },
     grounded_explanation: "configured",
-    protocol: "grounded-model-explanation-0.1.0",
+    protocol,
     model_health_checked: false,
     explicit_request_permission_required: true,
   };
-  expect(groundedExplanationCapabilitiesSchema.safeParse(value).success).toBe(
-    true,
-  );
-  expect(
-    groundedExplanationCapabilitiesSchema.safeParse({
-      ...value,
-      model_health_checked: true,
-    }).success,
-  ).toBe(false);
-});
+}
+it.each(capabilityVersions)(
+  "keeps %s capability configuration distinct from checked health",
+  (version, protocol) => {
+    const value = capabilities(version, protocol);
+    expect(groundedExplanationCapabilitiesSchema.parse(value)).toEqual(value);
+    expect(
+      groundedExplanationCapabilitiesSchema.safeParse({
+        ...value,
+        model_health_checked: true,
+      }).success,
+    ).toBe(false);
+  },
+);
+it.each([
+  [
+    "grounded-explanation-capabilities-0.1.0",
+    "grounded-model-explanation-0.2.0",
+  ],
+  [
+    "grounded-explanation-capabilities-0.2.0",
+    "grounded-model-explanation-0.1.0",
+  ],
+  [
+    "grounded-explanation-capabilities-0.3.0",
+    "grounded-model-explanation-0.2.0",
+  ],
+  [
+    "grounded-explanation-capabilities-0.2.0",
+    "grounded-model-explanation-0.3.0",
+  ],
+])(
+  "rejects mismatched or unknown capability versions %s/%s",
+  (version, protocol) => {
+    const value = capabilities(version, protocol);
+    expect(groundedExplanationCapabilitiesSchema.safeParse(value).success).toBe(
+      false,
+    );
+  },
+);
+
+it.each(capabilityVersions)(
+  "reads %s through the existing v2 API without changing consent or bindings",
+  async (version, protocol) => {
+    const { bundle, analysis, finding } =
+      await groundedExplanationFixture(protocol);
+    const advertised = capabilities(version, protocol);
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(advertised))
+      .mockResolvedValueOnce(Response.json(bundle));
+    const client = new ApiClient(
+      "authored-memory-token-with-32-characters",
+      transport,
+    );
+    const options = {
+      analysis_id: analysis.analysis_id,
+      finding_sha256: bundle.finding_sha256,
+      provider: "llm" as const,
+      allow_local_model_context: true as const,
+      retrieval: "explicit_reference" as const,
+    };
+    expect(await client.groundedExplanationCapabilities()).toEqual(advertised);
+    expect(await client.explainGrounded(finding.finding_id, options)).toEqual(
+      bundle,
+    );
+    expect(transport.mock.calls.map(([url]) => url)).toEqual([
+      "/api/v2/explanation-capabilities",
+      `/api/v2/findings/${finding.finding_id}/explain`,
+    ]);
+    expect(JSON.parse(transport.mock.calls[1]![1]!.body as string)).toEqual(
+      options,
+    );
+    client.close();
+  },
+);
 
 function scope(): ExplanationRequestScope {
   return {

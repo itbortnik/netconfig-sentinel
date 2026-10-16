@@ -129,6 +129,7 @@ def explain_grounded(
             analysis_facts=facts,
             invocation_facts=invocation,
             selection_facts=saved_selection_facts(analysis, finding),
+            protocol="grounded-model-explanation-0.2.0",
         )
     except ValueError:
         raise HTTPException(
@@ -149,6 +150,7 @@ def explain_grounded(
         ) from None
     return GroundedExplanationBundle(
         **common.model_dump(exclude={"limitations"}),
+        version=prepared.protocol,
         limitations=(
             *common.limitations,
             "The model selected closed references and codes; presentation is server-derived.",

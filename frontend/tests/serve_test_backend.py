@@ -41,7 +41,10 @@ class SyntheticProvider(BaseHTTPRequestHandler):
                 raise ValueError("invalid owned fixture request")
             wire = json.loads(self.rfile.read(size))
             context = json.loads(wire["messages"][1]["content"])
-            if context.get("version") == "grounded-explanation-context-0.1.0":
+            if context.get("version") in (
+                "grounded-explanation-context-0.1.0",
+                "grounded-explanation-context-0.2.0",
+            ):
                 answer = {
                     "version": "grounded-explanation-answer-0.1.0",
                     "facts_binding_sha256": context["facts_binding_sha256"],

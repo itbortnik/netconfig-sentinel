@@ -4,6 +4,14 @@
 exact-bool `allow_grounded_explanation=True` и фиксированные новые instruction/schema.
 Он не включает patch/review режимы, не активирует API и не меняет прежнюю генерацию.
 
+Ordinary protocol 0.2 добавляет отдельную фиксированную инструкцию и scoped schema
+по текущим facts. Перед native generation весь prompt заново восстанавливается
+из typed ledger и sealed chunks, включая точные context/schema bytes и hash.
+Старый protocol 0.1 сохраняет свои instructions/schema и library default.
+Новый API writer выбирает 0.2 явно; permission flag, weights, greedy decoding,
+deadline и правила отказа остаются прежними. Это prompt/schema guidance,
+а не гарантия соблюдения ограничений моделью или независимого semantic quality.
+
 `ml.instruct` добавляет отдельный opt-in runtime для
 [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507),
 revision `cdbee75f17c01a7cc42f958dc650907174af0554`. Publisher декларирует

@@ -18,6 +18,8 @@ def test_real_sdk_does_not_follow_owned_redirect(
     sdk = pytest.importorskip("pybatfish.client.session", reason="requires the optional pinned SDK")
     rest = pytest.importorskip("pybatfish.client.restv2helper")
     requests = {"redirect": 0, "collector": 0}
+    payload = b"owned-laboratory-only"
+    received_bodies: list[tuple[str, int, bytes]] = []
     monkeypatch.setenv("NO_PROXY", "*")
     for name in (
         "HTTP_PROXY",
@@ -32,6 +34,7 @@ def test_real_sdk_does_not_follow_owned_redirect(
     class Collector(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
             requests["collector"] += 1
+            self.rfile.read(int(self.headers.get("Content-Length", "0")))
             self.send_response(200)
             self.send_header("Content-Length", "2")
             self.end_headers()
@@ -47,6 +50,10 @@ def test_real_sdk_does_not_follow_owned_redirect(
     class Redirect(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
             requests["redirect"] += 1
+            # Consume uploads before closing the HTTP/1.0 connection. Closing
+            # with unread bytes can reset it and trigger the SDK's transport retry.
+            length = int(self.headers.get("Content-Length", "0"))
+            received_bodies.append((self.command, length, self.rfile.read(length)))
             self.send_response(code)
             self.send_header("Location", f"http://127.0.0.1:{collector.server_port}/collector")
             self.send_header("Content-Length", "0")
@@ -82,12 +89,14 @@ def test_real_sdk_does_not_follow_owned_redirect(
             if method == "get":
                 session.get_component_versions()
             elif method == "post":
-                rest._post(session, "/owned", obj=None, stream=BytesIO(b"owned-laboratory-only"))
+                rest._post(session, "/owned", obj=None, stream=BytesIO(payload))
             elif method == "put":
-                rest._put(session, "/owned", stream=BytesIO(b"owned-laboratory-only"))
+                rest._put(session, "/owned", stream=BytesIO(payload))
             else:
                 rest._delete(session, "/owned")
         assert requests == {"redirect": 1, "collector": 0}
+        expected_body = payload if method in ("post", "put") else b""
+        assert received_bodies == [(method.upper(), len(expected_body), expected_body)]
     finally:
         for server in servers:
             server.shutdown()

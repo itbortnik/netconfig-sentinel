@@ -31,7 +31,10 @@ def grounded_api(model_api, monkeypatch):
 
     def response(request):
         context = json.loads(request["messages"][1]["content"])
-        if context.get("version") != "grounded-explanation-context-0.1.0":
+        if context.get("version") not in {
+            "grounded-explanation-context-0.1.0",
+            "grounded-explanation-context-0.2.0",
+        }:
             return original(request)
         answer = {
             "version": "grounded-explanation-answer-0.1.0",
@@ -53,6 +56,8 @@ def grounded_api(model_api, monkeypatch):
             answer["facts_binding_sha256"] = "0" * 64
         elif server.damage == "review":
             answer["requires_human_review"] = 1
+        elif server.damage == "missing_version":
+            answer.pop("version")
         elif server.damage == "patch":
             answer["patch_draft"] = "private-injected-command"
         answer_text = json.dumps(answer)
@@ -150,7 +155,18 @@ def test_closed_explanation_wire_and_saved_analysis_are_distinct(grounded_api, v
 
 
 @pytest.mark.parametrize(
-    "damage", ["prose", "fact", "citation", "binding", "review", "patch", "null", "duplicate"]
+    "damage",
+    [
+        "prose",
+        "fact",
+        "citation",
+        "binding",
+        "review",
+        "missing_version",
+        "patch",
+        "null",
+        "duplicate",
+    ],
 )
 def test_rejected_choices_never_fall_back_or_mutate_scores(grounded_api, damage):
     client, _, server, _, _ = grounded_api
@@ -224,6 +240,48 @@ def test_envelope_rechecks_exact_strings_and_protocol_bindings(grounded_api, fie
     changed[field] = changed[field] + " " if field.endswith("_json") else "0" * 64
     with pytest.raises(ValidationError):
         GroundedExplanationBundle.model_validate(changed)
+
+
+def test_new_writer_and_legacy_reader_keep_distinct_prompt_bindings(grounded_api):
+    from app.api.grounded_explanation_contracts import GroundedExplanationCapabilities
+    from app.explanation.grounded_explanation import (
+        GROUNDED_EXPLANATION_INSTRUCTIONS,
+        grounded_prompt_for_facts,
+    )
+
+    client, _, _, _, _ = grounded_api
+    data = explain(client, analyze(client)).json()
+    current = GroundedExplanationBundle.model_validate(data)
+    assert current.version == "grounded-model-explanation-0.2.0"
+    legacy_prompt = grounded_prompt_for_facts(current.source_facts, current.documents)
+    assert legacy_prompt.instructions == GROUNDED_EXPLANATION_INSTRUCTIONS
+    assert legacy_prompt.context_sha256 != current.context_sha256
+    switched = data | {"version": "grounded-model-explanation-0.1.0"}
+    with pytest.raises(ValidationError):
+        GroundedExplanationBundle.model_validate(switched)
+    legacy = switched | {
+        "context_sha256": legacy_prompt.context_sha256,
+        "instructions_sha256": text_sha256(legacy_prompt.instructions),
+        "answer_schema_sha256": text_sha256(legacy_prompt.answer_schema_json),
+    }
+    historical = GroundedExplanationBundle.model_validate(legacy)
+    assert historical.source_facts_json == current.source_facts_json
+    assert historical.projection_json == current.projection_json
+    assert historical.model_answer == current.model_answer
+    for version in ("0.1.0", "0.2.0"):
+        capability = GroundedExplanationCapabilities(
+            version="grounded-explanation-capabilities-" + version,
+            protocol="grounded-model-explanation-" + version,
+            legacy=client.get("/api/v2/explanation-capabilities", headers=HEADERS).json()["legacy"],
+            grounded_explanation="configured",
+        )
+        assert capability.protocol.endswith(version)
+    with pytest.raises(ValidationError):
+        GroundedExplanationCapabilities(
+            version="grounded-explanation-capabilities-0.1.0",
+            legacy=capability.legacy,
+            grounded_explanation="configured",
+        )
 
 
 @pytest.mark.parametrize("vendor", ["cisco", "juniper"])

@@ -66,7 +66,11 @@ for (const vendor of ["cisco", "juniper"]) {
       /\/api\/v2\/findings\/[^/]+\/explain$/.test(response.url()),
     );
     await button(page).click();
-    expect((await explained).status()).toBe(200);
+    const response = await explained;
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.version).toBe("grounded-model-explanation-0.2.0");
+    expect(body.model_answer.version).toBe("grounded-explanation-answer-0.1.0");
     await expect(output(page)).toBeVisible();
     await expect(output(page)).toContainText("Текст сформирован сервером");
     await expect(output(page)).toContainText("formal verification");
