@@ -161,3 +161,49 @@ drain полный, remaining handlers0, gateway exit0, forced kill отсутс
 Parent140/gateway59 target imports, checkout0; все3bundled assets served exactly.
 Outgoing gateway socket connects заблокированы, но это не OS sandbox.
 Модельный сервис оператора, рабочая БД, engine/ML/device checks не затрагивались.
+
+### Actual installed reference/peer/forest diagnostic
+
+[Отдельный отчёт](evaluation/owned-grounded-comparison-explanations.json) сохраняет
+16 новых actual Qwen generations через installed saved HTTP: обе платформы,
+reference 0.1/0.2, peer 0.1 partial proxy, peer 0.2/0.3 property и partial
+proxy/measured fraction, Isolation Forest. Это заранее выбранные authored
+сценарии, не independent benchmark. Для setup созданы 48 synthetic snapshots
+и обучены два небольших vendor forests; новых neural weights/training нет.
+
+Модель завершила 16 ответов, gateway вернул 16 HTTP 200, но API принял только 9:
+reference 4/4, peer 5/10, forest 0/2. Остальные 7 получили 503: во всех отсутствует
+обязательный `version`. Дополнительный аудит неизменённых raw choices обнаружил
+в двух отклонённых peer 0.3 property ответах ссылки `measured_parser_coverage`
+и `statistical_record`, отсутствующие в доступных facts. Schema gate сработал
+раньше scope gate; добавлением `version` эти два ответа не становятся допустимыми.
+Raw не исправлялся, retry/warm-up/fallback и подстановка ответа отсутствуют.
+Это evidence фактических отказов, не квалификация успешного forest explanation
+или всей матрицы peer selections.
+
+Для 9 принятых ответов проверены exact facts/context/source bindings, required
+citations и pure replay представления без модели. Дополнительный pure replay
+с пустым списком model missing codes сохраняет обязательные unknown/not-run.
+Reference approval остаётся `not_proven`; source anchors относятся к текущему
+source; proxy не становится измеренным coverage. Все 16 saved analyses и 48 source
+snapshots неизменны; объяснение не вызывает forest fit/predict/score methods.
+Полный drain:16 request/provider/backend starts и 16 completions, incomplete 0,
+handlers 0, exit 0, без forced kill. Генерация 18.396 s для первого ответа и
+4.793–8.304 s для остальных; explicit HTTP deadline 20 s, default 10 s не квалифицирован.
+
+Тот же wheel:242 runtime files и 3 served assets совпали с source,239 прежних
+installed files и 375 history hashes сохранены. Parent 132/gateway 59 target imports,
+checkout 0. Проверки source related:191 pass/0 skips/3 warnings; installed related:
+191 pass/0 skips/2 warnings на каждом Pydantic 2.13.5/2.14.0,141 target imports,
+checkout 0. Ruff и 242-file mypy default прошли. Полный suite, UI/browser, live
+engine и PostgreSQL повторно не запускались; runtime/UI код не менялся.
+Первый preflight не нашёл reference 0.1 finding без interface difference;
+это исправлено до любых генераций, failed preflight сохранён отдельно.
+
+Новая app instance в том же процессе повторно прочитала saved analyses/snapshots
+и отказала generation при выключенном provider без новых обращений к модели.
+Это не fresh-process restart и не persisted explanation registry; эфемерный
+encryption key не сохранён. Независимый review проверил helper и bounded raw
+choices/support, включая два scope-invalid selections. Independent semantic/
+citation quality, реальные данные, calibration, vendor/device/network safety,
+approval и полный MVP этим запуском не подтверждены.

@@ -44,6 +44,21 @@ actual inference или независимая semantic quality; их evidence �
 drain полный/incomplete0. Это не actual reference/peer/forest qualification,
 independent semantic/citation quality или полный §17/23.
 
+Следующий [actual installed comparison-explanation run](evaluation/owned-grounded-comparison-explanations.json)
+выполнил 16 новых Qwen generations для reference/peer/forest обеих платформ.
+Приняты 9 ответов: reference 4/4, peer 5/10, forest 0/2. Все 7 остальных ответов
+завершены моделью, но отклонены 503 из-за отсутствующего required `version`;
+два из них также выбрали unavailable fact refs. Ни JSON repair, ни retry,
+ни fallback нет. Exact facts/citations и 9 pure replays проверены; mandatory
+unknown/not-run сохраняются при пустых model missing codes. Все 16 analyses,
+48 synthetic snapshots,242 runtime files,3 assets и 375 history hashes сохранены;
+два forest fits относятся только к setup, explanation ML reruns 0. Drain полный,
+incomplete 0; explicit 20 s, default 10 s не квалифицирован. Related source 191 pass,
+installed 191 pass на каждом Pydantic 2.13.5/2.14.0, Ruff/mypy 242 default pass.
+Независимый bounded review выявил дополнительные scope-invalid raw selections;
+это не independent semantic quality. Actual successful forest explanation
+и вся peer matrix остаются незакрытыми; полный suite/UI/engine/DB не перезапускались.
+
 Поставка ordinary closed-fact explanation опубликована в commit
 `bb09f14f379ddc6e8fd443fc73e757f4a20ade7e`:
 [CI точного commit](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38870335271)
