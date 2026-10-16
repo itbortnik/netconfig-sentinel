@@ -66,3 +66,23 @@ infer missing commands, peer-AS correctness, reachability, multi-line intent or
 unknown network behavior. The result establishes a useful comparison target;
 it does not justify discarding contextual models or promoting this baseline to
 production. Broader independent data and unseen mutation families are required.
+
+## Diagnostic regression test
+
+`backend/tests/unit/test_lexical_metric_regression.py` rebuilds the same fixed
+train-only baseline in ordinary pytest/CI. It pins the train/validation example
+fingerprints, 328 training lines (16 positives), decision threshold 0.5 and the
+six validation views of two authored devices. For each formatting variant
+separately it requires line F1 at least 0.75, recall 1 and at most two false
+positives across six views. Both vendor slices retain two positive lines and
+recall 1. Exact eligible negative and unscored line counts prevent skipped
+predictions from silently improving the metrics. The published initial result
+(F1 0.8, TP4/FP2/FN0) satisfies these
+development regression bounds; neither settings nor thresholds are fitted again.
+
+Negative tests drive the same diagnostic path with all-negative, all-positive
+and inverted predictions and require rejection. This prevents a degenerate
+predictor from passing merely because training is reproducible or loss decreases.
+Variants remain dependent views, not extra devices. These bounds protect the
+known lexical control only: they are not a Transformer acceptance threshold,
+independent benchmark, calibration claim or real-network quality gate.

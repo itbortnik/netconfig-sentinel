@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-15 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-16 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -43,6 +43,24 @@ actual inference или независимая semantic quality; их evidence �
 выдаётся за свободную модельную прозу. Explicit20s, default10s не квалифицирован;
 drain полный/incomplete0. Это не actual reference/peer/forest qualification,
 independent semantic/citation quality или полный §17/23.
+
+Поставка ordinary closed-fact explanation опубликована в commit
+`bb09f14f379ddc6e8fd443fc73e757f4a20ade7e`:
+[CI точного commit](https://github.com/itbortnik/netconfig-sentinel/actions/runs/38870335271)
+завершился успешно во всех четырёх jobs (`test`, `postgres-api`, `batfish-live`,
+`frontend`). Это evidence указанной версии и её тестовых входов, не независимая
+оценка качества и не результат более поздних изменений.
+
+Отдельный [lexical diagnostic regression test](lexical-line-baseline.md#diagnostic-regression-test)
+закрепляет численные границы line F1/recall/false positives для прежних шести
+synthetic validation views двух authored devices. Реальный train-only fit и
+inference проходят тот же diagnostic path; all-negative/all-positive/inverted
+predictions должны нарушать gate. Форматные variants проверяются отдельно,
+не увеличивая число устройств. Это дополнение к loss/NLL regression checks §21,
+не приёмка Transformer, real-confirmed quality или calibration.
+После этого дополнения полный source run:3263pass/15explicit live+DB skips,
+0errors/0failures,91%coverage. Ruff и242-file mypy default/Linux/win32 pass;
+runtime/assets/history guard сохранён. Это локальный результат, не новый CI pass.
 
 Отдельный [closed-fact patch mode](grounded-model-patches.md) ограничивает новую
 wire schema refs/codes/actual edits-or-null и рендерит обязательные BEFORE
