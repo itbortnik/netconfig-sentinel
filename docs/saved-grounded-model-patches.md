@@ -37,6 +37,15 @@ Legacy protocol filter применяется **до** pagination. Unknown/missi
 
 ## История и replay
 
+Текущий writer использует prompt policy `grounded-patch-prompt-0.2.0` с явными
+девятью required keys и schema, ограниченной выбранными anchors/citations.
+Ответ, renderer, persisted DTOs и migration остаются прежних версий: изменилось
+только задание generation. Replay выбирает policy0.1/0.2 по точному allowlisted
+`instructions_sha256`, затем повторно проверяет context/schema/source/facts pins.
+Unknown instruction pin и смешение известной старой инструкции с новым context
+дают 503; прежняя история не пересчитывается через текущую policy. Новый builder
+refusal возвращается как приватный 409 до reservation/provider call.
+
 Migration `0010_model_patch_protocols` добавляет protocol column с legacy default
 и индекс, не переписывая encrypted payloads, старые JSON или их fingerprints.
 Startup не выполняет migration. Перед явным upgrade необходимы backup и прежний
@@ -98,7 +107,7 @@ scope и formal/ML/category/attestation gates не ослаблены. Лока�
 
 ## Границы evidence
 
-Текущая source regression: 3068 passed / 15 explicit live/database skips /
+Первоначальная saved integration regression: 3068 passed / 15 explicit live/database skips /
 5 warnings, 91% line coverage. Ruff и mypy 239 файлов (default/Linux/win32) прошли.
 Собранный пакет: 394 passed / 2 live skips / 6 deselected на каждом Pydantic
 2.13.5/2.14.0; 239 runtime files и три bundled assets совпали с исходной сборкой.
@@ -118,7 +127,44 @@ desktop explanation overflow, второй — mobile login `ERR_NO_BUFFER_SPACE
 Прежний overflow не повторился в отдельной диагностике и втором полном прогоне;
 причина первого не установлена. Повтор не скрывает исходный результат.
 
-### Actual installed API / model run
+### Actual installed API / model run: prompt policy0.2
+
+Следующий [прогон prompt policy0.2](evaluation/owned-scoped-grounded-model-patches.json)
+использовал те же четыре authored configurations, новые IDs и context hashes.
+Из четырёх actual generations два SSHv1 drafts (Cisco/JunOS) прошли точный
+source-bound replay; candidate в обоих случаях совпал с выбранным baseline.
+Cisco Telnet превысил explicit20s deadline (generation20.009s/HTTP20.101s);
+JunOS Telnet завершил generation, но вернул invalid JSON. Оба сохранены failed,
+без repair/retry/fallback. Ноль null в этом прогоне не отменяет прежние null.
+
+Для двух accepted candidates фактически выполнены saved local preflight и два
+изолированных CPU ML workers. Scores связаны с exact before/after, но выбранная
+Telnet-only модель не покрывает SSHv1: `selected_ml_category_not_supported`
+блокирует approval. Оба reviews — needs_review, device syntax/access/rollback
+не проверены. Attempted approval отклонён; отдельно записан synthetic service-role
+`needs_more_information` с `individual_identity_verified=false`, не human approval.
+Generation/analysis не переписаны; повторные reads/POST и новый app instance с
+выключенными workers вернули прежние результаты без нового inference.
+
+Эти короткие original inputs содержат management commands без маршрутизируемой
+топологии: Batfish в этом прогоне not_run, engine calls0. Прежнее actual network
+evidence legacy режима не переносится на эти candidates. Проверки на том же host
+выполнялись параллельно; это не изолированная latency qualification и default10s
+не квалифицирован. Private diagnostic key сохранён только в ignored-каталоге для
+точного продолжения review, не как backup. Raw inputs/answers/key не публикуются.
+
+После policy0.2: полный source suite3502pass/15explicit live+DB skips/5warnings,
+91% line coverage; Ruff и243-file mypy default/Linux/win32 pass. Installed828pass/
+2live skips на каждом Pydantic2.13.5/2.14.0, включая provider-free replay13прежних
+actual ordinary envelopes.243runtime files/3bundled assets совпали с wheel;
+прежние242installed files и383history bindings неизменны.48synthetic model-browser
+checks прошли без retries. Первый focused run остановился на87setup errors из-за
+прав доступа к общему temporary directory (81pass); isolated-temp rerun168pass,
+последующий полный source run зелёный. Это не новый live/DB pass по skipped tests.
+Независимое ревью проверило contracts и actual counters/bindings, а также помогло
+исправить регрессию поддержанного JunOS numeric SSH alias до новой generation.
+
+### Исторический actual run: prompt policy0.1
 
 [Числовой отчёт](evaluation/owned-grounded-saved-http.json) содержит все четыре
 заранее выбранных authored inputs с explicit unapproved baseline. Через installed

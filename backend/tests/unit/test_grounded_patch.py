@@ -15,7 +15,9 @@ from app.explanation.provider import MAX_ANSWER_BYTES, InvalidProviderAnswer
 from ml.instruct.patch_smoke import authored_patch_cases
 
 
-def prepared_answer(index=1, *, null=False, baseline=True):
+def prepared_answer(
+    index=1, *, null=False, baseline=True, prompt_policy="grounded-patch-prompt-0.1.0"
+):
     old = authored_patch_cases()[index].prepared
     prepared = build_grounded_patch_prompt(
         old.before,
@@ -25,6 +27,7 @@ def prepared_answer(index=1, *, null=False, baseline=True):
         baseline=old.baseline if baseline else None,
         chunks=old.chunks,
         allow_local_context=True,
+        prompt_policy=prompt_policy,
     )
     edits = (
         [{"source_line": 4, "replacement": "transport input ssh"}],

@@ -256,10 +256,18 @@ independent/adversarial/semantic/citation quality, vendor/internal corpus,
 Model prose не меняет risk/history/formal status и не применяется.
 
 Отдельный [closed-fact model-patch mode](grounded-model-patches.md) имеет новый
-независимый `allow_grounded_patch_draft=False` flag и фиксированную schema без
-free factual prose. Старый `allow_patch_draft` его не разрешает. Четыре actual
-installed обращения completed/accepted, но все четыре выбрали null: это evidence
+независимый `allow_grounded_patch_draft=False` flag и закрытую schema без
+free factual prose. Старый `allow_patch_draft` его не разрешает. Исторические четыре
+library обращения completed/accepted, но все четыре выбрали null: это evidence
 работающего отказа и receipt/replay, не actual candidate generation или общей
 семантической достоверности. [Saved API/UI writer](saved-grounded-model-patches.md)
 использует отдельные versions и independent operator flag; legacy contracts
 и предыдущая история не переинтерпретируются.
+
+Текущая [patch prompt policy0.2](grounded-model-patches.md) добавляет scoped
+anchors/citations, явные required fields и exact runtime reconstruction; wire
+answer/renderer/receipt versions сохраняются. Library default0.1 остаётся прежним,
+saved replay выбирает policy по точному instruction pin. [Новый installed run](evaluation/owned-scoped-grounded-model-patches.json)
+дал два настоящих SSHv1 candidate и два отказа: deadline и invalid JSON.
+Два actual CPU ML rechecks не квалифицируют SSHv1, поскольку выбранная модель
+поддерживает Telnet. Engine здесь not_run; все candidates остаются needs_review.

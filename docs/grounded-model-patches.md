@@ -28,6 +28,28 @@ support не является vendor syntax validation; project documents не �
 vendor manuals или одобренной политикой организации. Прежний edit allowlist и
 exact candidate replay повторно проверяются после closed-answer validation.
 
+### Scoped prompt policy 0.2
+
+Новый saved writer явно выбирает `grounded-patch-prompt-0.2.0`; library builder
+сохраняет default `grounded-patch-prompt-0.1.0` и прежние prompt bytes. Для явного
+library выбора передайте `prompt_policy="grounded-patch-prompt-0.2.0"`.
+Wire answer остаётся `grounded-model-patch-answer-0.1.0`: его форма и разрешённые
+edit semantics не изменены. Новая инструкция перечисляет все девять ключей,
+различает отказ всего draft и удаление одной строки через `replacement=null`.
+Unknown checks допускают предложение draft, но не permission to apply.
+
+Scoped schema перечисляет только supplied source-line anchors и citations.
+Готовые replacements/candidates не передаются. Native runtime восстанавливает
+полный prompt с exact bytes/hash, проверяет закрытую структуру minimized component,
+согласованность ledger и sealed documents до generation. Этот guard не располагает
+полным source и не удостоверяет его подлинность: enclosing source-bound replay
+остаётся обязательным. Старый instruction/schema contract сохраняется отдельно;
+незнакомая инструкция или изменённая scoped schema отклоняются без fallback.
+
+Renderer и encrypted receipt versions не меняются. При load receipt необходимо
+передать Prepared с той же prompt policy; перенос между policies отвергается.
+Это ограничение формы задания модели, не decoding constraint и не оценка качества.
+
 ## Серверная проекция — не raw model prose
 
 Модельные references не изменяют факты и не позволяют скрыть обязательные

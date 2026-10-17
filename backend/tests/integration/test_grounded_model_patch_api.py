@@ -77,6 +77,51 @@ def test_saved_grounded_candidate_or_null_round_trip_and_provider_free_restart(
     assert service.store.get_analysis(UUID(request["analysis_id"])) is not None
 
 
+@pytest.mark.parametrize("decline", [False, True])
+def test_historical_instruction_policy_replays_after_writer_changes(
+    grounded_api, monkeypatch, decline
+):
+    from app.explanation.grounded_patch import (
+        GROUND_PATCH_INSTRUCTIONS,
+        SCOPED_GROUND_PATCH_INSTRUCTIONS,
+        GroundedPatchAnswer,
+    )
+    from app.explanation.knowledge import text_sha256
+    from app.patching import saved_grounded
+
+    client, _, state, settings, _ = grounded_api
+    original_builder = saved_grounded.build_grounded_patch_prompt
+
+    def historical_builder(*args, **kwargs):
+        return original_builder(
+            *args, **(kwargs | {"prompt_policy": "grounded-patch-prompt-0.1.0"})
+        )
+
+    request, _, _ = selected_request(client)
+    state["damage"] = "decline" if decline else None
+    with monkeypatch.context() as old_writer:
+        old_writer.setattr(saved_grounded, "build_grounded_patch_prompt", historical_builder)
+        response = client.post(V2, headers=HEADERS, json=request)
+    assert response.status_code == 201, response.text
+    historical = response.json()
+    assert historical["instructions_sha256"] == text_sha256(GROUND_PATCH_INSTRUCTIONS)
+    assert historical["answer_schema_sha256"] == text_sha256(
+        json.dumps(GroundedPatchAnswer.model_json_schema(), sort_keys=True)
+    )
+    # Current writer uses the new policy while old data rebuilds with its exact pin.
+    newer_request = request | {"patch_id": str(uuid4())}
+    newer = client.post(V2, headers=HEADERS, json=newer_request)
+    assert newer.status_code == 201, newer.text
+    assert newer.json()["instructions_sha256"] == text_sha256(SCOPED_GROUND_PATCH_INSTRUCTIONS)
+    assert newer.json()["context_sha256"] != historical["context_sha256"]
+    assert newer.json()["model_answer"] == historical["model_answer"]
+    assert newer.json()["projection"]["answer"] == historical["projection"]["answer"]
+    with TestClient(create_app(settings)) as restarted:
+        assert restarted.get(V2 + "/" + request["patch_id"], headers=HEADERS).json() == historical
+        assert restarted.post(V2, headers=HEADERS, json=request).json() == historical
+    assert len(state["requests"]) == 2
+
+
 @pytest.mark.parametrize(
     "damage",
     [
@@ -186,6 +231,23 @@ def test_v2_selection_or_consent_fails_before_provider(grounded_api, change):
     assert not state["requests"]
 
 
+def test_scoped_builder_refusal_is_private_conflict_before_reservation(grounded_api, monkeypatch):
+    from app.patching import saved_grounded
+
+    client, service, state, _, _ = grounded_api
+    request, _, _ = selected_request(client)
+
+    def unsupported(*args, **kwargs):
+        raise ValueError("PRIVATE-SOURCE-MARKER")
+
+    monkeypatch.setattr(saved_grounded, "build_grounded_patch_prompt", unsupported)
+    result = client.post(V2, headers=HEADERS, json=request)
+    assert result.status_code == 409
+    assert "PRIVATE-SOURCE-MARKER" not in result.text
+    assert not state["requests"]
+    assert ModelPatchRecords(service.store).get(UUID(request["patch_id"])) is None
+
+
 @pytest.mark.parametrize("verdict", ["rejected", "needs_more_information"])
 def test_grounded_candidate_local_review_and_decision_replay_preserve_context_and_gates(
     grounded_api,
@@ -282,6 +344,8 @@ def test_both_vendors_and_both_supported_categories_use_exact_source_bound_edits
         "unknown_version",
         "outcome_protocol",
         "row_protocol",
+        "unknown_instruction_pin",
+        "mixed_known_policies",
     ],
 )
 def test_key_holder_tamper_or_rehashed_context_never_becomes_new_history(grounded_api, change):
@@ -341,6 +405,13 @@ def test_key_holder_tamper_or_rehashed_context_never_becomes_new_history(grounde
                 ),
                 {"id": key},
             )
+        elif change == "unknown_instruction_pin":
+            intent["instructions_sha256"] = "0" * 64
+        elif change == "mixed_known_policies":
+            from app.explanation.grounded_patch import GROUND_PATCH_INSTRUCTIONS
+            from app.explanation.knowledge import text_sha256
+
+            intent["instructions_sha256"] = text_sha256(GROUND_PATCH_INSTRUCTIONS)
         # Rehash the whole parent binding too, not merely an obvious stale SHA.
         outcome["intent_sha256"] = sha256(
             json.dumps(intent, sort_keys=True, separators=(",", ":")).encode()

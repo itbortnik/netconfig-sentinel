@@ -137,6 +137,26 @@ incomplete0. Это не fresh-process restart, новый положитель�
 qualification default10s или independent semantic/citation quality. Рабочая БД,
 operator activation, engine/ML/device checks не затронуты.
 
+Следующий [closed patch prompt policy0.2 run](evaluation/owned-scoped-grounded-model-patches.json)
+на тех же четырёх authored configurations дал два actual SSHv1 candidates
+(Cisco/JunOS), один20s deadline и один invalid JSON. Wire answer/renderer/receipt
+версии прежние; saved writer использует scoped instructions/schema, исторический
+reader выбирает точную policy по instruction pin без fallback. Library default0.1
+сохранён. Оба candidates прошли exact replay и совпали с выбранными baselines.
+Фактически выполнены два saved local preflight и два isolated CPU ML workers;
+Telnet-only checkpoint не квалифицирует SSHv1, approval заблокирован, status
+needs_review. Synthetic service-role needs_more_information не подтверждает human
+identity. Batfish здесь not_run: original короткие inputs не содержат routed
+topology. Прежние actual legacy network результаты на них не переносятся.
+Raw inputs/answers/key приватны; retry/repair/substitution/training отсутствуют.
+Это functional evidence, не independent quality или завершение §§16/17/23 целиком.
+После изменения3502full pass/15explicit live+DB skips/5warnings/91%coverage;
+Ruff и243-file mypy default/Linux/win32 pass. Installed828pass/2live skips на каждой
+из двух проверенных Pydantic versions;13old actual ordinary envelopes replayed.
+243runtime/3assets совпали с wheel, OLD242 и383history hashes сохранены.
+48synthetic model-browser checks pass. Подробности первого temporary-directory
+setup failure и последующего успешного полного run сохранены в профильном отчёте.
+
 Последующее [explicit 0.4 anomaly-only comparison](evaluation/owned-balanced-comparison.json)
 закрывает отдельный CLI-разрыв для exact owned scenarios через тот же retained
 source/encoded-TRAIN validator, не произвольные downstream configs. У старого0.3

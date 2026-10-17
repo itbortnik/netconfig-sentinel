@@ -40,7 +40,10 @@ def model_patch_api(tmp_path):
             wire = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             state["requests"].append(wire)
             context = json.loads(wire["messages"][1]["content"])
-            grounded = context.get("version") == "source-bound-grounded-patch-context-0.1.0"
+            grounded = context.get("version") in (
+                "source-bound-grounded-patch-context-0.1.0",
+                "source-bound-grounded-patch-context-0.2.0",
+            )
             supplied = context
             if grounded:
                 context = context["supplied_patch_context"]

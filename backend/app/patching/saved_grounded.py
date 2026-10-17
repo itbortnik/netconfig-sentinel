@@ -21,17 +21,36 @@ from app.explanation.grounded_patch import (
     PreparedGroundedPatch,
     build_grounded_patch_prompt,
     generate_grounded_patch_draft,
+    grounded_patch_policy_for_instructions,
     renderer_policy_sha256,
     validate_grounded_patch_answer,
 )
 from app.explanation.knowledge import text_sha256
 from app.explanation.local_model import LocalModelRuntime, ModelPatchDisabled
+from app.explanation.patch_provider import PreparedPatchPrompt
 from app.explanation.provider import InvalidProviderAnswer
 from app.patching.saved_model import (
     SavedModelPatchGenerationFailed,
     SavedModelPatchNotFound,
+    SavedModelPatchUnavailable,
     SavedModelPatchWorkflow,
 )
+
+
+def _current_prompt(selected: PreparedPatchPrompt) -> PreparedGroundedPatch:
+    try:
+        return build_grounded_patch_prompt(
+            selected.before,
+            finding=selected.finding,
+            source_sha256=selected.source_sha256,
+            reference_id=selected.reference_id,
+            allow_local_context=True,
+            baseline=selected.baseline,
+            chunks=selected.chunks,
+            prompt_policy="grounded-patch-prompt-0.2.0",
+        )
+    except ValueError:
+        raise SavedModelPatchUnavailable("Selected patch context is unavailable.") from None
 
 
 class SavedGroundedPatchWorkflow:
@@ -41,15 +60,7 @@ class SavedGroundedPatchWorkflow:
 
     def prepare(self, options: GenerateModelPatch) -> PreparedGroundedPatch:
         selected, _, _ = self.legacy.prepare(options)
-        return build_grounded_patch_prompt(
-            selected.before,
-            finding=selected.finding,
-            source_sha256=selected.source_sha256,
-            reference_id=selected.reference_id,
-            allow_local_context=True,
-            baseline=selected.baseline,
-            chunks=selected.chunks,
-        )
+        return _current_prompt(selected)
 
     def replay(
         self, intent: GroundedModelPatchIntent, outcome: GroundedModelPatchOutcome | None
@@ -65,6 +76,7 @@ class SavedGroundedPatchWorkflow:
                 baseline=selected.baseline,
                 chunks=selected.chunks,
                 allow_local_context=True,
+                prompt_policy=grounded_patch_policy_for_instructions(intent.instructions_sha256),
             )
             context = json.loads(selected.prompt.context_json)
             if (
@@ -120,8 +132,6 @@ class SavedGroundedPatchWorkflow:
         options = GenerateModelPatch.model_validate_json(options.model_dump_json())
         if options.allow_local_model_context is not True:
             # Keep the same permission boundary before reading a saved attempt.
-            from app.patching.saved_model import SavedModelPatchUnavailable
-
             raise SavedModelPatchUnavailable("Explicit local model context permission is required.")
         saved = self.records.get(options.patch_id)
         if saved is not None:
@@ -137,15 +147,7 @@ class SavedGroundedPatchWorkflow:
             raise ModelPatchDisabled()
         with runtime.grounded_patch_provider() as provider:
             selected, source, baseline = self.legacy.prepare(options)
-            prepared = build_grounded_patch_prompt(
-                selected.before,
-                finding=selected.finding,
-                source_sha256=selected.source_sha256,
-                reference_id=selected.reference_id,
-                baseline=selected.baseline,
-                chunks=selected.chunks,
-                allow_local_context=True,
-            )
+            prepared = _current_prompt(selected)
             context = json.loads(selected.prompt.context_json)
             intent = GroundedModelPatchIntent(
                 request=options,

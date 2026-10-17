@@ -273,7 +273,9 @@ class LocalInstructProvider:
             if self._grounded_patch_generation_enabled:
                 from app.explanation.grounded_patch import (
                     GROUND_PATCH_INSTRUCTIONS,
+                    SCOPED_GROUND_PATCH_INSTRUCTIONS,
                     GroundedPatchAnswer,
+                    recheck_scoped_grounded_patch_prompt,
                 )
 
                 contracts.add(
@@ -282,6 +284,9 @@ class LocalInstructProvider:
                         json.dumps(GroundedPatchAnswer.model_json_schema(), sort_keys=True),
                     )
                 )
+                if prompt.instructions == SCOPED_GROUND_PATCH_INSTRUCTIONS:
+                    recheck_scoped_grounded_patch_prompt(prompt)
+                    contracts.add((prompt.instructions, prompt.answer_schema_json))
             if self._grounded_explanation_enabled:
                 from app.explanation.grounded_explanation import (
                     GROUNDED_EXPLANATION_INSTRUCTIONS,
