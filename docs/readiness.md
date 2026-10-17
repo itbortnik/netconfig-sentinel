@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-16 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-17 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -24,6 +24,33 @@
 | Раздельные метрики | [Общий evaluator](offline-evaluation.md) и origin/vendor/role/unseen slices; measured synthetic reports | Real-confirmed/independent-test данные отсутствуют; `missing` не означает ноль ошибок или пройденный gate |
 
 ## Количественные и модельные ограничения
+
+[Offline калибровка пяти классов anomaly severity](offline-evaluation.md#five-class-anomaly-severity)
+добавляет shared multiclass temperature, пять OVR-порогов, reliability/ECE и
+раздельные cohort/vendor/role/unseen slices. Полная reserved evaluation не
+используется для fit; apply повторно проверяет retained calibration input и
+точный artifact. Адаптер сохранённых native/foundation predictions проверяет
+source/annotation/report/exposure bindings и фактическую severity support,
+отклоняет отключённую голову и неизвестную truth без отбора удобных строк.
+Это функциональное продвижение §13C, не калибровка fused network risk.
+[Числовой installed CLI exercise](evaluation/authored-severity-calibration.json)
+использует 50+50 authored numeric entries, не конфигурации/устройства/сети и не
+предсказания нейросети. T=1 сохраняет вероятности/NLL, пять порогов равны0.3;
+это не улучшение качества или приёмка calibration. Operational labels и actual
+severity inference отсутствуют; четыре проверенных distinct candidate saved
+heads severity-disabled, без заявления exhaustive audit всех checkpoints.
+Real-confirmed/laboratory metrics missing, physical independence не доказана;
+production/registry/risk/finding/patch состояния не меняются.
+Локальный полный run:3767pass/18skips/5warnings/91%coverage; он собран до
+последнего исправления проверки support и шести новых regression cases.
+Финальные source-related проверки:271pass/3actual Windows symlink skips;
+installed:300pass на каждом Pydantic2.13.5/2.14.0, включая32adapter cases.
+Все8числовых CLI процессов прошли, шесть outputs между версиями byte-equal.
+248runtime/3assets source-equal;243old runtime и439history hashes сохранены.
+Ruff/mypy default/Linux/win32 pass; independent review выявил и проверил
+исправление support mismatch. Local live engine/DB пропущены; UI не менялся,
+новый browser workflow или inference этим numerical exercise не выполнялись.
+Новый exact-commit CI после публикации проверяется отдельно.
 
 Новый opt-in [ordinary closed-fact explanation](grounded-explanations.md) добавляет
 отдельный v2 API/UI путь §§17/23.7. Модель выбирает только bound refs/codes, server

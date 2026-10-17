@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, Protocol
 
 import numpy as np
 from sklearn.metrics import auc, average_precision_score, precision_recall_curve
@@ -224,12 +224,20 @@ def calibration_metrics(
     )
 
 
+class BinaryMetricPolicy(Protocol):
+    @property
+    def reliability_bins(self) -> int: ...
+
+    @property
+    def score_kind(self) -> str: ...
+
+
 def binary_metrics(
     label: str,
     truth: Sequence[bool],
     scores: Sequence[float],
     threshold: float,
-    protocol: EvaluationProtocol,
+    protocol: BinaryMetricPolicy,
 ) -> BinaryMetrics:
     predicted = [score > threshold for score in scores]
     tp = sum(actual and selected for actual, selected in zip(truth, predicted, strict=True))

@@ -4,7 +4,8 @@
 It does not change findings, detector confidence, severity, online risk, registry
 activation, patch status or verification. It requires no network service, model
 download or additional dependency. The generic metric and calibration commands
-do not require PyTorch; only the frozen-probe adapter uses the training extra.
+do not require PyTorch; the frozen-probe and explicitly called retained native/
+foundation prediction adapters use the training extra.
 
 ## Inputs and evidence
 
@@ -160,6 +161,85 @@ the chosen thresholds/exposures without changing truth or model weights. Reusing
 the fitting cases is allowed only as a labeled diagnostic, not a held-out pass.
 The current three-example selection fixture cannot fit a valid calibration
 artifact and has not been used to claim calibrated real-world probabilities.
+
+## Five-class anomaly severity
+
+An explicit `severity-evaluation-0.1.0` protocol evaluates the existing anomaly
+severity target in this fixed order: `info`, `low`, `medium`, `high`, `critical`.
+This is separate from the four-band fused network risk. Category probabilities,
+binary anomaly scores and missing severity labels cannot substitute for this
+target. Every row needs positive anomaly truth, a known severity and five finite
+probabilities in [0, 1] summing to one within `1e-6`; inputs are not normalized.
+
+The protocol pins model, tokenizer/training report when applicable, dataset,
+annotation and threshold bindings, plus train/selection/calibration identities.
+It reserves the complete evaluation identity set before fitting. An independent
+evaluation must match that entire reservation and remain disjoint from every
+fitting partition in source/family/device/site/network keys. These checks do not
+establish physical or temporal independence, label truth, source rights or model
+execution. Authored numeric fixtures have explicit `authored_severity_fixture`
+targets and `authored_numeric_fixture` scores, no training/tokenizer claim and
+only a synthetic cohort. Their model hash identifies the numeric producer policy.
+
+`fit-severity` requires a fresh separate calibration partition, disjoint from
+train, selection and reserved evaluation. It searches one shared multiclass
+temperature over the recorded grid, minimizing categorical NLL. It uses
+`p^(1/T) / sum(p^(1/T))`, preserves zero probabilities and leaves identity T=1
+exactly unchanged; NLL alone clips at `1e-12`. Individual one-vs-rest NLL values
+need not improve. Each class needs at least ten positives and ten negatives by
+default. Five independent OVR thresholds maximize F1, then precision, then the
+highest tied threshold, using strict `probability > threshold`. Multiple classes
+or no class can cross these thresholds; they are not a unique risk verdict.
+
+```powershell
+python -m ml.evaluation.calibration_cli fit-severity --input artifacts/severity-calibration-input.json --output artifacts/severity-calibration.json
+python -m ml.evaluation.calibration_cli apply-severity --input artifacts/severity-evaluation-input.json --calibration artifacts/severity-calibration.json --calibration-input artifacts/severity-calibration-input.json --output artifacts/severity-calibrated.json
+python -m ml.evaluation.cli --task severity --input artifacts/severity-calibrated.json --output artifacts/severity-metrics.json --reliability-svg artifacts/severity-reliability.svg
+```
+
+Apply requires the retained fitting input and deterministically reproduces the
+entire artifact using its recorded policy. It rejects tampering, changed model/
+corpus/exposures, reserved-test fitting and repeated application. It records the
+raw application input hash and preserves source, annotation and prediction
+bindings; transformed probabilities and fitted thresholds are new output. Raw
+input, private exposure lists and old detection/calibration 0.1 artifacts remain
+unchanged. Default CLI behavior still evaluates detection, not severity.
+
+`severity-metrics-0.1.0` reports class OVR precision/recall/F1/AP/PR-AUC and
+reliability/ECE/Brier, plus multiclass NLL/Brier and separate argmax accuracy,
+confusion matrix and top-label ECE. Cohort/vendor/role/unseen-site slices remain
+separate; absent laboratory and real-confirmed data stay missing. Reports contain
+aggregate exposure counts, not individual grouping identities. Role labels and
+model identifiers are still caller-supplied metadata: review them before sharing.
+The SVG renders only fixed class/origin labels and numbers in fifteen panels.
+
+`build_retained_severity_batch()` adapts explicitly supplied native/foundation
+`MultiTaskPrediction` rows without loading or executing weights. It checks the
+saved report, enabled severity objective, exact training/selection fingerprints,
+nonzero severity support matching retained labels, declared entity exposures,
+source text digests, source/annotation/model bindings, line count and raw complete
+probabilities. Unknown severity or any invalid row refuses the entire batch;
+there is no convenient successful subset. Importing the module does not load
+PyTorch; calling this adapter uses the existing optional training dependencies.
+Vendor labels remain declared metadata, not a vendor syntax qualification.
+Global dataset/annotation manifests are externally retained bindings and model
+SHA declarations do not authenticate weights or prove inference occurred.
+
+The [authored numeric exercise](evaluation/authored-severity-calibration.json)
+and [class reliability plot](evaluation/authored-severity-reliability.svg) exercise
+the installed CLI on 50 calibration and 50 reserved numeric entries, with ten
+declared targets per class in each table. These are not 100 configurations,
+devices or networks; each partition uses one hypothetical grouping key in each
+identity dimension. Vendor/role labels are hypothetical, and no operational
+annotations, model inference or new model training were performed by this run.
+Its optimum is T=1 with unchanged probabilities/NLL; fitted thresholds are 0.3.
+This demonstrates the numerical workflow, not calibration quality or model
+acceptance. Four distinct checked candidate native/foundation saved heads have
+severity disabled (the report pins their metadata); this is a bounded reuse
+check, not an audit of every saved checkpoint. No actual head produced these scores;
+actual severity training, reviewed labels and representative independent
+evaluation are still required. No online risk, registry, finding or patch state
+is changed by these commands.
 
 ## Measured example, not acceptance
 

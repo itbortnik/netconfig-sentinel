@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="820" viewBox="0 0 1120 820" role="img" aria-label="Severity class OVR reliability by origin">
+<rect width="1120" height="820" fill="white"/>
+<g font-family="sans-serif" fill="#203047">
+<text x="35" y="28" font-size="18">Offline severity class reliability</text>
+<text x="35" y="49" font-size="12">x: predicted class probability; y: observed class fraction. Dashed line: ideal.</text>
+<text x="45" y="80" font-size="13">synthetic: info</text>
+<path d="M45,95 V250 H200" stroke="#405064" fill="none"/>
+<path d="M45,250 L200,95" stroke="#8492a5" stroke-dasharray="4"/>
+<circle cx="52.291" cy="238.519" r="3.5" fill="#1765a8"><title>n=27</title></circle>
+<circle cx="67.630" cy="234.500" r="3.5" fill="#1765a8"><title>n=10</title></circle>
+<circle cx="82.975" cy="250.000" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="97.700" cy="146.667" r="3.5" fill="#1765a8"><title>n=3</title></circle>
+<circle cx="120.950" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="125.600" cy="250.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="139.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="160.475" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="170.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="187.600" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<polyline points="52.291,238.519 67.630,234.500 82.975,250.000 97.700,146.667 120.950,95.000 125.600,250.000 139.550,95.000 160.475,172.500 170.550,95.000 187.600,172.500" stroke="#1765a8" fill="none"/>
+<text x="45" y="272" font-size="12">ECE=0.1120; n=50</text>
+<text x="265" y="80" font-size="13">synthetic: low</text>
+<path d="M265,95 V250 H420" stroke="#405064" fill="none"/>
+<path d="M265,250 L420,95" stroke="#8492a5" stroke-dasharray="4"/>
+<circle cx="272.291" cy="238.519" r="3.5" fill="#1765a8"><title>n=27</title></circle>
+<circle cx="287.630" cy="234.500" r="3.5" fill="#1765a8"><title>n=10</title></circle>
+<circle cx="302.975" cy="250.000" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="317.700" cy="146.667" r="3.5" fill="#1765a8"><title>n=3</title></circle>
+<circle cx="340.950" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="345.600" cy="250.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="359.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="380.475" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="390.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="407.600" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<polyline points="272.291,238.519 287.630,234.500 302.975,250.000 317.700,146.667 340.950,95.000 345.600,250.000 359.550,95.000 380.475,172.500 390.550,95.000 407.600,172.500" stroke="#1765a8" fill="none"/>
+<text x="265" y="272" font-size="12">ECE=0.1120; n=50</text>
+<text x="485" y="80" font-size="13">synthetic: medium</text>
+<path d="M485,95 V250 H640" stroke="#405064" fill="none"/>
+<path d="M485,250 L640,95" stroke="#8492a5" stroke-dasharray="4"/>
+<circle cx="492.291" cy="238.519" r="3.5" fill="#1765a8"><title>n=27</title></circle>
+<circle cx="507.630" cy="234.500" r="3.5" fill="#1765a8"><title>n=10</title></circle>
+<circle cx="522.975" cy="250.000" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="537.700" cy="146.667" r="3.5" fill="#1765a8"><title>n=3</title></circle>
+<circle cx="560.950" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="565.600" cy="250.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="579.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="600.475" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="610.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="627.600" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<polyline points="492.291,238.519 507.630,234.500 522.975,250.000 537.700,146.667 560.950,95.000 565.600,250.000 579.550,95.000 600.475,172.500 610.550,95.000 627.600,172.500" stroke="#1765a8" fill="none"/>
+<text x="485" y="272" font-size="12">ECE=0.1120; n=50</text>
+<text x="705" y="80" font-size="13">synthetic: high</text>
+<path d="M705,95 V250 H860" stroke="#405064" fill="none"/>
+<path d="M705,250 L860,95" stroke="#8492a5" stroke-dasharray="4"/>
+<circle cx="712.291" cy="238.519" r="3.5" fill="#1765a8"><title>n=27</title></circle>
+<circle cx="727.630" cy="234.500" r="3.5" fill="#1765a8"><title>n=10</title></circle>
+<circle cx="742.975" cy="250.000" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="757.700" cy="146.667" r="3.5" fill="#1765a8"><title>n=3</title></circle>
+<circle cx="780.950" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="785.600" cy="250.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="799.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="820.475" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="830.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="847.600" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<polyline points="712.291,238.519 727.630,234.500 742.975,250.000 757.700,146.667 780.950,95.000 785.600,250.000 799.550,95.000 820.475,172.500 830.550,95.000 847.600,172.500" stroke="#1765a8" fill="none"/>
+<text x="705" y="272" font-size="12">ECE=0.1120; n=50</text>
+<text x="925" y="80" font-size="13">synthetic: critical</text>
+<path d="M925,95 V250 H1080" stroke="#405064" fill="none"/>
+<path d="M925,250 L1080,95" stroke="#8492a5" stroke-dasharray="4"/>
+<circle cx="932.291" cy="238.519" r="3.5" fill="#1765a8"><title>n=27</title></circle>
+<circle cx="947.630" cy="234.500" r="3.5" fill="#1765a8"><title>n=10</title></circle>
+<circle cx="962.975" cy="250.000" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="977.700" cy="146.667" r="3.5" fill="#1765a8"><title>n=3</title></circle>
+<circle cx="1000.950" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="1005.600" cy="250.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="1019.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="1040.475" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<circle cx="1050.550" cy="95.000" r="3.5" fill="#1765a8"><title>n=1</title></circle>
+<circle cx="1067.600" cy="172.500" r="3.5" fill="#1765a8"><title>n=2</title></circle>
+<polyline points="932.291,238.519 947.630,234.500 962.975,250.000 977.700,146.667 1000.950,95.000 1005.600,250.000 1019.550,95.000 1040.475,172.500 1050.550,95.000 1067.600,172.500" stroke="#1765a8" fill="none"/>
+<text x="925" y="272" font-size="12">ECE=0.1120; n=50</text>
+<text x="45" y="312" font-size="13">laboratory: info</text>
+<path d="M45,327 V482 H200" stroke="#405064" fill="none"/>
+<path d="M45,482 L200,327" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="45" y="504" font-size="12">missing data</text>
+<text x="265" y="312" font-size="13">laboratory: low</text>
+<path d="M265,327 V482 H420" stroke="#405064" fill="none"/>
+<path d="M265,482 L420,327" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="265" y="504" font-size="12">missing data</text>
+<text x="485" y="312" font-size="13">laboratory: medium</text>
+<path d="M485,327 V482 H640" stroke="#405064" fill="none"/>
+<path d="M485,482 L640,327" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="485" y="504" font-size="12">missing data</text>
+<text x="705" y="312" font-size="13">laboratory: high</text>
+<path d="M705,327 V482 H860" stroke="#405064" fill="none"/>
+<path d="M705,482 L860,327" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="705" y="504" font-size="12">missing data</text>
+<text x="925" y="312" font-size="13">laboratory: critical</text>
+<path d="M925,327 V482 H1080" stroke="#405064" fill="none"/>
+<path d="M925,482 L1080,327" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="925" y="504" font-size="12">missing data</text>
+<text x="45" y="544" font-size="13">real_confirmed: info</text>
+<path d="M45,559 V714 H200" stroke="#405064" fill="none"/>
+<path d="M45,714 L200,559" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="45" y="736" font-size="12">missing data</text>
+<text x="265" y="544" font-size="13">real_confirmed: low</text>
+<path d="M265,559 V714 H420" stroke="#405064" fill="none"/>
+<path d="M265,714 L420,559" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="265" y="736" font-size="12">missing data</text>
+<text x="485" y="544" font-size="13">real_confirmed: medium</text>
+<path d="M485,559 V714 H640" stroke="#405064" fill="none"/>
+<path d="M485,714 L640,559" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="485" y="736" font-size="12">missing data</text>
+<text x="705" y="544" font-size="13">real_confirmed: high</text>
+<path d="M705,559 V714 H860" stroke="#405064" fill="none"/>
+<path d="M705,714 L860,559" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="705" y="736" font-size="12">missing data</text>
+<text x="925" y="544" font-size="13">real_confirmed: critical</text>
+<path d="M925,559 V714 H1080" stroke="#405064" fill="none"/>
+<path d="M925,714 L1080,559" stroke="#8492a5" stroke-dasharray="4"/>
+<text x="925" y="736" font-size="12">missing data</text>
+<text x="35" y="805" font-size="12">Severity classifier only; no fused-risk update, physical independence or quality attestation.</text></g></svg>

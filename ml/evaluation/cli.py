@@ -10,6 +10,8 @@ from pydantic import ValidationError
 
 from ml.evaluation.contracts import COHORTS, EvaluationBatch
 from ml.evaluation.metrics import EvaluationReport, evaluate
+from ml.evaluation.severity import SeverityEvaluationReport, evaluate_severity
+from ml.evaluation.severity_contracts import SeverityEvaluationBatch
 
 MAX_JSON_BYTES = 64 * 1024 * 1024
 
@@ -35,6 +37,17 @@ def load_json(path: Path) -> object:
 
 def load_batch(path: Path) -> EvaluationBatch:
     return EvaluationBatch.model_validate(load_json(path))
+
+
+def load_severity_batch(path: Path) -> SeverityEvaluationBatch:
+    data = load_json(path)
+    if (
+        not isinstance(data, dict)
+        or not isinstance(data.get("protocol"), dict)
+        or (data["protocol"].get("version") != "severity-evaluation-0.1.0")
+    ):
+        raise ValueError("explicit severity protocol version is required")
+    return SeverityEvaluationBatch.model_validate(data)
 
 
 def reliability_svg(report: EvaluationReport) -> str:
@@ -85,7 +98,11 @@ def reliability_svg(report: EvaluationReport) -> str:
     return "\n".join(parts) + "\n"
 
 
-def write_report(report: EvaluationReport, output: Path, diagram: Path | None = None) -> None:
+def write_report(
+    report: EvaluationReport | SeverityEvaluationReport,
+    output: Path,
+    diagram: Path | None = None,
+) -> None:
     if (
         output.exists()
         or output.is_symlink()
@@ -101,7 +118,12 @@ def write_report(report: EvaluationReport, output: Path, diagram: Path | None = 
         stream.write(report.model_dump_json(indent=2) + "\n")
     if diagram is not None:
         with diagram.open("x", encoding="utf-8") as stream:
-            stream.write(reliability_svg(report))
+            if isinstance(report, SeverityEvaluationReport):
+                from ml.evaluation.severity_diagram import severity_reliability_svg
+
+                stream.write(severity_reliability_svg(report))
+            else:
+                stream.write(reliability_svg(report))
 
 
 def main() -> None:
@@ -109,11 +131,16 @@ def main() -> None:
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reliability-svg", type=Path)
+    parser.add_argument("--task", choices=("detection", "severity"), default="detection")
     args = parser.parse_args()
     try:
-        report = evaluate(load_batch(args.input))
+        report = (
+            evaluate_severity(load_severity_batch(args.input))
+            if args.task == "severity"
+            else evaluate(load_batch(args.input))
+        )
         write_report(report, args.output, args.reliability_svg)
-    except (OSError, ValueError, ValidationError):
+    except (OSError, ValueError, ValidationError, RecursionError):
         parser.exit(
             2, "Offline evaluation failed: check local input, exposure and output contracts.\n"
         )
