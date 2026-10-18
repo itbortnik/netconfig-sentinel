@@ -73,6 +73,15 @@ import {
 } from "./configurationModels";
 import type { RunConfigurationModel } from "./configurationModels";
 import {
+  runSourceMlRecheckSchema,
+  sourceMlCapabilitiesSchema,
+  sourceMlRecheckSchema,
+  sourceMlSummarySchema,
+  sourceMlSummaryBound,
+  sourceMlRecheckBound,
+} from "./sourceMlRecheck";
+import type { RunSourceMlRecheck, SourceMlSummary } from "./sourceMlRecheck";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -179,7 +188,8 @@ export class ApiClient {
       | GenerateModelPatch
       | VerifyModelPatch
       | DecideModelPatch
-      | RunConfigurationModel,
+      | RunConfigurationModel
+      | RunSourceMlRecheck,
     namespace: "v1" | "v2" = "v1",
   ): Promise<T> {
     if (this.controller.signal.aborted)
@@ -461,6 +471,73 @@ export class ApiClient {
       undefined,
       "v2",
     );
+  }
+  sourceMlCapabilities() {
+    return this.request(
+      "/patches/ml-capabilities",
+      sourceMlCapabilitiesSchema,
+      undefined,
+      "v2",
+    );
+  }
+  async sourceMlRechecks(draft: PatchDraft, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/ml-rechecks?limit=20&offset=${offset}`,
+      z.array(sourceMlSummarySchema).max(20),
+      undefined,
+      "v2",
+    );
+    if (
+      rows.some((row) => !sourceMlSummaryBound(row, draft)) ||
+      new Set(rows.map((row) => row.recheck_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История парного ML-пересчёта не соответствует черновику.",
+      );
+    return rows;
+  }
+  async sourceMlRecheck(
+    draft: PatchDraft,
+    id: string,
+    request?: RunSourceMlRecheck,
+    summary?: SourceMlSummary,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/ml-rechecks/${encodeURIComponent(id)}`,
+      sourceMlRecheckSchema,
+      undefined,
+      "v2",
+    );
+    if (
+      row.recheck_id !== id ||
+      !(await sourceMlRecheckBound(row, draft, request, summary))
+    )
+      throw new ApiError(0, "Привязки парного ML-пересчёта не подтверждены.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async runSourceMlRecheck(draft: PatchDraft, options: RunSourceMlRecheck) {
+    const request = runSourceMlRecheckSchema.parse(options);
+    if (!request.allow_local_model_context)
+      throw new ApiError(
+        403,
+        "Требуется отдельное разрешение локального парного inference.",
+      );
+    if (request.draft_sha256 !== draft.draft_sha256)
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/ml-rechecks`,
+      sourceMlRecheckSchema,
+      request,
+      "v2",
+    );
+    if (!(await sourceMlRecheckBound(row, draft, request)))
+      throw new ApiError(0, "Привязки парного ML-пересчёта не подтверждены.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
   }
   async sourcePatchVerifications(draft: PatchDraft, offset = 0) {
     const rows = await this.request(

@@ -1,0 +1,467 @@
+{
+  "calibration_proven": false,
+  "change_specific_risk_proven": false,
+  "completed_utc": "2026-10-18T17:40:01.034697+00:00",
+  "execution": "actual_existing_native_cpu_worker",
+  "formal_verification": "not_run",
+  "independent_quality_proven": false,
+  "independent_test_denominator": null,
+  "inputs": "two authored software controls, no external or real network corpus",
+  "limitations": [
+    "The selected model supports telnet_enabled only.",
+    "Score changes do not establish remediation, safety, calibration or independent detector quality.",
+    "Own line coordinates can differ; deleted lines have no after-source row.",
+    "The route control is outside the selected model's class inventory."
+  ],
+  "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+  "new_training": false,
+  "new_weights": false,
+  "paired_reports": 2,
+  "protocol_sha256": "fc751152d058ce0fc9125c77354b83fa2e81a708a0c17ca31f723079e502bda9",
+  "records": [
+    {
+      "case": "telnet_source_edit",
+      "elapsed_seconds": 4.05550939999921,
+      "historical_snapshots_equal": true,
+      "latency_scope": "HTTP paired subprocess plus fresh model load and two forward passes",
+      "recheck": {
+        "applied": false,
+        "approved": false,
+        "calibrated": false,
+        "draft_sha256": "1e055da914ccad7989addbb41da23dee7f4b551a4a13d48b1e5b0a8378e583c9",
+        "execution_status": "completed",
+        "formal_verification": "not_run",
+        "intent": {
+          "after": {
+            "canonical_sha256": "a9ef12606a86b2469f1c936548106c0b0bad11d6d004a1323224ce9a74758fed",
+            "configuration_id": "6b330ab5-af3c-4676-a6ea-6c7c163c632a",
+            "created_at": "2026-10-18T17:39:52.508346Z",
+            "device_id": "73335097-e8b3-47ec-a3f3-5c8e3db99e69",
+            "source_sha256": "d2ed4db1c3aeacaf31f41d0c5ff007200c18bfe901d1eee7bbd47240fca8354b",
+            "total_lines": 8
+          },
+          "before": {
+            "canonical_sha256": "de60cefb83fe6b6bbf4566f657449bc241251fabafdb1f6cb9eaeddb1df48dc4",
+            "configuration_id": "2daa6aa7-2d3f-4863-adf7-dca31ca79341",
+            "created_at": "2026-10-18T17:39:52.489494Z",
+            "device_id": "73335097-e8b3-47ec-a3f3-5c8e3db99e69",
+            "source_sha256": "4121e072e0c79f3cd9eaf6073ab9cff9bee4cd57b6879157e48621a0a8d1952c",
+            "total_lines": 7
+          },
+          "created_at": "2026-10-18T17:39:52.565571Z",
+          "patch_id": "3aed601c-c4d3-460e-8dbe-4a82cbf5feeb",
+          "request": {
+            "allow_local_model_context": true,
+            "draft_sha256": "1e055da914ccad7989addbb41da23dee7f4b551a4a13d48b1e5b0a8378e583c9",
+            "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+            "recheck_id": "eb4f096e-51b2-4211-ba66-dab02386b2d1",
+            "version": "source-ml-request-0.1.0"
+          },
+          "version": "source-ml-intent-0.1.0"
+        },
+        "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+        "outcome": {
+          "completed_at": "2026-10-18T17:39:56.588087Z",
+          "execution_status": "completed",
+          "failure_reason": null,
+          "intent_sha256": "bf0ed6d50b472a91ab27b505938b756b8f26692a13030a0c6e90e61ca7e320d4",
+          "recheck_id": "eb4f096e-51b2-4211-ba66-dab02386b2d1",
+          "report": {
+            "after": {
+              "calibrated": false,
+              "model": {
+                "activated": false,
+                "calibrated": false,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "enabled_heads": {
+                  "anomaly": true,
+                  "category": true,
+                  "contrastive": true,
+                  "localization": true,
+                  "severity": false
+                },
+                "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+                "external_pretraining_exposure": "not_applicable",
+                "kind": "native",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "parameter_count": 56718,
+                "production_quality_proven": false,
+                "report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+                "selection_examples": 12,
+                "selection_fingerprint": "95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0",
+                "source_manifest_sha256": "4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd",
+                "status": "experimental",
+                "target_semantics": "injected_mutation",
+                "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+                "train_examples": 48,
+                "train_fingerprint": "db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51",
+                "trainable_parameters": 3993,
+                "training_format": "multitask-training-0.2.0",
+                "version": "config-model-card-0.1.0"
+              },
+              "prediction": {
+                "anomaly_score": 0.29535743594169617,
+                "block_attention": [
+                  0.1946811079978943,
+                  0.13336816430091858,
+                  0.20240168273448944,
+                  0.4695490896701813
+                ],
+                "calibrated": false,
+                "category_scores": {
+                  "telnet_enabled": 0.31807848811149597
+                },
+                "embedding_dimensions": 64,
+                "embedding_sha256": "1c09641a2aeb8d4318619bdce3fd00c6ba28f53163763a65475c414d5b4b0acf",
+                "line_scores": [
+                  0.0700039491057396,
+                  0.05240725353360176,
+                  0.06922059506177902,
+                  0.0619092620909214,
+                  0.08719057589769363,
+                  0.0707421600818634,
+                  0.08098003268241882,
+                  0.09616059809923172
+                ],
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "raw_source_sha256": "d2ed4db1c3aeacaf31f41d0c5ff007200c18bfe901d1eee7bbd47240fca8354b",
+                "replacement_counts": {
+                  "hostname": 1,
+                  "ip_address": 1
+                },
+                "sanitized_source_sha256": "c2ffd92f1a25db36d7c1a50a34ba3c9f9bf4f23550ad0ab8cd83b6f39ea3a733",
+                "severity_scores": null,
+                "total_lines": 8
+              },
+              "production_quality_proven": false,
+              "quality_evaluated": false,
+              "risk_fused": false,
+              "runtime_torch_version": "2.14.0+cpu",
+              "sanitization_version": "config-sanitizer-0.1.0",
+              "version": "configuration-inference-0.1.0"
+            },
+            "before": {
+              "calibrated": false,
+              "model": {
+                "activated": false,
+                "calibrated": false,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "enabled_heads": {
+                  "anomaly": true,
+                  "category": true,
+                  "contrastive": true,
+                  "localization": true,
+                  "severity": false
+                },
+                "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+                "external_pretraining_exposure": "not_applicable",
+                "kind": "native",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "parameter_count": 56718,
+                "production_quality_proven": false,
+                "report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+                "selection_examples": 12,
+                "selection_fingerprint": "95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0",
+                "source_manifest_sha256": "4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd",
+                "status": "experimental",
+                "target_semantics": "injected_mutation",
+                "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+                "train_examples": 48,
+                "train_fingerprint": "db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51",
+                "trainable_parameters": 3993,
+                "training_format": "multitask-training-0.2.0",
+                "version": "config-model-card-0.1.0"
+              },
+              "prediction": {
+                "anomaly_score": 0.2965564727783203,
+                "block_attention": [
+                  0.33287423849105835,
+                  0.22803865373134613,
+                  0.4390870928764343
+                ],
+                "calibrated": false,
+                "category_scores": {
+                  "telnet_enabled": 0.3172285556793213
+                },
+                "embedding_dimensions": 64,
+                "embedding_sha256": "6fb0b9acd48c543f4911297e3928f4f7763599f87df7db29f628a438fe88038c",
+                "line_scores": [
+                  0.0700039491057396,
+                  0.05240725353360176,
+                  0.06922059506177902,
+                  0.0619092620909214,
+                  0.09418396651744843,
+                  0.08512581884860992,
+                  0.05261378362774849
+                ],
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "raw_source_sha256": "4121e072e0c79f3cd9eaf6073ab9cff9bee4cd57b6879157e48621a0a8d1952c",
+                "replacement_counts": {
+                  "hostname": 1,
+                  "ip_address": 1
+                },
+                "sanitized_source_sha256": "11e1ff1f7b5ae36a555fc6eed168a7a403fe1b7e4c2cee7398ca4120a86873ea",
+                "severity_scores": null,
+                "total_lines": 7
+              },
+              "production_quality_proven": false,
+              "quality_evaluated": false,
+              "risk_fused": false,
+              "runtime_torch_version": "2.14.0+cpu",
+              "sanitization_version": "config-sanitizer-0.1.0",
+              "version": "configuration-inference-0.1.0"
+            },
+            "interpretation": "experimental_scores_not_change_validation",
+            "version": "configuration-pair-inference-0.1.0"
+          },
+          "version": "source-ml-outcome-0.1.0"
+        },
+        "patch_id": "3aed601c-c4d3-460e-8dbe-4a82cbf5feeb",
+        "quality_proven": false,
+        "recheck_id": "eb4f096e-51b2-4211-ba66-dab02386b2d1",
+        "review_json": "{\"applied\":false,\"approved\":false,\"calibrated\":false,\"draft_sha256\":\"1e055da914ccad7989addbb41da23dee7f4b551a4a13d48b1e5b0a8378e583c9\",\"execution_status\":\"completed\",\"formal_verification\":\"not_run\",\"intent\":{\"after\":{\"canonical_sha256\":\"a9ef12606a86b2469f1c936548106c0b0bad11d6d004a1323224ce9a74758fed\",\"configuration_id\":\"6b330ab5-af3c-4676-a6ea-6c7c163c632a\",\"created_at\":\"2026-10-18T17:39:52.508346Z\",\"device_id\":\"73335097-e8b3-47ec-a3f3-5c8e3db99e69\",\"source_sha256\":\"d2ed4db1c3aeacaf31f41d0c5ff007200c18bfe901d1eee7bbd47240fca8354b\",\"total_lines\":8},\"before\":{\"canonical_sha256\":\"de60cefb83fe6b6bbf4566f657449bc241251fabafdb1f6cb9eaeddb1df48dc4\",\"configuration_id\":\"2daa6aa7-2d3f-4863-adf7-dca31ca79341\",\"created_at\":\"2026-10-18T17:39:52.489494Z\",\"device_id\":\"73335097-e8b3-47ec-a3f3-5c8e3db99e69\",\"source_sha256\":\"4121e072e0c79f3cd9eaf6073ab9cff9bee4cd57b6879157e48621a0a8d1952c\",\"total_lines\":7},\"created_at\":\"2026-10-18T17:39:52.565571Z\",\"patch_id\":\"3aed601c-c4d3-460e-8dbe-4a82cbf5feeb\",\"request\":{\"allow_local_model_context\":true,\"draft_sha256\":\"1e055da914ccad7989addbb41da23dee7f4b551a4a13d48b1e5b0a8378e583c9\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"recheck_id\":\"eb4f096e-51b2-4211-ba66-dab02386b2d1\",\"version\":\"source-ml-request-0.1.0\"},\"version\":\"source-ml-intent-0.1.0\"},\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"outcome\":{\"completed_at\":\"2026-10-18T17:39:56.588087Z\",\"execution_status\":\"completed\",\"failure_reason\":null,\"intent_sha256\":\"bf0ed6d50b472a91ab27b505938b756b8f26692a13030a0c6e90e61ca7e320d4\",\"recheck_id\":\"eb4f096e-51b2-4211-ba66-dab02386b2d1\",\"report\":{\"after\":{\"calibrated\":false,\"model\":{\"activated\":false,\"calibrated\":false,\"classes\":[\"telnet_enabled\"],\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"parameter_count\":56718,\"production_quality_proven\":false,\"report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"selection_examples\":12,\"selection_fingerprint\":\"95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0\",\"source_manifest_sha256\":\"4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd\",\"status\":\"experimental\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"train_examples\":48,\"train_fingerprint\":\"db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51\",\"trainable_parameters\":3993,\"training_format\":\"multitask-training-0.2.0\",\"version\":\"config-model-card-0.1.0\"},\"prediction\":{\"anomaly_score\":0.29535743594169617,\"block_attention\":[0.1946811079978943,0.13336816430091858,0.20240168273448944,0.4695490896701813],\"calibrated\":false,\"category_scores\":{\"telnet_enabled\":0.31807848811149597},\"embedding_dimensions\":64,\"embedding_sha256\":\"1c09641a2aeb8d4318619bdce3fd00c6ba28f53163763a65475c414d5b4b0acf\",\"line_scores\":[0.0700039491057396,0.05240725353360176,0.06922059506177902,0.0619092620909214,0.08719057589769363,0.0707421600818634,0.08098003268241882,0.09616059809923172],\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"raw_source_sha256\":\"d2ed4db1c3aeacaf31f41d0c5ff007200c18bfe901d1eee7bbd47240fca8354b\",\"replacement_counts\":{\"hostname\":1,\"ip_address\":1},\"sanitized_source_sha256\":\"c2ffd92f1a25db36d7c1a50a34ba3c9f9bf4f23550ad0ab8cd83b6f39ea3a733\",\"severity_scores\":null,\"total_lines\":8},\"production_quality_proven\":false,\"quality_evaluated\":false,\"risk_fused\":false,\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"version\":\"configuration-inference-0.1.0\"},\"before\":{\"calibrated\":false,\"model\":{\"activated\":false,\"calibrated\":false,\"classes\":[\"telnet_enabled\"],\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"parameter_count\":56718,\"production_quality_proven\":false,\"report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"selection_examples\":12,\"selection_fingerprint\":\"95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0\",\"source_manifest_sha256\":\"4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd\",\"status\":\"experimental\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"train_examples\":48,\"train_fingerprint\":\"db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51\",\"trainable_parameters\":3993,\"training_format\":\"multitask-training-0.2.0\",\"version\":\"config-model-card-0.1.0\"},\"prediction\":{\"anomaly_score\":0.2965564727783203,\"block_attention\":[0.33287423849105835,0.22803865373134613,0.4390870928764343],\"calibrated\":false,\"category_scores\":{\"telnet_enabled\":0.3172285556793213},\"embedding_dimensions\":64,\"embedding_sha256\":\"6fb0b9acd48c543f4911297e3928f4f7763599f87df7db29f628a438fe88038c\",\"line_scores\":[0.0700039491057396,0.05240725353360176,0.06922059506177902,0.0619092620909214,0.09418396651744843,0.08512581884860992,0.05261378362774849],\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"raw_source_sha256\":\"4121e072e0c79f3cd9eaf6073ab9cff9bee4cd57b6879157e48621a0a8d1952c\",\"replacement_counts\":{\"hostname\":1,\"ip_address\":1},\"sanitized_source_sha256\":\"11e1ff1f7b5ae36a555fc6eed168a7a403fe1b7e4c2cee7398ca4120a86873ea\",\"severity_scores\":null,\"total_lines\":7},\"production_quality_proven\":false,\"quality_evaluated\":false,\"risk_fused\":false,\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"version\":\"configuration-inference-0.1.0\"},\"interpretation\":\"experimental_scores_not_change_validation\",\"version\":\"configuration-pair-inference-0.1.0\"},\"version\":\"source-ml-outcome-0.1.0\"},\"patch_id\":\"3aed601c-c4d3-460e-8dbe-4a82cbf5feeb\",\"quality_proven\":false,\"recheck_id\":\"eb4f096e-51b2-4211-ba66-dab02386b2d1\",\"risk_fused\":false,\"status\":\"needs_review\",\"validation_blockers\":[\"formal_verification_not_run\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-ml-recheck-0.1.0\"}",
+        "review_sha256": "13ddf35a8f9337b9bede16b170f69c12d9070af2bb2c433af09904f09f87c17f",
+        "risk_fused": false,
+        "status": "needs_review",
+        "validation_blockers": [
+          "formal_verification_not_run",
+          "change_specific_ml_quality_not_proven",
+          "selected_model_independent_quality_not_proven",
+          "baseline_approval_not_proven",
+          "individual_engineer_review_required",
+          "device_syntax_not_verified",
+          "management_access_not_verified",
+          "rollback_not_verified"
+        ],
+        "version": "source-ml-recheck-0.1.0"
+      },
+      "replay_equal": true
+    },
+    {
+      "case": "unrelated_route_edit_control",
+      "elapsed_seconds": 4.2020217000008415,
+      "historical_snapshots_equal": true,
+      "latency_scope": "HTTP paired subprocess plus fresh model load and two forward passes",
+      "recheck": {
+        "applied": false,
+        "approved": false,
+        "calibrated": false,
+        "draft_sha256": "0aaba405af06eb3c20572dc803dcae9ea6c3458a879739b45726b531ef9811e5",
+        "execution_status": "completed",
+        "formal_verification": "not_run",
+        "intent": {
+          "after": {
+            "canonical_sha256": "5f28f04740a87adf9729cefb25d6b8115ff476baa289a844d84837120e5f7380",
+            "configuration_id": "edb2541d-0356-4b98-a242-1216d3edccf9",
+            "created_at": "2026-10-18T17:39:56.677726Z",
+            "device_id": "72588796-79b6-4ca5-9bfe-a9f624a4c1b1",
+            "source_sha256": "f6cb2024d55505d396380863eff76f2f0d03eff5c083ed18dadb3208248de21e",
+            "total_lines": 5
+          },
+          "before": {
+            "canonical_sha256": "988333c8d96591bd582d02ac69ebe80ba9aefaffeb34dcb7a979a8845d1e0e6d",
+            "configuration_id": "0e95b6bf-e14b-442e-ba64-09ce9ee9ae39",
+            "created_at": "2026-10-18T17:39:56.661647Z",
+            "device_id": "72588796-79b6-4ca5-9bfe-a9f624a4c1b1",
+            "source_sha256": "09d4190df915e55c3454e95c8e472f41c5e4b812ee6317439acead1d16a8fac9",
+            "total_lines": 5
+          },
+          "created_at": "2026-10-18T17:39:56.715388Z",
+          "patch_id": "7e2ee481-4ea1-489a-9a14-3ec83ebde4cc",
+          "request": {
+            "allow_local_model_context": true,
+            "draft_sha256": "0aaba405af06eb3c20572dc803dcae9ea6c3458a879739b45726b531ef9811e5",
+            "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+            "recheck_id": "4b9b3412-25f4-47da-940f-03b6648c3780",
+            "version": "source-ml-request-0.1.0"
+          },
+          "version": "source-ml-intent-0.1.0"
+        },
+        "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+        "outcome": {
+          "completed_at": "2026-10-18T17:40:00.892376Z",
+          "execution_status": "completed",
+          "failure_reason": null,
+          "intent_sha256": "c5a04a75421727992bb0dc624cabd99c2f2acbb6f7dcb8b5be642b53973cafcd",
+          "recheck_id": "4b9b3412-25f4-47da-940f-03b6648c3780",
+          "report": {
+            "after": {
+              "calibrated": false,
+              "model": {
+                "activated": false,
+                "calibrated": false,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "enabled_heads": {
+                  "anomaly": true,
+                  "category": true,
+                  "contrastive": true,
+                  "localization": true,
+                  "severity": false
+                },
+                "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+                "external_pretraining_exposure": "not_applicable",
+                "kind": "native",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "parameter_count": 56718,
+                "production_quality_proven": false,
+                "report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+                "selection_examples": 12,
+                "selection_fingerprint": "95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0",
+                "source_manifest_sha256": "4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd",
+                "status": "experimental",
+                "target_semantics": "injected_mutation",
+                "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+                "train_examples": 48,
+                "train_fingerprint": "db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51",
+                "trainable_parameters": 3993,
+                "training_format": "multitask-training-0.2.0",
+                "version": "config-model-card-0.1.0"
+              },
+              "prediction": {
+                "anomaly_score": 0.2735021114349365,
+                "block_attention": [
+                  0.3830092251300812,
+                  0.25566908717155457,
+                  0.3613217771053314
+                ],
+                "calibrated": false,
+                "category_scores": {
+                  "telnet_enabled": 0.277934193611145
+                },
+                "embedding_dimensions": 64,
+                "embedding_sha256": "2c2856b08b7be8482cc0d996a7f22e15e8a3cba741d631a9d5485ea51d25d2d7",
+                "line_scores": [
+                  0.07359630614519119,
+                  0.05299081653356552,
+                  0.0697902962565422,
+                  0.06141753867268562,
+                  0.06971624493598938
+                ],
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "raw_source_sha256": "f6cb2024d55505d396380863eff76f2f0d03eff5c083ed18dadb3208248de21e",
+                "replacement_counts": {
+                  "hostname": 1,
+                  "ip_address": 3
+                },
+                "sanitized_source_sha256": "0a46c349f88455b4db8bc05f61b979cc6c3a866d88b0911c249220f1909c1999",
+                "severity_scores": null,
+                "total_lines": 5
+              },
+              "production_quality_proven": false,
+              "quality_evaluated": false,
+              "risk_fused": false,
+              "runtime_torch_version": "2.14.0+cpu",
+              "sanitization_version": "config-sanitizer-0.1.0",
+              "version": "configuration-inference-0.1.0"
+            },
+            "before": {
+              "calibrated": false,
+              "model": {
+                "activated": false,
+                "calibrated": false,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "enabled_heads": {
+                  "anomaly": true,
+                  "category": true,
+                  "contrastive": true,
+                  "localization": true,
+                  "severity": false
+                },
+                "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+                "external_pretraining_exposure": "not_applicable",
+                "kind": "native",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "parameter_count": 56718,
+                "production_quality_proven": false,
+                "report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+                "selection_examples": 12,
+                "selection_fingerprint": "95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0",
+                "source_manifest_sha256": "4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd",
+                "status": "experimental",
+                "target_semantics": "injected_mutation",
+                "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+                "train_examples": 48,
+                "train_fingerprint": "db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51",
+                "trainable_parameters": 3993,
+                "training_format": "multitask-training-0.2.0",
+                "version": "config-model-card-0.1.0"
+              },
+              "prediction": {
+                "anomaly_score": 0.2730313539505005,
+                "block_attention": [
+                  0.39671286940574646,
+                  0.26481664180755615,
+                  0.3384705185890198
+                ],
+                "calibrated": false,
+                "category_scores": {
+                  "telnet_enabled": 0.2747076749801636
+                },
+                "embedding_dimensions": 64,
+                "embedding_sha256": "d6a2fcef40a08fc530d6608f737bde7dc9bdf0a6a52442dfc6965530becf6cab",
+                "line_scores": [
+                  0.07359630614519119,
+                  0.05299081653356552,
+                  0.0697902962565422,
+                  0.06141753867268562,
+                  0.06937051564455032
+                ],
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "raw_source_sha256": "09d4190df915e55c3454e95c8e472f41c5e4b812ee6317439acead1d16a8fac9",
+                "replacement_counts": {
+                  "hostname": 1,
+                  "ip_address": 3
+                },
+                "sanitized_source_sha256": "aa3b4d6ea10537097b6e9faaf832ef5371b85203fe5371ff20f7c6099049e52f",
+                "severity_scores": null,
+                "total_lines": 5
+              },
+              "production_quality_proven": false,
+              "quality_evaluated": false,
+              "risk_fused": false,
+              "runtime_torch_version": "2.14.0+cpu",
+              "sanitization_version": "config-sanitizer-0.1.0",
+              "version": "configuration-inference-0.1.0"
+            },
+            "interpretation": "experimental_scores_not_change_validation",
+            "version": "configuration-pair-inference-0.1.0"
+          },
+          "version": "source-ml-outcome-0.1.0"
+        },
+        "patch_id": "7e2ee481-4ea1-489a-9a14-3ec83ebde4cc",
+        "quality_proven": false,
+        "recheck_id": "4b9b3412-25f4-47da-940f-03b6648c3780",
+        "review_json": "{\"applied\":false,\"approved\":false,\"calibrated\":false,\"draft_sha256\":\"0aaba405af06eb3c20572dc803dcae9ea6c3458a879739b45726b531ef9811e5\",\"execution_status\":\"completed\",\"formal_verification\":\"not_run\",\"intent\":{\"after\":{\"canonical_sha256\":\"5f28f04740a87adf9729cefb25d6b8115ff476baa289a844d84837120e5f7380\",\"configuration_id\":\"edb2541d-0356-4b98-a242-1216d3edccf9\",\"created_at\":\"2026-10-18T17:39:56.677726Z\",\"device_id\":\"72588796-79b6-4ca5-9bfe-a9f624a4c1b1\",\"source_sha256\":\"f6cb2024d55505d396380863eff76f2f0d03eff5c083ed18dadb3208248de21e\",\"total_lines\":5},\"before\":{\"canonical_sha256\":\"988333c8d96591bd582d02ac69ebe80ba9aefaffeb34dcb7a979a8845d1e0e6d\",\"configuration_id\":\"0e95b6bf-e14b-442e-ba64-09ce9ee9ae39\",\"created_at\":\"2026-10-18T17:39:56.661647Z\",\"device_id\":\"72588796-79b6-4ca5-9bfe-a9f624a4c1b1\",\"source_sha256\":\"09d4190df915e55c3454e95c8e472f41c5e4b812ee6317439acead1d16a8fac9\",\"total_lines\":5},\"created_at\":\"2026-10-18T17:39:56.715388Z\",\"patch_id\":\"7e2ee481-4ea1-489a-9a14-3ec83ebde4cc\",\"request\":{\"allow_local_model_context\":true,\"draft_sha256\":\"0aaba405af06eb3c20572dc803dcae9ea6c3458a879739b45726b531ef9811e5\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"recheck_id\":\"4b9b3412-25f4-47da-940f-03b6648c3780\",\"version\":\"source-ml-request-0.1.0\"},\"version\":\"source-ml-intent-0.1.0\"},\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"outcome\":{\"completed_at\":\"2026-10-18T17:40:00.892376Z\",\"execution_status\":\"completed\",\"failure_reason\":null,\"intent_sha256\":\"c5a04a75421727992bb0dc624cabd99c2f2acbb6f7dcb8b5be642b53973cafcd\",\"recheck_id\":\"4b9b3412-25f4-47da-940f-03b6648c3780\",\"report\":{\"after\":{\"calibrated\":false,\"model\":{\"activated\":false,\"calibrated\":false,\"classes\":[\"telnet_enabled\"],\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"parameter_count\":56718,\"production_quality_proven\":false,\"report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"selection_examples\":12,\"selection_fingerprint\":\"95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0\",\"source_manifest_sha256\":\"4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd\",\"status\":\"experimental\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"train_examples\":48,\"train_fingerprint\":\"db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51\",\"trainable_parameters\":3993,\"training_format\":\"multitask-training-0.2.0\",\"version\":\"config-model-card-0.1.0\"},\"prediction\":{\"anomaly_score\":0.2735021114349365,\"block_attention\":[0.3830092251300812,0.25566908717155457,0.3613217771053314],\"calibrated\":false,\"category_scores\":{\"telnet_enabled\":0.277934193611145},\"embedding_dimensions\":64,\"embedding_sha256\":\"2c2856b08b7be8482cc0d996a7f22e15e8a3cba741d631a9d5485ea51d25d2d7\",\"line_scores\":[0.07359630614519119,0.05299081653356552,0.0697902962565422,0.06141753867268562,0.06971624493598938],\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"raw_source_sha256\":\"f6cb2024d55505d396380863eff76f2f0d03eff5c083ed18dadb3208248de21e\",\"replacement_counts\":{\"hostname\":1,\"ip_address\":3},\"sanitized_source_sha256\":\"0a46c349f88455b4db8bc05f61b979cc6c3a866d88b0911c249220f1909c1999\",\"severity_scores\":null,\"total_lines\":5},\"production_quality_proven\":false,\"quality_evaluated\":false,\"risk_fused\":false,\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"version\":\"configuration-inference-0.1.0\"},\"before\":{\"calibrated\":false,\"model\":{\"activated\":false,\"calibrated\":false,\"classes\":[\"telnet_enabled\"],\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"parameter_count\":56718,\"production_quality_proven\":false,\"report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"selection_examples\":12,\"selection_fingerprint\":\"95ae4e955b9bf18d29734d87a686b5331c61ec1986285f02fa3b87f819b274e0\",\"source_manifest_sha256\":\"4d4976909371151f4a0b11067521bdcf44b4091c99aed925693eb5f24e6255fd\",\"status\":\"experimental\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"train_examples\":48,\"train_fingerprint\":\"db2206fe73f499b644f9ff335d972dc66f3b01cc97f41d502cbe95f6d08f2c51\",\"trainable_parameters\":3993,\"training_format\":\"multitask-training-0.2.0\",\"version\":\"config-model-card-0.1.0\"},\"prediction\":{\"anomaly_score\":0.2730313539505005,\"block_attention\":[0.39671286940574646,0.26481664180755615,0.3384705185890198],\"calibrated\":false,\"category_scores\":{\"telnet_enabled\":0.2747076749801636},\"embedding_dimensions\":64,\"embedding_sha256\":\"d6a2fcef40a08fc530d6608f737bde7dc9bdf0a6a52442dfc6965530becf6cab\",\"line_scores\":[0.07359630614519119,0.05299081653356552,0.0697902962565422,0.06141753867268562,0.06937051564455032],\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"raw_source_sha256\":\"09d4190df915e55c3454e95c8e472f41c5e4b812ee6317439acead1d16a8fac9\",\"replacement_counts\":{\"hostname\":1,\"ip_address\":3},\"sanitized_source_sha256\":\"aa3b4d6ea10537097b6e9faaf832ef5371b85203fe5371ff20f7c6099049e52f\",\"severity_scores\":null,\"total_lines\":5},\"production_quality_proven\":false,\"quality_evaluated\":false,\"risk_fused\":false,\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"version\":\"configuration-inference-0.1.0\"},\"interpretation\":\"experimental_scores_not_change_validation\",\"version\":\"configuration-pair-inference-0.1.0\"},\"version\":\"source-ml-outcome-0.1.0\"},\"patch_id\":\"7e2ee481-4ea1-489a-9a14-3ec83ebde4cc\",\"quality_proven\":false,\"recheck_id\":\"4b9b3412-25f4-47da-940f-03b6648c3780\",\"risk_fused\":false,\"status\":\"needs_review\",\"validation_blockers\":[\"formal_verification_not_run\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-ml-recheck-0.1.0\"}",
+        "review_sha256": "0001ac71cb10e38400220119c3742936da5ccf3af45b9131a7561c4c4f572ae3",
+        "risk_fused": false,
+        "status": "needs_review",
+        "validation_blockers": [
+          "formal_verification_not_run",
+          "change_specific_ml_quality_not_proven",
+          "selected_model_independent_quality_not_proven",
+          "baseline_approval_not_proven",
+          "individual_engineer_review_required",
+          "device_syntax_not_verified",
+          "management_access_not_verified",
+          "rollback_not_verified"
+        ],
+        "version": "source-ml-recheck-0.1.0"
+      },
+      "replay_equal": true
+    }
+  ],
+  "side_reports": 4,
+  "source_base_commit": "0e3778ac1624c72f64e8376532635e34d5e16160",
+  "supported_classes": [
+    "telnet_enabled"
+  ],
+  "version": "owned-source-ml-functional-0.1.0"
+}

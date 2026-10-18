@@ -197,6 +197,9 @@ export const runConfigurationModelSchema = z.strictObject({
   model_sha256: hash,
   allow_local_model_context: z.boolean().default(false),
 });
+export type ConfigurationInferenceReport = z.infer<
+  typeof configurationInferenceSchema
+>;
 export type RunConfigurationModel = z.infer<typeof runConfigurationModelSchema>;
 export const configurationModelCapabilitiesSchema = z
   .strictObject({

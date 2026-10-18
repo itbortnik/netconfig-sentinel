@@ -360,3 +360,14 @@ cross-runtime float serialization drift; the browser independently checks the
 outer proof and nested intent hash. Result digests cover the whole supplied
 network, separately from target source fingerprints. Scoped engine evidence
 does not approve the baseline, run ML, establish engineer identity or apply edits.
+
+The [ordinary source ML recheck](source-ml-rechecks.md) is a separate immutable
+attempt family. It shares the existing configuration-model runtime slot, prepares
+both complete retained-source envelopes before reservation, and runs one offline
+process with one loaded model/private key/device scope for both sides. Migration0012
+adds two encrypted tables; requested/completed domain audits are atomic. Source,
+canonical, model, own line coordinates and both JSON proof bindings are checked.
+No read accesses originals or invokes inference. Failure of either side retains
+no partial scores; pending remains execution-unknown. This evidence neither
+rewrites network0.1 ML-not-run history nor qualifies change-specific detector
+quality, formal status, risk fusion, engineer approval or application.

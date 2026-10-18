@@ -122,6 +122,25 @@ class SourcePatchOutcomeRow(Base):
     payload: Mapped[str] = mapped_column(Text)
 
 
+class SourceMlIntentRow(Base):
+    __tablename__ = "patch_ml_recheck_intents"
+    __table_args__ = (
+        Index("ix_patch_ml_recheck_intents_parent_created", "patch_id", "created_at", "id"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)
+
+
+class SourceMlOutcomeRow(Base):
+    __tablename__ = "patch_ml_recheck_outcomes"
+    recheck_id: Mapped[str] = mapped_column(
+        ForeignKey("patch_ml_recheck_intents.id"), primary_key=True
+    )
+    payload: Mapped[str] = mapped_column(Text)
+
+
 class ModelPatchIntentRow(Base):
     __tablename__ = "model_patch_intents"
     __table_args__ = (

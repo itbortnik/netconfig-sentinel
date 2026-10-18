@@ -5,6 +5,23 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Для §16.6 добавлена отдельная [парная ML-диагностика ordinary draft](source-ml-rechecks.md):
+exact retained before/after, один runtime slot/model/key, complete-parse admission,
+encrypted intent/outcome0012, immutable replay и API/UI с source/model/proof binding.
+[Actual existing CPU model](evaluation/owned-source-ml-functional.json) выполнила
+2 пары/4 side reports на authored Telnet/control inputs без новых весов/обучения;
+pure replays и snapshots сохранены. Класс только `telnet_enabled`, route control
+вне inventory. Это functional evidence, не independent quality, calibration,
+change-specific repair или повтор всех исходных детекторов. Network0.1/history
+не переписываются; needs_review/formal-not-run/approval-false остаются обязательными.
+Независимое read-only ревью backend/UI не нашло существенных замечаний. Local full:
+3992pass/25skip/5warnings,91%coverage; skipped — explicit live/DB и3Windows symlink.
+Installed274pass/7skip на каждом Pydantic2.13.5/2.14.0; последующее уточнение одного
+negative line-count case отдельно прошло source/обе installed версии.264runtime и
+3assets source-equal,254oldinstalled/503history hashes сохранены. Ruff/mypy264файла
+default/Linux/win32 pass; UI676unit,162regular+48model+8network+10ML browser pass.
+Локальный live engine/DB не запускались; exact-commit CI проверяется после публикации.
+
 ## Минимальные функциональные gates
 
 | Область | Фактическое состояние и evidence | Незакрытая граница |

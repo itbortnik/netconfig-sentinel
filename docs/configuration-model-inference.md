@@ -7,6 +7,11 @@ document retrieval, повторный policy-анализ или pre/post пр�
 scores не включаются в гибридный риск и не получают threshold/вердикт безопасности.
 Результат не подтверждает independent quality, formal pass, approval или применение.
 
+Для обычного сохранённого draft существует отдельная
+[парная диагностика exact originals](source-ml-rechecks.md). Она использует тот же
+runtime slot и operator pin, один model/key на обе стороны; текущие single-source
+контракты и история остаются прежними.
+
 ## Выбор оператора и API
 
 Default — disabled. Нужны authenticated persistent API, миграция

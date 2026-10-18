@@ -35,7 +35,7 @@ Offline-инструменты для исходных файлов описан
 
 Все операции требуют service bearer-token и [соответствующей роли](service-roles.md).
 Ключ не удостоверяет личность инженера. Для существующей БД после backup и сохранения
-старого ключа выполните явный upgrade до `0011_source_patch_reviews`:
+старого ключа выполните явный upgrade до `0012_source_ml_rechecks`:
 `python -m app.db.migrate`. Startup не меняет схему.
 
 | Операция | Путь |
@@ -205,3 +205,8 @@ UI после неопределённого ответа блокирует н�
 даже при ошибке SDK; история policies при чтении не пересчитывается. Проверка
 синтаксиса на устройстве, management access, rollback, approved baseline и
 индивидуальное инженерное решение остаются отдельными незакрытыми gates.
+
+Для тех же exact retained before/after доступна отдельная
+[парная ML-диагностика](source-ml-rechecks.md) без finding/analysis/model proposal.
+Её UUID, consent, intent/outcome и proof независимы от network0.1; она не меняет
+исторический `ml_status=not_run` сетевого отчёта или approval gates.

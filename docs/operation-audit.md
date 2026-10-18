@@ -9,7 +9,7 @@ Persistent API сохраняет receipt **до** выполнения `/api/v1
 ## Схема и содержимое
 
 Сохраните backup БД и прежний Fernet key, затем выполните `python -m app.db.migrate`
-в той же настроенной среде: требуется `0011_source_patch_reviews`. Startup не мигрирует
+в той же настроенной среде: требуется `0012_source_ml_rechecks`. Startup не мигрирует
 БД. Domain records и атомарные audit events сохраняются; прошедшим операциям receipt
 не приписывается. Новый журнал автоматически включён для актуального persistent API.
 На старой схеме business dependencies запрещают работу; запросы до upgrade в журнал
@@ -33,6 +33,9 @@ SQL раскрывает UUID и время строки, Fernet — время 
 Сетевая проверка ordinary draft журналирует allowlisted UUID/status/hashes,
 включая intent и review binding. Scope, hostname, preflight prose и raw SDK
 diagnostics в metadata не сериализуются; domain intent/outcome сохраняются отдельно.
+Парная ML-попытка ordinary draft связывает recheck/draft/model/review UUID/hashes,
+intent и execution status. Scores, model paths, private key и raw source в
+operation metadata не включаются; domain request/completion имеют атомарные события.
 Объяснение связывает hashes всех документов; semantic supplement — index SHA,
 публичный query SHA и fingerprint encoder identity с pipeline/runtime/weights revision.
 Модельный черновик — context SHA и SHA настроенного alias; alias не удостоверяет

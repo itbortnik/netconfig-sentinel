@@ -12,6 +12,7 @@ export default defineConfig({
     "**/modelPatches.spec.ts",
     "**/groundedExplanation.spec.ts",
     "**/sourcePatchVerification.spec.ts",
+    "**/sourceMlRecheck.spec.ts",
   ],
   timeout: 30_000,
   expect: { timeout: 10_000 },

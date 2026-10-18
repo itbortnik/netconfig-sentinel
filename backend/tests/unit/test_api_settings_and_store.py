@@ -92,6 +92,8 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "verification_runs",
             "patch_network_review_intents",
             "patch_network_review_outcomes",
+            "patch_ml_recheck_intents",
+            "patch_ml_recheck_outcomes",
             "operation_receipts",
             "operation_completions",
             "configuration_sources",

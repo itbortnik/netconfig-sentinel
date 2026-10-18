@@ -28,6 +28,66 @@ from cryptography.fernet import Fernet  # noqa: E402
 TOKEN = "browser-tests-service-token-32-characters-001"
 
 
+def synthetic_pair_worker(settings, job):
+    """Authored two-sided numbers; never an encoder or quality measurement."""
+    from ml.inference.config_contracts import ConfigurationInferenceReport
+    from ml.inference.pair_contracts import ConfigurationPairReport
+
+    if job.before.canonical.device.hostname.startswith("source-ml-fail"):
+        raise ValueError("owned fixture unavailable")
+
+    def side(source, anomaly, category):
+        return ConfigurationInferenceReport.model_validate(
+            {
+                "model": {
+                    "version": "config-model-card-0.1.0",
+                    "kind": "native",
+                    "model_sha256": job.model_sha256,
+                    "training_format": "multitask-training-0.1.0",
+                    "report_sha256": "b" * 64,
+                    "encoder_sha256": "c" * 64,
+                    "tokenizer_sha256": "d" * 64,
+                    "source_manifest_sha256": None,
+                    "train_fingerprint": "e" * 64,
+                    "selection_fingerprint": "f" * 64,
+                    "classes": ["telnet_enabled"],
+                    "enabled_heads": {
+                        "anomaly": True,
+                        "category": True,
+                        "localization": True,
+                        "severity": False,
+                        "contrastive": False,
+                    },
+                    "parameter_count": 200,
+                    "trainable_parameters": 100,
+                    "train_examples": 4,
+                    "selection_examples": 2,
+                    "target_semantics": "injected_mutation",
+                    "external_pretraining_exposure": "not_applicable",
+                },
+                "prediction": {
+                    "raw_source_sha256": source.snapshot.source_sha256,
+                    "sanitized_source_sha256": "1" * 64,
+                    "model_sha256": job.model_sha256,
+                    "total_lines": len(source.content.splitlines()),
+                    "anomaly_score": anomaly,
+                    "category_scores": {"telnet_enabled": category},
+                    "severity_scores": None,
+                    "line_scores": [0.2] + [None] * (len(source.content.splitlines()) - 1),
+                    "block_attention": [1.0],
+                    "embedding_sha256": None,
+                    "embedding_dimensions": 0,
+                    "replacement_counts": {},
+                },
+                "runtime_torch_version": "owned-browser-pair-fixture",
+            }
+        )
+
+    return ConfigurationPairReport(
+        before=side(job.before_source, 0.8, 0.6), after=side(job.after_source, 0.2, 0.3)
+    )
+
+
 class SyntheticProvider(BaseHTTPRequestHandler):
     """Fixed owned protocol fixture; no language model, engine or external service."""
 
@@ -145,6 +205,7 @@ def main() -> None:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--model-patch-fixture", action="store_true")
     mode.add_argument("--source-patch-fixture", action="store_true")
+    mode.add_argument("--source-ml-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -177,6 +238,15 @@ def main() -> None:
             )
         try:
             verification = None
+            configuration_model = None
+            if options.source_ml_fixture:
+                import app.patching.source_ml as source_ml_workflow
+                from app.core.configuration_model import ConfigurationModelSettings
+
+                configuration_model = ConfigurationModelSettings(
+                    registry_root=Path(temporary) / "synthetic-registry", model_sha256="9" * 64
+                )
+                source_ml_workflow.run_configuration_pair_job = synthetic_pair_worker
             if options.source_patch_fixture:
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
@@ -204,11 +274,14 @@ def main() -> None:
                 frontend_dir=REPOSITORY / "frontend" / "dist",
                 local_model=model,
                 patch_verification=verification,
+                configuration_model=configuration_model,
             )
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8303
+                port=8304
+                if options.source_ml_fixture
+                else 8303
                 if options.source_patch_fixture
                 else (8302 if options.model_patch_fixture else 8301),
                 log_level="warning",

@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:model-patches": "playwright test --config=playwright.model-patches.config.ts",
-    "test:e2e:source-patches": "playwright test --config=playwright.source-patches.config.ts"
+    "test:e2e:source-patches": "playwright test --config=playwright.source-patches.config.ts",
+    "test:e2e:source-ml": "playwright test --config=playwright.source-ml.config.ts"
   },
   "dependencies": {
     "react": "19.3.0",

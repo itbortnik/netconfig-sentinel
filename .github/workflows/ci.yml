@@ -122,6 +122,8 @@ jobs:
           backend/tests/integration/test_source_patch_review_api.py
           backend/tests/integration/test_source_patch_review_durability.py
           backend/tests/integration/test_source_patch_review_postgres.py
+          backend/tests/integration/test_source_ml_recheck_api.py
+          backend/tests/integration/test_source_ml_recheck_durability.py
           -k "not actual_isolated_native"
 
   frontend:
@@ -166,6 +168,8 @@ jobs:
         run: npm run test:e2e:model-patches
       - name: Check owned synthetic retained-source browser workflow
         run: npm run test:e2e:source-patches
+      - name: Check owned synthetic paired source model browser workflow
+        run: npm run test:e2e:source-ml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -173,6 +177,7 @@ jobs:
           path: |
             artifacts/browser-model-patches-junit.xml
             artifacts/browser-source-patches-junit.xml
+            artifacts/browser-source-ml-junit.xml
           retention-days: 14
       - run: docker compose up --build -d
         working-directory: .
