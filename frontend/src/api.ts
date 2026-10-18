@@ -27,6 +27,19 @@ import {
   verificationSummarySchema,
 } from "./patches";
 import type { CreatePatch, VerifyPatch } from "./patches";
+import type { PatchDraft } from "./patches";
+import {
+  sourcePatchCapabilitiesSchema,
+  sourcePatchVerificationSchema,
+  sourcePatchVerificationSummarySchema,
+  verifySourcePatchSchema,
+  sourceSummaryBound,
+  sourceVerificationBound,
+} from "./sourcePatchVerification";
+import type {
+  VerifySourcePatch,
+  SourcePatchVerificationSummary,
+} from "./sourcePatchVerification";
 import {
   generateModelPatchSchema,
   generationMatches,
@@ -162,6 +175,7 @@ export class ApiClient {
       | ExplainFinding
       | CreatePatch
       | VerifyPatch
+      | VerifySourcePatch
       | GenerateModelPatch
       | VerifyModelPatch
       | DecideModelPatch
@@ -439,6 +453,73 @@ export class ApiClient {
       "/model-patches/capabilities",
       modelPatchCapabilitiesSchema,
     );
+  }
+  sourcePatchCapabilities() {
+    return this.request(
+      "/patches/capabilities",
+      sourcePatchCapabilitiesSchema,
+      undefined,
+      "v2",
+    );
+  }
+  async sourcePatchVerifications(draft: PatchDraft, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/verifications?limit=20&offset=${offset}`,
+      z.array(sourcePatchVerificationSummarySchema).max(20),
+      undefined,
+      "v2",
+    );
+    if (
+      rows.some((row) => !sourceSummaryBound(row, draft)) ||
+      new Set(rows.map((row) => row.verification_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История сетевых проверок не соответствует черновику.",
+      );
+    return rows;
+  }
+  async sourcePatchVerification(
+    draft: PatchDraft,
+    id: string,
+    expected?: VerifySourcePatch,
+    summary?: SourcePatchVerificationSummary,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/verifications/${encodeURIComponent(id)}`,
+      sourcePatchVerificationSchema,
+      undefined,
+      "v2",
+    );
+    if (
+      row.verification_id !== id ||
+      !(await sourceVerificationBound(row, draft, expected, summary))
+    )
+      throw new ApiError(0, "Привязки сетевой проверки не подтверждены.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async verifySourcePatch(draft: PatchDraft, options: VerifySourcePatch) {
+    const request = verifySourcePatchSchema.parse(options);
+    if (!request.allow_local_engine_upload)
+      throw new ApiError(
+        403,
+        "Требуется отдельное разрешение передачи исходников локальному сетевому движку.",
+      );
+    if (request.draft_sha256 !== draft.draft_sha256)
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/verify`,
+      sourcePatchVerificationSchema,
+      request,
+      "v2",
+    );
+    if (!(await sourceVerificationBound(row, draft, request)))
+      throw new ApiError(0, "Привязки сетевой проверки не подтверждены.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
   }
   async modelPatches(analysis: string, offset = 0) {
     const query = new URLSearchParams({

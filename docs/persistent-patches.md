@@ -1,9 +1,12 @@
-# Сохранённые черновики объектов и локальная проверка
+# Сохранённые черновики и проверка точных исходников
 
 API/UI сохраняют план различий между двумя каноническими снимками и отдельную
 историю локального рассмотрения. Это не готовые команды и не исполняемый патч.
-Полный исходный текст API не хранит и не восстанавливает; поэтому HTTP-путь
-не запускает Batfish. Offline-инструменты для исходных файлов описаны отдельно
+При явном согласии во время upload API сохраняет отдельный зашифрованный
+[точный исходник](original-source-retention.md). Новый v2 workflow проверяет такую пару
+и явно выбранные неизменные соседние устройства через локальный Batfish.
+Без сохранённого исходника текст не восстанавливается из IR.
+Offline-инструменты для исходных файлов описаны отдельно
 в [черновиках по тексту](patch-drafts.md).
 Ограниченный [генератор native-кандидатов](vendor-patch-drafts.md) тоже требует
 явного raw-source: API не восстанавливает его из IR и не подменяет этим свой diff.
@@ -32,7 +35,7 @@ API/UI сохраняют план различий между двумя кан
 
 Все операции требуют service bearer-token и [соответствующей роли](service-roles.md).
 Ключ не удостоверяет личность инженера. Для существующей БД после backup и сохранения
-старого ключа выполните явный upgrade до `0005_operation_journal`:
+старого ключа выполните явный upgrade до `0011_source_patch_reviews`:
 `python -m app.db.migrate`. Startup не меняет схему.
 
 | Операция | Путь |
@@ -115,3 +118,90 @@ Write-body ограничен 16 KiB, draft/review — 4 MiB сериализо�
 к устройствам/внешнему провайдеру. Черновик и его локальная проверка не меняют
 сохранённые анализы, feedback, модели или риск. Физическая сеть, происхождение
 снимков и production-безопасность этим workflow не удостоверяются.
+
+## Сетевая проверка сохранённых исходников
+
+Этот отдельный путь не требует находки или модельного предложения. Сначала
+сохраните оба исходника при upload и создайте обычный object draft. В его панели
+откройте «Сетевая проверка сохранённых исходников», выберите при необходимости
+по одному снимку соседних устройств, задайте hostname начального узла и точный
+IPv4 prefix назначения. Соседи включаются неизменными с обеих сторон. Введите
+новое согласие на передачу всех выбранных исходников локальному движку.
+
+Оператор отдельно разрешает worker через `NETCONFIG_PATCH_ALLOW_ENGINE_UPLOAD=1`
+и устанавливает extra `verification`. Используется только loopback Batfish;
+endpoint, код и model paths нельзя передать в запросе. Разрешение оператора и
+согласие запроса не являются health check. SDK/engine могут вернуть unavailable,
+error, incomplete или inconclusive; это сохраняется отдельным результатом.
+
+| Операция | Путь |
+| --- | --- |
+| Настройка, без probing движка | `GET /api/v2/patches/capabilities` |
+| Новая сетевая попытка | `POST /api/v2/patches/<patch UUID>/verify` |
+| История сетевых попыток | `GET /api/v2/patches/<patch UUID>/verifications?limit=20&offset=0` |
+| Полный сетевой отчёт | `GET /api/v2/patches/<patch UUID>/verifications/<verification UUID>` |
+
+Для POST нужна роль engineer/admin, включая повтор существующего ID. Read-роли
+могут читать историю. Тело `source-patch-request-0.1.0`:
+
+```json
+{
+  "verification_id": "00000000-0000-0000-0000-000000000005",
+  "draft_sha256": "<fingerprint from saved draft>",
+  "companions": [
+    {
+      "configuration_id": "00000000-0000-0000-0000-000000000006",
+      "source_sha256": "<source hash from selected companion>"
+    }
+  ],
+  "scope": {"start_node": "edge", "destination": "198.51.100.1/32"},
+  "allow_local_engine_upload": true
+}
+```
+
+Пара target берётся из сохранённого draft; другой source text или commands
+запрос не принимает. Сервер повторно читает и разбирает точные originals,
+сверяет source/canonical hashes, identity и полноту parsing. Максимум — 32
+устройства и 8 MiB текста сети, с прежними лимитами каждого исходника.
+Сетевой adapter сохраняет собственную поддержанную семантику: canonical1.2
+не разрешает неизвестные ему route-map команды. Некорректная пара, companions,
+partial parse или отсутствующий start node дают409 до SDK; некорректный формат
+scope даёт400. Отсутствие согласия403, disabled503,
+занятый общий worker429. Это не vendor syntax validation.
+
+До SDK атомарно сохраняются encrypted intent и
+`patch.network_verification_requested`; после — outcome и
+`patch.network_verification_completed`. Новые таблицы
+`patch_network_review_intents`/`patch_network_review_outcomes` связывают payload
+с типом и UUID. Parent draft/snapshot hashes проверяются и при чтении. Миграция
+0011 не меняет старые строки или v1 contracts. POST body ≤16 KiB; intent/outcome
+≤4 MiB каждый. Перед резервированием canonical intent оставляет256 KiB+8192
+байта для completion; canonical результат SDK ограничен256 KiB. Недостаточный
+бюджет даёт413 до SDK, чрезмерный результат — bounded `worker_failed`.
+
+Ответ `source-patch-verification-0.1.0` разделяет target source hashes,
+canonical hashes и fingerprints всей supplied network. `outcome.intent_sha256`
+связывает результат с точным intent. `review_json` содержит точные UTF-8 байты
+Python compact sorted-key JSON тела без собственных `review_json`/`review_sha256`;
+`review_sha256` — их SHA-256. Browser проверяет outer proof, typed equality и
+raw nested intent hash, сохраняя Python float representation. Hash binding
+подтверждает соответствие записей, не истинность источника или личность инженера.
+
+Один ID резервирует только один вызов SDK, в том числе при двух процессах.
+После потери ответа прочитайте тот же ID: GET не запускает worker и не читает
+originals заново. Повтор идентичного POST возвращает прежнюю запись даже при
+отключённом worker; другое намерение даёт409. Наличие intent без outcome означает
+`pending_unknown`, а не доказательство работающего worker; автоматического
+повторного запуска или тайного восстановления результата нет.
+
+UI после неопределённого ответа блокирует новый POST и предлагает чтение истории.
+При явном отказе сервера и последующем GET404 доступен отдельный сброс с новым ID
+и новым согласием. Lost response плюс GET404 не разрешает повтор: исходный запрос
+ещё мог дойти до резервации. Reload теряет память запроса; сначала изучите историю.
+
+`no_differences_in_scope` — только scoped network result. `cleanup_complete=null`
+остаётся неизвестным, `false` означает неподтверждённое удаление. Итог всегда
+`needs_review`, ML `not_run`, approved/applied false. Локальный preflight сохраняется
+даже при ошибке SDK; история policies при чтении не пересчитывается. Проверка
+синтаксиса на устройстве, management access, rollback, approved baseline и
+индивидуальное инженерное решение остаются отдельными незакрытыми gates.

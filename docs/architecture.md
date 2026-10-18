@@ -346,3 +346,17 @@ errors, empty scopes, missing ML and original statistical model reruns. No read
 restarts external checks. Engineer decisions append source-bound service-role
 attestations behind formal/ML/category/acknowledgement gates; no device execution,
 model-quality acceptance or change to historical detector risk is inferred.
+
+The [ordinary retained-source review](persistent-patches.md) has independent v2
+request/intent/outcome/projection contracts. It derives the target pair from a
+saved object draft and revalidates encrypted originals against immutable source
+and canonical fingerprints. Explicit companion snapshots remain unchanged on
+both sides. An allowlisted IPv4 scope and per-request upload consent precede
+the shared bounded local network worker. Migration0011 adds two tables without
+rewriting legacy local/model history. Reservation and completion each have atomic
+domain audit; pending attempts are execution-unknown and never automatically run
+again. Reads replay stored policy evidence. Exact Python JSON proof bytes avoid
+cross-runtime float serialization drift; the browser independently checks the
+outer proof and nested intent hash. Result digests cover the whole supplied
+network, separately from target source fingerprints. Scoped engine evidence
+does not approve the baseline, run ML, establish engineer identity or apply edits.

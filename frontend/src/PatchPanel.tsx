@@ -17,6 +17,7 @@ import type {
   VerifyPatch,
 } from "./patches";
 import { date, shortId } from "./format";
+import { SourcePatchVerificationPanel } from "./SourcePatchVerificationPanel";
 
 const blockerNames: Record<string, string> = {
   formal_verification_not_run: "Формальная проверка не запускалась",
@@ -386,6 +387,13 @@ export function PatchPanel({
               </details>
             </div>
           )}
+          <SourcePatchVerificationPanel
+            key={draft.patch_id}
+            client={client}
+            draft={draft}
+            busy={busy}
+            onError={onError}
+          />
         </div>
       )}
     </section>

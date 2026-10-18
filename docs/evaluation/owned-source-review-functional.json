@@ -1,0 +1,63 @@
+{
+  "version": "owned-source-review-functional-0.1.0",
+  "date": "2026-10-18",
+  "feature": "Ordinary saved snapshot draft to exact retained source pair network review",
+  "evidence_kind": "Authored functional persistence and browser checks with a synthetic SDK boundary",
+  "installed_wheel_sha256": "79f8d4947d735fbb46ca12a5174fe1c8b88cf862975fa170416c20e6a88c687e",
+  "frozen_protocol_sha256": "7771952cee207f32a7621d601c0c41d945dbe7227ba62300cb18b97a53506feb",
+  "runtime_files_equal_to_installed": 254,
+  "ui_assets_equal_to_installed": 3,
+  "prior_installed_runtime_files_preserved": 249,
+  "historical_artifacts_preserved": 499,
+  "installed_tests": [
+    {"pydantic_version": "2.13.5", "passed": 199, "skipped": 7},
+    {"pydantic_version": "2.14.0", "passed": 199, "skipped": 7}
+  ],
+  "installed_skips_per_variant": {"postgresql_not_selected": 1, "live_engine_not_selected": 6},
+  "frontend_checks": {
+    "unit_passed": 654,
+    "regular_browser_passed": 162,
+    "synthetic_model_candidate_browser_passed": 48,
+    "synthetic_source_review_browser_passed": 8,
+    "typecheck": "passed",
+    "build": "passed",
+    "format": "passed"
+  },
+  "source_review_coverage": [
+    "Exact retained before/after and unchanged companion source/canonical bindings",
+    "Whole-network digest distinct from individual source hash",
+    "Consent and role checks before source access or reservation",
+    "One SDK call for the same-ID race across independent runtimes",
+    "Atomic reservation/completion domain audit and durable execution-unknown attempts",
+    "Historical replay after restart with worker disabled and no policy/source/SDK rerun",
+    "Authenticated-record drift and ciphertext relocation fail closed",
+    "All six network statuses, nullable cleanup and malformed worker result",
+    "Completion headroom reserved before SDK, including large policy report boundary",
+    "Populated schema10-to11 preservation and unchanged v1 local-review namespace",
+    "Browser proof and nested intent hash checked without reserializing Python floats",
+    "Lost-response reconciliation and explicit recovery after known refusal plus GET404"
+  ],
+  "live_network_checks": {
+    "local": "not_run_engine_unavailable",
+    "ci_test_file": "backend/tests/integration/test_live_source_patch_api.py",
+    "ci_workflow_job": "batfish-live",
+    "authored_vendors": ["cisco", "juniper"],
+    "authored_scenarios": ["route_loss", "reachable_control", "empty_scope"],
+    "qualification": "Test definitions and prior successful runs do not prove the current commit. Inspect the exact commit CI result."
+  },
+  "actual_model_calls_in_this_evaluation": 0,
+  "new_training": false,
+  "independent_real_quality_evaluated": false,
+  "overall_status": "needs_review",
+  "ml_status": "not_run",
+  "approved": false,
+  "applied": false,
+  "unclosed_gates": [
+    "Representative authorized real network inputs and independent labels",
+    "Selected model pre/post rerun and independent model quality",
+    "Vendor device syntax validation",
+    "Management access, rollback and operational topology completeness",
+    "Approved baseline and individually authenticated engineer decision",
+    "Production deployment, identity and security qualification"
+  ]
+}

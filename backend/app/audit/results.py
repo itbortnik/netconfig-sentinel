@@ -35,6 +35,12 @@ from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedMo
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
+from app.api.source_patch_contracts import (
+    SourcePatchCapabilities,
+    SourcePatchVerification,
+    SourcePatchVerificationSummary,
+    source_review_fingerprint,
+)
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
 from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
@@ -85,6 +91,9 @@ _SUPPORTED = (
     PatchSummary,
     VerificationRun,
     VerificationSummary,
+    SourcePatchCapabilities,
+    SourcePatchVerification,
+    SourcePatchVerificationSummary,
     ModelPatchProposal,
     ModelPatchCapabilities,
     GroundedModelPatchProposal,
@@ -115,6 +124,17 @@ def _selected(value: BaseModel) -> dict[str, object]:
     if isinstance(value, ConfigurationSnapshot):
         selected["source_sha256"] = value.canonical.source.sha256
         selected["version"] = f"canonical-schema-{value.canonical.schema_version}"
+    if isinstance(value, SourcePatchCapabilities):
+        selected["network_engine"] = value.network_engine
+    if isinstance(value, (SourcePatchVerification, SourcePatchVerificationSummary)):
+        selected["review_sha256"] = value.review_sha256
+        selected["execution_status"] = value.execution_status
+    if isinstance(value, SourcePatchVerification):
+        selected["intent_sha256"] = source_review_fingerprint(value.intent)
+        selected["before_source_sha256"] = value.intent.before.source_sha256
+        selected["after_source_sha256"] = value.intent.after.source_sha256
+        if value.outcome is not None:
+            selected["network_status"] = value.outcome.network_result.status
     if isinstance(value, (ConfigurationModelCapabilities, ConfigurationModelRun)):
         selected["model_sha256"] = value.model_sha256
     if isinstance(value, ConfigurationModelCapabilities):

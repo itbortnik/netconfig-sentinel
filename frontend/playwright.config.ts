@@ -8,7 +8,11 @@ if (deployed && !/^http:\/\/127\.0\.0\.1:\d+$/.test(deployed))
   throw new Error("Browser tests are restricted to explicit loopback servers.");
 export default defineConfig({
   testDir: "tests/browser",
-  testIgnore: ["**/modelPatches.spec.ts", "**/groundedExplanation.spec.ts"],
+  testIgnore: [
+    "**/modelPatches.spec.ts",
+    "**/groundedExplanation.spec.ts",
+    "**/sourcePatchVerification.spec.ts",
+  ],
   timeout: 30_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

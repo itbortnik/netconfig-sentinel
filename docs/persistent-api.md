@@ -31,7 +31,7 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0010_model_patch_protocols`; перед обновлением существующей БД
+Текущая revision — `0011_source_patch_reviews`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).
@@ -65,7 +65,7 @@ SQLite покрыта интеграционными тестами. PostgreSQL 
 
 ## HTTP-сценарий
 
-Все `/api/v1/*` требуют `Authorization: Bearer <token>`.
+Все `/api/v1/*` и `/api/v2/*` требуют `Authorization: Bearer <token>`.
 В `/docs` нажмите Authorize и введите токен; схема запроса загрузки описана в OpenAPI.
 Создайте стабильный UUID устройства: его следующие снимки должны сохранять
 vendor, platform и hostname. Несовпадение возвращает 409, не создавая новую запись.
@@ -109,6 +109,10 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Локальная проверка черновика | `POST /api/v1/patches/<UUID>/verify` |
 | История локальных проверок | `GET /api/v1/patches/<UUID>/verifications?limit=20&offset=0` |
 | Сохранённый отчёт проверки | `GET /api/v1/patches/<UUID>/verifications/<UUID>` |
+| Настройка source worker без health check | `GET /api/v2/patches/capabilities` |
+| Проверка точных retained source pair/companions | `POST /api/v2/patches/<UUID>/verify` |
+| История сетевых попыток обычного draft | `GET /api/v2/patches/<UUID>/verifications` |
+| Сохранённый source network review | `GET /api/v2/patches/<UUID>/verifications/<UUID>` |
 | Явно запросить source-bound model draft | `POST /api/v1/model-patches` |
 | История model attempts выбранного анализа | `GET /api/v1/model-patches?analysis_id=<UUID>` |
 | Сохранённый model attempt | `GET /api/v1/model-patches/<UUID>` |
@@ -174,7 +178,10 @@ Peer baseline добавляется в risk только при выполне�
 проверенной меткой датасета или patch approval. Actor — общий service-токен,
 не удостоверенная личность инженера.
 
-БД хранит каноническую модель, а не полную копию исходного файла. Полностью
+По умолчанию БД хранит каноническую модель без полной копии исходного файла.
+Отдельное явное согласие при upload включает
+[зашифрованное сохранение точного исходника](original-source-retention.md).
+Полностью
 поддержанные команды представлены нормализованными значениями и provenance;
 неизвестные фрагменты сохраняют raw text. Авторизованный GET может вернуть
 конфиденциальные сведения. Payload снимков, анализов и identity устройств

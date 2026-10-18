@@ -24,6 +24,7 @@ from app.api.operation_audit import router as operation_audit_router
 from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
+from app.api.source_patch_reviews import router as source_patch_review_router
 from app.audit.http import journal_response
 from app.audit.journal import OperationJournal
 from app.core.configuration_model import ConfigurationModelSettings
@@ -86,6 +87,7 @@ def create_app(
             explanation_router,
             grounded_explanation_router,
             patch_router,
+            source_patch_review_router,
             model_patch_router,
             grounded_model_patch_router,
             model_patch_review_router,
@@ -141,6 +143,7 @@ def create_app(
     application.include_router(explanation_router)
     application.include_router(grounded_explanation_router)
     application.include_router(patch_router)
+    application.include_router(source_patch_review_router)
     application.include_router(model_patch_router)
     application.include_router(grounded_model_patch_router)
     application.include_router(model_patch_review_router)

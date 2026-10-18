@@ -24,6 +24,15 @@ warnings. Выбор сбрасывается после изменения вх
 
 ## Запуск
 
+У сохранённого object draft доступна отдельная
+[сетевая проверка retained исходников](persistent-patches.md): exact target pair,
+выбранные неизменные соседи, IPv4 scope и новое согласие. Настройка worker не
+выдаётся за health check. История отделяет local preflight, сетевой outcome и
+ML `not_run`; неизвестный итог читается по прежнему ID без автоматического POST.
+Для synthetic browser coverage есть `npm run test:e2e:source-patches`: отдельный
+временный API8303, desktop/mobile, подставной SDK, без inference или live-engine.
+
+
 Требуется Node.js 24 и установленный backend. Настройте БД, ключ шифрования и
 токен по [инструкции API](persistent-api.md), выполните миграцию.
 Из корня проекта:

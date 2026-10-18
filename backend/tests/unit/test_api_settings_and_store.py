@@ -90,6 +90,8 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "finding_feedback",
             "patch_proposals",
             "verification_runs",
+            "patch_network_review_intents",
+            "patch_network_review_outcomes",
             "operation_receipts",
             "operation_completions",
             "configuration_sources",

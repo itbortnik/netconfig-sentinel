@@ -142,7 +142,9 @@ class SyntheticProvider(BaseHTTPRequestHandler):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-patch-fixture", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--model-patch-fixture", action="store_true")
+    mode.add_argument("--source-patch-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -174,13 +176,41 @@ def main() -> None:
                 allow_grounded_explanation=True,
             )
         try:
+            verification = None
+            if options.source_patch_fixture:
+                import app.patching.source_review as source_workflow
+                from app.core.patch_verification import PatchVerificationSettings
+                from app.verification.batfish import BatfishResult
+
+                def synthetic_source_worker(before, after, scope, **kwargs):
+                    # Explicit owned software fixture: no SDK/model/engine is invoked.
+                    return BatfishResult(
+                        before_sha256=before.digest,
+                        after_sha256=after.digest,
+                        scope=scope,
+                        status="no_differences_in_scope",
+                        reason="query_completed",
+                        engine_version="owned-browser-fixture",
+                        difference_count=0,
+                        before_reachable_count=1,
+                        after_reachable_count=1,
+                        cleanup_complete=True,
+                    )
+
+                source_workflow.check_with_batfish = synthetic_source_worker
+                verification = PatchVerificationSettings(allow_engine_upload=True)
             application = create_app(
-                settings, frontend_dir=REPOSITORY / "frontend" / "dist", local_model=model
+                settings,
+                frontend_dir=REPOSITORY / "frontend" / "dist",
+                local_model=model,
+                patch_verification=verification,
             )
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8302 if options.model_patch_fixture else 8301,
+                port=8303
+                if options.source_patch_fixture
+                else (8302 if options.model_patch_fixture else 8301),
                 log_level="warning",
                 access_log=False,
             )

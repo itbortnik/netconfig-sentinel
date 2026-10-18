@@ -25,6 +25,21 @@
 
 ## Количественные и модельные ограничения
 
+Для обычного сохранённого черновика добавлен отдельный
+[v2 source review](persistent-patches.md): точные retained before/after,
+явные неизменные соседи, IPv4 scope, upload consent, durable intent/outcome,
+replay без повторного SDK и UI с проверкой обеих hash bindings.
+Миграция0011 сохраняет прежнюю local/model историю. Неполный разбор и конструкции,
+которые сетевой adapter не поддерживает, отвергаются до upload; в частности,
+canonical1.2 не включает автоматически новую route-map семантику в движок.
+Backend/browser [проверки с подставным SDK](evaluation/owned-source-review-functional.json)
+проверяют контракт и восстановление,
+а не live-engine evidence. Отдельные opt-in тесты реального движка проверяют
+авторские Cisco/JunOS пары: потерю маршрута, достижимый контроль и пустую область.
+Локально движок при этой поставке недоступен; фактический результат opt-in CI
+нужно сверять с точным commit. ML здесь `not_run`, итог всегда `needs_review`,
+approval/apply отсутствуют; полная готовность этапов этим slice не объявляется.
+
 Для §12 добавлен явный [Cisco route-map slice](cisco-route-maps.md): canonical1.2,
 mutation0.3, API/UI выбор режима, настроенный порядок clause bodies, provenance,
 source-bound forward/reverse replay и read-only object diff. Default1.1/0.1,

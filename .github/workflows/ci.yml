@@ -69,6 +69,7 @@ jobs:
           backend/tests/integration/test_live_mutation_batfish.py
           backend/tests/integration/test_batfish_sdk_transport.py
           backend/tests/integration/test_live_model_patch_batfish.py -q -s
+          backend/tests/integration/test_live_source_patch_api.py
           --junitxml=owned-batfish-junit.xml
       - name: Check saved HTTP candidate with the real owned engine
         run: >-
@@ -118,6 +119,9 @@ jobs:
           backend/tests/integration/test_expanded_comparison_api.py
           backend/tests/integration/test_measured_comparison_api.py
           backend/tests/integration/test_configuration_model_api.py
+          backend/tests/integration/test_source_patch_review_api.py
+          backend/tests/integration/test_source_patch_review_durability.py
+          backend/tests/integration/test_source_patch_review_postgres.py
           -k "not actual_isolated_native"
 
   frontend:
@@ -160,11 +164,15 @@ jobs:
       - run: npm run test:e2e
       - name: Check owned synthetic model-candidate browser workflow
         run: npm run test:e2e:model-patches
+      - name: Check owned synthetic retained-source browser workflow
+        run: npm run test:e2e:source-patches
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: owned-model-candidate-browser-results
-          path: artifacts/browser-model-patches-junit.xml
+          path: |
+            artifacts/browser-model-patches-junit.xml
+            artifacts/browser-source-patches-junit.xml
           retention-days: 14
       - run: docker compose up --build -d
         working-directory: .
