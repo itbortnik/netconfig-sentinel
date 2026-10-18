@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { ConfigurationSnapshot } from "./contracts";
 import { date, percent } from "./format";
 import { ParserCoverageView } from "./ParserCoverageView";
+import { RouteMapView } from "./RouteMapView";
 
 export function SnapshotView({
   snapshot,
@@ -143,7 +144,7 @@ export function SnapshotView({
           Добавить в обучение модели
         </button>
       </div>
-      {config.schema_version === "1.1" && (
+      {config.schema_version !== "1.0" && (
         <details>
           <summary>
             Пользователи устройства ({config.local_users?.length ?? 0})
@@ -183,6 +184,9 @@ export function SnapshotView({
       )}
       {config.schema_version === "1.0" && (
         <p className="hint">Снимок старой схемы: пользователи не разобраны.</p>
+      )}
+      {config.schema_version === "1.2" && (
+        <RouteMapView routeMaps={config.route_maps ?? []} />
       )}
       {config.parse_warnings.length > 0 && (
         <details>

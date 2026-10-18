@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-17 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-18 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -10,7 +10,7 @@
 | Область | Фактическое состояние и evidence | Незакрытая граница |
 | --- | --- | --- |
 | Cisco/JunOS ingestion и canonical IR | [Поддержанный slice](supported-features.md), включая [numbered standard IPv4 ACL](numbered-standard-acls.md); `backend/tests/golden/test_config_golden.py` | Не все команды/версии платформ, не vendor syntax qualification |
-| Синтетические мутации | [Default 0.1 и opt-in hierarchical JunOS 0.2](mutation-engine.md): 15 IOS/14 JunOS классов, до пяти связанных изменений, точный откат и раздельные source/result spans удалений в 0.2 | Offline generator, не remediation или реальные подтверждённые labels; partial unknowns сохранены, device syntax/formal impact и независимое качество не проверены |
+| Синтетические мутации | [Default 0.1, opt-in hierarchical JunOS 0.2 и Cisco 0.3](mutation-engine.md): 15 IOS/14 JunOS классов, до пяти связанных изменений, точный откат и раздельные source/result spans удалений в 0.2/0.3; [настроенный порядок route-map](cisco-route-maps.md) проверяется через явный canonical 1.2 | Offline generator, не remediation или реальные подтверждённые labels; partial unknowns сохранены, device syntax/formal impact и независимое качество не проверены |
 | Unknown commands/provenance | Сохраняются anchors/raw hashes/fragments; confidence снижается; partial suppresses risk. Новые uploads сохраняют [измеренное покрытие строк](parser-coverage.md), доступное в API/UI; явный [peer 0.3](baseline.md#measured-parser-coverage) сравнивает долю в library/CLI/API/UI и сохраняет полный report/profile и версионные объяснения | Не универсальный подсчёт vendor-команд или syntax check; исторические снимки без отчёта не пересчитываются. Peer 0.1/0.2 сохраняют confidence-deficit proxy; независимое реальное качество не подтверждено |
 | Проверяемые политики | [30 уникальных rules](policy-catalog.md), positive/negative/version tests | Rule pass не доказывает достижимость или полноценную compliance |
 | Reference/peers/Isolation Forest | Explicit inputs, persisted 0.1/0.2 comparison manifests, actual numeric scoring; [demo](demo-runbook.md). [Expanded 0.2 comparisons](expanded-comparisons.md) доступны в CLI/API/UI, добавляют management values/VLAN/ACL/routing, explicit partial skips и sealed sources | Не semantic equivalence/effective vendor defaults; authored functional checks не измеряют эксплуатационные false positives |
@@ -24,6 +24,25 @@
 | Раздельные метрики | [Общий evaluator](offline-evaluation.md) и origin/vendor/role/unseen slices; measured synthetic reports | Real-confirmed/independent-test данные отсутствуют; `missing` не означает ноль ошибок или пройденный gate |
 
 ## Количественные и модельные ограничения
+
+Для §12 добавлен явный [Cisco route-map slice](cisco-route-maps.md): canonical1.2,
+mutation0.3, API/UI выбор режима, настроенный порядок clause bodies, provenance,
+source-bound forward/reverse replay и read-only object diff. Default1.1/0.1,
+JunOS0.2 и история не пересчитываются. [Installed functional report](evaluation/owned-cisco-route-map-order.json)
+фиксирует72мутации/88synthetic labels и72точных отката на одном authored parent
+в четырёх layout views; это не независимые сети и не реальные подтверждённые labels.
+Неподдержанные/неоднозначные выбранные maps отклоняются, прочие unknowns сохраняют
+partial. Local full:3891pass/18skips/5warnings,91%statement coverage; skips —
+14live-engine,1explicit PostgreSQL,3Windows symlink. Installed486pass на каждом
+Pydantic2.13.5/2.14.0; Ruff/mypy249файлов в default/Linux/win32 pass.
+UI629unit,162regular+48synthetic-model browser cases pass; отдельный installed
+loopback UI просмотрен на desktop/mobile.249runtime/3assets source-equal,
+248oldinstalled и484history hashes сохранены. Независимое read-only ревью нашло
+и перепроверило исправление трёх дефектов контекста/adapter consumers; открытых
+существенных замечаний по этому slice нет. Device syntax, route-map references,
+attachment/effective routes, live formal этой мутации, ML quality и новый inference
+не проверялись. Generated formal status остаётся not_run; native/model patch
+и network-review support этим не расширяются. Exact published CI проверяется отдельно.
 
 [Offline калибровка пяти классов anomaly severity](offline-evaluation.md#five-class-anomaly-severity)
 добавляет shared multiclass temperature, пять OVR-порогов, reliability/ECE и

@@ -279,6 +279,9 @@ class CiscoIOSParser(VendorParser):
     vendor = Vendor.CISCO
     platform = "ios"
 
+    def __init__(self, *, route_maps: bool = False) -> None:
+        self.route_maps = route_maps
+
     def parse(
         self,
         text: str,
@@ -286,6 +289,9 @@ class CiscoIOSParser(VendorParser):
         filename: str,
         collected_at: datetime | None = None,
     ) -> CanonicalConfig:
+        from app.parsers.cisco_ios.route_maps import RouteMapParse, parse_route_maps
+
+        route_maps = parse_route_maps(text) if self.route_maps else RouteMapParse([], set(), [], [])
         hostname: str | None = None
         os_version: str | None = None
         aaa_enabled = False
@@ -319,8 +325,8 @@ class CiscoIOSParser(VendorParser):
         ospf_processes: dict[str, _CiscoOspf] = {}
         current_ospf: _CiscoOspf | None = None
         facts: dict[str, list[tuple[int, str]]] = defaultdict(list)
-        unparsed: list[UnparsedFragment] = []
-        warnings: list[str] = []
+        unparsed: list[UnparsedFragment] = list(route_maps.unparsed)
+        warnings: list[str] = list(route_maps.warnings)
         significant_count = 0
 
         for number, raw_line in enumerate(text.splitlines(), start=1):
@@ -336,6 +342,14 @@ class CiscoIOSParser(VendorParser):
                 continue
             significant_count += 1
             lowered = command.lower()
+
+            if number in route_maps.handled_lines:
+                current_interface = None
+                current_vlan = None
+                current_acl = None
+                current_bgp = None
+                current_ospf = None
+                continue
 
             if match := _INTERFACE.fullmatch(command):
                 current_interface = _CiscoInterface(name=match.group("value"))
@@ -672,6 +686,7 @@ class CiscoIOSParser(VendorParser):
             if key not in {"hostname", "os_version"}
         }
         return CanonicalConfig(
+            schema_version="1.2" if self.route_maps else "1.1",
             source=config_source(text, filename, collected_at),
             device=DeviceInfo(
                 hostname=hostname,
@@ -700,7 +715,12 @@ class CiscoIOSParser(VendorParser):
             static_routes=static_routes,
             bgp=bgp_config,
             ospf=[process.build() for process in ospf_processes.values()],
-            unparsed_fragments=unparsed,
+            route_maps=route_maps.route_maps,
+            unparsed_fragments=(
+                sorted(unparsed, key=lambda item: item.location.source_lines[0])
+                if self.route_maps
+                else unparsed
+            ),
             parse_warnings=warnings,
             parser_confidence=confidence,
         )

@@ -112,6 +112,8 @@ def _objects(config: CanonicalConfig) -> ObjectIndex:
         add("acls", (acl.family, acl.kind, acl.name), acl)
     for prefix in config.prefix_lists:
         add("prefix_lists", (prefix.family, prefix.name), prefix)
+    for route_map in config.route_maps:
+        add("route_maps", (route_map.name,), route_map)
     routes: dict[tuple[str, str], list[BaseModel]] = {}
     for route in config.static_routes:
         routes.setdefault((route.family, route.destination), []).append(route)
@@ -224,7 +226,7 @@ def compare_snapshots(before: ConfigurationSnapshot, after: ConfigurationSnapsho
                 "Local credential values are omitted; account metadata equality "
                 "does not prove credential equality or effective access.",
             )
-            if before.canonical.schema_version == "1.1" or after.canonical.schema_version == "1.1"
+            if before.canonical.schema_version != "1.0" or after.canonical.schema_version != "1.0"
             else ()
         ),
     )

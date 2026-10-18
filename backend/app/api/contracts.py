@@ -58,6 +58,7 @@ class UploadConfiguration(BaseModel):
     content: str = Field(min_length=1, max_length=2 * 1024 * 1024)
     inventory: InventoryLabels | None = None
     retain_original_source: bool = Field(default=False, strict=True)
+    parser_schema_version: Literal["1.1", "1.2"] = "1.1"
 
     @field_validator("filename")
     @classmethod

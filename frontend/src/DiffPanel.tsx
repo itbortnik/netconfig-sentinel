@@ -22,6 +22,7 @@ const sectionNames: Record<ObjectChange["section"], string> = {
   bgp: "BGP",
   bgp_neighbors: "BGP-соседи",
   ospf: "OSPF",
+  route_maps: "Route-map",
 };
 const kindNames: Record<ObjectChange["kind"], string> = {
   added: "Добавлен",

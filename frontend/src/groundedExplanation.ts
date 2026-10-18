@@ -101,7 +101,11 @@ const peerFacts = z
     command_units: count.min(1).nullable(),
     unit: z.literal("adapter_source_lines").nullable(),
     adapter_version: z
-      .enum(["cisco-ios-source-lines-0.1.0", "junos-source-lines-0.1.0"])
+      .enum([
+        "cisco-ios-source-lines-0.1.0",
+        "cisco-ios-route-maps-source-lines-0.1.0",
+        "junos-source-lines-0.1.0",
+      ])
       .nullable(),
     coverage_report_sha256: hash.nullable(),
   })
@@ -231,6 +235,13 @@ export const groundedExplanationFactsSchema = z
   .refine(
     (facts) =>
       facts.platform === (facts.vendor === "cisco" ? "ios" : "junos") &&
+      (facts.peer?.adapter_version == null ||
+        (facts.vendor === "cisco"
+          ? [
+              "cisco-ios-source-lines-0.1.0",
+              "cisco-ios-route-maps-source-lines-0.1.0",
+            ].includes(facts.peer.adapter_version)
+          : facts.peer.adapter_version === "junos-source-lines-0.1.0")) &&
       facts.anchors.every(
         (anchor) => anchor.source_sha256 === facts.source_sha256,
       ) &&

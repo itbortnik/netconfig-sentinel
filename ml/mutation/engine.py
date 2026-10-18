@@ -17,6 +17,7 @@ from ml.datasets.deduplication import DatasetRecordReference
 from ml.datasets.models import ImportedDatasetRecord
 from ml.mutation.models import (
     MUTATION_ENGINE_VERSION,
+    ROUTE_MAP_MUTATION_ENGINE_VERSION,
     STRUCTURAL_MUTATION_ENGINE_VERSION,
     MutationFormalValidation,
     MutationLineChange,
@@ -25,8 +26,10 @@ from ml.mutation.models import (
     MutationSyntaxValidation,
     MutationType,
     MutationValidationStatus,
+    RouteMapOrderEvidence,
     SyntheticAnomalyLabel,
     SyntheticMutationSample,
+    route_map_clause_body,
 )
 from ml.preprocessing import SUPPORTED_SANITIZATION_VERSIONS
 
@@ -169,7 +172,11 @@ def mutate_configuration(
 
     if not isinstance(record, ImportedDatasetRecord):
         raise ValueError("mutation samples require the observed-record lineage contract")
-    if engine_version not in {MUTATION_ENGINE_VERSION, STRUCTURAL_MUTATION_ENGINE_VERSION}:
+    if engine_version not in {
+        MUTATION_ENGINE_VERSION,
+        STRUCTURAL_MUTATION_ENGINE_VERSION,
+        ROUTE_MAP_MUTATION_ENGINE_VERSION,
+    }:
         raise ValueError("unsupported mutation engine version")
     requested = tuple(MutationType(item) for item in mutation_types)
     if not requested:
@@ -178,7 +185,7 @@ def mutate_configuration(
         raise ValueError("at most five linked mutation types are allowed")
     if len(requested) != len(set(requested)):
         raise ValueError("mutation types must be unique within one sample")
-    if engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION and type(seed) is not int:
+    if engine_version != MUTATION_ENGINE_VERSION and type(seed) is not int:
         raise ValueError("structural mutation seed must be an integer")
     if seed < 0 or seed > 2**63 - 1:
         raise ValueError("seed must fit the supported non-negative range")
@@ -192,6 +199,9 @@ def mutate_configuration(
 
     layout = _text_layout(record.sanitized_text)
     structural = engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION
+    route_map_profile = engine_version == ROUTE_MAP_MUTATION_ENGINE_VERSION
+    if route_map_profile and record.vendor_hint is not Vendor.CISCO:
+        raise MutationNotApplicableError("route-map validation version requires Cisco IOS/IOS-XE")
     if structural:
         if record.vendor_hint is not Vendor.JUNIPER:
             raise MutationNotApplicableError("structural version requires hierarchical JunOS")
@@ -200,7 +210,11 @@ def mutate_configuration(
         from ml.mutation.junos_hierarchy import validate_hierarchical_source
 
         validate_hierarchical_source(layout.lines)
-    original_config = _parse(record, record.sanitized_text)
+    original_config = (
+        _parse(record, record.sanitized_text, route_maps=True)
+        if route_map_profile
+        else _parse(record, record.sanitized_text)
+    )
     if original_config.device.vendor is not record.vendor_hint:
         raise MutationValidationError("vendor hint does not match parser detection")
     if not structural:
@@ -238,6 +252,17 @@ def mutate_configuration(
                 raise MutationValidationError(
                     f"expected mutation effect was not observed: {mutation_type.value}"
                 )
+        elif route_map_profile and mutation_type is MutationType.ROUTE_MAP_ORDER_CHANGE:
+            before_config = _parse(record, layout.render(lines), route_maps=True)
+            lines, operation = _route_map_order(
+                lines,
+                record.vendor_hint,
+                seed,
+                record.sanitized_sha256,
+                mutation_type,
+                _SPECS[mutation_type],
+                normalized=before_config,
+            )
         else:
             handler = _HANDLERS[mutation_type]
             lines, operation = handler(
@@ -251,10 +276,14 @@ def mutate_configuration(
         operations.append(operation)
 
     mutated_text = layout.render(lines)
-    mutated_config = _parse(record, mutated_text)
+    mutated_config = (
+        _parse(record, mutated_text, route_maps=True)
+        if route_map_profile
+        else _parse(record, mutated_text)
+    )
     if mutated_config.device.vendor is not record.vendor_hint:
         raise MutationValidationError("mutation changed vendor detection")
-    route_map_partial = MutationType.ROUTE_MAP_ORDER_CHANGE in requested
+    route_map_partial = MutationType.ROUTE_MAP_ORDER_CHANGE in requested and not route_map_profile
     introduced_warnings = sum(
         (Counter(mutated_config.parse_warnings) - Counter(original_config.parse_warnings)).values()
     )
@@ -272,10 +301,14 @@ def mutate_configuration(
         raise MutationValidationError(
             "mutation introduced parser warnings or unsupported fragments"
         )
-    if structural and Counter(
+    if (structural or route_map_profile) and Counter(
         item.raw_text for item in mutated_config.unparsed_fragments
     ) != Counter(item.raw_text for item in original_config.unparsed_fragments):
         raise MutationValidationError("structural mutation changed unsupported fragments")
+    if route_map_profile and Counter(mutated_config.parse_warnings) != Counter(
+        original_config.parse_warnings
+    ):
+        raise MutationValidationError("route-map validation changed parser diagnostics")
     for mutation_type in requested:
         if not _effect_observed(
             mutation_type,
@@ -283,6 +316,7 @@ def mutate_configuration(
             mutated_config,
             record.sanitized_text,
             mutated_text,
+            normalized_route_maps=route_map_profile,
         ):
             raise MutationValidationError(
                 f"expected mutation effect was not observed: {mutation_type.value}"
@@ -296,7 +330,7 @@ def mutate_configuration(
         mutated_hash,
         engine_version=engine_version,
     )
-    localization = _localization(layout.lines, lines) if structural else None
+    localization = _localization(layout.lines, lines) if structural or route_map_profile else None
     affected_lines = (
         localization.changed_result_lines
         if localization is not None
@@ -324,10 +358,17 @@ def mutate_configuration(
         ),
         affected_lines=affected_lines,
         localization=localization,
+        route_map_validation=(
+            _route_map_evidence(original_config, mutated_config)
+            if route_map_profile and MutationType.ROUTE_MAP_ORDER_CHANGE in requested
+            else None
+        ),
         syntax_validation=MutationSyntaxValidation(
             status=(
                 MutationValidationStatus.PARTIAL
-                if route_map_partial or (structural and mutated_config.unparsed_fragments)
+                if route_map_partial
+                or ((structural or route_map_profile) and mutated_config.unparsed_fragments)
+                or (route_map_profile and mutated_config.parse_warnings)
                 else MutationValidationStatus.PASSED
             ),
             parser=("cisco_ios" if record.vendor_hint is Vendor.CISCO else "juniper_junos"),
@@ -345,7 +386,7 @@ def mutate_configuration(
             if route_map_partial
             else (
                 ("Unsupported parent fragments are preserved, not semantically validated.",)
-                if structural and mutated_config.unparsed_fragments
+                if (structural or route_map_profile) and mutated_config.unparsed_fragments
                 else ()
             ),
         ),
@@ -359,7 +400,7 @@ def mutate_configuration(
             "The synthetic label is not a confirmed real-world anomaly.",
         ),
     )
-    if structural:
+    if structural or route_map_profile:
         reverse_mutation(sample, mutated_text)
     return sample
 
@@ -396,6 +437,11 @@ def count_synthetic_anomaly_labels(
 def reverse_mutation(sample: SyntheticMutationSample, mutated_text: str) -> str:
     """Apply recorded inverse edits and verify the restored original hash."""
 
+    if sample.engine_version == ROUTE_MAP_MUTATION_ENGINE_VERSION:
+        try:
+            sample = SyntheticMutationSample.model_validate(sample.model_dump(warnings=False))
+        except (ValueError, TypeError):
+            raise MutationValidationError("route-map mutation artifact binding differs") from None
     if _sha256(mutated_text) != sample.mutated_sha256:
         raise MutationValidationError("mutated text does not match the sample hash")
     layout = _text_layout(mutated_text)
@@ -409,16 +455,88 @@ def reverse_mutation(sample: SyntheticMutationSample, mutated_text: str) -> str:
     restored = layout.render(lines)
     if _sha256(restored) != sample.original_sha256:
         raise MutationValidationError("reverse operations did not restore the original")
-    if sample.engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION and (
+    if sample.engine_version in {
+        STRUCTURAL_MUTATION_ENGINE_VERSION,
+        ROUTE_MAP_MUTATION_ENGINE_VERSION,
+    } and (
         sample.localization != _localization(lines, layout.lines)
     ):
         raise MutationValidationError("final localization does not match the restored original")
+    if sample.engine_version == ROUTE_MAP_MUTATION_ENGINE_VERSION:
+        try:
+            previous = parse_configuration(restored, filename="reverse.cfg", schema_version="1.2")
+            current = parse_configuration(
+                mutated_text, filename="reverse.cfg", schema_version="1.2"
+            )
+            replay_lines = list(lines)
+            replay_config, replay_text = previous, restored
+            for operation in sample.operations:
+                start = operation.original_start_line - 1
+                end = start + len(operation.original_lines)
+                if (
+                    operation.original_start_line != operation.mutated_start_line
+                    or tuple(replay_lines[start:end]) != operation.original_lines
+                ):
+                    raise ValueError("recorded forward context differs")
+                replay_lines[start:end] = operation.mutated_lines
+                next_text = layout.render(replay_lines)
+                next_config = parse_configuration(
+                    next_text, filename="reverse.cfg", schema_version="1.2"
+                )
+                if not _effect_observed(
+                    operation.mutation_type,
+                    replay_config,
+                    next_config,
+                    replay_text,
+                    next_text,
+                    normalized_route_maps=True,
+                ):
+                    raise ValueError("recorded mutation effect differs")
+                replay_config, replay_text = next_config, next_text
+            if replay_text != mutated_text:
+                raise ValueError("recorded forward result differs")
+            expected_status = (
+                MutationValidationStatus.PARTIAL
+                if current.unparsed_fragments or current.parse_warnings
+                else MutationValidationStatus.PASSED
+            )
+            syntax = sample.syntax_validation
+            if (
+                syntax.status is not expected_status
+                or syntax.parser != "cisco_ios"
+                or syntax.parser_confidence != current.parser_confidence
+                or syntax.warning_count != len(current.parse_warnings)
+                or syntax.unparsed_fragment_count != len(current.unparsed_fragments)
+                or syntax.introduced_warning_count != 0
+                or syntax.introduced_unparsed_fragment_count != 0
+                or Counter(previous.parse_warnings) != Counter(current.parse_warnings)
+                or Counter(item.raw_text for item in previous.unparsed_fragments)
+                != Counter(item.raw_text for item in current.unparsed_fragments)
+            ):
+                raise ValueError("recorded parser status differs")
+            if sample.route_map_validation is not None and (
+                _route_map_evidence(previous, current) != sample.route_map_validation
+            ):
+                raise ValueError("recorded clause facts differ")
+        except (ValueError, TypeError):
+            raise MutationValidationError(
+                "route-map evidence does not reproduce the inputs"
+            ) from None
     return restored
 
 
-def _parse(record: ImportedDatasetRecord, text: str) -> CanonicalConfig:
+def _parse(
+    record: ImportedDatasetRecord, text: str, *, route_maps: bool = False
+) -> CanonicalConfig:
     extension = "cfg" if record.vendor_hint is Vendor.CISCO else "conf"
     try:
+        if route_maps:
+            return parse_configuration(
+                text,
+                filename=f"mutation-input.{extension}",
+                collected_at=record.captured_at,
+                schema_version="1.2",
+            )
         return parse_configuration(
             text,
             filename=f"mutation-input.{extension}",
@@ -1050,6 +1168,8 @@ def _route_map_order(
     fingerprint: str,
     mutation_type: MutationType,
     spec: _MutationSpec,
+    *,
+    normalized: CanonicalConfig | None = None,
 ) -> tuple[list[str], MutationOperation]:
     if vendor is not Vendor.CISCO:
         raise MutationNotApplicableError("route-map order mutation is Cisco-only")
@@ -1058,9 +1178,21 @@ def _route_map_order(
         r"(?P<sequence>\d+)(?P<suffix>\s*)$",
         re.I,
     )
+    eligible = (
+        {
+            clause.provenance["header"].source_lines[0] - 1: route_map_clause_body(clause)
+            for route_map in normalized.route_maps
+            if route_map.normalization_complete
+            for clause in route_map.clauses
+        }
+        if normalized is not None
+        else None
+    )
     by_name: dict[str, list[int]] = {}
     for index, line in enumerate(lines):
         if (match := pattern.match(line)) is not None:
+            if eligible is not None and index not in eligible:
+                continue
             by_name.setdefault(match.group("name"), []).append(index)
     pairs: list[tuple[int, int]] = []
     for indices in by_name.values():
@@ -1070,7 +1202,11 @@ def _route_map_order(
                 right_match = pattern.match(lines[indices[right]])
                 assert left_match is not None and right_match is not None
                 if left_match.group("sequence") != right_match.group("sequence"):
+                    if eligible is not None and eligible[indices[left]] == eligible[indices[right]]:
+                        continue
                     pairs.append((indices[left], indices[right]))
+                    if eligible is not None and len(pairs) > 4096:
+                        raise MutationNotApplicableError("route-map candidate pair budget exceeded")
     selected = _candidate(
         list(range(len(pairs))),
         seed=seed,
@@ -1203,6 +1339,8 @@ def _effect_observed(
     after: CanonicalConfig,
     before_text: str,
     after_text: str,
+    *,
+    normalized_route_maps: bool = False,
 ) -> bool:
     if mutation_type is MutationType.AAA_DISABLED:
         return before.management.aaa_enabled and not after.management.aaa_enabled
@@ -1239,12 +1377,39 @@ def _effect_observed(
         after_count = len(after.management.ntp_servers) + len(after.management.syslog_servers)
         return after_count < before_count
     if mutation_type is MutationType.ROUTE_MAP_ORDER_CHANGE:
+        if normalized_route_maps:
+            try:
+                _route_map_evidence(before, after)
+            except ValueError:
+                return False
+            return True
         return _route_map_sequences(after_text) != _route_map_sequences(before_text)
     if mutation_type is MutationType.CONFLICTING_IP_ADDRESS:
         return _duplicate_interface_address_count(after) > _duplicate_interface_address_count(
             before
         )
     return False
+
+
+def _route_map_evidence(before: CanonicalConfig, after: CanonicalConfig) -> RouteMapOrderEvidence:
+    previous = {item.name: item for item in before.route_maps}
+    current = {item.name: item for item in after.route_maps}
+    if previous.keys() != current.keys():
+        raise ValueError("route-map inventory changed")
+    changed = [
+        name
+        for name in previous
+        if [(item.sequence, route_map_clause_body(item)) for item in previous[name].clauses]
+        != [(item.sequence, route_map_clause_body(item)) for item in current[name].clauses]
+    ]
+    if len(changed) != 1:
+        raise ValueError("one normalized route-map must change")
+    return RouteMapOrderEvidence(
+        original_sha256=before.source.sha256,
+        mutated_sha256=after.source.sha256,
+        before=previous[changed[0]],
+        after=current[changed[0]],
+    )
 
 
 def _acl_rule_count(config: CanonicalConfig) -> int:

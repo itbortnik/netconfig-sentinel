@@ -21,6 +21,12 @@ therefore have different denominators. The adapter version is pinned separately
 (`cisco-ios-source-lines-0.1.0` or `junos-source-lines-0.1.0`); future changes in
 accounting must not reinterpret saved reports.
 
+The explicit [Cisco route-map canonical profile 1.2](cisco-route-maps.md) uses
+`cisco-ios-route-maps-source-lines-0.1.0`. It retains the same accounting rules and
+10,000-line upload limit, with the profile's additional 1 MiB bound. The report is
+bound to its canonical profile as well as source/vendor/platform; equal counts do
+not permit relabeling old or new reports. Default uploads remain profile 1.1.
+
 Every input line has exactly one ordered, one-based unit:
 
 - `unparsed`: belongs to the **final** canonical unparsed fragment anchors,

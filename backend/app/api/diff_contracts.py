@@ -19,6 +19,7 @@ DiffSection = Literal[
     "bgp",
     "bgp_neighbors",
     "ospf",
+    "route_maps",
 ]
 
 

@@ -165,7 +165,13 @@ class AnalysisService:
 
     def upload(self, upload: UploadConfiguration) -> ConfigurationSnapshot:
         validate_configuration_text(upload.content)
-        parsed = parse_configuration_with_coverage(upload.content, filename=upload.filename)
+        parsed = (
+            parse_configuration_with_coverage(
+                upload.content, filename=upload.filename, schema_version="1.2"
+            )
+            if upload.parser_schema_version == "1.2"
+            else parse_configuration_with_coverage(upload.content, filename=upload.filename)
+        )
         config = parsed.canonical
         if upload.inventory is not None:
             config = config.model_copy(

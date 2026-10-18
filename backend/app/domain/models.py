@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from enum import StrEnum
 from ipaddress import ip_address, ip_interface, ip_network
@@ -537,10 +538,50 @@ class UnparsedFragment(StrictModel):
     location: SourceLocation
 
 
+class RouteMapClauseConfig(StrictModel):
+    """Configured Cisco clause facts, without evaluating a route or packet."""
+
+    sequence: int = Field(ge=0, le=65535, strict=True)
+    action: Literal["permit", "deny"]
+    match_ipv4_prefix_lists: tuple[str, ...] = Field(default=(), max_length=64)
+    set_metric: int | None = Field(default=None, ge=0, le=4294967295, strict=True)
+    normalization_complete: bool = Field(strict=True)
+    provenance: dict[str, SourceLocation]
+
+    @field_validator("match_ipv4_prefix_lists")
+    @classmethod
+    def bounded_prefix_names(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        if len(set(values)) != len(values) or any(
+            not re.fullmatch(r"[A-Za-z0-9_.:/-]{1,128}", value) for value in values
+        ):
+            raise ValueError("route-map prefix-list references must be distinct bounded names")
+        return values
+
+
+class RouteMapConfig(StrictModel):
+    """Observed clauses in numeric sequence order; references are not resolved."""
+
+    name: str = Field(pattern=r"^[A-Za-z0-9_.:/-]{1,128}$", strict=True)
+    clauses: list[RouteMapClauseConfig] = Field(min_length=1, max_length=1024)
+    normalization_complete: bool = Field(strict=True)
+    provenance: dict[str, SourceLocation]
+
+    @model_validator(mode="after")
+    def ordered_unique_clauses(self) -> RouteMapConfig:
+        sequences = [item.sequence for item in self.clauses]
+        if sequences != sorted(set(sequences)):
+            raise ValueError("route-map clauses must use unique ascending numeric sequences")
+        if self.normalization_complete and not all(
+            item.normalization_complete for item in self.clauses
+        ):
+            raise ValueError("incomplete clause cannot produce a complete route-map")
+        return self
+
+
 class CanonicalConfig(StrictModel):
     """Stable vendor-neutral representation produced by every parser."""
 
-    schema_version: Literal["1.0", "1.1"] = "1.1"
+    schema_version: Literal["1.0", "1.1", "1.2"] = "1.1"
     source: ConfigSource
     device: DeviceInfo
     management: ManagementConfig = Field(default_factory=ManagementConfig)
@@ -552,6 +593,7 @@ class CanonicalConfig(StrictModel):
     static_routes: list[StaticRouteConfig] = Field(default_factory=list)
     bgp: BgpConfig | None = None
     ospf: list[OspfProcessConfig] = Field(default_factory=list)
+    route_maps: list[RouteMapConfig] = Field(default_factory=list)
     unparsed_fragments: list[UnparsedFragment] = Field(default_factory=list)
     parse_warnings: list[str] = Field(default_factory=list)
     parser_confidence: float = Field(ge=0.0, le=1.0)
@@ -563,6 +605,17 @@ class CanonicalConfig(StrictModel):
             raise ValueError("local user names must be unique")
         if self.schema_version == "1.0" and self.local_users:
             raise ValueError("local users require canonical schema 1.1")
+        if (self.route_maps and self.schema_version != "1.2") or (
+            self.schema_version == "1.2" and self.device.vendor is not Vendor.CISCO
+        ):
+            raise ValueError("Cisco route-map facts require explicit canonical schema 1.2")
+        names = [route_map.name for route_map in self.route_maps]
+        if len(names) != len(set(names)):
+            raise ValueError("route-map names must be unique")
+        if any(not route_map.normalization_complete for route_map in self.route_maps) and not (
+            self.unparsed_fragments or self.parse_warnings or self.parser_confidence < 1
+        ):
+            raise ValueError("incomplete route-map facts require visible parser uncertainty")
         return self
 
     @model_serializer(mode="wrap")
@@ -572,6 +625,8 @@ class CanonicalConfig(StrictModel):
         result: dict[str, Any] = handler(self)
         if self.schema_version == "1.0":
             result.pop("local_users", None)
+        if self.schema_version != "1.2":
+            result.pop("route_maps", None)
         return result
 
 

@@ -1,0 +1,143 @@
+{
+  "version": "owned-cisco-route-map-order-0.1.0",
+  "date": "2026-10-18",
+  "scope": "Authored configured-clause normalization, source-bound mutation replay, explicit API/UI profile and historical compatibility; not route outcomes, real labels or independent model quality",
+  "canonical_profile": "1.2",
+  "default_canonical_profile_unchanged": "1.1",
+  "mutation_engine": "config-mutation-0.3.0",
+  "default_mutation_engine_unchanged": "config-mutation-0.1.0",
+  "coverage_adapter": "cisco-ios-route-maps-source-lines-0.1.0",
+  "clause_evidence_contract": "route-map-order-validation-0.1.0",
+  "bounds": {
+    "utf8_bytes": 1048576,
+    "parser_lines": 50000,
+    "upload_and_coverage_lines": 10000,
+    "recognized_clauses": 1024,
+    "candidate_pairs": 4096,
+    "maximum_linked_edits": 5
+  },
+  "installed_owned_generator": {
+    "frozen_protocol_sha256": "70f9224a5a783fbc9b77999b42f002bfb1f8953f311d9798a6ae83a764f4c1c1",
+    "wheel_sha256": "73c752bf905e29e3d3a9d63ac2a00e888547eebb8fbd8de67640e447d5583d76",
+    "wheel_bytes": 788964,
+    "authored_parent_templates": 1,
+    "layout_views": 4,
+    "independent_networks_established": false,
+    "single_recipe_classes": 15,
+    "linked_plans_per_view": 2,
+    "generated_samples": 72,
+    "synthetic_labels": 88,
+    "exact_reversals": 72,
+    "deterministic_repeats": 68,
+    "serialization_round_trips": 68,
+    "preserved_partial_samples": 4,
+    "unchanged_legacy_route_map_partial_samples": 4,
+    "private_results_sha256": "aed3a27e9fa0ea52082bbde180401251a7292a5a3a6f62702dabcfcaf6c38694",
+    "actual_model_calls": 0,
+    "new_training_run": false,
+    "input_metadata": "Authored software-contract values; no actual collection, device identity or healthy-label qualification",
+    "configured_order_check": "Same map name, sequence set and body multiset; exactly two changed ordered body positions; exact source/hash provenance reproduced",
+    "replay_check": "Exact inverse and forward contexts, each intermediate canonical effect, final localization, parser summary and normalized before/after clause evidence",
+    "hash_boundary": "Artifact binding, not authentication, independent label truth or engineer approval",
+    "formal_status": "not_run",
+    "vendor_syntax_checked": false,
+    "network_behavior_checked": false
+  },
+  "installed_regression": [
+    {
+      "pydantic": "2.13.5",
+      "passed": 486,
+      "warnings": 2,
+      "junit_sha256": "590cba154ff9da4983b7b0d1cd8f9570587154783876ca2b2466502c9b9119c1",
+      "checkout_runtime_imports": 0
+    },
+    {
+      "pydantic": "2.14.0",
+      "passed": 486,
+      "warnings": 2,
+      "junit_sha256": "74b05c9227bda17e8688fef12f81998c073c1eb2e54bb83d0709eca2f1644408",
+      "checkout_runtime_imports": 0
+    }
+  ],
+  "installed_harness_correction": {
+    "initial_attempt_each": "485 passed, one fixture-import failure",
+    "cause": "A historical test imported its fixture through a source-qualified namespace absent from isolated sys.path",
+    "correction": "Alias the already-collected fixture module without adding checkout runtime paths",
+    "runtime_source_changed_for_correction": false
+  },
+  "full_source_backend": {
+    "passed": 3891,
+    "skipped": 18,
+    "warnings": 5,
+    "seconds": 521.76,
+    "log_sha256": "96fc5d4aefa3a47950718c42d43461518b24ce46ce3b11c776d113a3ffad84fe",
+    "coverage_statements": 23366,
+    "coverage_missing": 2115,
+    "coverage_percent_rounded": 91,
+    "skip_reasons": {
+      "live_owned_engine": 14,
+      "explicit_postgresql": 1,
+      "windows_symlink_unavailable": 3
+    },
+    "warning_scope": "Dependency deprecations and existing SQLite ResourceWarnings",
+    "coverage_boundary": "Executed software statements, not vendor recall or independent detector quality"
+  },
+  "static_checks": {
+    "ruff": "passed",
+    "mypy_default": "passed",
+    "mypy_linux": "passed",
+    "mypy_win32": "passed",
+    "mypy_source_files": 249
+  },
+  "frontend": {
+    "typecheck": "passed",
+    "format_check": "passed",
+    "build": "passed",
+    "unit_passed": 629,
+    "build_warning": "Existing minified JavaScript chunk exceeds 500 kB",
+    "regular_browser_passed": 162,
+    "new_route_map_desktop_mobile_cases": 4,
+    "synthetic_model_browser_passed": 48,
+    "synthetic_model_browser_log_sha256": "ef912c6aee3f34f2721518a0cdfd4e26e51c7246d08a66fbf332dfd4f67887c0",
+    "browser_boundary": "Actual loopback UI/API software flow; model and engine outputs in model-browser scenarios are explicit synthetic fixtures, not actual inference"
+  },
+  "installed_browser_inspection": {
+    "desktop_mobile_captures": 2,
+    "horizontal_overflow": false,
+    "desktop_png_sha256": "d9fed4474e4963c467d4ee224f690a6bab8517b436832f75f4f96f3944040a76",
+    "mobile_png_sha256": "c9f24d2a97cc3273a05e964713c3d6d8461dd392a8c2b19ba0fb1396194e6cc2",
+    "temporary_owned_database_removed": true,
+    "actual_model_calls": 0,
+    "scope": "Actual installed-package loopback upload and configured-clause display; captures visually inspected"
+  },
+  "compatibility": {
+    "runtime_files_equal_to_source": 249,
+    "built_ui_assets_equal": 3,
+    "old_installed_runtime_files_unchanged": 248,
+    "historical_files_unchanged": 484,
+    "historical_defaults_and_serialization": "Default parser1.1, mutation0.1 and JunOS0.2 unchanged; old canonical/mutation fields omitted by version; no historical recomputation"
+  },
+  "independent_review": {
+    "mode": "read_only",
+    "initial_related_passed": 143,
+    "legacy_context_pins_passed": 20,
+    "final_related_passed": 66,
+    "fixed_findings": [
+      "Comment detached unsupported child from clause context",
+      "Indented opaque block bypassed normalization refusal",
+      "New coverage adapter absent from grounded explanation consumers"
+    ],
+    "unresolved_material_findings": 0,
+    "boundary": "Software diff/evidence review, not independent model-quality qualification"
+  },
+  "not_established": [
+    "Device syntax acceptance",
+    "Resolved prefix-list references or route-map attachment",
+    "Effective route selection or network impact",
+    "Live formal verification of generated route-map samples",
+    "Representative real-confirmed corpus",
+    "Independent model quality or calibration",
+    "Production or engineer approval"
+  ],
+  "publication_ci": "Verify all jobs for the exact published commit separately; no earlier CI result is transferred to this report"
+}

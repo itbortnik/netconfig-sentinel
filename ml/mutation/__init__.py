@@ -10,6 +10,7 @@ from ml.mutation.engine import (
 )
 from ml.mutation.models import (
     MUTATION_ENGINE_VERSION,
+    ROUTE_MAP_MUTATION_ENGINE_VERSION,
     STRUCTURAL_MUTATION_ENGINE_VERSION,
     MutationFormalValidation,
     MutationLineChange,
@@ -18,12 +19,14 @@ from ml.mutation.models import (
     MutationSyntaxValidation,
     MutationType,
     MutationValidationStatus,
+    RouteMapOrderEvidence,
     SyntheticAnomalyLabel,
     SyntheticMutationSample,
 )
 
 __all__ = [
     "MUTATION_ENGINE_VERSION",
+    "ROUTE_MAP_MUTATION_ENGINE_VERSION",
     "STRUCTURAL_MUTATION_ENGINE_VERSION",
     "MutationFormalValidation",
     "MutationLineChange",
@@ -34,6 +37,7 @@ __all__ = [
     "MutationType",
     "MutationValidationError",
     "MutationValidationStatus",
+    "RouteMapOrderEvidence",
     "SyntheticAnomalyLabel",
     "SyntheticMutationSample",
     "count_synthetic_anomaly_labels",

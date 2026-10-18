@@ -6,6 +6,17 @@ const encoder = new TextEncoder();
 
 export function validateUpload(upload: Upload): string | null {
   if (
+    upload.parser_schema_version !== undefined &&
+    upload.parser_schema_version !== "1.1" &&
+    upload.parser_schema_version !== "1.2"
+  )
+    return "Выберите поддержанный вариант разбора конфигурации.";
+  if (
+    upload.parser_schema_version === "1.2" &&
+    encoder.encode(upload.content).byteLength > 1024 * 1024
+  )
+    return "Для разбора Cisco route-map допускается не больше 1 MiB UTF-8.";
+  if (
     upload.retain_original_source !== undefined &&
     typeof upload.retain_original_source !== "boolean"
   )

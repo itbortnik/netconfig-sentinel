@@ -125,6 +125,7 @@ export const objectChangeSchema = z
       "bgp",
       "bgp_neighbors",
       "ospf",
+      "route_maps",
     ]),
     object_key: z.array(z.string()).min(1).max(3),
     kind: z.enum(["added", "removed", "modified"]),
@@ -278,6 +279,36 @@ export const localUserSchema = z
       ).size === user.authentication.length,
   );
 
+const routeMapName = z.string().regex(/^[A-Za-z0-9_.:/-]{1,128}$/);
+export const routeMapClauseSchema = z.strictObject({
+  sequence: z.number().int().min(0).max(65535),
+  action: z.enum(["permit", "deny"]),
+  match_ipv4_prefix_lists: z
+    .array(routeMapName)
+    .max(64)
+    .refine((names) => new Set(names).size === names.length),
+  set_metric: z.number().int().min(0).max(4294967295).nullable(),
+  normalization_complete: z.boolean(),
+  provenance: z.record(z.string(), location),
+});
+export const routeMapSchema = z
+  .strictObject({
+    name: routeMapName,
+    clauses: z.array(routeMapClauseSchema).min(1).max(1024),
+    normalization_complete: z.boolean(),
+    provenance: z.record(z.string(), location),
+  })
+  .refine((item) =>
+    item.clauses.every((clause, index) => {
+      const previous = item.clauses[index - 1];
+      return (
+        (index === 0 ||
+          (previous !== undefined && clause.sequence > previous.sequence)) &&
+        (!item.normalization_complete || clause.normalization_complete)
+      );
+    }),
+  );
+
 export const snapshotSchema = z
   .object({
     configuration_id: id,
@@ -286,7 +317,7 @@ export const snapshotSchema = z
     parser_coverage: parserCoverageSchema.nullable().optional(),
     canonical: z
       .looseObject({
-        schema_version: z.enum(["1.0", "1.1"]),
+        schema_version: z.enum(["1.0", "1.1", "1.2"]),
         source: z.object({
           filename: z.string(),
           sha256: hash,
@@ -310,6 +341,7 @@ export const snapshotSchema = z
         acls: z.array(jsonObject),
         static_routes: z.array(jsonObject),
         local_users: z.array(localUserSchema).optional(),
+        route_maps: z.array(routeMapSchema).optional(),
       })
       .refine(
         (config) =>
@@ -317,7 +349,17 @@ export const snapshotSchema = z
             ? !config.local_users?.length
             : config.local_users !== undefined) &&
           new Set(config.local_users?.map((user) => user.name)).size ===
-            (config.local_users?.length ?? 0),
+            (config.local_users?.length ?? 0) &&
+          (config.schema_version === "1.2"
+            ? config.device.vendor === "cisco" &&
+              config.route_maps !== undefined &&
+              new Set(config.route_maps.map((item) => item.name)).size ===
+                config.route_maps.length &&
+              (config.route_maps.every((item) => item.normalization_complete) ||
+                config.parse_warnings.length > 0 ||
+                config.unparsed_fragments.length > 0 ||
+                config.parser_confidence < 1)
+            : !config.route_maps?.length),
       ),
   })
   .refine((snapshot) => {
@@ -336,6 +378,12 @@ export const snapshotSchema = z
       report.source_sha256 === config.source.sha256 &&
       report.vendor === config.device.vendor &&
       report.platform === config.device.platform &&
+      report.adapter_version ===
+        (config.schema_version === "1.2"
+          ? "cisco-ios-route-maps-source-lines-0.1.0"
+          : config.device.vendor === "cisco"
+            ? "cisco-ios-source-lines-0.1.0"
+            : "junos-source-lines-0.1.0") &&
       unparsed.size === measured.length &&
       measured.every((unit) => unparsed.has(unit.source_line))
     );
@@ -1028,6 +1076,7 @@ export type Upload = {
   content: string;
   inventory?: Inventory;
   retain_original_source?: boolean;
+  parser_schema_version?: "1.1" | "1.2";
 };
 export type AnalysisOptions = {
   comparison_version?: "0.1.0" | "0.2.0" | "0.3.0";

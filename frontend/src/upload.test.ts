@@ -12,6 +12,26 @@ const good = {
   content: "hostname edge\n",
 };
 describe("bounded UTF-8 uploads", () => {
+  it("requires a known explicit profile and its smaller source budget", () => {
+    expect(
+      validateUpload({ ...good, parser_schema_version: "1.2" }),
+    ).toBeNull();
+    expect(
+      validateUpload({ ...good, parser_schema_version: "1.1" }),
+    ).toBeNull();
+    for (const version of [null, true, 1.2, "1.0", "1.3"])
+      expect(
+        validateUpload({
+          ...good,
+          parser_schema_version: version,
+        } as unknown as Upload),
+      ).not.toBeNull();
+    const content = "hostname owned\n!" + "x".repeat(1024 * 1024);
+    expect(validateUpload({ ...good, content })).toBeNull();
+    expect(
+      validateUpload({ ...good, content, parser_schema_version: "1.2" }),
+    ).toContain("1 MiB");
+  });
   it("accepts only explicit boolean retention, default remains absent", () => {
     expect(validateUpload(good)).toBeNull();
     expect(

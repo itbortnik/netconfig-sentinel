@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from enum import StrEnum
 from typing import Any, Literal
 
-from app.domain import Vendor
+from app.domain import RouteMapClauseConfig, RouteMapConfig, Vendor
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     SerializerFunctionWrapHandler,
+    field_validator,
     model_serializer,
     model_validator,
 )
@@ -20,6 +22,7 @@ from ml.datasets.deduplication import DatasetRecordReference
 
 MUTATION_ENGINE_VERSION = "config-mutation-0.1.0"
 STRUCTURAL_MUTATION_ENGINE_VERSION = "config-mutation-0.2.0"
+ROUTE_MAP_MUTATION_ENGINE_VERSION = "config-mutation-0.3.0"
 
 
 class MutationType(StrEnum):
@@ -181,6 +184,51 @@ class MutationLocalization(BaseModel):
         )
 
 
+def route_map_clause_body(clause: RouteMapClauseConfig) -> str:
+    return json.dumps(
+        clause.model_dump(exclude={"sequence", "provenance", "normalization_complete"}),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+class RouteMapOrderEvidence(BaseModel):
+    """Configured two-clause body swap, bound to exact source/result inputs."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["route-map-order-validation-0.1.0"] = "route-map-order-validation-0.1.0"
+    canonical_schema_version: Literal["1.2"] = "1.2"
+    original_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    mutated_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    before: RouteMapConfig
+    after: RouteMapConfig
+    vendor_syntax_checked: Literal[False] = False
+    network_behavior_checked: Literal[False] = False
+
+    @field_validator("before", "after", mode="before")
+    @classmethod
+    def revalidate_clause_facts(cls, value: Any) -> Any:
+        return value.model_dump(warnings=False) if isinstance(value, RouteMapConfig) else value
+
+    @model_validator(mode="after")
+    def exact_configured_order_change(self) -> RouteMapOrderEvidence:
+        if self.original_sha256 == self.mutated_sha256 or (
+            self.before.name != self.after.name
+            or not self.before.normalization_complete
+            or not self.after.normalization_complete
+            or [item.sequence for item in self.before.clauses]
+            != [item.sequence for item in self.after.clauses]
+        ):
+            raise ValueError("route-map order source or complete clause binding differs")
+        previous = [route_map_clause_body(item) for item in self.before.clauses]
+        current = [route_map_clause_body(item) for item in self.after.clauses]
+        if sorted(previous) != sorted(current) or sum(
+            left != right for left, right in zip(previous, current, strict=True)
+        ) != 2:
+            raise ValueError("route-map order validation requires a two-clause body permutation")
+        return self
+
+
 class SyntheticMutationSample(BaseModel):
     """Reproducible mutated text, labels, validation, and reversible edits."""
 
@@ -188,7 +236,7 @@ class SyntheticMutationSample(BaseModel):
 
     engine_version: str = Field(
         default=MUTATION_ENGINE_VERSION,
-        pattern=r"^config-mutation-0\.[12]\.0$",
+        pattern=r"^config-mutation-0\.[123]\.0$",
     )
     mutation_id: str = Field(pattern=r"^mutation-[0-9a-f]{24}$")
     source_record: DatasetRecordReference
@@ -201,6 +249,7 @@ class SyntheticMutationSample(BaseModel):
     labels: tuple[SyntheticAnomalyLabel, ...] = Field(min_length=1, max_length=5)
     affected_lines: tuple[int, ...]
     localization: MutationLocalization | None = None
+    route_map_validation: RouteMapOrderEvidence | None = None
     syntax_validation: MutationSyntaxValidation
     formal_validation: MutationFormalValidation
     limitations: tuple[str, ...]
@@ -210,7 +259,8 @@ class SyntheticMutationSample(BaseModel):
     def structural_seed_type(cls, value: Any) -> Any:
         if (
             isinstance(value, dict)
-            and value.get("engine_version") == STRUCTURAL_MUTATION_ENGINE_VERSION
+            and value.get("engine_version")
+            in {STRUCTURAL_MUTATION_ENGINE_VERSION, ROUTE_MAP_MUTATION_ENGINE_VERSION}
             and type(value.get("seed")) is not int
         ):
             raise ValueError("structural mutation seed must be an integer")
@@ -231,9 +281,19 @@ class SyntheticMutationSample(BaseModel):
             raise ValueError("a sample cannot repeat a mutation type")
         if tuple(sorted(set(self.affected_lines))) != self.affected_lines:
             raise ValueError("sample affected lines must be sorted and unique")
-        if self.engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION:
-            if self.vendor is not Vendor.JUNIPER or self.localization is None:
-                raise ValueError("structural JunOS samples require explicit final localization")
+        if self.engine_version in {
+            STRUCTURAL_MUTATION_ENGINE_VERSION,
+            ROUTE_MAP_MUTATION_ENGINE_VERSION,
+        }:
+            expected_vendor = (
+                Vendor.JUNIPER
+                if self.engine_version == STRUCTURAL_MUTATION_ENGINE_VERSION
+                else Vendor.CISCO
+            )
+            if self.vendor is not expected_vendor or self.localization is None:
+                raise ValueError(
+                    "versioned structural samples require vendor and final localization"
+                )
             if (
                 self.localization.mutated_line_count != len(self.mutated_text.splitlines())
                 or self.affected_lines != self.localization.changed_result_lines
@@ -242,6 +302,21 @@ class SyntheticMutationSample(BaseModel):
                 raise ValueError("structural localization differs from the result")
         elif self.localization is not None or not self.affected_lines:
             raise ValueError("released samples retain their original nonempty line contract")
+        if self.engine_version != ROUTE_MAP_MUTATION_ENGINE_VERSION:
+            if self.route_map_validation is not None:
+                raise ValueError("route-map order evidence requires engine 0.3")
+        elif MutationType.ROUTE_MAP_ORDER_CHANGE in operation_types:
+            if self.route_map_validation is None or (
+                self.route_map_validation.original_sha256 != self.original_sha256
+                or self.route_map_validation.mutated_sha256 != self.mutated_sha256
+            ):
+                raise ValueError("route-map evidence differs from the generated inputs")
+        elif self.route_map_validation is not None:
+            raise ValueError("route-map evidence requires the matching mutation operation")
+        if self.engine_version == ROUTE_MAP_MUTATION_ENGINE_VERSION and (
+            self.formal_validation.status is not MutationValidationStatus.NOT_RUN
+        ):
+            raise ValueError("route-map parser evidence cannot promote network formal status")
         if self.syntax_validation.status is MutationValidationStatus.NOT_RUN:
             raise ValueError("persistable mutation samples require parser validation")
         return self
@@ -253,4 +328,6 @@ class SyntheticMutationSample(BaseModel):
         result: dict[str, Any] = handler(self)
         if self.engine_version == MUTATION_ENGINE_VERSION:
             result.pop("localization", None)
+        if self.engine_version != ROUTE_MAP_MUTATION_ENGINE_VERSION:
+            result.pop("route_map_validation", None)
         return result

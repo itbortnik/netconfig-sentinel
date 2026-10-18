@@ -18,6 +18,35 @@ import {
 import type { ExplanationRequestScope } from "./groundedExplanation";
 import { groundedExplanationFixture } from "./groundedExplanation.fixtures";
 
+it("reads measured coverage from the explicit Cisco profile and refuses cross-vendor reuse", async () => {
+  const { facts } = await groundedExplanationFixture();
+  const measured = {
+    ...facts,
+    detector: "peer_baseline",
+    interpretation: "peer_measured_source_fraction",
+    peer: {
+      method: "measured_source_fraction",
+      support_count: 3,
+      sample_count: 3,
+      observed_fraction: 0.5,
+      maximum_fraction: 0.1,
+      unparsed_units: 1,
+      command_units: 2,
+      unit: "adapter_source_lines",
+      adapter_version: "cisco-ios-route-maps-source-lines-0.1.0",
+      coverage_report_sha256: "a".repeat(64),
+    },
+  };
+  expect(groundedExplanationFactsSchema.safeParse(measured).success).toBe(true);
+  expect(
+    groundedExplanationFactsSchema.safeParse({
+      ...measured,
+      vendor: "juniper",
+      platform: "junos",
+    }).success,
+  ).toBe(false);
+});
+
 it.each([
   "grounded-model-explanation-0.1.0",
   "grounded-model-explanation-0.2.0",

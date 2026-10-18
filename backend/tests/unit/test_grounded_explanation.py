@@ -709,6 +709,29 @@ def test_measured_record_requires_exact_counts_fraction_and_platform(key, value)
         prepare_grounded_explanation(**data)
 
 
+@pytest.mark.parametrize(
+    "protocol", ["grounded-model-explanation-0.1.0", "grounded-model-explanation-0.2.0"]
+)
+def test_explicit_cisco_coverage_profile_prepares_rechecks_and_renders_bound_measured_facts(
+    protocol,
+):
+    data = inputs("measured")
+    adapter = "cisco-ios-route-maps-source-lines-0.1.0"
+    data = changed_finding(data, observed={**data["finding"].observed, "adapter_version": adapter})
+    prepared = prepare_grounded_explanation(**data, protocol=protocol)
+    assert prepared.source_facts.peer.adapter_version == adapter
+    recheck_grounded_explanation(prepared)
+    rendered = generated(prepared)
+    assert rendered.source_facts.peer.adapter_version == adapter
+    assert rendered.source_facts.formal_verification == "not_run"
+    juniper = inputs("measured", "juniper")
+    juniper = changed_finding(
+        juniper, observed={**juniper["finding"].observed, "adapter_version": adapter}
+    )
+    with pytest.raises(ValueError, match="platform"):
+        prepare_grounded_explanation(**juniper, protocol=protocol)
+
+
 @pytest.mark.parametrize("present,value", [(1, None), (False, 4)])
 def test_reference_does_not_coerce_presence_or_attach_values_to_absence(present, value):
     data = inputs("reference1")

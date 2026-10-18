@@ -49,11 +49,19 @@ def prepare_original_source(snapshot: ConfigurationSnapshot, content: str) -> St
     """Reparse the supplied exact original; never manufacture text from normalized IR."""
     snapshot = ConfigurationSnapshot.model_validate_json(snapshot.model_dump_json())
     validate_configuration_text(content)
-    parsed = parse_configuration(
-        content,
-        filename=snapshot.canonical.source.filename,
-        collected_at=snapshot.canonical.source.collected_at,
-    )
+    if snapshot.canonical.schema_version == "1.2":
+        parsed = parse_configuration(
+            content,
+            filename=snapshot.canonical.source.filename,
+            collected_at=snapshot.canonical.source.collected_at,
+            schema_version="1.2",
+        )
+    else:
+        parsed = parse_configuration(
+            content,
+            filename=snapshot.canonical.source.filename,
+            collected_at=snapshot.canonical.source.collected_at,
+        )
     # These three labels are declared inventory metadata, not source statements.
     parsed = parsed.model_copy(
         update={

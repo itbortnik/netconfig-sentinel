@@ -21,7 +21,11 @@ from app.parsers.juniper_junos.parser import _strip_comment
 from app.parsers.registry import parse_configuration
 
 Disposition = Literal["accepted", "unparsed", "structural", "ignored"]
-AdapterVersion = Literal["cisco-ios-source-lines-0.1.0", "junos-source-lines-0.1.0"]
+AdapterVersion = Literal[
+    "cisco-ios-source-lines-0.1.0",
+    "cisco-ios-route-maps-source-lines-0.1.0",
+    "junos-source-lines-0.1.0",
+]
 
 
 class ParserSourceUnit(BaseModel):
@@ -61,10 +65,12 @@ class ParserCoverage(BaseModel):
     @model_validator(mode="after")
     def exact_accounting(self) -> ParserCoverage:
         expected_adapter = {
-            (Vendor.CISCO, "ios"): "cisco-ios-source-lines-0.1.0",
-            (Vendor.JUNIPER, "junos"): "junos-source-lines-0.1.0",
+            (Vendor.CISCO, "ios"): (
+                "cisco-ios-source-lines-0.1.0", "cisco-ios-route-maps-source-lines-0.1.0"
+            ),
+            (Vendor.JUNIPER, "junos"): ("junos-source-lines-0.1.0",),
         }.get((self.vendor, self.platform))
-        if expected_adapter != self.adapter_version:
+        if expected_adapter is None or self.adapter_version not in expected_adapter:
             raise ValueError("coverage adapter does not match the platform")
         if len(self.units) != self.source_line_count or any(
             item.source_line != number for number, item in enumerate(self.units, 1)
@@ -92,6 +98,17 @@ class ParserCoverage(BaseModel):
             or self.platform != canonical.device.platform
         ):
             raise ValueError("coverage belongs to a different configuration")
+        expected_adapter = (
+            "cisco-ios-route-maps-source-lines-0.1.0"
+            if canonical.schema_version == "1.2"
+            else (
+                "cisco-ios-source-lines-0.1.0"
+                if canonical.device.vendor is Vendor.CISCO
+                else "junos-source-lines-0.1.0"
+            )
+        )
+        if self.adapter_version != expected_adapter:
+            raise ValueError("coverage differs from the selected canonical parser profile")
         unparsed_lines = {
             number
             for fragment in canonical.unparsed_fragments
@@ -138,11 +155,18 @@ def _disposition(raw_line: str, vendor: Vendor) -> Disposition:
 
 
 def parse_configuration_with_coverage(
-    text: str, *, filename: str, collected_at: datetime | None = None
+    text: str, *, filename: str, collected_at: datetime | None = None,
+    schema_version: Literal["1.1", "1.2"] = "1.1",
 ) -> ParsedConfiguration:
     """Bound input, parse once, and count final unsupported anchors, including late ones."""
     validate_configuration_text(text)
-    canonical = parse_configuration(text, filename=filename, collected_at=collected_at)
+    canonical = (
+        parse_configuration(
+            text, filename=filename, collected_at=collected_at, schema_version=schema_version
+        )
+        if schema_version != "1.1"
+        else parse_configuration(text, filename=filename, collected_at=collected_at)
+    )
     unsupported = {
         number
         for fragment in canonical.unparsed_fragments
@@ -163,9 +187,13 @@ def parse_configuration_with_coverage(
     counts = Counter(item.disposition for item in units)
     command_units = counts["accepted"] + counts["unparsed"]
     adapter: AdapterVersion = (
-        "cisco-ios-source-lines-0.1.0"
-        if canonical.device.vendor == Vendor.CISCO
-        else "junos-source-lines-0.1.0"
+        "cisco-ios-route-maps-source-lines-0.1.0"
+        if canonical.schema_version == "1.2"
+        else (
+            "cisco-ios-source-lines-0.1.0"
+            if canonical.device.vendor == Vendor.CISCO
+            else "junos-source-lines-0.1.0"
+        )
     )
     platform: Literal["ios", "junos"] = (
         "ios" if canonical.device.vendor == Vendor.CISCO else "junos"

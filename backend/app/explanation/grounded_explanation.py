@@ -256,7 +256,11 @@ class PeerObservationFacts(_Strict):
     unparsed_units: int | None = Field(default=None, ge=0, le=1_000_000)
     command_units: int | None = Field(default=None, ge=1, le=1_000_000)
     unit: Literal["adapter_source_lines"] | None = None
-    adapter_version: Literal["cisco-ios-source-lines-0.1.0", "junos-source-lines-0.1.0"] | None = (
+    adapter_version: Literal[
+        "cisco-ios-source-lines-0.1.0",
+        "cisco-ios-route-maps-source-lines-0.1.0",
+        "junos-source-lines-0.1.0",
+    ] | None = (
         None
     )
     coverage_report_sha256: Digest | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
@@ -726,10 +730,12 @@ def prepare_grounded_explanation(
             finding.observed.get("source_sha256") != explanation.source_sha256
         ):
             raise ValueError("peer observation differs from current source")
-        if peer.method == "measured_source_fraction" and peer.adapter_version != {
-            ("cisco", "ios"): "cisco-ios-source-lines-0.1.0",
-            ("juniper", "junos"): "junos-source-lines-0.1.0",
-        }.get((vendor, platform)):
+        if peer.method == "measured_source_fraction" and peer.adapter_version not in {
+            ("cisco", "ios"): (
+                "cisco-ios-source-lines-0.1.0", "cisco-ios-route-maps-source-lines-0.1.0"
+            ),
+            ("juniper", "junos"): ("junos-source-lines-0.1.0",),
+        }.get((vendor, platform), ()):
             raise ValueError("coverage adapter differs from current platform")
     elif finding.detector == "isolation_forest":
         interpretation, forest = "statistical_control", _forest_facts(finding)
@@ -954,10 +960,12 @@ def _checked_facts(facts: GroundedExplanationFacts) -> GroundedExplanationFacts:
         if (
             checked.peer.method == "measured_source_fraction"
             and checked.peer.adapter_version
-            != {
-                ("cisco", "ios"): "cisco-ios-source-lines-0.1.0",
-                ("juniper", "junos"): "junos-source-lines-0.1.0",
-            }[(checked.vendor, checked.platform)]
+            not in {
+                ("cisco", "ios"): (
+                    "cisco-ios-source-lines-0.1.0", "cisco-ios-route-maps-source-lines-0.1.0"
+                ),
+                ("juniper", "junos"): ("junos-source-lines-0.1.0",),
+            }.get((checked.vendor, checked.platform), ())
         ):
             raise ValueError("measured source adapter differs from platform")
         if selection.peer is not None and (

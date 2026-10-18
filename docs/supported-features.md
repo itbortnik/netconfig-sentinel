@@ -30,6 +30,12 @@ vendor validation or evidence that a source fixture is healthy.
 
 ## Cisco IOS / IOS-XE
 
+Explicit canonical profile `1.2` adds bounded
+[configured route-map clauses](cisco-route-maps.md) through library/API/UI: explicit
+permit/deny sequence, one IPv4 prefix-list match line and scalar metric, ordered
+provenance and partial unknowns. Default `1.1` is unchanged. Reference resolution,
+attachment, route outcomes, device syntax and network safety remain unverified.
+
 Supported in the current parser slice:
 
 - `hostname`;
@@ -125,7 +131,7 @@ do not qualify syntax, management access, formal safety, or device application.
   subset, prefix-list filters, route filters, and nested policy
   statements remain unparsed;
 - BGP address-family activation, advertised networks, authentication, BFD,
-  multihop, route policies/maps, confederations, VRF instances, and dynamic or
+  multihop, applied route policies/maps and their effective behavior, confederations, VRF instances, and dynamic or
   non-IP peers remain unsupported;
 - OSPFv3, authentication, redistribution, virtual links, stub/NSSA options,
   interface network types, VRF processes, timers, and adjacency state remain

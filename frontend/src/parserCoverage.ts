@@ -8,6 +8,7 @@ export const parserCoverageSchema = z
     unit: z.literal("adapter_source_lines"),
     adapter_version: z.enum([
       "cisco-ios-source-lines-0.1.0",
+      "cisco-ios-route-maps-source-lines-0.1.0",
       "junos-source-lines-0.1.0",
     ]),
     vendor: z.enum(["cisco", "juniper"]),
@@ -41,8 +42,14 @@ export const parserCoverageSchema = z
     const cisco = report.vendor === "cisco";
     if (
       report.platform !== (cisco ? "ios" : "junos") ||
-      report.adapter_version !==
-        (cisco ? "cisco-ios-source-lines-0.1.0" : "junos-source-lines-0.1.0") ||
+      !(
+        cisco
+          ? [
+              "cisco-ios-source-lines-0.1.0",
+              "cisco-ios-route-maps-source-lines-0.1.0",
+            ]
+          : ["junos-source-lines-0.1.0"]
+      ).includes(report.adapter_version) ||
       report.source_line_count !== report.units.length ||
       report.units.some((unit, index) => unit.source_line !== index + 1)
     )

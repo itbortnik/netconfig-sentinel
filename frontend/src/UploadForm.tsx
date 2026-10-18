@@ -14,6 +14,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   const [filename, setFilename] = useState("configuration.cfg");
   const [content, setContent] = useState("");
   const [retainOriginal, setRetainOriginal] = useState(false);
+  const [routeMaps, setRouteMaps] = useState(false);
   const [role, setRole] = useState("");
   const [siteClass, setSiteClass] = useState("");
   const [profile, setProfile] = useState("");
@@ -22,7 +23,10 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const alive = useRef(true);
   const revision = useRef(0);
-  useEffect(() => setRetainOriginal(false), [device]);
+  useEffect(() => {
+    setRetainOriginal(false);
+    setRouteMaps(false);
+  }, [device]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -33,6 +37,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
   async function chooseFile(file: File | undefined) {
     if (!file) return;
     setRetainOriginal(false);
+    setRouteMaps(false);
     const selected = ++revision.current;
     setReading(true);
     setError(null);
@@ -58,6 +63,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
       filename,
       content,
       retain_original_source: retainOriginal,
+      ...(routeMaps ? { parser_schema_version: "1.2" as const } : {}),
       ...(role || siteClass || profile
         ? {
             inventory: {
@@ -74,6 +80,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
     if ((await onUpload(upload)) && alive.current) {
       setContent("");
       setRetainOriginal(false);
+      setRouteMaps(false);
       if (fileInput.current) fileInput.current.value = "";
     }
   }
@@ -168,6 +175,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
           onChange={(event) => {
             setFilename(event.target.value);
             setRetainOriginal(false);
+            setRouteMaps(false);
           }}
           disabled={disabled}
           maxLength={255}
@@ -181,6 +189,7 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
           onChange={(event) => {
             setContent(event.target.value);
             setRetainOriginal(false);
+            setRouteMaps(false);
           }}
           disabled={disabled}
           rows={8}
@@ -189,6 +198,19 @@ export function UploadForm({ device, onDevice, busy, onUpload }: Props) {
           autoComplete="off"
           required
         />
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={routeMaps}
+            disabled={disabled}
+            onChange={(event) => setRouteMaps(event.target.checked)}
+          />
+          Разбирать секции Cisco route-map
+        </label>
+        <p className="hint">
+          Дополнительно: номера секций, IPv4 prefix-list и простая метрика. Для
+          Cisco IOS/IOS-XE, до 1 MiB; влияние на маршруты не проверяется.
+        </p>
         <label className="checkbox-label">
           <input
             type="checkbox"

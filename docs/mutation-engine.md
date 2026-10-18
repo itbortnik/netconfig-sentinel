@@ -6,6 +6,9 @@ the source model in place and never marks a generated example as a confirmed
 real anomaly. The explicit opt-in `config-mutation-0.2.0` extends the offline
 generator to a bounded multiline hierarchical JunOS slice. It does not replace
 the default, reserialize historical samples, train a model or apply device patches.
+Explicit Cisco `config-mutation-0.3.0` adds
+[normalized configured route-map order validation](cisco-route-maps.md), final
+localization and source-bound replay. Default 0.1 and JunOS 0.2 remain unchanged.
 
 Unknown-metadata source fixtures use a different intake record kind and are
 explicitly refused by this observed-record mutation lineage. No acquisition
@@ -99,7 +102,7 @@ Historical 0.1 samples keep their nonempty `affected_lines` and serialization
 unchanged, including the old nearest-result-line anchor for deletions. Do not
 reinterpret this historical anchor as causal line-level ground truth.
 
-New 0.2 samples require `mutation-localization-0.1.0`: original/result line
+New 0.2 and 0.3 samples require `mutation-localization-0.1.0`: original/result line
 counts and ordered, bounded `insert`/`delete`/`replace` textual diff hunks over
 the **original parent and final result**, not intermediate operation offsets.
 Each hunk records one-based start positions and separate source/result counts.
@@ -125,12 +128,16 @@ explicit vendor hint, parser detection, and supported syntax style. After mutati
 the entire result again, rejects new parser warnings or unsupported fragments,
 and confirms the expected change in the canonical model.
 
-The route-map recipe is marked `partial` because route-map semantics are not
+The default 0.1 route-map recipe is marked `partial` because route-map semantics are not
 yet covered by the canonical parser. Its exact line edit and reversal are
 checked, and the surrounding configuration is parsed, but this is not claimed
 as semantic route-map validation. Other accepted 0.1 recipes are marked `passed`
 at the canonical-parser boundary; 0.2 results with preserved unknown fragments
 remain `partial` as described above.
+Explicit 0.3 instead confirms a two-clause configured body permutation through
+canonical profile 1.2. It can pass that bounded parser check, while preserved
+unknowns keep it partial. Neither version establishes effective routing semantics,
+device acceptance or network impact; see the [precise scope](cisco-route-maps.md).
 
 External network-behavior validation of these generated samples is `not_run`;
 the separate change-review/Batfish workflow is not automatically invoked here.
