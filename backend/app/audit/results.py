@@ -35,6 +35,11 @@ from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedMo
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
+from app.api.source_forest_contracts import (
+    SourceForestRecheck,
+    SourceForestSelection,
+    SourceForestSummary,
+)
 from app.api.source_ml_contracts import (
     SourceMlCapabilities,
     SourceMlRecheck,
@@ -64,6 +69,7 @@ _IDENTIFIERS = (
     "decision_id",
     "inference_id",
     "recheck_id",
+    "before_analysis_id",
 )
 _HASHES = (
     "source_sha256",
@@ -102,6 +108,9 @@ _SUPPORTED = (
     SourcePatchVerification,
     SourcePatchVerificationSummary,
     SourceMlCapabilities,
+    SourceForestSelection,
+    SourceForestRecheck,
+    SourceForestSummary,
     SourceMlRecheck,
     SourceMlSummary,
     ModelPatchProposal,
@@ -145,6 +154,19 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["inference"] = value.inference
         selected["model_sha256"] = value.model_sha256
     if isinstance(value, SourceMlRecheck):
+        selected["intent_sha256"] = source_ml_fingerprint(value.intent)
+        selected["before_source_sha256"] = value.intent.before.source_sha256
+        selected["after_source_sha256"] = value.intent.after.source_sha256
+    if isinstance(value, SourceForestSelection):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
+        selected["model_id"] = str(value.original.model.model_id)
+        selected["artifact_sha256"] = value.original.model.artifact_sha256
+        selected["before_source_sha256"] = value.before.source_sha256
+    if isinstance(value, (SourceForestRecheck, SourceForestSummary)):
+        selected["review_sha256"] = value.review_sha256
+        selected["execution_status"] = value.execution_status
+    if isinstance(value, SourceForestRecheck):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["intent_sha256"] = source_ml_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256

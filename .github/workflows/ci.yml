@@ -124,6 +124,7 @@ jobs:
           backend/tests/integration/test_source_patch_review_postgres.py
           backend/tests/integration/test_source_ml_recheck_api.py
           backend/tests/integration/test_source_ml_recheck_durability.py
+          backend/tests/integration/test_source_forest_api.py
           -k "not actual_isolated_native"
 
   frontend:
@@ -170,6 +171,8 @@ jobs:
         run: npm run test:e2e:source-patches
       - name: Check owned synthetic paired source model browser workflow
         run: npm run test:e2e:source-ml
+      - name: Check owned original numeric Forest browser workflow
+        run: npm run test:e2e:source-forest
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -178,6 +181,7 @@ jobs:
             artifacts/browser-model-patches-junit.xml
             artifacts/browser-source-patches-junit.xml
             artifacts/browser-source-ml-junit.xml
+            artifacts/browser-source-forest-junit.xml
           retention-days: 14
       - run: docker compose up --build -d
         working-directory: .

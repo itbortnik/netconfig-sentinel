@@ -9,7 +9,7 @@ Persistent API сохраняет receipt **до** выполнения `/api/v1
 ## Схема и содержимое
 
 Сохраните backup БД и прежний Fernet key, затем выполните `python -m app.db.migrate`
-в той же настроенной среде: требуется `0012_source_ml_rechecks`. Startup не мигрирует
+в той же настроенной среде: требуется `0013_source_forest_rechecks`. Startup не мигрирует
 БД. Domain records и атомарные audit events сохраняются; прошедшим операциям receipt
 не приписывается. Новый журнал автоматически включён для актуального persistent API.
 На старой схеме business dependencies запрещают работу; запросы до upgrade в журнал
@@ -36,6 +36,9 @@ diagnostics в metadata не сериализуются; domain intent/outcome �
 Парная ML-попытка ordinary draft связывает recheck/draft/model/review UUID/hashes,
 intent и execution status. Scores, model paths, private key и raw source в
 operation metadata не включаются; domain request/completion имеют атомарные события.
+Повтор исходной Isolation Forest связывает явно выбранный before analysis UUID/SHA,
+исходный model/artifact и source/intent/review bindings. Original tuple, score,
+hostname и numeric trees в operation metadata не включаются.
 Объяснение связывает hashes всех документов; semantic supplement — index SHA,
 публичный query SHA и fingerprint encoder identity с pipeline/runtime/weights revision.
 Модельный черновик — context SHA и SHA настроенного alias; alias не удостоверяет

@@ -82,6 +82,20 @@ import {
 } from "./sourceMlRecheck";
 import type { RunSourceMlRecheck, SourceMlSummary } from "./sourceMlRecheck";
 import {
+  runSourceForestRecheckSchema,
+  sourceForestSelectionSchema,
+  sourceForestSelectionBound,
+  sourceForestRecheckSchema,
+  sourceForestRecheckBound,
+  sourceForestSummarySchema,
+  sourceForestSummaryBound,
+} from "./sourceForestRecheck";
+import type {
+  RunSourceForestRecheck,
+  SourceForestSelection,
+  SourceForestSummary,
+} from "./sourceForestRecheck";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -189,7 +203,8 @@ export class ApiClient {
       | VerifyModelPatch
       | DecideModelPatch
       | RunConfigurationModel
-      | RunSourceMlRecheck,
+      | RunSourceMlRecheck
+      | RunSourceForestRecheck,
     namespace: "v1" | "v2" = "v1",
   ): Promise<T> {
     if (this.controller.signal.aborted)
@@ -479,6 +494,109 @@ export class ApiClient {
       undefined,
       "v2",
     );
+  }
+  async sourceForestSelection(draft: PatchDraft, analysisId: string) {
+    const selected = z.guid().parse(analysisId);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/statistical-selection/${encodeURIComponent(selected)}`,
+      sourceForestSelectionSchema,
+      undefined,
+      "v2",
+    );
+    if (!sourceForestSelectionBound(row, draft, selected))
+      throw new ApiError(
+        0,
+        "Исходный анализ Forest не соответствует черновику.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceForestRechecks(draft: PatchDraft, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/statistical-rechecks?limit=20&offset=${offset}`,
+      z.array(sourceForestSummarySchema).max(20),
+      undefined,
+      "v2",
+    );
+    if (
+      rows.some((row) => !sourceForestSummaryBound(row, draft)) ||
+      new Set(rows.map((row) => row.recheck_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История исходного Forest не соответствует черновику.",
+      );
+    return rows;
+  }
+  async sourceForestRecheck(
+    draft: PatchDraft,
+    id: string,
+    request?: RunSourceForestRecheck,
+    summary?: SourceForestSummary,
+    selection?: SourceForestSelection,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/statistical-rechecks/${encodeURIComponent(id)}`,
+      sourceForestRecheckSchema,
+      undefined,
+      "v2",
+    );
+    if (
+      row.recheck_id !== id ||
+      !(await sourceForestRecheckBound(row, draft, request, summary, selection))
+    )
+      throw new ApiError(
+        0,
+        "Привязки пересчёта исходного Forest не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async runSourceForestRecheck(
+    draft: PatchDraft,
+    options: RunSourceForestRecheck,
+    selection: SourceForestSelection,
+  ) {
+    const request = runSourceForestRecheckSchema.parse(options);
+    const selected = sourceForestSelectionSchema.parse(selection);
+    if (!request.allow_local_model_context)
+      throw new ApiError(403, messages[403]!);
+    if (
+      !sourceForestSelectionBound(
+        selected,
+        draft,
+        request.before_analysis_id,
+      ) ||
+      request.draft_sha256 !== draft.draft_sha256 ||
+      request.before_analysis_sha256 !== selected.before_analysis_sha256 ||
+      request.model_id !== selected.original.model.model_id ||
+      request.artifact_sha256 !== selected.original.model.artifact_sha256
+    )
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/statistical-rechecks`,
+      sourceForestRecheckSchema,
+      request,
+      "v2",
+    );
+    if (
+      !(await sourceForestRecheckBound(
+        row,
+        draft,
+        request,
+        undefined,
+        selected,
+      ))
+    )
+      throw new ApiError(
+        0,
+        "Привязки пересчёта исходного Forest не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
   }
   async sourceMlRechecks(draft: PatchDraft, offset = 0) {
     const rows = await this.request(

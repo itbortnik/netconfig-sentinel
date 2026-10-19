@@ -31,7 +31,7 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0012_source_ml_rechecks`; перед обновлением существующей БД
+Текущая revision — `0013_source_forest_rechecks`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).
@@ -113,6 +113,14 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/analyses/$($result.analysis
 | Проверка точных retained source pair/companions | `POST /api/v2/patches/<UUID>/verify` |
 | История сетевых попыток обычного draft | `GET /api/v2/patches/<UUID>/verifications` |
 | Сохранённый source network review | `GET /api/v2/patches/<UUID>/verifications/<UUID>` |
+| Настройка config-model для исходников draft | `GET /api/v2/patches/ml-capabilities` |
+| Парная config-model диагностика исходников draft | `POST /api/v2/patches/<UUID>/ml-rechecks` |
+| История парной config-model диагностики | `GET /api/v2/patches/<UUID>/ml-rechecks` |
+| Сохранённая парная config-model диагностика | `GET /api/v2/patches/<UUID>/ml-rechecks/<UUID>` |
+| Явный before analysis исходной Isolation Forest | `GET /api/v2/patches/<UUID>/statistical-selection/<analysis UUID>` |
+| Повтор исходной Isolation Forest | `POST /api/v2/patches/<UUID>/statistical-rechecks` |
+| История исходной Isolation Forest | `GET /api/v2/patches/<UUID>/statistical-rechecks` |
+| Сохранённый повтор исходной Isolation Forest | `GET /api/v2/patches/<UUID>/statistical-rechecks/<UUID>` |
 | Явно запросить source-bound model draft | `POST /api/v1/model-patches` |
 | История model attempts выбранного анализа | `GET /api/v1/model-patches?analysis_id=<UUID>` |
 | Сохранённый model attempt | `GET /api/v1/model-patches/<UUID>` |

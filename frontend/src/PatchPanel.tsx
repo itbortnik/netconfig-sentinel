@@ -19,6 +19,7 @@ import type {
 import { date, shortId } from "./format";
 import { SourcePatchVerificationPanel } from "./SourcePatchVerificationPanel";
 import { SourceMlRecheckPanel } from "./SourceMlRecheckPanel";
+import { SourceForestRecheckPanel } from "./SourceForestRecheckPanel";
 
 const blockerNames: Record<string, string> = {
   formal_verification_not_run: "Формальная проверка не запускалась",
@@ -397,6 +398,13 @@ export function PatchPanel({
           />
           <SourceMlRecheckPanel
             key={`ml-${draft.patch_id}`}
+            client={client}
+            draft={draft}
+            busy={busy}
+            onError={onError}
+          />
+          <SourceForestRecheckPanel
+            key={`forest-${draft.patch_id}`}
             client={client}
             draft={draft}
             busy={busy}

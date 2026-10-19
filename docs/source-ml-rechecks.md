@@ -106,3 +106,5 @@ approved/applied false. Change-specific ML qualification, повтор всех 
 access, rollback, approved baseline и individual engineer gates остаются открытыми.
 Network0.1 продолжает сохранять ML `not_run`: новый ML record не повышает его
 статус и не создаёт общий qualified verification автоматически.
+Отдельный [повтор исходной Isolation Forest](source-forest-rechecks.md) выбирает
+сохранённый before analysis/model и не использует registry или slot этой config-модели.

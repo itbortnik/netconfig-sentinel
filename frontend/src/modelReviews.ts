@@ -497,7 +497,7 @@ export function approvalBlockers(report: Candidate | null, ml: string) {
     blocked.push("selected_ml_category_not_supported");
   return blocked;
 }
-const statistical = z.strictObject({
+export const statisticalRecheckSchema = z.strictObject({
   model_id: id,
   artifact_sha256: hash,
   before_score_samples: z.number(),
@@ -523,7 +523,7 @@ export const savedModelReviewSchema = z
     execution_status: z.enum(["running", "completed", "failed"]),
     report: candidateReviewSchema.nullable(),
     ml_execution: z.enum(["not_requested", "completed", "unavailable"]),
-    statistical_recheck: statistical.nullable(),
+    statistical_recheck: statisticalRecheckSchema.nullable(),
     approval_blockers: strings,
     status: z.literal("needs_review"),
     applied: z.literal(false),

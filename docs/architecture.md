@@ -361,6 +361,14 @@ outer proof and nested intent hash. Result digests cover the whole supplied
 network, separately from target source fingerprints. Scoped engine evidence
 does not approve the baseline, run ML, establish engineer identity or apply edits.
 
+The [original Forest recheck](source-forest-rechecks.md) separately binds an explicit
+saved before analysis and its immutable numeric model to both retained draft sources.
+One authenticated artifact scores both sides without fitting; the before tuple must
+exactly match the original analysis. Migration0013 adds separate encrypted intent/outcome
+tables and atomic request/completion audit events. Read/replay validates source/proof
+bindings without loading models, parsing originals or executing detectors. API/UI keep
+numeric scores separate from quality, formal status, risk and engineer approval.
+
 The [ordinary source ML recheck](source-ml-rechecks.md) is a separate immutable
 attempt family. It shares the existing configuration-model runtime slot, prepares
 both complete retained-source envelopes before reservation, and runs one offline

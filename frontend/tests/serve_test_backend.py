@@ -206,6 +206,7 @@ def main() -> None:
     mode.add_argument("--model-patch-fixture", action="store_true")
     mode.add_argument("--source-patch-fixture", action="store_true")
     mode.add_argument("--source-ml-fixture", action="store_true")
+    mode.add_argument("--source-forest-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -239,6 +240,18 @@ def main() -> None:
         try:
             verification = None
             configuration_model = None
+            if options.source_forest_fixture:
+                import app.patching.source_forest as forest_workflow
+
+                numeric_forest = forest_workflow.recheck_original_forest
+
+                def owned_forest_worker(before, after, analysis, registered):
+                    # Authored failure control; normal requests run the actual numeric Forest.
+                    if (before.canonical.device.hostname or "").startswith("source-forest-fail"):
+                        raise ValueError("owned fixture unavailable")
+                    return numeric_forest(before, after, analysis, registered)
+
+                forest_workflow.recheck_original_forest = owned_forest_worker
             if options.source_ml_fixture:
                 import app.patching.source_ml as source_ml_workflow
                 from app.core.configuration_model import ConfigurationModelSettings
@@ -279,7 +292,9 @@ def main() -> None:
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8304
+                port=8305
+                if options.source_forest_fixture
+                else 8304
                 if options.source_ml_fixture
                 else 8303
                 if options.source_patch_fixture

@@ -38,6 +38,9 @@
   зашифрованная история локальных проверок и явная сетевая проверка точных
   сохранённых исходников с выбранными соседями, безопасное восстановление после
   потери ответа; отдельные ML/approval gates и отсутствие применения;
+- [повтор исходной Isolation Forest](docs/source-forest-rechecks.md) для ordinary
+  draft: явно выбранный before analysis, тот же numeric artifact, точный original
+  tuple, сохранённый HTTP/API/UI результат и replay без повторного обучения;
 - [парная ML-диагностика исходников draft](docs/source-ml-rechecks.md):
   один выбранный model/key для обеих сторон, отдельные durable попытки и история,
   source/model proof и explicit consent; без квалификации безопасности изменения;

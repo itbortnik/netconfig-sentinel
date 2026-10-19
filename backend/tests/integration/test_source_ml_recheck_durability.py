@@ -165,6 +165,8 @@ def test_real_upgrade_11_to_12_preserves_populated_legacy_rows_byte_for_byte(sou
     store = application.state.analysis_service.store
     with store.engine.begin() as connection:
         connection.exec_driver_sql("DROP TABLE patch_ml_recheck_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_intents")
         connection.exec_driver_sql("DROP TABLE patch_ml_recheck_intents")
         connection.execute(
             text("UPDATE alembic_version SET version_num='0011_source_patch_reviews'")

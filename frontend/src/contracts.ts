@@ -676,7 +676,7 @@ export type ExplainFinding = {
   allow_local_model_context?: boolean;
   retrieval?: "explicit_reference" | "semantic_supplement";
 };
-const snapshotBindingSchema = z.object({
+export const snapshotBindingSchema = z.object({
   configuration_id: id,
   device_id: id,
   source_sha256: hash,
@@ -735,7 +735,7 @@ export const modelSchema = z
             .size === model.training.length,
       ),
   );
-const statisticalSchema = z
+export const statisticalSchema = z
   .object({
     model: modelSchema,
     score_samples: z.number().min(-1).max(0),

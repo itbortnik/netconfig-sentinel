@@ -891,3 +891,18 @@ footer {
   overflow-wrap: anywhere;
   min-width: 0;
 }
+.forest-scores {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.forest-scores table {
+  width: 100%;
+  table-layout: fixed;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.forest-scores th,
+.forest-scores td {
+  padding: 6px;
+  vertical-align: top;
+}

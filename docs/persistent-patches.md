@@ -35,7 +35,7 @@ Offline-инструменты для исходных файлов описан
 
 Все операции требуют service bearer-token и [соответствующей роли](service-roles.md).
 Ключ не удостоверяет личность инженера. Для существующей БД после backup и сохранения
-старого ключа выполните явный upgrade до `0012_source_ml_rechecks`:
+старого ключа выполните явный upgrade до `0013_source_forest_rechecks`:
 `python -m app.db.migrate`. Startup не меняет схему.
 
 | Операция | Путь |
@@ -208,5 +208,9 @@ UI после неопределённого ответа блокирует н�
 
 Для тех же exact retained before/after доступна отдельная
 [парная ML-диагностика](source-ml-rechecks.md) без finding/analysis/model proposal.
+Для явно выбранного before analysis доступен отдельный
+[повтор исходной Isolation Forest](source-forest-rechecks.md): обе retained стороны,
+тот же numeric artifact, точное совпадение original before tuple и отдельная
+immutable история. Этот результат не повышает статусы прежних reviews.
 Её UUID, consent, intent/outcome и proof независимы от network0.1; она не меняет
 исторический `ml_status=not_run` сетевого отчёта или approval gates.

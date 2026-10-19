@@ -1,11 +1,30 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-18 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-19 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
-Для §16.6 добавлена отдельная [парная ML-диагностика ordinary draft](source-ml-rechecks.md):
+Для §16.6 добавлен отдельный [повтор исходной Isolation Forest](source-forest-rechecks.md):
+явный before analysis, exact retained before/after, один исходный numeric artifact,
+проверка original before tuple, encrypted intent/outcome0013 и immutable API/UI history.
+[Actual HTTP report](evaluation/owned-source-forest-functional.json) содержит две
+completed Cisco/JunOS пары на ранее сохранённых authored моделях без refit в прогоне;
+setup отдельно обучил две модели на16 authored configurations. На копии БД проверены
+upgrade0012→0013, сохранение прежних строк и replay после удаления модели;
+520 frozen historical files сохранены. Это functional evidence, independent quality
+denominator и реальные метрики отсутствуют. Все исходные detectors ещё не объединены
+в одном qualified rerun; formal/approval/risk/quality статусы не повышаются.
+Текущие local checks:4145pass/25skip/5warnings,91%coverage; explicit live/DB и
+3Windows symlink skips отделены от pass. Ruff/mypy270файлов default/Linux/win32
+pass; installed384pass/7skip/4warnings на каждом Pydantic2.13.5/2.14.0.
+270runtime и3assets source-equal;264oldinstalled/520history hashes сохранены.
+UI696unit,162regular+48model+8network+10ML+10Forest desktop/mobile browser pass;
+actual numeric Forest и controlled failure в новом browser profile разделены.
+Независимое code/evidence/backend/UI ревью не оставило существенных замечаний.
+Local live engine/PostgreSQL не запускались; CI публикуемого commit проверяется отдельно.
+
+Предыдущая поставка §16.6 добавила [парную ML-диагностику ordinary draft](source-ml-rechecks.md):
 exact retained before/after, один runtime slot/model/key, complete-parse admission,
 encrypted intent/outcome0012, immutable replay и API/UI с source/model/proof binding.
 [Actual existing CPU model](evaluation/owned-source-ml-functional.json) выполнила
@@ -20,7 +39,9 @@ Installed274pass/7skip на каждом Pydantic2.13.5/2.14.0; последую
 negative line-count case отдельно прошло source/обе installed версии.264runtime и
 3assets source-equal,254oldinstalled/503history hashes сохранены. Ruff/mypy264файла
 default/Linux/win32 pass; UI676unit,162regular+48model+8network+10ML browser pass.
-Локальный live engine/DB не запускались; exact-commit CI проверяется после публикации.
+Локальный live engine/DB для предыдущей поставки не запускались; её
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39151722110)
+успешны для `fffa38b0eb3d1f3602f7cc51ecc567612f03dd3e`.
 
 ## Минимальные функциональные gates
 
