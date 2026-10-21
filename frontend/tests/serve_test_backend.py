@@ -207,6 +207,7 @@ def main() -> None:
     mode.add_argument("--source-patch-fixture", action="store_true")
     mode.add_argument("--source-ml-fixture", action="store_true")
     mode.add_argument("--source-forest-fixture", action="store_true")
+    mode.add_argument("--source-deterministic-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -240,6 +241,20 @@ def main() -> None:
         try:
             verification = None
             configuration_model = None
+            if options.source_deterministic_fixture:
+                import app.patching.source_deterministic as deterministic_workflow
+
+                deterministic_pair = deterministic_workflow.recheck_original_deterministic
+
+                def owned_deterministic_worker(before, after, analysis, reference=None):
+                    # Only this explicit authored control fails; normal requests run real detectors.
+                    if (before.canonical.device.hostname or "").startswith(
+                        "source-deterministic-fail-"
+                    ):
+                        raise ValueError("owned fixture unavailable")
+                    return deterministic_pair(before, after, analysis, reference)
+
+                deterministic_workflow.recheck_original_deterministic = owned_deterministic_worker
             if options.source_forest_fixture:
                 import app.patching.source_forest as forest_workflow
 
@@ -292,7 +307,9 @@ def main() -> None:
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8305
+                port=8306
+                if options.source_deterministic_fixture
+                else 8305
                 if options.source_forest_fixture
                 else 8304
                 if options.source_ml_fixture

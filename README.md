@@ -38,6 +38,8 @@
   зашифрованная история локальных проверок и явная сетевая проверка точных
   сохранённых исходников с выбранными соседями, безопасное восстановление после
   потери ответа; отдельные ML/approval gates и отсутствие применения;
+- [повтор исходных политик, эталона и профиля соседей](docs/source-deterministic-rechecks.md)
+  для ordinary draft с явным before analysis и неизменяемой историей;
 - [повтор исходной Isolation Forest](docs/source-forest-rechecks.md) для ordinary
   draft: явно выбранный before analysis, тот же numeric artifact, точный original
   tuple, сохранённый HTTP/API/UI результат и replay без повторного обучения;

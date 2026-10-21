@@ -177,6 +177,8 @@ def test_one_reservation_winner_under_two_sessions(saved_pair):
 def test_populated_12_to_13_upgrade_is_additive_and_repeatable(saved_pair):
     store, intent, outcome = saved_pair
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_intents")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_outcomes")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_intents")
         connection.execute(text("UPDATE alembic_version SET version_num='0012_source_ml_rechecks'"))

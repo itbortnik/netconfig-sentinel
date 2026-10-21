@@ -364,6 +364,8 @@ def test_populated_12_to_13_preserves_actual_legacy_history(forest_api):
     selected = prepare(client)
     store = app.state.analysis_service.store
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_intents")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_outcomes")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_intents")
         connection.execute(text("UPDATE alembic_version SET version_num='0012_source_ml_rechecks'"))

@@ -244,3 +244,24 @@ class SourceForestOutcomeRow(Base):
         ForeignKey("patch_statistical_recheck_intents.id"), primary_key=True
     )
     payload: Mapped[str] = mapped_column(Text)
+
+
+class SourceDeterministicIntentRow(Base):
+    __tablename__ = "patch_deterministic_recheck_intents"
+    __table_args__ = (
+        Index(
+            "ix_patch_deterministic_recheck_intents_parent_created", "patch_id", "created_at", "id"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)
+
+
+class SourceDeterministicOutcomeRow(Base):
+    __tablename__ = "patch_deterministic_recheck_outcomes"
+    recheck_id: Mapped[str] = mapped_column(
+        ForeignKey("patch_deterministic_recheck_intents.id"), primary_key=True
+    )
+    payload: Mapped[str] = mapped_column(Text)

@@ -35,7 +35,7 @@ Offline-инструменты для исходных файлов описан
 
 Все операции требуют service bearer-token и [соответствующей роли](service-roles.md).
 Ключ не удостоверяет личность инженера. Для существующей БД после backup и сохранения
-старого ключа выполните явный upgrade до `0013_source_forest_rechecks`:
+старого ключа выполните явный upgrade до `0014_deterministic_rechecks`:
 `python -m app.db.migrate`. Startup не меняет схему.
 
 | Операция | Путь |
@@ -214,3 +214,9 @@ UI после неопределённого ответа блокирует н�
 immutable история. Этот результат не повышает статусы прежних reviews.
 Её UUID, consent, intent/outcome и proof независимы от network0.1; она не меняет
 исторический `ml_status=not_run` сетевого отчёта или approval gates.
+
+
+Отдельный [повтор исходных политик, эталона и peer profile](source-deterministic-rechecks.md)
+использует явно выбранный before analysis, его каталог и сохранённый контекст
+для обеих retained сторон. Старые preflight/reference, network/ML/Forest reviews
+не пересчитываются; общий qualified result и approval автоматически не возникают.

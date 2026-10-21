@@ -14,6 +14,7 @@ export default defineConfig({
     "**/sourcePatchVerification.spec.ts",
     "**/sourceMlRecheck.spec.ts",
     "**/sourceForestRecheck.spec.ts",
+    "**/sourceDeterministicRecheck.spec.ts",
   ],
   timeout: 30_000,
   expect: { timeout: 10_000 },

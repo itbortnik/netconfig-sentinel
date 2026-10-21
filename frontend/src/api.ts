@@ -96,6 +96,20 @@ import type {
   SourceForestSummary,
 } from "./sourceForestRecheck";
 import {
+  runSourceDeterministicRecheckSchema,
+  sourceDeterministicSelectionSchema,
+  sourceDeterministicSelectionBound,
+  sourceDeterministicRecheckSchema,
+  sourceDeterministicRecheckBound,
+  sourceDeterministicSummarySchema,
+  sourceDeterministicSummaryBound,
+} from "./sourceDeterministicRecheck";
+import type {
+  RunSourceDeterministicRecheck,
+  SourceDeterministicSelection,
+  SourceDeterministicSummary,
+} from "./sourceDeterministicRecheck";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -204,7 +218,8 @@ export class ApiClient {
       | DecideModelPatch
       | RunConfigurationModel
       | RunSourceMlRecheck
-      | RunSourceForestRecheck,
+      | RunSourceForestRecheck
+      | RunSourceDeterministicRecheck,
     namespace: "v1" | "v2" = "v1",
   ): Promise<T> {
     if (this.controller.signal.aborted)
@@ -593,6 +608,115 @@ export class ApiClient {
       throw new ApiError(
         0,
         "Привязки пересчёта исходного Forest не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceDeterministicSelection(draft: PatchDraft, analysisId: string) {
+    const selected = z.guid().parse(analysisId);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/deterministic-selection/${encodeURIComponent(selected)}`,
+      sourceDeterministicSelectionSchema,
+      undefined,
+      "v2",
+    );
+    if (!sourceDeterministicSelectionBound(row, draft, selected))
+      throw new ApiError(
+        0,
+        "Исходный анализ политик и сравнений не соответствует черновику.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceDeterministicRechecks(draft: PatchDraft, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/deterministic-rechecks?limit=20&offset=${offset}`,
+      z.array(sourceDeterministicSummarySchema).max(20),
+      undefined,
+      "v2",
+    );
+    if (
+      rows.some((row) => !sourceDeterministicSummaryBound(row, draft)) ||
+      new Set(rows.map((row) => row.recheck_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История исходного анализа не соответствует черновику.",
+      );
+    return rows;
+  }
+  async sourceDeterministicRecheck(
+    draft: PatchDraft,
+    id: string,
+    request?: RunSourceDeterministicRecheck,
+    summary?: SourceDeterministicSummary,
+    selection?: SourceDeterministicSelection,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/deterministic-rechecks/${encodeURIComponent(id)}`,
+      sourceDeterministicRecheckSchema,
+      undefined,
+      "v2",
+    );
+    if (
+      row.recheck_id !== id ||
+      !(await sourceDeterministicRecheckBound(
+        row,
+        draft,
+        request,
+        summary,
+        selection,
+      ))
+    )
+      throw new ApiError(
+        0,
+        "Привязки пересчёта исходного анализа не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async runSourceDeterministicRecheck(
+    draft: PatchDraft,
+    options: RunSourceDeterministicRecheck,
+    selection: SourceDeterministicSelection,
+  ) {
+    const request = runSourceDeterministicRecheckSchema.parse(options);
+    const selected = sourceDeterministicSelectionSchema.parse(selection);
+    if (!request.allow_local_analysis_context)
+      throw new ApiError(403, messages[403]!);
+    if (
+      !sourceDeterministicSelectionBound(
+        selected,
+        draft,
+        request.before_analysis_id,
+      ) ||
+      request.draft_sha256 !== draft.draft_sha256 ||
+      request.before_analysis_sha256 !== selected.before_analysis_sha256 ||
+      request.reference_canonical_sha256 !==
+        (selected.reference?.canonical_sha256 ?? null)
+    )
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/deterministic-rechecks`,
+      sourceDeterministicRecheckSchema,
+      request,
+      "v2",
+    );
+    if (
+      !(await sourceDeterministicRecheckBound(
+        row,
+        draft,
+        request,
+        undefined,
+        selected,
+      ))
+    )
+      throw new ApiError(
+        0,
+        "Привязки пересчёта исходного анализа не подтверждены.",
       );
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");

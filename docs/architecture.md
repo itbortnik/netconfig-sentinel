@@ -379,3 +379,14 @@ No read accesses originals or invokes inference. Failure of either side retains
 no partial scores; pending remains execution-unknown. This evidence neither
 rewrites network0.1 ML-not-run history nor qualifies change-specific detector
 quality, formal status, risk fusion, engineer approval or application.
+
+
+The [original deterministic recheck](source-deterministic-rechecks.md) independently
+freezes an explicit original analysis, historical policy catalog, original reference
+projection and persisted peer profile. Both retained target originals are reparsed;
+all before findings and the saved peer evaluation must reproduce exactly before
+the after side is evaluated with the same context. Migration0014 adds encrypted
+intent/outcome records without rewriting previous reviews. Historical reads validate
+frozen data and source/analysis bindings, never execute detectors or reload the
+reference, raw originals or models. Not-selected comparisons remain null. These
+results do not fuse risk, qualify model quality, run formal queries or approve changes.

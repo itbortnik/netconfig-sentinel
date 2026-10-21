@@ -1,11 +1,32 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-19 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-21 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
-Для §16.6 добавлен отдельный [повтор исходной Isolation Forest](source-forest-rechecks.md):
+Для §16.3–4,7 добавлен отдельный [повтор исходного детерминированного контекста](source-deterministic-rechecks.md):
+явно выбранный before analysis, исходный каталог, тот же эталон и сохранённый
+peer profile0.1/0.2/0.3; exact before findings/report, retained source reparse,
+раздельные encrypted intent/outcome0014 и immutable history без повторных вычислений.
+[Actual HTTP report](evaluation/owned-source-deterministic-functional.json) содержит18
+completed повторов на **двух** authored target pairs, трёх версиях и трёх cohorts;
+анализы ретроспективные. Model runs/новые fits/новые профили —0. Проверены additive
+0013→0014, прежние строки и replay после удаления эталона, originals и моделей на
+копии БД;558 зафиксированных historical files сохранены. Independent quality
+metrics/denominator отсутствуют; общий qualified rerun, formal/approval/risk gates
+этим не закрываются. Ruff/mypy276 runtime files в default/Linux/win32 проходят;
+installed545pass/8skip/4warnings на каждом Pydantic2.13.5/2.14.0,276runtime и3assets
+source-equal,270oldinstalled/558history hashes сохранены. UI724unit/typecheck/build/
+format pass;162regular+48model+8network+10ML+10Forest+10deterministic desktop/mobile
+browser cases проходят. Независимое backend/evidence/UI ревью не оставило
+существенных замечаний; найденная слабая клиентская reference schema исправлена
+и повторно проверена. Live engine/PostgreSQL локально не запускались. Полный
+Python rerun:4306pass/26skip/5warnings,91%coverage; explicit live/DB и3Windows
+symlink skips отделены от pass. CI точного публикуемого commit проверяется отдельно;
+предыдущие результаты ниже относятся к соответствующим поставкам.
+
+Предыдущая поставка §16.6 добавила отдельный [повтор исходной Isolation Forest](source-forest-rechecks.md):
 явный before analysis, exact retained before/after, один исходный numeric artifact,
 проверка original before tuple, encrypted intent/outcome0013 и immutable API/UI history.
 [Actual HTTP report](evaluation/owned-source-forest-functional.json) содержит две
@@ -22,7 +43,8 @@ pass; installed384pass/7skip/4warnings на каждом Pydantic2.13.5/2.14.0.
 UI696unit,162regular+48model+8network+10ML+10Forest desktop/mobile browser pass;
 actual numeric Forest и controlled failure в новом browser profile разделены.
 Независимое code/evidence/backend/UI ревью не оставило существенных замечаний.
-Local live engine/PostgreSQL не запускались; CI публикуемого commit проверяется отдельно.
+Local live engine/PostgreSQL не запускались. [Все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39302807168)
+успешны для `00901b2cf40fbf0061a4d4ef0b6af27e3bb3035a`.
 
 Предыдущая поставка §16.6 добавила [парную ML-диагностику ordinary draft](source-ml-rechecks.md):
 exact retained before/after, один runtime slot/model/key, complete-parse admission,
@@ -62,6 +84,12 @@ default/Linux/win32 pass; UI676unit,162regular+48model+8network+10ML browser pas
 | Раздельные метрики | [Общий evaluator](offline-evaluation.md) и origin/vendor/role/unseen slices; measured synthetic reports | Real-confirmed/independent-test данные отсутствуют; `missing` не означает ноль ошибок или пройденный gate |
 
 ## Количественные и модельные ограничения
+
+По [ответу владельца SelfStarter от16.10.2026](https://github.com/SivaKesava1/SelfStarter/issues/1)
+его evaluation configurations, anonymized snapshots, operator-confirmed annotations
+и grouping/time metadata закрыты и не передаются. Этот источник не предоставляет
+разрешённый подкорпус и не закрывает real-data gate. Доступность иных корпусов,
+разрешения и независимые labels требуют отдельных фактических входов.
 
 Для обычного сохранённого черновика добавлен отдельный
 [v2 source review](persistent-patches.md): точные retained before/after,

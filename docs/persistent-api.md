@@ -31,7 +31,7 @@ uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 SQLAlchemy использует отдельный [диалект psycopg](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg).
 Схема создаётся только явной миграцией; startup приложения не меняет БД.
 Повторная миграция сохраняет записи. Destructive downgrade не поддерживается.
-Текущая revision — `0013_source_forest_rechecks`; перед обновлением существующей БД
+Текущая revision — `0014_deterministic_rechecks`; перед обновлением существующей БД
 сохраните backup и прежний ключ. Upgrade сохраняет модели и анализы:
 [контракт обратной связи](finding-feedback.md) и
 [черновики объектов / локальные проверки](persistent-patches.md).

@@ -35,6 +35,11 @@ from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedMo
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
+from app.api.source_deterministic_contracts import (
+    SourceDeterministicRecheck,
+    SourceDeterministicSelection,
+    SourceDeterministicSummary,
+)
 from app.api.source_forest_contracts import (
     SourceForestRecheck,
     SourceForestSelection,
@@ -108,6 +113,9 @@ _SUPPORTED = (
     SourcePatchVerification,
     SourcePatchVerificationSummary,
     SourceMlCapabilities,
+    SourceDeterministicSelection,
+    SourceDeterministicRecheck,
+    SourceDeterministicSummary,
     SourceForestSelection,
     SourceForestRecheck,
     SourceForestSummary,
@@ -154,6 +162,20 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["inference"] = value.inference
         selected["model_sha256"] = value.model_sha256
     if isinstance(value, SourceMlRecheck):
+        selected["intent_sha256"] = source_ml_fingerprint(value.intent)
+        selected["before_source_sha256"] = value.intent.before.source_sha256
+        selected["after_source_sha256"] = value.intent.after.source_sha256
+    if isinstance(value, SourceDeterministicSelection):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
+        selected["before_source_sha256"] = value.before.source_sha256
+        selected["policy_catalog_version"] = value.original.policy_catalog_version
+        if value.reference is not None:
+            selected["reference_canonical_sha256"] = value.reference.canonical_sha256
+    if isinstance(value, (SourceDeterministicRecheck, SourceDeterministicSummary)):
+        selected["review_sha256"] = value.review_sha256
+        selected["execution_status"] = value.execution_status
+    if isinstance(value, SourceDeterministicRecheck):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["intent_sha256"] = source_ml_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256

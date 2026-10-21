@@ -81,7 +81,7 @@ export const severitySchema = z.enum([
   "high",
   "critical",
 ]);
-const location = z.object({
+export const location = z.object({
   source_lines: z.array(z.number().int().positive()),
   raw_text_hash: hash,
   parser_confidence: score,

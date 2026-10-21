@@ -7,7 +7,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine
 
-SCHEMA_REVISION = "0013_source_forest_rechecks"
+SCHEMA_REVISION = "0014_deterministic_rechecks"
 
 
 def upgrade_database(engine: Engine) -> None:

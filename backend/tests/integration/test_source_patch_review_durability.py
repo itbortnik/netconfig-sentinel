@@ -181,6 +181,8 @@ def test_additive_upgrade_10_to_11_preserves_real_legacy_snapshots_reviews_and_c
     # 0010 layout and revision, then execute the real additive Alembic upgrade.
     with store.engine.begin() as connection:
         connection.exec_driver_sql("DROP TABLE patch_network_review_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_outcomes")
+        connection.exec_driver_sql("DROP TABLE patch_deterministic_recheck_intents")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_outcomes")
         connection.exec_driver_sql("DROP TABLE patch_statistical_recheck_intents")
         connection.exec_driver_sql("DROP TABLE patch_ml_recheck_outcomes")

@@ -19,6 +19,7 @@ import type {
 import { date, shortId } from "./format";
 import { SourcePatchVerificationPanel } from "./SourcePatchVerificationPanel";
 import { SourceMlRecheckPanel } from "./SourceMlRecheckPanel";
+import { SourceDeterministicRecheckPanel } from "./SourceDeterministicRecheckPanel";
 import { SourceForestRecheckPanel } from "./SourceForestRecheckPanel";
 
 const blockerNames: Record<string, string> = {
@@ -398,6 +399,13 @@ export function PatchPanel({
           />
           <SourceMlRecheckPanel
             key={`ml-${draft.patch_id}`}
+            client={client}
+            draft={draft}
+            busy={busy}
+            onError={onError}
+          />
+          <SourceDeterministicRecheckPanel
+            key={`deterministic-${draft.patch_id}`}
             client={client}
             draft={draft}
             busy={busy}
