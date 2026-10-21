@@ -9,7 +9,7 @@ Persistent API сохраняет receipt **до** выполнения `/api/v1
 ## Схема и содержимое
 
 Сохраните backup БД и прежний Fernet key, затем выполните `python -m app.db.migrate`
-в той же настроенной среде: требуется `0014_deterministic_rechecks`. Startup не мигрирует
+в той же настроенной среде: требуется `0015_source_evidence_reports`. Startup не мигрирует
 БД. Domain records и атомарные audit events сохраняются; прошедшим операциям receipt
 не приписывается. Новый журнал автоматически включён для актуального persistent API.
 На старой схеме business dependencies запрещают работу; запросы до upgrade в журнал

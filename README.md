@@ -40,6 +40,9 @@
   потери ответа; отдельные ML/approval gates и отсутствие применения;
 - [повтор исходных политик, эталона и профиля соседей](docs/source-deterministic-rechecks.md)
   для ordinary draft с явным before analysis и неизменяемой историей;
+- [совместный отчёт по сохранённым результатам](docs/source-evidence-reports.md):
+  явный выбор политик/сравнений, Forest, нейросети и сетевой проверки, проверка
+  совместимости и отдельная зашифрованная история без повторных вычислений;
 - [повтор исходной Isolation Forest](docs/source-forest-rechecks.md) для ordinary
   draft: явно выбранный before analysis, тот же numeric artifact, точный original
   tuple, сохранённый HTTP/API/UI результат и replay без повторного обучения;

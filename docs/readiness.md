@@ -5,6 +5,30 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Для §16.7 добавлен [совместный отчёт по сохранённым результатам](source-evidence-reports.md):
+явный выбор completed child UUID/SHA, точные source/canonical/analysis bindings,
+компактные проверяемые проекции, additive encrypted storage0015 и atomic audit.
+API/UI не запускают детекторы, модели или engine; история сохраняет реальные
+сетевые ошибки/violations/inconclusive отдельно от общей `formal_qualification=not_proven`.
+[Actual HTTP evidence](evaluation/owned-source-evidence-functional.json): два отчёта,
+две authored пары, шесть прежних actual sibling reports; новые вычисления/fits —0.
+Подготовка отдельно выполнила две CPU neural пары, класс только `telnet_enabled`;
+адресные изменения не квалифицированы. Проверены0014→0015 без изменения прежних
+строк, неизменность selected children и replay после удаления originals/models/
+reference на копии БД;583history/276oldinstalled/3assets hashes сохранены.
+Независимый quality denominator отсутствует; общий qualified rerun, calibration,
+risk fusion, vendor syntax, formal и individual engineer approval остаются открыты.
+Полный local Python run:4432pass/26skip/5warnings,91%coverage; skips — explicit
+live/DB и3Windows symlink cases. Ruff и mypy282 runtime files default/Linux/win32
+проходят. UI752unit/typecheck/build/format pass. Независимый backend/evidence/UI
+проверяющий сверил оба actual report с шестью исходными child proofs; две
+пересчитанные поддельные проекции при неизменных child SHA отклонены. Наличие
+fixture-проверок не означает запуск реального network engine.
+Installed671pass/8skip/4warnings на каждом Pydantic2.13.5/2.14.0;282runtime и3assets
+source-equal. Browser162regular+48model+8network+10ML+10Forest+10deterministic+
+14joint desktop/mobile cases проходят. Local live engine/PostgreSQL не запускались;
+их задания и все остальные jobs точного нового commit проверяются отдельно.
+
 Для §16.3–4,7 добавлен отдельный [повтор исходного детерминированного контекста](source-deterministic-rechecks.md):
 явно выбранный before analysis, исходный каталог, тот же эталон и сохранённый
 peer profile0.1/0.2/0.3; exact before findings/report, retained source reparse,
@@ -23,8 +47,12 @@ browser cases проходят. Независимое backend/evidence/UI ре�
 существенных замечаний; найденная слабая клиентская reference schema исправлена
 и повторно проверена. Live engine/PostgreSQL локально не запускались. Полный
 Python rerun:4306pass/26skip/5warnings,91%coverage; explicit live/DB и3Windows
-symlink skips отделены от pass. CI точного публикуемого commit проверяется отдельно;
-предыдущие результаты ниже относятся к соответствующим поставкам.
+symlink skips отделены от pass. Для `77b3d3db7684cd670091fb1c38dbfae1598b6de1`
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39556479911)
+успешны: backend4297pass/35skip, PostgreSQL538pass/2skip/12deselected,
+Batfish41+2savedcandidate pass, frontend724unit и все browser/Compose cases.
+Эти результаты относятся к указанной предыдущей поставке; новый совместный отчёт
+проверяется отдельно.
 
 Предыдущая поставка §16.6 добавила отдельный [повтор исходной Isolation Forest](source-forest-rechecks.md):
 явный before analysis, exact retained before/after, один исходный numeric artifact,

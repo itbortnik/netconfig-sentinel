@@ -7,7 +7,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine
 
-SCHEMA_REVISION = "0014_deterministic_rechecks"
+SCHEMA_REVISION = "0015_source_evidence_reports"
 
 
 def upgrade_database(engine: Engine) -> None:

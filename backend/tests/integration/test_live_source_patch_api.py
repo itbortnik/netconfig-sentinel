@@ -46,7 +46,7 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
     )
     upgrade_database(application.state.analysis_service.store.engine)
     with TestClient(application) as client:
-        draft, *_ = draft_pair(client, before=edge.text, after=candidate)
+        draft, before, _after = draft_pair(client, before=edge.text, after=candidate)
         companion = upload(client, core.text)
         body = options(
             draft,
@@ -103,6 +103,72 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
             assert result["difference_count"] == 0
         else:
             assert result["before_reachable_count"] == result["after_reachable_count"] == 0
+        # Compose the actual retained network result with an explicit original policy rerun.
+        # No ML runtime is configured in this engine job, and no extra SDK query is needed.
+        analysis = client.post(
+            f"/api/v1/configurations/{before['configuration_id']}/analyze",
+            headers=HEADERS,
+            json={},
+        )
+        assert analysis.status_code == 201, analysis.text
+        base = f"/api/v2/patches/{draft['patch_id']}"
+        selected = client.get(
+            base + "/deterministic-selection/" + analysis.json()["analysis_id"], headers=HEADERS
+        )
+        assert selected.status_code == 200, selected.text
+        deterministic = client.post(
+            base + "/deterministic-rechecks",
+            headers=HEADERS,
+            json={
+                "recheck_id": str(uuid4()),
+                "draft_sha256": draft["draft_sha256"],
+                "before_analysis_id": analysis.json()["analysis_id"],
+                "before_analysis_sha256": selected.json()["before_analysis_sha256"],
+                "reference_canonical_sha256": None,
+                "allow_local_analysis_context": True,
+            },
+        )
+        assert deterministic.status_code == 201, deterministic.text
+        assert deterministic.json()["execution_status"] == "completed"
+        composition = {
+            "report_id": str(uuid4()),
+            "draft_sha256": draft["draft_sha256"],
+            "deterministic": {
+                "record_id": deterministic.json()["recheck_id"],
+                "review_sha256": deterministic.json()["review_sha256"],
+            },
+            "forest": None,
+            "neural": None,
+            "network": {
+                "record_id": saved["verification_id"],
+                "review_sha256": saved["review_sha256"],
+            },
+        }
+        joint = client.post(base + "/evidence-reports", headers=HEADERS, json=composition)
+        assert joint.status_code == 201, joint.text
+        report = joint.json()
+        assert report["network"]["result"] == result
+        assert report["network"]["ml_status"] == "not_run" and report["neural"] is None
+        assert report["formal_qualification"] == "not_proven" and report["status"] == "needs_review"
+        assert report["approved"] is report["applied"] is False
+        assert ("formal_scope_not_passed" in report["validation_blockers"]) == (
+            expected != "no_differences_in_scope"
+        )
+        print(
+            "OWNED_SOURCE_EVIDENCE_RESULT="
+            + json.dumps(
+                {
+                    "vendor": vendor,
+                    "scenario": scenario,
+                    "network_status": report["network"]["result"]["status"],
+                    "engine_version": report["network"]["result"]["engine_version"],
+                    "overall_status": report["status"],
+                    "formal_qualification": report["formal_qualification"],
+                    "report_sha256": report["review_sha256"],
+                },
+                sort_keys=True,
+            )
+        )
         monkeypatch.setattr(
             workflow_module,
             "check_with_batfish",
@@ -111,6 +177,16 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         with TestClient(create_app(settings)) as restarted:
             assert post(restarted, draft, body).json() == saved
             assert get(restarted, draft, body).json() == saved
+            assert (
+                restarted.post(base + "/evidence-reports", headers=HEADERS, json=composition).json()
+                == report
+            )
+            assert (
+                restarted.get(
+                    base + "/evidence-reports/" + composition["report_id"], headers=HEADERS
+                ).json()
+                == report
+            )
         # A foreign parent never exposes this result.
         assert (
             client.get(

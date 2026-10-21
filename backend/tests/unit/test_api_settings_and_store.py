@@ -98,6 +98,7 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "patch_statistical_recheck_outcomes",
             "patch_deterministic_recheck_intents",
             "patch_deterministic_recheck_outcomes",
+            "patch_evidence_reports",
             "operation_receipts",
             "operation_completions",
             "configuration_sources",
@@ -116,6 +117,28 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
                     "VALUES ('orphan', 'missing', CURRENT_TIMESTAMP, 'encrypted')"
                 )
             )
+    finally:
+        store.close()
+
+
+@pytest.mark.parametrize(
+    "table",
+    [
+        "patch_deterministic_recheck_intents",
+        "patch_deterministic_recheck_outcomes",
+        "patch_evidence_reports",
+    ],
+)
+def test_current_revision_with_missing_evidence_table_is_not_ready(
+    tmp_path: Path, table: str
+) -> None:
+    store = Store(settings_for(tmp_path))
+    try:
+        upgrade_database(store.engine)
+        assert store.ready()
+        with store.engine.begin() as connection:
+            connection.exec_driver_sql(f"DROP TABLE {table}")
+        assert not store.ready()
     finally:
         store.close()
 

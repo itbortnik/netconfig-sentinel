@@ -265,3 +265,14 @@ class SourceDeterministicOutcomeRow(Base):
         ForeignKey("patch_deterministic_recheck_intents.id"), primary_key=True
     )
     payload: Mapped[str] = mapped_column(Text)
+
+
+class SourceEvidenceReportRow(Base):
+    __tablename__ = "patch_evidence_reports"
+    __table_args__ = (
+        Index("ix_patch_evidence_reports_parent_created", "patch_id", "created_at", "id"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)

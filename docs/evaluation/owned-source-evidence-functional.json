@@ -1,0 +1,508 @@
+{
+  "actual_saved_joint_reports": 2,
+  "applied": false,
+  "approved": false,
+  "authored_target_pairs": 2,
+  "calibrated": false,
+  "completed_utc": "2026-10-21T11:24:58.305160+00:00",
+  "formal_qualification": "not_proven",
+  "frozen_history_files_preserved": 583,
+  "history_after_original_model_reference_removal": true,
+  "independent_quality_denominator": null,
+  "limitations": [
+    "Two authored pairs with retrospective original analyses; no independent quality denominator.",
+    "Existing Telnet-only CPU neural results do not qualify all edits, including address changes.",
+    "No live network engine was selected or executed in this run.",
+    "Binding proves consistency of selected immutable records, not labels, safety or engineer identity."
+  ],
+  "migration_0014_to_0015_old_rows_unchanged": true,
+  "network": "not_selected",
+  "neural_supported_classes": [
+    "telnet_enabled"
+  ],
+  "new_detector_model_engine_calls": 0,
+  "new_fits": 0,
+  "new_weights": false,
+  "old_installed_runtime_files_preserved": 276,
+  "preparation_actual_neural_pair_calls": 2,
+  "preparation_actual_neural_side_reports": 4,
+  "prepared_sibling_evidence_sha256": "a80b536f473750d76894aef4727ba02ab5c9268c97d33c59b805188d7504ec7a",
+  "protocol_sha256": "eaa1b33dfc4f27bfeff5d6afa8956028b946eb82e1ed7c44e99e30cbeab172c4",
+  "quality_proven": false,
+  "records": [
+    {
+      "report": {
+        "after": {
+          "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+          "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+          "created_at": "2026-10-19T18:33:11.905499Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+          "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+          "created_at": "2026-10-19T18:33:11.889099Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+        },
+        "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+        "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+        "calibrated": false,
+        "created_at": "2026-10-21T11:24:49.530799Z",
+        "deterministic": {
+          "after": {
+            "peer": 1,
+            "policy": 4,
+            "reference": 1
+          },
+          "before": {
+            "peer": 2,
+            "policy": 5,
+            "reference": 2
+          },
+          "comparison_version": "0.3.0",
+          "completed_at": "2026-10-21T06:38:49.665290Z",
+          "created_at": "2026-10-21T06:38:49.641012Z",
+          "kind": "deterministic",
+          "peer_count": 3,
+          "peer_profile_sha256": "63ec9c452db0b483dd8fa208d383bd85470e685a317697ae42b87bdb73baee72",
+          "policy_catalog_version": "policy-rules-0.7.0",
+          "policy_changes": {
+            "introduced": 0,
+            "persistent": 4,
+            "resolved": 1
+          },
+          "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+          "reference": {
+            "canonical_sha256": "948c0961e98e53c1c0b024e93300ddf0bc649f8474e6c682960aabacfae96577",
+            "configuration_id": "926e0cdd-5c4c-436b-8f45-d897d06bda93",
+            "created_at": "2026-10-19T18:33:11.870592Z",
+            "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+            "source_sha256": "b28c9d819b5173067a0b90aa08cf6ac6cbfad6d02688a26bed1ec077edc7c693"
+          },
+          "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "deterministic_evidence_not_combined_with_qualified_verification",
+            "deterministic_quality_not_proven",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified",
+            "original_statistical_not_rerun"
+          ],
+          "version": "source-deterministic-recheck-0.1.0"
+        },
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "forest": {
+          "artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+          "completed_at": "2026-10-21T06:38:49.796133Z",
+          "created_at": "2026-10-21T06:38:49.784037Z",
+          "decision_offset": -0.5497693627214328,
+          "feature_schema_version": "structured-features-0.1.0",
+          "interpretation": "experimental_scores_not_change_validation",
+          "kind": "forest",
+          "library": "scikit-learn",
+          "library_version": "1.9.1",
+          "model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+          "model_version": "isolation-forest-0.1.0",
+          "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+          "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+          "scores": {
+            "after_decision_function": 0.0005777332324019557,
+            "after_prediction": 1,
+            "after_score_samples": -0.5491916294890309,
+            "artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+            "before_decision_function": 0.0005777332324019557,
+            "before_prediction": 1,
+            "before_score_samples": -0.5491916294890309,
+            "calibrated": false,
+            "model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+            "quality_proven": false
+          },
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "original_statistical_quality_not_proven",
+            "all_original_detectors_not_rerun",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified"
+          ],
+          "version": "source-forest-recheck-0.1.0"
+        },
+        "formal_qualification": "not_proven",
+        "network": null,
+        "neural": {
+          "after": {
+            "anomaly_score": 0.31652772426605225,
+            "category_scores": {
+              "telnet_enabled": 0.32735368609428406
+            },
+            "embedding_dimensions": 64,
+            "raw_source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1",
+            "sanitized_source_sha256": "114115b4becbd1b77d48c22beb3b15b02bf84c6b06a2037c9d3f49ac947417dd",
+            "scored_line_count": 8,
+            "severity_scores": null,
+            "total_lines": 8
+          },
+          "before": {
+            "anomaly_score": 0.32027745246887207,
+            "category_scores": {
+              "telnet_enabled": 0.3316832184791565
+            },
+            "embedding_dimensions": 64,
+            "raw_source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7",
+            "sanitized_source_sha256": "c014d77a535c6c3986eceff0b84600fe7163f4f77bfe1d4a6fa84ce7006a290a",
+            "scored_line_count": 8,
+            "severity_scores": null,
+            "total_lines": 8
+          },
+          "classes": [
+            "telnet_enabled"
+          ],
+          "completed_at": "2026-10-21T06:38:53.610933Z",
+          "created_at": "2026-10-21T06:38:49.855044Z",
+          "enabled_heads": {
+            "anomaly": true,
+            "category": true,
+            "contrastive": true,
+            "localization": true,
+            "severity": false
+          },
+          "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+          "external_pretraining_exposure": "not_applicable",
+          "interpretation": "experimental_scores_not_change_validation",
+          "kind": "neural",
+          "model_card_sha256": "ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c",
+          "model_card_version": "config-model-card-0.1.0",
+          "model_kind": "native",
+          "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+          "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+          "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2",
+          "runtime_torch_version": "2.14.0+cpu",
+          "sanitization_version": "config-sanitizer-0.1.0",
+          "target_semantics": "injected_mutation",
+          "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+          "training_format": "multitask-training-0.2.0",
+          "training_report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "change_specific_ml_quality_not_proven",
+            "selected_model_independent_quality_not_proven",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified"
+          ],
+          "version": "source-ml-recheck-0.1.0"
+        },
+        "original_statistical_present": true,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "quality_proven": false,
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+        "request": {
+          "deterministic": {
+            "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+            "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf"
+          },
+          "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+          "forest": {
+            "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+            "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c"
+          },
+          "network": null,
+          "neural": {
+            "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+            "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2"
+          },
+          "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+          "version": "source-evidence-request-0.1.0"
+        },
+        "review_json": "{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"calibrated\":false,\"created_at\":\"2026-10-21T11:24:49.530799Z\",\"deterministic\":{\"after\":{\"peer\":1,\"policy\":4,\"reference\":1},\"before\":{\"peer\":2,\"policy\":5,\"reference\":2},\"comparison_version\":\"0.3.0\",\"completed_at\":\"2026-10-21T06:38:49.665290Z\",\"created_at\":\"2026-10-21T06:38:49.641012Z\",\"kind\":\"deterministic\",\"peer_count\":3,\"peer_profile_sha256\":\"63ec9c452db0b483dd8fa208d383bd85470e685a317697ae42b87bdb73baee72\",\"policy_catalog_version\":\"policy-rules-0.7.0\",\"policy_changes\":{\"introduced\":0,\"persistent\":4,\"resolved\":1},\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"reference\":{\"canonical_sha256\":\"948c0961e98e53c1c0b024e93300ddf0bc649f8474e6c682960aabacfae96577\",\"configuration_id\":\"926e0cdd-5c4c-436b-8f45-d897d06bda93\",\"created_at\":\"2026-10-19T18:33:11.870592Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"b28c9d819b5173067a0b90aa08cf6ac6cbfad6d02688a26bed1ec077edc7c693\"},\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"validation_blockers\":[\"formal_verification_not_run\",\"deterministic_evidence_not_combined_with_qualified_verification\",\"deterministic_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\",\"original_statistical_not_rerun\"],\"version\":\"source-deterministic-recheck-0.1.0\"},\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"forest\":{\"artifact_sha256\":\"2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d\",\"completed_at\":\"2026-10-21T06:38:49.796133Z\",\"created_at\":\"2026-10-21T06:38:49.784037Z\",\"decision_offset\":-0.5497693627214328,\"feature_schema_version\":\"structured-features-0.1.0\",\"interpretation\":\"experimental_scores_not_change_validation\",\"kind\":\"forest\",\"library\":\"scikit-learn\",\"library_version\":\"1.9.1\",\"model_id\":\"04d9a9e3-fbeb-42ff-be7a-728dd57eb64f\",\"model_version\":\"isolation-forest-0.1.0\",\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\",\"scores\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d\",\"before_decision_function\":0.0005777332324019557,\"before_prediction\":1,\"before_score_samples\":-0.5491916294890309,\"calibrated\":false,\"model_id\":\"04d9a9e3-fbeb-42ff-be7a-728dd57eb64f\",\"quality_proven\":false},\"validation_blockers\":[\"formal_verification_not_run\",\"original_statistical_quality_not_proven\",\"all_original_detectors_not_rerun\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-forest-recheck-0.1.0\"},\"formal_qualification\":\"not_proven\",\"network\":null,\"neural\":{\"after\":{\"anomaly_score\":0.31652772426605225,\"category_scores\":{\"telnet_enabled\":0.32735368609428406},\"embedding_dimensions\":64,\"raw_source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\",\"sanitized_source_sha256\":\"114115b4becbd1b77d48c22beb3b15b02bf84c6b06a2037c9d3f49ac947417dd\",\"scored_line_count\":8,\"severity_scores\":null,\"total_lines\":8},\"before\":{\"anomaly_score\":0.32027745246887207,\"category_scores\":{\"telnet_enabled\":0.3316832184791565},\"embedding_dimensions\":64,\"raw_source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\",\"sanitized_source_sha256\":\"c014d77a535c6c3986eceff0b84600fe7163f4f77bfe1d4a6fa84ce7006a290a\",\"scored_line_count\":8,\"severity_scores\":null,\"total_lines\":8},\"classes\":[\"telnet_enabled\"],\"completed_at\":\"2026-10-21T06:38:53.610933Z\",\"created_at\":\"2026-10-21T06:38:49.855044Z\",\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"interpretation\":\"experimental_scores_not_change_validation\",\"kind\":\"neural\",\"model_card_sha256\":\"ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c\",\"model_card_version\":\"config-model-card-0.1.0\",\"model_kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\",\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"training_format\":\"multitask-training-0.2.0\",\"training_report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"validation_blockers\":[\"formal_verification_not_run\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-ml-recheck-0.1.0\"},\"original_statistical_present\":true,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"quality_proven\":false,\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"request\":{\"deterministic\":{\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\"},\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"forest\":{\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\"},\"network\":null,\"neural\":{\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\"},\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"version\":\"source-evidence-request-0.1.0\"},\"risk_fused\":false,\"status\":\"needs_review\",\"validation_blockers\":[\"baseline_approval_not_proven\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\",\"individual_engineer_review_required\",\"independent_quality_not_proven\",\"calibration_not_proven\",\"formal_qualification_not_proven\",\"deterministic_quality_not_proven\",\"original_statistical_quality_not_proven\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"network_not_selected\"],\"version\":\"source-evidence-report-0.1.0\"}",
+        "review_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "risk_fused": false,
+        "status": "needs_review",
+        "validation_blockers": [
+          "baseline_approval_not_proven",
+          "device_syntax_not_verified",
+          "management_access_not_verified",
+          "rollback_not_verified",
+          "individual_engineer_review_required",
+          "independent_quality_not_proven",
+          "calibration_not_proven",
+          "formal_qualification_not_proven",
+          "deterministic_quality_not_proven",
+          "original_statistical_quality_not_proven",
+          "change_specific_ml_quality_not_proven",
+          "selected_model_independent_quality_not_proven",
+          "network_not_selected"
+        ],
+        "version": "source-evidence-report-0.1.0"
+      },
+      "request": {
+        "deterministic": {
+          "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+          "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf"
+        },
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "forest": {
+          "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+          "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c"
+        },
+        "network": null,
+        "neural": {
+          "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+          "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2"
+        },
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "report": {
+        "after": {
+          "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+          "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+          "created_at": "2026-10-19T18:33:12.226057Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+          "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+          "created_at": "2026-10-19T18:33:12.212066Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+        },
+        "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+        "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+        "calibrated": false,
+        "created_at": "2026-10-21T11:24:49.866111Z",
+        "deterministic": {
+          "after": {
+            "peer": 1,
+            "policy": 4,
+            "reference": 1
+          },
+          "before": {
+            "peer": 2,
+            "policy": 5,
+            "reference": 2
+          },
+          "comparison_version": "0.3.0",
+          "completed_at": "2026-10-21T06:38:53.711530Z",
+          "created_at": "2026-10-21T06:38:53.689823Z",
+          "kind": "deterministic",
+          "peer_count": 3,
+          "peer_profile_sha256": "3c3846b4afde8837267fe3027e77ebf1d1de3ec7fd985e790c61eb4db8c20e20",
+          "policy_catalog_version": "policy-rules-0.7.0",
+          "policy_changes": {
+            "introduced": 0,
+            "persistent": 4,
+            "resolved": 1
+          },
+          "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+          "reference": {
+            "canonical_sha256": "5a9709119d2d9d31d79f125680fd1c2a9cbb4b22e310d7be4aefe06b68f7379c",
+            "configuration_id": "f7fa02a5-3fd9-4191-8ca5-df9492abd44f",
+            "created_at": "2026-10-19T18:33:12.196883Z",
+            "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+            "source_sha256": "8d86e9f535e14023c4f89f98c38c63dc5b4e4b6533a705d60618ac8019ab6bba"
+          },
+          "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "deterministic_evidence_not_combined_with_qualified_verification",
+            "deterministic_quality_not_proven",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified",
+            "original_statistical_not_rerun"
+          ],
+          "version": "source-deterministic-recheck-0.1.0"
+        },
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "forest": {
+          "artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+          "completed_at": "2026-10-21T06:38:53.891825Z",
+          "created_at": "2026-10-21T06:38:53.879946Z",
+          "decision_offset": -0.5497693627214328,
+          "feature_schema_version": "structured-features-0.1.0",
+          "interpretation": "experimental_scores_not_change_validation",
+          "kind": "forest",
+          "library": "scikit-learn",
+          "library_version": "1.9.1",
+          "model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+          "model_version": "isolation-forest-0.1.0",
+          "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+          "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+          "scores": {
+            "after_decision_function": 0.0005777332324019557,
+            "after_prediction": 1,
+            "after_score_samples": -0.5491916294890309,
+            "artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+            "before_decision_function": 0.0005777332324019557,
+            "before_prediction": 1,
+            "before_score_samples": -0.5491916294890309,
+            "calibrated": false,
+            "model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+            "quality_proven": false
+          },
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "original_statistical_quality_not_proven",
+            "all_original_detectors_not_rerun",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified"
+          ],
+          "version": "source-forest-recheck-0.1.0"
+        },
+        "formal_qualification": "not_proven",
+        "network": null,
+        "neural": {
+          "after": {
+            "anomaly_score": 0.32542121410369873,
+            "category_scores": {
+              "telnet_enabled": 0.33506840467453003
+            },
+            "embedding_dimensions": 64,
+            "raw_source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f",
+            "sanitized_source_sha256": "98f743c31baf5c0bb1dc0fc65d2f9b6336cf35226a24495c4be7653880f7911c",
+            "scored_line_count": 3,
+            "severity_scores": null,
+            "total_lines": 3
+          },
+          "before": {
+            "anomaly_score": 0.34456774592399597,
+            "category_scores": {
+              "telnet_enabled": 0.35595446825027466
+            },
+            "embedding_dimensions": 64,
+            "raw_source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a",
+            "sanitized_source_sha256": "ff5b9b3e8bae4ad8296d0c4cc66f80349cd4fc71589b05931cd5d386b5f49efb",
+            "scored_line_count": 4,
+            "severity_scores": null,
+            "total_lines": 4
+          },
+          "classes": [
+            "telnet_enabled"
+          ],
+          "completed_at": "2026-10-21T06:38:57.734094Z",
+          "created_at": "2026-10-21T06:38:53.950971Z",
+          "enabled_heads": {
+            "anomaly": true,
+            "category": true,
+            "contrastive": true,
+            "localization": true,
+            "severity": false
+          },
+          "encoder_sha256": "58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd",
+          "external_pretraining_exposure": "not_applicable",
+          "interpretation": "experimental_scores_not_change_validation",
+          "kind": "neural",
+          "model_card_sha256": "ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c",
+          "model_card_version": "config-model-card-0.1.0",
+          "model_kind": "native",
+          "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+          "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+          "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d",
+          "runtime_torch_version": "2.14.0+cpu",
+          "sanitization_version": "config-sanitizer-0.1.0",
+          "target_semantics": "injected_mutation",
+          "tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+          "training_format": "multitask-training-0.2.0",
+          "training_report_sha256": "e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b",
+          "validation_blockers": [
+            "formal_verification_not_run",
+            "change_specific_ml_quality_not_proven",
+            "selected_model_independent_quality_not_proven",
+            "baseline_approval_not_proven",
+            "individual_engineer_review_required",
+            "device_syntax_not_verified",
+            "management_access_not_verified",
+            "rollback_not_verified"
+          ],
+          "version": "source-ml-recheck-0.1.0"
+        },
+        "original_statistical_present": true,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "quality_proven": false,
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+        "request": {
+          "deterministic": {
+            "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+            "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90"
+          },
+          "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+          "forest": {
+            "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+            "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f"
+          },
+          "network": null,
+          "neural": {
+            "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+            "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d"
+          },
+          "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+          "version": "source-evidence-request-0.1.0"
+        },
+        "review_json": "{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"calibrated\":false,\"created_at\":\"2026-10-21T11:24:49.866111Z\",\"deterministic\":{\"after\":{\"peer\":1,\"policy\":4,\"reference\":1},\"before\":{\"peer\":2,\"policy\":5,\"reference\":2},\"comparison_version\":\"0.3.0\",\"completed_at\":\"2026-10-21T06:38:53.711530Z\",\"created_at\":\"2026-10-21T06:38:53.689823Z\",\"kind\":\"deterministic\",\"peer_count\":3,\"peer_profile_sha256\":\"3c3846b4afde8837267fe3027e77ebf1d1de3ec7fd985e790c61eb4db8c20e20\",\"policy_catalog_version\":\"policy-rules-0.7.0\",\"policy_changes\":{\"introduced\":0,\"persistent\":4,\"resolved\":1},\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"reference\":{\"canonical_sha256\":\"5a9709119d2d9d31d79f125680fd1c2a9cbb4b22e310d7be4aefe06b68f7379c\",\"configuration_id\":\"f7fa02a5-3fd9-4191-8ca5-df9492abd44f\",\"created_at\":\"2026-10-19T18:33:12.196883Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8d86e9f535e14023c4f89f98c38c63dc5b4e4b6533a705d60618ac8019ab6bba\"},\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"validation_blockers\":[\"formal_verification_not_run\",\"deterministic_evidence_not_combined_with_qualified_verification\",\"deterministic_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\",\"original_statistical_not_rerun\"],\"version\":\"source-deterministic-recheck-0.1.0\"},\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"forest\":{\"artifact_sha256\":\"105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b\",\"completed_at\":\"2026-10-21T06:38:53.891825Z\",\"created_at\":\"2026-10-21T06:38:53.879946Z\",\"decision_offset\":-0.5497693627214328,\"feature_schema_version\":\"structured-features-0.1.0\",\"interpretation\":\"experimental_scores_not_change_validation\",\"kind\":\"forest\",\"library\":\"scikit-learn\",\"library_version\":\"1.9.1\",\"model_id\":\"bfa0009b-859a-49c4-bad5-306953310bf2\",\"model_version\":\"isolation-forest-0.1.0\",\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\",\"scores\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b\",\"before_decision_function\":0.0005777332324019557,\"before_prediction\":1,\"before_score_samples\":-0.5491916294890309,\"calibrated\":false,\"model_id\":\"bfa0009b-859a-49c4-bad5-306953310bf2\",\"quality_proven\":false},\"validation_blockers\":[\"formal_verification_not_run\",\"original_statistical_quality_not_proven\",\"all_original_detectors_not_rerun\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-forest-recheck-0.1.0\"},\"formal_qualification\":\"not_proven\",\"network\":null,\"neural\":{\"after\":{\"anomaly_score\":0.32542121410369873,\"category_scores\":{\"telnet_enabled\":0.33506840467453003},\"embedding_dimensions\":64,\"raw_source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\",\"sanitized_source_sha256\":\"98f743c31baf5c0bb1dc0fc65d2f9b6336cf35226a24495c4be7653880f7911c\",\"scored_line_count\":3,\"severity_scores\":null,\"total_lines\":3},\"before\":{\"anomaly_score\":0.34456774592399597,\"category_scores\":{\"telnet_enabled\":0.35595446825027466},\"embedding_dimensions\":64,\"raw_source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\",\"sanitized_source_sha256\":\"ff5b9b3e8bae4ad8296d0c4cc66f80349cd4fc71589b05931cd5d386b5f49efb\",\"scored_line_count\":4,\"severity_scores\":null,\"total_lines\":4},\"classes\":[\"telnet_enabled\"],\"completed_at\":\"2026-10-21T06:38:57.734094Z\",\"created_at\":\"2026-10-21T06:38:53.950971Z\",\"enabled_heads\":{\"anomaly\":true,\"category\":true,\"contrastive\":true,\"localization\":true,\"severity\":false},\"encoder_sha256\":\"58bf51df236ecfe9473f2ad61942263d406e6efdb1fee036755dafd4657849bd\",\"external_pretraining_exposure\":\"not_applicable\",\"interpretation\":\"experimental_scores_not_change_validation\",\"kind\":\"neural\",\"model_card_sha256\":\"ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c\",\"model_card_version\":\"config-model-card-0.1.0\",\"model_kind\":\"native\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\",\"runtime_torch_version\":\"2.14.0+cpu\",\"sanitization_version\":\"config-sanitizer-0.1.0\",\"target_semantics\":\"injected_mutation\",\"tokenizer_sha256\":\"2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e\",\"training_format\":\"multitask-training-0.2.0\",\"training_report_sha256\":\"e20575cfddd36358bb557a1d802a04526b2a9cee9c4c2e23d85c26089e7c3c8b\",\"validation_blockers\":[\"formal_verification_not_run\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"baseline_approval_not_proven\",\"individual_engineer_review_required\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\"],\"version\":\"source-ml-recheck-0.1.0\"},\"original_statistical_present\":true,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"quality_proven\":false,\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"request\":{\"deterministic\":{\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\"},\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"forest\":{\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\"},\"network\":null,\"neural\":{\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\"},\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"version\":\"source-evidence-request-0.1.0\"},\"risk_fused\":false,\"status\":\"needs_review\",\"validation_blockers\":[\"baseline_approval_not_proven\",\"device_syntax_not_verified\",\"management_access_not_verified\",\"rollback_not_verified\",\"individual_engineer_review_required\",\"independent_quality_not_proven\",\"calibration_not_proven\",\"formal_qualification_not_proven\",\"deterministic_quality_not_proven\",\"original_statistical_quality_not_proven\",\"change_specific_ml_quality_not_proven\",\"selected_model_independent_quality_not_proven\",\"network_not_selected\"],\"version\":\"source-evidence-report-0.1.0\"}",
+        "review_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "risk_fused": false,
+        "status": "needs_review",
+        "validation_blockers": [
+          "baseline_approval_not_proven",
+          "device_syntax_not_verified",
+          "management_access_not_verified",
+          "rollback_not_verified",
+          "individual_engineer_review_required",
+          "independent_quality_not_proven",
+          "calibration_not_proven",
+          "formal_qualification_not_proven",
+          "deterministic_quality_not_proven",
+          "original_statistical_quality_not_proven",
+          "change_specific_ml_quality_not_proven",
+          "selected_model_independent_quality_not_proven",
+          "network_not_selected"
+        ],
+        "version": "source-evidence-report-0.1.0"
+      },
+      "request": {
+        "deterministic": {
+          "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+          "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90"
+        },
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "forest": {
+          "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+          "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f"
+        },
+        "network": null,
+        "neural": {
+          "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+          "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d"
+        },
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d"
+      },
+      "vendor": "juniper"
+    }
+  ],
+  "risk_fused": false,
+  "selected_child_physical_rows_unchanged": true,
+  "selected_existing_child_reports": 6,
+  "version": "owned-source-evidence-functional-0.1.0"
+}

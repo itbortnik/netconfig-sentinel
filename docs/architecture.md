@@ -390,3 +390,16 @@ intent/outcome records without rewriting previous reviews. Historical reads vali
 frozen data and source/analysis bindings, never execute detectors or reload the
 reference, raw originals or models. Not-selected comparisons remain null. These
 results do not fuse risk, qualify model quality, run formal queries or approve changes.
+
+The [selected ordinary evidence report](source-evidence-reports.md) composes saved
+deterministic, numeric Forest, neural and scoped network records by explicit UUID
+and SHA. The deterministic result is required; optional results remain explicitly
+null when absent. All source/target/canonical bindings must agree, and original
+Forest and deterministic records share an exact analysis UUID/fingerprint.
+Migration0015 adds one encrypted immutable report plus an atomic domain audit;
+there is no computation intent or new inference. Reads re-project integrity-checked
+child records in one session without raw sources, models or reference snapshots.
+The browser independently binds all projections to fetched child records. Actual
+network errors, violations and inconclusive outcomes are preserved, including the
+old network ML-not-run field and unrecorded SDK version. Overall needs_review and
+formal_qualification:not_proven never become approval or quality claims.

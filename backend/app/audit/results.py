@@ -40,6 +40,7 @@ from app.api.source_deterministic_contracts import (
     SourceDeterministicSelection,
     SourceDeterministicSummary,
 )
+from app.api.source_evidence_contracts import SourceEvidenceReport, SourceEvidenceSummary
 from app.api.source_forest_contracts import (
     SourceForestRecheck,
     SourceForestSelection,
@@ -74,6 +75,7 @@ _IDENTIFIERS = (
     "decision_id",
     "inference_id",
     "recheck_id",
+    "report_id",
     "before_analysis_id",
 )
 _HASHES = (
@@ -113,6 +115,8 @@ _SUPPORTED = (
     SourcePatchVerification,
     SourcePatchVerificationSummary,
     SourceMlCapabilities,
+    SourceEvidenceReport,
+    SourceEvidenceSummary,
     SourceDeterministicSelection,
     SourceDeterministicRecheck,
     SourceDeterministicSummary,
@@ -165,6 +169,22 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["intent_sha256"] = source_ml_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256
+    if isinstance(value, (SourceEvidenceReport, SourceEvidenceSummary)):
+        selected["review_sha256"] = value.review_sha256
+    if isinstance(value, SourceEvidenceReport):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
+        selected["before_source_sha256"] = value.before.source_sha256
+        selected["after_source_sha256"] = value.after.source_sha256
+        selected["sources"] = [
+            {
+                "kind": item.kind,
+                "record_id": str(item.record_id),
+                "review_sha256": item.review_sha256,
+                "version": item.version,
+            }
+            for item in (value.deterministic, value.forest, value.neural, value.network)
+            if item is not None
+        ]
     if isinstance(value, SourceDeterministicSelection):
         selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["before_source_sha256"] = value.before.source_sha256

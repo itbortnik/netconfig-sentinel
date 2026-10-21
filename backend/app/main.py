@@ -25,6 +25,7 @@ from app.api.patches import router as patch_router
 from app.api.service import AnalysisService
 from app.api.snapshot_diff import router as snapshot_diff_router
 from app.api.source_deterministic import router as source_deterministic_router
+from app.api.source_evidence import router as source_evidence_router
 from app.api.source_forest import router as source_forest_router
 from app.api.source_ml import router as source_ml_router
 from app.api.source_patch_reviews import router as source_patch_review_router
@@ -94,6 +95,7 @@ def create_app(
             source_ml_router,
             source_forest_router,
             source_deterministic_router,
+            source_evidence_router,
             model_patch_router,
             grounded_model_patch_router,
             model_patch_review_router,
@@ -153,6 +155,7 @@ def create_app(
     application.include_router(source_ml_router)
     application.include_router(source_forest_router)
     application.include_router(source_deterministic_router)
+    application.include_router(source_evidence_router)
     application.include_router(model_patch_router)
     application.include_router(grounded_model_patch_router)
     application.include_router(model_patch_review_router)

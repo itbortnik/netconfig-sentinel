@@ -110,6 +110,18 @@ import type {
   SourceDeterministicSummary,
 } from "./sourceDeterministicRecheck";
 import {
+  createSourceEvidenceReportSchema,
+  sourceEvidenceReportSchema,
+  sourceEvidenceReportBound,
+  sourceEvidenceSummarySchema,
+  sourceEvidenceSummaryBound,
+} from "./sourceEvidenceReports";
+import type {
+  CreateSourceEvidenceReport,
+  SourceEvidenceReport,
+  SourceEvidenceSummary,
+} from "./sourceEvidenceReports";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -219,7 +231,8 @@ export class ApiClient {
       | RunConfigurationModel
       | RunSourceMlRecheck
       | RunSourceForestRecheck
-      | RunSourceDeterministicRecheck,
+      | RunSourceDeterministicRecheck
+      | CreateSourceEvidenceReport,
     namespace: "v1" | "v2" = "v1",
   ): Promise<T> {
     if (this.controller.signal.aborted)
@@ -721,6 +734,103 @@ export class ApiClient {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
     return row;
+  }
+  async sourceEvidenceReports(draft: PatchDraft, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports?limit=20&offset=${offset}`,
+      z.array(sourceEvidenceSummarySchema).max(20),
+      undefined,
+      "v2",
+    );
+    if (
+      rows.some((row) => !sourceEvidenceSummaryBound(row, draft)) ||
+      new Set(rows.map((row) => row.report_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История совместных отчётов не соответствует черновику.",
+      );
+    return rows;
+  }
+  private async acceptSourceEvidenceReport(
+    row: SourceEvidenceReport,
+    draft: PatchDraft,
+    request?: CreateSourceEvidenceReport,
+    summary?: SourceEvidenceSummary,
+  ) {
+    // Each existing child client verifies its own normative proof. A valid parent
+    // hash alone cannot authenticate compact projections asserted by the parent.
+    const selected = row.request;
+    const [deterministic, forest, neural, network] = await Promise.all([
+      this.sourceDeterministicRecheck(draft, selected.deterministic.record_id),
+      selected.forest
+        ? this.sourceForestRecheck(draft, selected.forest.record_id)
+        : null,
+      selected.neural
+        ? this.sourceMlRecheck(draft, selected.neural.record_id)
+        : null,
+      selected.network
+        ? this.sourcePatchVerification(draft, selected.network.record_id)
+        : null,
+    ]).catch((problem: unknown) => {
+      if (this.controller.signal.aborted)
+        throw new DOMException("Disconnected", "AbortError");
+      // A refused child GET after a successful POST says nothing about whether
+      // the immutable parent committed. Keep it uncertain, never resettable.
+      if (problem instanceof DOMException && problem.name === "AbortError")
+        throw problem;
+      throw new ApiError(
+        0,
+        "Сохранённые результаты совместного отчёта не подтверждены.",
+      );
+    });
+    if (
+      !(await sourceEvidenceReportBound(
+        row,
+        draft,
+        { deterministic, forest, neural, network },
+        request,
+        summary,
+      ))
+    )
+      throw new ApiError(
+        0,
+        "Привязки совместного отчёта и сохранённых результатов не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceEvidenceReport(
+    draft: PatchDraft,
+    id: string,
+    request?: CreateSourceEvidenceReport,
+    summary?: SourceEvidenceSummary,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(id)}`,
+      sourceEvidenceReportSchema,
+      undefined,
+      "v2",
+    );
+    if (row.report_id !== id)
+      throw new ApiError(0, "Идентификатор совместного отчёта не подтверждён.");
+    return this.acceptSourceEvidenceReport(row, draft, request, summary);
+  }
+  async createSourceEvidenceReport(
+    draft: PatchDraft,
+    options: CreateSourceEvidenceReport,
+  ) {
+    const request = createSourceEvidenceReportSchema.parse(options);
+    if (request.draft_sha256 !== draft.draft_sha256)
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports`,
+      sourceEvidenceReportSchema,
+      request,
+      "v2",
+    );
+    return this.acceptSourceEvidenceReport(row, draft, request);
   }
   async sourceMlRechecks(draft: PatchDraft, offset = 0) {
     const rows = await this.request(

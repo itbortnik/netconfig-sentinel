@@ -21,6 +21,7 @@ import { SourcePatchVerificationPanel } from "./SourcePatchVerificationPanel";
 import { SourceMlRecheckPanel } from "./SourceMlRecheckPanel";
 import { SourceDeterministicRecheckPanel } from "./SourceDeterministicRecheckPanel";
 import { SourceForestRecheckPanel } from "./SourceForestRecheckPanel";
+import { SourceEvidenceReportPanel } from "./SourceEvidenceReportPanel";
 
 const blockerNames: Record<string, string> = {
   formal_verification_not_run: "Формальная проверка не запускалась",
@@ -413,6 +414,13 @@ export function PatchPanel({
           />
           <SourceForestRecheckPanel
             key={`forest-${draft.patch_id}`}
+            client={client}
+            draft={draft}
+            busy={busy}
+            onError={onError}
+          />
+          <SourceEvidenceReportPanel
+            key={`evidence-${draft.patch_id}`}
             client={client}
             draft={draft}
             busy={busy}
