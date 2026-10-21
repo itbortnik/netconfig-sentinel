@@ -1,0 +1,424 @@
+{
+  "actual_persisted_software_dispositions": 8,
+  "applied": false,
+  "approved": false,
+  "authored_target_pairs": 2,
+  "completed_utc": "2026-10-21T17:28:57.910345+00:00",
+  "engineering_confirmation": "not_proven",
+  "formal_qualification": "not_proven",
+  "frozen_history_files_preserved": 634,
+  "history_after_original_model_reference_removal": true,
+  "independent_quality_denominator": null,
+  "individual_identity_verified": false,
+  "limitations": [
+    "Software service-role controls do not verify a named engineer or provide actual human approval.",
+    "Two authored target pairs are not eight independent networks or reviewers.",
+    "Existing parent Telnet-only CPU neural results do not qualify all changes.",
+    "No detector, inference or live network engine executes during disposition creation or history."
+  ],
+  "migration_0015_to_0016_old_rows_unchanged": true,
+  "new_detector_model_engine_calls": 0,
+  "new_fits": 0,
+  "new_weights": false,
+  "old_installed_runtime_files_preserved": 282,
+  "parent_and_selected_child_physical_rows_unchanged": true,
+  "parent_functional_report_sha256": "3349f91c59c5919d4eda75f4dc1304526403e605eba1b5dc72aec2a0c1e78ffe",
+  "protocol_sha256": "df302df7d83e02f3b79e2d92bc4d152f114e9ed37f074b88cbafcfc29c464eae",
+  "quality_proven": false,
+  "recorded_service_roles": [
+    "admin",
+    "engineer"
+  ],
+  "records": [
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+          "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+          "created_at": "2026-10-19T18:33:11.905499Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+          "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+          "created_at": "2026-10-19T18:33:11.889099Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+        },
+        "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+        "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+        "created_at": "2026-10-21T17:28:45.866549Z",
+        "decision_id": "5503d319-edb6-4f46-a993-3ac60cd7d059",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"created_at\":\"2026-10-21T17:28:45.866549Z\",\"decision_id\":\"5503d319-edb6-4f46-a993-3ac60cd7d059\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"5503d319-edb6-4f46-a993-3ac60cd7d059\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"verdict\":\"rejected\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "d2fc4dfc38c85c90bdc93a0865e9a3b9b56938e9126ecb67b0b8ffcb07c9d094",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "5503d319-edb6-4f46-a993-3ac60cd7d059",
+          "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+          "verdict": "rejected",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "engineer",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "5503d319-edb6-4f46-a993-3ac60cd7d059",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "verdict": "rejected"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+          "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+          "created_at": "2026-10-19T18:33:11.905499Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+          "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+          "created_at": "2026-10-19T18:33:11.889099Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+        },
+        "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+        "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+        "created_at": "2026-10-21T17:28:46.193112Z",
+        "decision_id": "c72d1baa-59d0-452a-b729-963ab579d62a",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"created_at\":\"2026-10-21T17:28:46.193112Z\",\"decision_id\":\"c72d1baa-59d0-452a-b729-963ab579d62a\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"c72d1baa-59d0-452a-b729-963ab579d62a\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"verdict\":\"rejected\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "25fff228432675423c1d1f526694e06dc1b4a2807a902357474258e5378d6a96",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "c72d1baa-59d0-452a-b729-963ab579d62a",
+          "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+          "verdict": "rejected",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "admin",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "c72d1baa-59d0-452a-b729-963ab579d62a",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "verdict": "rejected"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+          "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+          "created_at": "2026-10-19T18:33:11.905499Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+          "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+          "created_at": "2026-10-19T18:33:11.889099Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+        },
+        "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+        "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+        "created_at": "2026-10-21T17:28:46.415227Z",
+        "decision_id": "805da328-0faf-4bcf-a7ca-a4e65b363fe5",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"created_at\":\"2026-10-21T17:28:46.415227Z\",\"decision_id\":\"805da328-0faf-4bcf-a7ca-a4e65b363fe5\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"805da328-0faf-4bcf-a7ca-a4e65b363fe5\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"verdict\":\"needs_more_information\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "5a2ffcd902aaef942d86686cbed69a27d6831d9785bc0c7f1f285b1090ffc28f",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "805da328-0faf-4bcf-a7ca-a4e65b363fe5",
+          "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+          "verdict": "needs_more_information",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "engineer",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "805da328-0faf-4bcf-a7ca-a4e65b363fe5",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "verdict": "needs_more_information"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+          "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+          "created_at": "2026-10-19T18:33:11.905499Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+          "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+          "created_at": "2026-10-19T18:33:11.889099Z",
+          "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+          "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+        },
+        "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+        "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+        "created_at": "2026-10-21T17:28:46.641466Z",
+        "decision_id": "419b1b5d-fe07-499c-9d17-88ecc0453c58",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"created_at\":\"2026-10-21T17:28:46.641466Z\",\"decision_id\":\"419b1b5d-fe07-499c-9d17-88ecc0453c58\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"beb76ed1-472a-4e70-8097-7bedfd8830b9\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"419b1b5d-fe07-499c-9d17-88ecc0453c58\",\"report_sha256\":\"5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4\",\"verdict\":\"needs_more_information\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "861aa3b028dc4e018fbb3e62ab90e2f24aca6f2b0a96e0d7a20989f7ddfe3f1e",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "beb76ed1-472a-4e70-8097-7bedfd8830b9",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "419b1b5d-fe07-499c-9d17-88ecc0453c58",
+          "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+          "verdict": "needs_more_information",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "admin",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "419b1b5d-fe07-499c-9d17-88ecc0453c58",
+        "report_sha256": "5e4e8b42820aa3d1a683928ed0614443da7334968d20bd7941a05ec327cac8d4",
+        "verdict": "needs_more_information"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+          "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+          "created_at": "2026-10-19T18:33:12.226057Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+          "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+          "created_at": "2026-10-19T18:33:12.212066Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+        },
+        "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+        "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+        "created_at": "2026-10-21T17:28:47.176762Z",
+        "decision_id": "d79f2fcc-dd7a-4812-8ea4-634d764b9169",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"created_at\":\"2026-10-21T17:28:47.176762Z\",\"decision_id\":\"d79f2fcc-dd7a-4812-8ea4-634d764b9169\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"d79f2fcc-dd7a-4812-8ea4-634d764b9169\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"verdict\":\"rejected\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "e04483bb0bdc0096f0be2cd9497abe2a6108b8eb077b17e4e39bbdbf350cbe56",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "d79f2fcc-dd7a-4812-8ea4-634d764b9169",
+          "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+          "verdict": "rejected",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "engineer",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "d79f2fcc-dd7a-4812-8ea4-634d764b9169",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "verdict": "rejected"
+      },
+      "vendor": "juniper"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+          "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+          "created_at": "2026-10-19T18:33:12.226057Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+          "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+          "created_at": "2026-10-19T18:33:12.212066Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+        },
+        "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+        "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+        "created_at": "2026-10-21T17:28:47.403419Z",
+        "decision_id": "00573871-790c-40f9-b8ef-258540a5405c",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"created_at\":\"2026-10-21T17:28:47.403419Z\",\"decision_id\":\"00573871-790c-40f9-b8ef-258540a5405c\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"00573871-790c-40f9-b8ef-258540a5405c\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"verdict\":\"rejected\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "f8ffb03a92144eba5503c01661814eefdc9f9250ba90e163689797089d7b7e92",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "00573871-790c-40f9-b8ef-258540a5405c",
+          "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+          "verdict": "rejected",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "admin",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "00573871-790c-40f9-b8ef-258540a5405c",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "verdict": "rejected"
+      },
+      "vendor": "juniper"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+          "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+          "created_at": "2026-10-19T18:33:12.226057Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+          "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+          "created_at": "2026-10-19T18:33:12.212066Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+        },
+        "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+        "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+        "created_at": "2026-10-21T17:28:47.617613Z",
+        "decision_id": "bcc86cff-92b5-405b-935a-1b55b0ae059b",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"created_at\":\"2026-10-21T17:28:47.617613Z\",\"decision_id\":\"bcc86cff-92b5-405b-935a-1b55b0ae059b\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"bcc86cff-92b5-405b-935a-1b55b0ae059b\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"verdict\":\"needs_more_information\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "a9afb53e7c8c0f032551056376b06725a63948c61e85d711a828f5d6cae66559",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "bcc86cff-92b5-405b-935a-1b55b0ae059b",
+          "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+          "verdict": "needs_more_information",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "engineer",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "bcc86cff-92b5-405b-935a-1b55b0ae059b",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "verdict": "needs_more_information"
+      },
+      "vendor": "juniper"
+    },
+    {
+      "decision": {
+        "after": {
+          "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+          "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+          "created_at": "2026-10-19T18:33:12.226057Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+        },
+        "applied": false,
+        "approved": false,
+        "before": {
+          "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+          "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+          "created_at": "2026-10-19T18:33:12.212066Z",
+          "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+          "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+        },
+        "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+        "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+        "created_at": "2026-10-21T17:28:47.823729Z",
+        "decision_id": "40e5dc6c-f7fa-47bf-ac18-9c4719d737f6",
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"created_at\":\"2026-10-21T17:28:47.823729Z\",\"decision_id\":\"40e5dc6c-f7fa-47bf-ac18-9c4719d737f6\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"5780033a-8326-4e00-8de3-f61610a5e76d\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored laboratory disposition; individual identity and approval are not verified.\",\"decision_id\":\"40e5dc6c-f7fa-47bf-ac18-9c4719d737f6\",\"report_sha256\":\"7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72\",\"verdict\":\"needs_more_information\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "8fa4b2c0ac1671593af304504ea59c705ddf7dbed83dc16e795f30d26c296ed3",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "5780033a-8326-4e00-8de3-f61610a5e76d",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "report_version": "source-evidence-report-0.1.0",
+        "request": {
+          "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+          "decision_id": "40e5dc6c-f7fa-47bf-ac18-9c4719d737f6",
+          "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+          "verdict": "needs_more_information",
+          "version": "source-evidence-decision-request-0.1.0"
+        },
+        "service_role": "admin",
+        "version": "source-evidence-decision-0.1.0"
+      },
+      "request": {
+        "comment": "Authored laboratory disposition; individual identity and approval are not verified.",
+        "decision_id": "40e5dc6c-f7fa-47bf-ac18-9c4719d737f6",
+        "report_sha256": "7b5b8fc3f24a1ea3eeef6434070a0514069a1f3f40d863d34d56075dc2d3dd72",
+        "verdict": "needs_more_information"
+      },
+      "vendor": "juniper"
+    }
+  ],
+  "replay_preserves_original_role_and_time": true,
+  "verdicts": [
+    "rejected",
+    "needs_more_information"
+  ],
+  "version": "owned-source-evidence-decisions-functional-0.1.0"
+}

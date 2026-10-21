@@ -41,6 +41,10 @@ from app.api.source_deterministic_contracts import (
     SourceDeterministicSummary,
 )
 from app.api.source_evidence_contracts import SourceEvidenceReport, SourceEvidenceSummary
+from app.api.source_evidence_decision_contracts import (
+    SourceEvidenceDecision,
+    SourceEvidenceDecisionSummary,
+)
 from app.api.source_forest_contracts import (
     SourceForestRecheck,
     SourceForestSelection,
@@ -117,6 +121,8 @@ _SUPPORTED = (
     SourceMlCapabilities,
     SourceEvidenceReport,
     SourceEvidenceSummary,
+    SourceEvidenceDecision,
+    SourceEvidenceDecisionSummary,
     SourceDeterministicSelection,
     SourceDeterministicRecheck,
     SourceDeterministicSummary,
@@ -171,6 +177,17 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["after_source_sha256"] = value.intent.after.source_sha256
     if isinstance(value, (SourceEvidenceReport, SourceEvidenceSummary)):
         selected["review_sha256"] = value.review_sha256
+    if isinstance(value, (SourceEvidenceDecision, SourceEvidenceDecisionSummary)):
+        selected["report_sha256"] = value.report_sha256
+        selected["decision_sha256"] = value.decision_sha256
+        selected["recorded_service_role"] = value.service_role
+        selected["verdict"] = (
+            value.request.verdict if isinstance(value, SourceEvidenceDecision) else value.verdict
+        )
+    if isinstance(value, SourceEvidenceDecision):
+        selected["before_analysis_sha256"] = value.before_analysis_sha256
+        selected["before_source_sha256"] = value.before.source_sha256
+        selected["after_source_sha256"] = value.after.source_sha256
     if isinstance(value, SourceEvidenceReport):
         selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["before_source_sha256"] = value.before.source_sha256

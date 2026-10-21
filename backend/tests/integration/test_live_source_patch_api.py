@@ -169,6 +169,42 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
                 sort_keys=True,
             )
         )
+        decision_url = base + "/evidence-reports/" + report["report_id"] + "/decisions"
+        decision_request = {
+            "decision_id": str(uuid4()),
+            "report_sha256": report["review_sha256"],
+            "verdict": "rejected" if scenario == "route_loss" else "needs_more_information",
+            "comment": "Authored service-role control; no verified individual approval.",
+        }
+        response = client.post(decision_url, headers=HEADERS, json=decision_request)
+        assert response.status_code == 201, response.text
+        decision = response.json()
+        assert decision["request"]["verdict"] == decision_request["verdict"]
+        assert decision["report_sha256"] == report["review_sha256"]
+        assert decision["service_role"] == "admin"
+        assert decision["individual_identity_verified"] is False
+        assert decision["approved"] is decision["applied"] is False
+        assert (
+            client.get(base + "/evidence-reports/" + report["report_id"], headers=HEADERS).json()
+            == report
+        )
+        print(
+            "OWNED_SOURCE_EVIDENCE_DECISION_RESULT="
+            + json.dumps(
+                {
+                    "vendor": vendor,
+                    "scenario": scenario,
+                    "network_status": report["network"]["result"]["status"],
+                    "report_sha256": decision["report_sha256"],
+                    "decision_sha256": decision["decision_sha256"],
+                    "verdict": decision["request"]["verdict"],
+                    "recorded_service_role": decision["service_role"],
+                    "individual_identity_verified": False,
+                    "approved": False,
+                },
+                sort_keys=True,
+            )
+        )
         monkeypatch.setattr(
             workflow_module,
             "check_with_batfish",
@@ -186,6 +222,16 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
                     base + "/evidence-reports/" + composition["report_id"], headers=HEADERS
                 ).json()
                 == report
+            )
+            assert (
+                restarted.post(decision_url, headers=HEADERS, json=decision_request).json()
+                == decision
+            )
+            assert (
+                restarted.get(
+                    decision_url + "/" + decision_request["decision_id"], headers=HEADERS
+                ).json()
+                == decision
             )
         # A foreign parent never exposes this result.
         assert (

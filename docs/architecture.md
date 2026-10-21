@@ -403,3 +403,13 @@ The browser independently binds all projections to fetched child records. Actual
 network errors, violations and inconclusive outcomes are preserved, including the
 old network ML-not-run field and unrecorded SDK version. Overall needs_review and
 formal_qualification:not_proven never become approval or quality claims.
+
+An [ordinary report disposition](source-evidence-decisions.md) binds rejected or
+needs_more_information to an explicitly selected report UUID/SHA. A new0016 table
+stores one encrypted immutable decision and an atomic domain audit. Creation and
+reads load the integrity-checked report and its child evidence in the same session,
+then validate every decision projection. Replay preserves the original service role,
+timestamp and proof across authorized callers; comments remain outside operation
+metadata and list summaries. The client independently fetches the complete parent
+trust chain and renders comments as text. Decisions never mutate parent results,
+execute checks, identify an individual engineer, approve or apply a configuration.

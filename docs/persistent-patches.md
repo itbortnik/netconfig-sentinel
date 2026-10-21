@@ -35,7 +35,7 @@ Offline-инструменты для исходных файлов описан
 
 Все операции требуют service bearer-token и [соответствующей роли](service-roles.md).
 Ключ не удостоверяет личность инженера. Для существующей БД после backup и сохранения
-старого ключа выполните явный upgrade до `0015_source_evidence_reports`:
+старого ключа выполните явный upgrade до `0016_source_evidence_decisions`:
 `python -m app.db.migrate`. Startup не меняет схему.
 
 | Операция | Путь |
@@ -225,3 +225,8 @@ immutable история. Этот результат не повышает ст
 completed results с их UUID/SHA и точными source/analysis bindings. Он не запускает
 повторные вычисления и не переписывает прежние проверки. Фактический сетевой status
 сохраняется; общий formal qualification, качество, риск и approval не повышаются.
+
+Для явно выбранного отчёта доступно [сохранённое решение сервисной роли](source-evidence-decisions.md):
+`rejected` или `needs_more_information`, отдельная append-only история с exact pins,
+комментарием и исходной recorded role. Это не подтверждение личности инженера;
+решение не переписывает report/draft и не разрешает approved/applied.

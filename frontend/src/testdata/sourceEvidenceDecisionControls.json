@@ -1,0 +1,117 @@
+{
+  "scope": "Authored service-role software controls only; no named identity, model/engine execution or independent quality claim.",
+  "cases": [
+    {
+      "report_case_index": 2,
+      "decision": {
+        "version": "source-evidence-decision-0.1.0",
+        "request": {
+          "version": "source-evidence-decision-request-0.1.0",
+          "decision_id": "d51cdbf3-2492-4a98-85c7-9ab41aa095aa",
+          "report_sha256": "41a53f9398a04b4b67f5858f36e2e93c612a885fea05b208fad2315e3fad4466",
+          "verdict": "rejected",
+          "comment": "Authored software control: <img src=x onerror=alert(1)>\n\u0421\u0432\u0435\u0434\u0435\u043d\u0438\u044f \u043d\u0443\u0436\u043d\u044b. \ud83d\ude00\tIdentity unknown."
+        },
+        "decision_id": "d51cdbf3-2492-4a98-85c7-9ab41aa095aa",
+        "patch_id": "4db192d2-7151-4efe-b533-b7ad29441bab",
+        "draft_sha256": "11290b1bf4d4b9f4efad381cd9b1d4d7b273cded912e8724c693aad348be2899",
+        "report_id": "4d170910-7e0f-421d-af80-0b0ad3faf814",
+        "report_sha256": "41a53f9398a04b4b67f5858f36e2e93c612a885fea05b208fad2315e3fad4466",
+        "report_version": "source-evidence-report-0.1.0",
+        "before": {
+          "configuration_id": "9dd57eaf-0a6c-4dfa-94f3-e40c81f69d92",
+          "device_id": "ef814d4e-73e1-4030-8837-277a7bb27368",
+          "source_sha256": "c9ebca0fb5078ae690023c51ab5da744fec980f11d22007ccd917427aed23e8d",
+          "created_at": "2026-10-21T11:15:15.155670Z",
+          "canonical_sha256": "e63bddbfd4094fda497f22121bd9d820b570707410ea8474019e8c9d02148531"
+        },
+        "after": {
+          "configuration_id": "413af779-1ab6-450f-88ff-f9d1b0ca815f",
+          "device_id": "ef814d4e-73e1-4030-8837-277a7bb27368",
+          "source_sha256": "0d77654f68c4a87209ae4028028e4a71abc47561641e40ccffa309a44c5041fc",
+          "created_at": "2026-10-21T11:15:15.158698Z",
+          "canonical_sha256": "77328485dcd476e89229808938a3f756dbcf428993e200a44485a82d10b3b658"
+        },
+        "before_analysis_id": "1bed6128-d61a-4f78-9bb1-4b6facab61d2",
+        "before_analysis_sha256": "a9837520438c371d3c09ef0b1a0e26880f63f51820bb59746911109241fc1903",
+        "created_at": "2026-10-21T17:02:55.652207Z",
+        "service_role": "engineer",
+        "individual_identity_verified": false,
+        "approved": false,
+        "applied": false,
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"77328485dcd476e89229808938a3f756dbcf428993e200a44485a82d10b3b658\",\"configuration_id\":\"413af779-1ab6-450f-88ff-f9d1b0ca815f\",\"created_at\":\"2026-10-21T11:15:15.158698Z\",\"device_id\":\"ef814d4e-73e1-4030-8837-277a7bb27368\",\"source_sha256\":\"0d77654f68c4a87209ae4028028e4a71abc47561641e40ccffa309a44c5041fc\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"e63bddbfd4094fda497f22121bd9d820b570707410ea8474019e8c9d02148531\",\"configuration_id\":\"9dd57eaf-0a6c-4dfa-94f3-e40c81f69d92\",\"created_at\":\"2026-10-21T11:15:15.155670Z\",\"device_id\":\"ef814d4e-73e1-4030-8837-277a7bb27368\",\"source_sha256\":\"c9ebca0fb5078ae690023c51ab5da744fec980f11d22007ccd917427aed23e8d\"},\"before_analysis_id\":\"1bed6128-d61a-4f78-9bb1-4b6facab61d2\",\"before_analysis_sha256\":\"a9837520438c371d3c09ef0b1a0e26880f63f51820bb59746911109241fc1903\",\"created_at\":\"2026-10-21T17:02:55.652207Z\",\"decision_id\":\"d51cdbf3-2492-4a98-85c7-9ab41aa095aa\",\"draft_sha256\":\"11290b1bf4d4b9f4efad381cd9b1d4d7b273cded912e8724c693aad348be2899\",\"individual_identity_verified\":false,\"patch_id\":\"4db192d2-7151-4efe-b533-b7ad29441bab\",\"report_id\":\"4d170910-7e0f-421d-af80-0b0ad3faf814\",\"report_sha256\":\"41a53f9398a04b4b67f5858f36e2e93c612a885fea05b208fad2315e3fad4466\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored software control: <img src=x onerror=alert(1)>\\n\\u0421\\u0432\\u0435\\u0434\\u0435\\u043d\\u0438\\u044f \\u043d\\u0443\\u0436\\u043d\\u044b. \\ud83d\\ude00\\tIdentity unknown.\",\"decision_id\":\"d51cdbf3-2492-4a98-85c7-9ab41aa095aa\",\"report_sha256\":\"41a53f9398a04b4b67f5858f36e2e93c612a885fea05b208fad2315e3fad4466\",\"verdict\":\"rejected\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "9e7e8a945d04ac5d1bd5e66173aa8f100c9912e33cd2823b234e40f52c9f255c"
+      },
+      "summary": {
+        "version": "source-evidence-decision-summary-0.1.0",
+        "decision_id": "d51cdbf3-2492-4a98-85c7-9ab41aa095aa",
+        "patch_id": "4db192d2-7151-4efe-b533-b7ad29441bab",
+        "report_id": "4d170910-7e0f-421d-af80-0b0ad3faf814",
+        "report_sha256": "41a53f9398a04b4b67f5858f36e2e93c612a885fea05b208fad2315e3fad4466",
+        "decision_sha256": "9e7e8a945d04ac5d1bd5e66173aa8f100c9912e33cd2823b234e40f52c9f255c",
+        "created_at": "2026-10-21T17:02:55.652207Z",
+        "verdict": "rejected",
+        "service_role": "engineer",
+        "individual_identity_verified": false,
+        "approved": false,
+        "applied": false
+      }
+    },
+    {
+      "report_case_index": 4,
+      "decision": {
+        "version": "source-evidence-decision-0.1.0",
+        "request": {
+          "version": "source-evidence-decision-request-0.1.0",
+          "decision_id": "31ee8601-b598-4ac6-b97f-749873df1625",
+          "report_sha256": "0662bdefc02dd77fd87937ad3dec6ad98ff574824991c33a0bd6162a95642689",
+          "verdict": "needs_more_information",
+          "comment": "Authored software control: <img src=x onerror=alert(1)>\n\u0421\u0432\u0435\u0434\u0435\u043d\u0438\u044f \u043d\u0443\u0436\u043d\u044b. \ud83d\ude00\tIdentity unknown."
+        },
+        "decision_id": "31ee8601-b598-4ac6-b97f-749873df1625",
+        "patch_id": "2487dfe6-0a3b-439c-8446-b563185b02ec",
+        "draft_sha256": "063b4be6a8259e06665d9b1edac657603aadab3a466c08a1035238445d7428b3",
+        "report_id": "97003271-d90b-4ebe-9f9d-142d0cd13de1",
+        "report_sha256": "0662bdefc02dd77fd87937ad3dec6ad98ff574824991c33a0bd6162a95642689",
+        "report_version": "source-evidence-report-0.1.0",
+        "before": {
+          "configuration_id": "a2fe5fa1-eb5c-4dd0-9d73-1f082efae753",
+          "device_id": "fe31852a-736a-4a29-8fdf-6148597de016",
+          "source_sha256": "c9ebca0fb5078ae690023c51ab5da744fec980f11d22007ccd917427aed23e8d",
+          "created_at": "2026-10-21T11:22:45.406906Z",
+          "canonical_sha256": "1c693b534d5411523bb885c368ec98f2ad55e157b121b6186ae0ccc35a07b6c2"
+        },
+        "after": {
+          "configuration_id": "ab2b06cb-1ded-4c79-9ac2-f23016700abc",
+          "device_id": "fe31852a-736a-4a29-8fdf-6148597de016",
+          "source_sha256": "0d77654f68c4a87209ae4028028e4a71abc47561641e40ccffa309a44c5041fc",
+          "created_at": "2026-10-21T11:22:45.410531Z",
+          "canonical_sha256": "0a12ed3dc042a537f0c81352b386919085285429240e3cadaccd1e4371bc186c"
+        },
+        "before_analysis_id": "f13295e6-39f7-4b4a-88f6-aa92eecbd9ac",
+        "before_analysis_sha256": "88075104390837e05816abb99ef7e4937bf799299b1c3c2c6afe341b8c4b6f30",
+        "created_at": "2026-10-21T17:02:55.652741Z",
+        "service_role": "admin",
+        "individual_identity_verified": false,
+        "approved": false,
+        "applied": false,
+        "decision_json": "{\"after\":{\"canonical_sha256\":\"0a12ed3dc042a537f0c81352b386919085285429240e3cadaccd1e4371bc186c\",\"configuration_id\":\"ab2b06cb-1ded-4c79-9ac2-f23016700abc\",\"created_at\":\"2026-10-21T11:22:45.410531Z\",\"device_id\":\"fe31852a-736a-4a29-8fdf-6148597de016\",\"source_sha256\":\"0d77654f68c4a87209ae4028028e4a71abc47561641e40ccffa309a44c5041fc\"},\"applied\":false,\"approved\":false,\"before\":{\"canonical_sha256\":\"1c693b534d5411523bb885c368ec98f2ad55e157b121b6186ae0ccc35a07b6c2\",\"configuration_id\":\"a2fe5fa1-eb5c-4dd0-9d73-1f082efae753\",\"created_at\":\"2026-10-21T11:22:45.406906Z\",\"device_id\":\"fe31852a-736a-4a29-8fdf-6148597de016\",\"source_sha256\":\"c9ebca0fb5078ae690023c51ab5da744fec980f11d22007ccd917427aed23e8d\"},\"before_analysis_id\":\"f13295e6-39f7-4b4a-88f6-aa92eecbd9ac\",\"before_analysis_sha256\":\"88075104390837e05816abb99ef7e4937bf799299b1c3c2c6afe341b8c4b6f30\",\"created_at\":\"2026-10-21T17:02:55.652741Z\",\"decision_id\":\"31ee8601-b598-4ac6-b97f-749873df1625\",\"draft_sha256\":\"063b4be6a8259e06665d9b1edac657603aadab3a466c08a1035238445d7428b3\",\"individual_identity_verified\":false,\"patch_id\":\"2487dfe6-0a3b-439c-8446-b563185b02ec\",\"report_id\":\"97003271-d90b-4ebe-9f9d-142d0cd13de1\",\"report_sha256\":\"0662bdefc02dd77fd87937ad3dec6ad98ff574824991c33a0bd6162a95642689\",\"report_version\":\"source-evidence-report-0.1.0\",\"request\":{\"comment\":\"Authored software control: <img src=x onerror=alert(1)>\\n\\u0421\\u0432\\u0435\\u0434\\u0435\\u043d\\u0438\\u044f \\u043d\\u0443\\u0436\\u043d\\u044b. \\ud83d\\ude00\\tIdentity unknown.\",\"decision_id\":\"31ee8601-b598-4ac6-b97f-749873df1625\",\"report_sha256\":\"0662bdefc02dd77fd87937ad3dec6ad98ff574824991c33a0bd6162a95642689\",\"verdict\":\"needs_more_information\",\"version\":\"source-evidence-decision-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-evidence-decision-0.1.0\"}",
+        "decision_sha256": "9f044cc5b344b36f7f472c96430b53928bc5f066ab7697e961383d8721502677"
+      },
+      "summary": {
+        "version": "source-evidence-decision-summary-0.1.0",
+        "decision_id": "31ee8601-b598-4ac6-b97f-749873df1625",
+        "patch_id": "2487dfe6-0a3b-439c-8446-b563185b02ec",
+        "report_id": "97003271-d90b-4ebe-9f9d-142d0cd13de1",
+        "report_sha256": "0662bdefc02dd77fd87937ad3dec6ad98ff574824991c33a0bd6162a95642689",
+        "decision_sha256": "9f044cc5b344b36f7f472c96430b53928bc5f066ab7697e961383d8721502677",
+        "created_at": "2026-10-21T17:02:55.652741Z",
+        "verdict": "needs_more_information",
+        "service_role": "admin",
+        "individual_identity_verified": false,
+        "approved": false,
+        "applied": false
+      }
+    }
+  ]
+}

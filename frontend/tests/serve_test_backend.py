@@ -209,6 +209,7 @@ def main() -> None:
     mode.add_argument("--source-forest-fixture", action="store_true")
     mode.add_argument("--source-deterministic-fixture", action="store_true")
     mode.add_argument("--source-evidence-fixture", action="store_true")
+    mode.add_argument("--source-evidence-decision-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -268,7 +269,11 @@ def main() -> None:
                     return numeric_forest(before, after, analysis, registered)
 
                 forest_workflow.recheck_original_forest = owned_forest_worker
-            if options.source_ml_fixture or options.source_evidence_fixture:
+            if (
+                options.source_ml_fixture
+                or options.source_evidence_fixture
+                or options.source_evidence_decision_fixture
+            ):
                 import app.patching.source_ml as source_ml_workflow
                 from app.core.configuration_model import ConfigurationModelSettings
 
@@ -276,7 +281,11 @@ def main() -> None:
                     registry_root=Path(temporary) / "synthetic-registry", model_sha256="9" * 64
                 )
                 source_ml_workflow.run_configuration_pair_job = synthetic_pair_worker
-            if options.source_patch_fixture or options.source_evidence_fixture:
+            if (
+                options.source_patch_fixture
+                or options.source_evidence_fixture
+                or options.source_evidence_decision_fixture
+            ):
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
                 from app.verification.batfish import BatfishResult
@@ -284,12 +293,12 @@ def main() -> None:
                 def synthetic_source_worker(before, after, scope, **kwargs):
                     # Explicit owned software fixture: no SDK/model/engine is invoked.
                     hostname = before.configs[0].hostname
-                    failed = options.source_evidence_fixture and hostname.startswith(
-                        "source-evidence-error-"
-                    )
-                    empty = options.source_evidence_fixture and hostname.startswith(
-                        "source-evidence-inconclusive-"
-                    )
+                    failed = (
+                        options.source_evidence_fixture or options.source_evidence_decision_fixture
+                    ) and hostname.startswith("source-evidence-error-")
+                    empty = (
+                        options.source_evidence_fixture or options.source_evidence_decision_fixture
+                    ) and hostname.startswith("source-evidence-inconclusive-")
                     return BatfishResult(
                         before_sha256=before.digest,
                         after_sha256=after.digest,
@@ -323,7 +332,9 @@ def main() -> None:
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8307
+                port=8308
+                if options.source_evidence_decision_fixture
+                else 8307
                 if options.source_evidence_fixture
                 else 8306
                 if options.source_deterministic_fixture

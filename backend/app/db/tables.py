@@ -276,3 +276,21 @@ class SourceEvidenceReportRow(Base):
     patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[str] = mapped_column(Text)
+
+
+class SourceEvidenceDecisionRow(Base):
+    __tablename__ = "patch_evidence_decisions"
+    __table_args__ = (
+        Index(
+            "ix_patch_evidence_decisions_parent_report_created",
+            "patch_id",
+            "report_id",
+            "created_at",
+            "id",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"))
+    report_id: Mapped[str] = mapped_column(ForeignKey("patch_evidence_reports.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[str] = mapped_column(Text)

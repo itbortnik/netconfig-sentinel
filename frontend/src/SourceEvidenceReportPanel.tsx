@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
+import { SourceEvidenceDecisionPanel } from "./SourceEvidenceDecisionPanel";
 import type { PatchDraft } from "./patches";
 import { date, shortId } from "./format";
 import type { SourceDeterministicSummary } from "./sourceDeterministicRecheck";
@@ -92,6 +93,7 @@ export function SourceEvidenceReportPanel({
 }) {
   const [open, setOpen] = useState(false),
     [working, setWorking] = useState(false);
+  const [decisionGuard, setDecisionGuard] = useState(false);
   const [pages, setPages] = useState<Pages>(emptyPages),
     [selected, setSelected] = useState<Selections>(emptySelections);
   const [history, setHistory] = useState<SourceEvidenceSummary[]>([]),
@@ -112,9 +114,9 @@ export function SourceEvidenceReportPanel({
       alive.current = false;
     };
   }, []);
-  const busy = outerBusy || working;
+  const busy = outerBusy || working || decisionGuard;
   async function operation(action: () => Promise<void>) {
-    if (lock.current || outerBusy) return;
+    if (lock.current || outerBusy || decisionGuard) return;
     lock.current = true;
     setWorking(true);
     try {
@@ -464,7 +466,20 @@ export function SourceEvidenceReportPanel({
               </button>
             </div>
           )}
-          {view && <EvidenceView view={view} />}
+          {view && (
+            <>
+              <EvidenceView view={view} />
+              <SourceEvidenceDecisionPanel
+                key={`${view.report_id}-${view.review_sha256}`}
+                client={client}
+                draft={draft}
+                report={view}
+                busy={outerBusy || working}
+                onError={onError}
+                onGuardChange={setDecisionGuard}
+              />
+            </>
+          )}
         </>
       )}
     </section>

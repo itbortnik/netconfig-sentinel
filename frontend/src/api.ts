@@ -122,6 +122,18 @@ import type {
   SourceEvidenceSummary,
 } from "./sourceEvidenceReports";
 import {
+  reviewSourceEvidenceReportSchema,
+  sourceEvidenceDecisionSchema,
+  sourceEvidenceDecisionBound,
+  sourceEvidenceDecisionSummarySchema,
+  sourceEvidenceDecisionSummaryBound,
+} from "./sourceEvidenceDecisions";
+import type {
+  ReviewSourceEvidenceReport,
+  SourceEvidenceDecision,
+  SourceEvidenceDecisionSummary,
+} from "./sourceEvidenceDecisions";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -232,8 +244,10 @@ export class ApiClient {
       | RunSourceMlRecheck
       | RunSourceForestRecheck
       | RunSourceDeterministicRecheck
-      | CreateSourceEvidenceReport,
+      | CreateSourceEvidenceReport
+      | ReviewSourceEvidenceReport,
     namespace: "v1" | "v2" = "v1",
+    maximumResponseBytes?: number,
   ): Promise<T> {
     if (this.controller.signal.aborted)
       throw new DOMException("Disconnected", "AbortError");
@@ -258,7 +272,15 @@ export class ApiClient {
           response.status,
           messages[response.status] ?? "Запрос не выполнен. Повторите позже.",
         );
-      const parsed = schema.safeParse(await response.json());
+      let value: unknown;
+      if (maximumResponseBytes === undefined) value = await response.json();
+      else {
+        const wire = await response.text();
+        if (new TextEncoder().encode(wire).length > maximumResponseBytes)
+          throw new ApiError(0, "Ответ API превышает допустимый размер.");
+        value = JSON.parse(wire) as unknown;
+      }
+      const parsed = schema.safeParse(value);
       if (!parsed.success)
         throw new ApiError(
           0,
@@ -831,6 +853,100 @@ export class ApiClient {
       "v2",
     );
     return this.acceptSourceEvidenceReport(row, draft, request);
+  }
+  async sourceEvidenceDecisions(report: SourceEvidenceReport, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(report.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/decisions?limit=20&offset=${offset}`,
+      z.array(sourceEvidenceDecisionSummarySchema).max(20),
+      undefined,
+      "v2",
+      128 * 1024,
+    );
+    if (
+      rows.some((row) => !sourceEvidenceDecisionSummaryBound(row, report)) ||
+      new Set(rows.map((row) => row.decision_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История решений не соответствует совместному отчёту.",
+      );
+    return rows;
+  }
+  private async acceptSourceEvidenceDecision(
+    row: SourceEvidenceDecision,
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    expected?: ReviewSourceEvidenceReport,
+    summary?: SourceEvidenceDecisionSummary,
+  ) {
+    let checked: SourceEvidenceReport;
+    try {
+      checked = await this.sourceEvidenceReport(draft, report.report_id);
+    } catch {
+      if (this.controller.signal.aborted)
+        throw new DOMException("Disconnected", "AbortError");
+      // A parent read after POST cannot establish that the decision was refused.
+      throw new ApiError(
+        0,
+        "Совместный отчёт решения не подтверждён. Прочитайте решение по его ID.",
+      );
+    }
+    if (
+      checked.review_sha256 !== report.review_sha256 ||
+      !(await sourceEvidenceDecisionBound(row, checked, expected, summary))
+    )
+      throw new ApiError(
+        0,
+        "Привязки решения к совместному отчёту не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceEvidenceDecision(
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    id: string,
+    expected?: ReviewSourceEvidenceReport,
+    summary?: SourceEvidenceDecisionSummary,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/decisions/${encodeURIComponent(id)}`,
+      sourceEvidenceDecisionSchema,
+      undefined,
+      "v2",
+      128 * 1024,
+    );
+    if (row.decision_id !== id)
+      throw new ApiError(0, "Идентификатор решения не подтверждён.");
+    return this.acceptSourceEvidenceDecision(
+      row,
+      draft,
+      report,
+      expected,
+      summary,
+    );
+  }
+  async reviewSourceEvidenceReport(
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    options: ReviewSourceEvidenceReport,
+  ) {
+    const request = reviewSourceEvidenceReportSchema.parse(options);
+    if (
+      report.patch_id !== draft.patch_id ||
+      report.draft_sha256 !== draft.draft_sha256 ||
+      request.report_sha256 !== report.review_sha256
+    )
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/decisions`,
+      sourceEvidenceDecisionSchema,
+      request,
+      "v2",
+      128 * 1024,
+    );
+    return this.acceptSourceEvidenceDecision(row, draft, report, request);
   }
   async sourceMlRechecks(draft: PatchDraft, offset = 0) {
     const rows = await this.request(

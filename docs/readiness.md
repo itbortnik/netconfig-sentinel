@@ -5,6 +5,30 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Для доступной части §16.8 добавлены [сохранённые решения по совместному отчёту](source-evidence-decisions.md):
+engineer/admin явно выбирает report UUID/SHA и записывает `rejected` либо
+`needs_more_information` с комментарием. Additive encrypted storage0016 и atomic
+audit, same-ID replay с прежними role/time/proof, полный parent/child integrity
+check и API/UI сохраняют историю; report/draft/status не меняются.
+[Actual HTTP evidence](evaluation/owned-source-evidence-decisions-functional.json):
+восемь software dispositions на двух authored target pairs, двух сервисных ролях
+и двух verdict;0 новых detector/model/engine calls или fits. Проверены0015→0016,
+неизменность прежних физических строк, parent/child records и GET/list/replay
+после удаления originals/models/двух reference на копии БД. Сохранены634history,
+282oldinstalled/3assets hashes. Service role не удостоверяет individual identity;
+`individual_identity_verified`, `approved`, `applied` false. Реальное подтверждение
+инженера и §16.8 целиком, independent model quality, calibration и общий formal
+qualification остаются открыты. Backend72contract/API и32storage checks проходят;
+UI786unit/typecheck/build/format и16новых desktop/mobile browser cases проходят.
+Полный local Python run:4537pass/26skip/5warnings,91%coverage; explicit live/DB
+и3Windows symlink skips отделены от pass. Ruff/mypy287 runtime files в default/
+Linux/win32 проходят. Installed776pass/8skip/4warnings на каждом Pydantic2.13.5/
+2.14.0;287runtime и3assets source-equal. Все278browser cases проходят, включая
+16новых. Независимое backend/evidence/UI ревью не оставило существенных замечаний;
+две поддельные проекции отклонены. Исправленная UTC-нормализация SQL metadata
+сохраняет исходный offset в immutable proof; обе регрессии ±03:00 проходят.
+Live engine/PostgreSQL локально не запускались; точный CI новой поставки ожидается.
+
 Для §16.7 добавлен [совместный отчёт по сохранённым результатам](source-evidence-reports.md):
 явный выбор completed child UUID/SHA, точные source/canonical/analysis bindings,
 компактные проверяемые проекции, additive encrypted storage0015 и atomic audit.
@@ -27,7 +51,12 @@ fixture-проверок не означает запуск реального n
 Installed671pass/8skip/4warnings на каждом Pydantic2.13.5/2.14.0;282runtime и3assets
 source-equal. Browser162regular+48model+8network+10ML+10Forest+10deterministic+
 14joint desktop/mobile cases проходят. Local live engine/PostgreSQL не запускались;
-их задания и все остальные jobs точного нового commit проверяются отдельно.
+Для `8a76f549107f173192edb06a54058af7179953a5`
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39592836136)
+успешны: backend4423pass/35skip, PostgreSQL565pass/2skip/12deselected,
+Batfish41+2savedcandidate pass и шесть actual joint network reports; frontend752unit,
+262browser+162Compose pass. Эти результаты относятся к указанному joint-report
+commit; новые решения0016 проверяются отдельно.
 
 Для §16.3–4,7 добавлен отдельный [повтор исходного детерминированного контекста](source-deterministic-rechecks.md):
 явно выбранный before analysis, исходный каталог, тот же эталон и сохранённый

@@ -93,6 +93,7 @@ class Store:
                     "patch_deterministic_recheck_intents",
                     "patch_deterministic_recheck_outcomes",
                     "patch_evidence_reports",
+                    "patch_evidence_decisions",
                     "operation_receipts",
                     "operation_completions",
                     "configuration_sources",

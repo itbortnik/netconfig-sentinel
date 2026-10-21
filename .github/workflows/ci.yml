@@ -128,6 +128,7 @@ jobs:
           backend/tests/integration/test_source_deterministic_api.py
           backend/tests/integration/test_source_deterministic_postgres.py
           backend/tests/integration/test_source_evidence_api.py
+          backend/tests/integration/test_source_evidence_decision_api.py
           -k "not actual_isolated_native"
 
   frontend:
@@ -180,6 +181,8 @@ jobs:
         run: npm run test:e2e:source-deterministic
       - name: Check owned selected-evidence report browser workflow
         run: npm run test:e2e:source-evidence
+      - name: Check owned service-role evidence decision browser workflow
+        run: npm run test:e2e:source-evidence-decisions
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -191,6 +194,7 @@ jobs:
             artifacts/browser-source-forest-junit.xml
             artifacts/browser-source-deterministic-junit.xml
             artifacts/browser-source-evidence-junit.xml
+            artifacts/browser-source-evidence-decisions-junit.xml
           retention-days: 14
       - run: docker compose up --build -d
         working-directory: .
