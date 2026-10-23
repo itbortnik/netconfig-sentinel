@@ -8,17 +8,277 @@ import json
 import os
 import re
 import sys
+from collections.abc import Mapping, Sequence
+from hashlib import sha256
 from importlib import metadata
+from ipaddress import IPv4Address, IPv4Network
 from typing import Any
 
 
+def _empty_impact(state: str, reason: str) -> dict[str, Any]:
+    return dict(
+        state=state,
+        reason=reason,
+        direction=None,
+        lost_witness_count=None,
+        gained_witness_count=None,
+        witnesses=[],
+    )
+
+
+def _directional_impact(
+    answer: Any, scope: dict[str, Any], flow_type: Any, trace_type: Any
+) -> dict[str, Any]:
+    """Interpret complete bounded example traces, never the difference of counters."""
+
+    def unknown(reason: str) -> dict[str, Any]:
+        return _empty_impact("unknown", reason)
+
+    expected = {
+        "Flow": "Flow",
+        "Snapshot_Traces": "Set<Trace>",
+        "Snapshot_TraceCount": "Integer",
+        "Reference_Traces": "Set<Trace>",
+        "Reference_TraceCount": "Integer",
+    }
+    success = {"ACCEPTED", "DELIVERED_TO_SUBNET", "EXITS_NETWORK"}
+    known = success | {
+        "DENIED_IN",
+        "DENIED_OUT",
+        "NO_ROUTE",
+        "NULL_ROUTED",
+        "NEIGHBOR_UNREACHABLE",
+        "LOOP",
+    }
+    flow_fields = {
+        "dscp",
+        "dstIp",
+        "dstPort",
+        "ecn",
+        "fragmentOffset",
+        "icmpCode",
+        "icmpVar",
+        "ingressInterface",
+        "ingressNode",
+        "ingressVrf",
+        "ipProtocol",
+        "packetLength",
+        "srcIp",
+        "srcPort",
+        "tcpFlagsAck",
+        "tcpFlagsCwr",
+        "tcpFlagsEce",
+        "tcpFlagsFin",
+        "tcpFlagsPsh",
+        "tcpFlagsRst",
+        "tcpFlagsSyn",
+        "tcpFlagsUrg",
+    }
+    try:
+        raw_rows = answer.rows
+        if not isinstance(raw_rows, list):
+            return unknown("unsupported_frame")
+        if len(raw_rows) > 64:
+            return unknown("witness_limit_exceeded")
+        for raw_row in raw_rows:
+            if not isinstance(raw_row, Mapping) or set(raw_row) != set(expected):
+                return unknown("unsupported_frame")
+            for prefix in ("Reference", "Snapshot"):
+                raw_count = raw_row[prefix + "_TraceCount"]
+                raw_traces = raw_row[prefix + "_Traces"]
+                if (
+                    type(raw_count) is not int
+                    or not 1 <= raw_count <= 16
+                    or not isinstance(raw_traces, list)
+                    or len(raw_traces) != raw_count
+                ):
+                    return unknown("incomplete_traces")
+            raw_flow = raw_row["Flow"]
+            required = {
+                "dscp",
+                "dstIp",
+                "ecn",
+                "fragmentOffset",
+                "ipProtocol",
+                "packetLength",
+                "srcIp",
+            }
+            if (
+                not isinstance(raw_flow, Mapping)
+                or not required.issubset(raw_flow)
+                or not set(raw_flow).issubset(flow_fields | {"state", "tag"})
+                or raw_flow.get("ingressNode") != scope["start_node"]
+            ):
+                return unknown("unsupported_frame")
+            # The pinned engine emits these legacy fields, which Flow.from_dict drops.
+            # Support only the observed pair and keep it in the witness identity.
+            if ("state" in raw_flow or "tag" in raw_flow) and (
+                raw_flow.get("state") != "NEW" or raw_flow.get("tag") != "tag"
+            ):
+                return unknown("unsupported_frame")
+            ranges = {
+                "dscp": (0, 63),
+                "ecn": (0, 3),
+                "fragmentOffset": (0, 8191),
+                "packetLength": (20, 65535),
+                "srcPort": (0, 65535),
+                "dstPort": (0, 65535),
+                "icmpCode": (0, 255),
+                "icmpVar": (0, 255),
+                **{key: (0, 1) for key in flow_fields if key.startswith("tcpFlags")},
+            }
+            for key, (low, high) in ranges.items():
+                value = raw_flow.get(key)
+                if value is None and key not in required:
+                    continue
+                if type(value) is not int or not low <= value <= high:
+                    return unknown("unsupported_frame")
+            for key in ("srcIp", "dstIp"):
+                if type(raw_flow[key]) is not str:
+                    return unknown("unsupported_frame")
+                IPv4Address(raw_flow[key])
+            if (
+                type(raw_flow["ipProtocol"]) is not str
+                or re.fullmatch(r"[A-Za-z0-9_]{1,64}", raw_flow["ipProtocol"]) is None
+            ):
+                return unknown("unsupported_frame")
+            for key in ("ingressNode", "ingressInterface", "ingressVrf"):
+                value = raw_flow.get(key)
+                if value is not None and (
+                    type(value) is not str or not 1 <= len(value) <= 128 or "\0" in value
+                ):
+                    return unknown("unsupported_frame")
+        frame = answer.frame()
+        columns = answer.metadata.column_metadata
+        if (
+            len(columns) != len(expected)
+            or {c.name: c.schema for c in columns} != expected
+            or len(frame.columns) != len(expected)
+            or set(frame.columns) != set(expected)
+        ):
+            return unknown("unsupported_frame")
+        if len(frame) != len(raw_rows):
+            return unknown("unsupported_frame")
+        records = frame.to_dict(orient="records")
+        if len(records) != len(frame):
+            return unknown("unsupported_frame")
+        witnesses: list[dict[str, Any]] = []
+        hashes = set()
+        for row, raw_row in zip(records, raw_rows, strict=True):
+            if not isinstance(row, Mapping) or set(row) != set(expected):
+                return unknown("unsupported_frame")
+            flow = row["Flow"]
+            if not isinstance(flow, flow_type):
+                return unknown("unsupported_frame")
+            data = flow.dict()
+            if (
+                not isinstance(data, dict)
+                or set(data) != flow_fields
+                or data != {key: raw_row["Flow"].get(key) for key in flow_fields}
+                or any(type(v) not in {str, int, type(None)} for v in data.values())
+                or data["ingressNode"] != scope["start_node"]
+                or IPv4Address(data["dstIp"]) not in IPv4Network(scope["destination"])
+            ):
+                return unknown("unsupported_frame")
+            IPv4Address(data["srcIp"])
+            identity = {"version": "reachability-flow-0.1.0", "flow": data}
+            if "state" in raw_row["Flow"]:
+                identity["legacy_engine_fields"] = {
+                    key: raw_row["Flow"][key] for key in ("state", "tag")
+                }
+            raw = json.dumps(
+                identity,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+                allow_nan=False,
+            ).encode("ascii")
+            if len(raw) > 4096:
+                return unknown("witness_limit_exceeded")
+            flow_hash = sha256(raw).hexdigest()
+            if flow_hash in hashes:
+                return unknown("ambiguous_witness")
+            hashes.add(flow_hash)
+            dispositions = {}
+            for side, prefix in (("before", "Reference"), ("after", "Snapshot")):
+                traces, count = row[prefix + "_Traces"], row[prefix + "_TraceCount"]
+                if (
+                    not isinstance(traces, Sequence)
+                    or isinstance(traces, (str, bytes))
+                    or type(count) is not int
+                    or not 1 <= count <= 16
+                    or count != len(traces)
+                    or count != raw_row[prefix + "_TraceCount"]
+                ):
+                    return unknown("incomplete_traces")
+                if any(not isinstance(t, trace_type) for t in traces):
+                    return unknown("unsupported_frame")
+                values = [t.disposition for t in traces]
+                if any(
+                    not isinstance(raw_trace, Mapping)
+                    or raw_trace.get("disposition") != disposition
+                    for raw_trace, disposition in zip(
+                        raw_row[prefix + "_Traces"], values, strict=True
+                    )
+                ):
+                    return unknown("unsupported_frame")
+                if "INSUFFICIENT_INFO" in values:
+                    return unknown("insufficient_information")
+                if any(type(value) is not str or value not in known for value in values):
+                    return unknown("unknown_disposition")
+                dispositions[side] = sorted(values)
+            before = bool(success.intersection(dispositions["before"]))
+            after = bool(success.intersection(dispositions["after"]))
+            if before == after:
+                return unknown("ambiguous_witness")
+            witnesses.append(
+                dict(
+                    flow_sha256=flow_hash,
+                    before_dispositions=dispositions["before"],
+                    after_dispositions=dispositions["after"],
+                    before_trace_count=len(dispositions["before"]),
+                    after_trace_count=len(dispositions["after"]),
+                    direction="loss" if before else "gain",
+                )
+            )
+        witnesses.sort(key=lambda row: row["flow_sha256"])
+        losses = sum(row["direction"] == "loss" for row in witnesses)
+        gains = len(witnesses) - losses
+        return dict(
+            state="observed",
+            reason="query_completed",
+            direction=(
+                "loss_and_gain_found"
+                if losses and gains
+                else "loss_found"
+                if losses
+                else "gain_found"
+                if gains
+                else "no_witnesses_returned"
+            ),
+            lost_witness_count=losses,
+            gained_witness_count=gains,
+            witnesses=witnesses,
+        )
+    except Exception:
+        return unknown("unsupported_frame")
+
+
 def evaluate_session(
-    session: Any, request: dict[str, Any], header_type: Any, path_type: Any
+    session: Any,
+    request: dict[str, Any],
+    header_type: Any,
+    path_type: Any,
+    *,
+    directional: bool = False,
+    flow_type: Any = None,
+    trace_type: Any = None,
 ) -> dict[str, Any]:
     """SDK boundary kept explicit for contract tests without a running engine."""
     result: dict[str, Any] = {"status": "error", "reason": "engine_error"}
     created = False
     network = request["network_name"]
+    impact = _empty_impact("not_observed", "not_run")
     try:
         if network in session.list_networks():
             return result
@@ -65,15 +325,14 @@ def evaluate_session(
             "headers": headers,
             "pathConstraints": paths,
             "actions": "success",
-            "maxTraces": 1,
+            "maxTraces": 16 if directional else 1,
         }
         before_count = len(session.q.reachability(**params).answer(snapshot="before").frame())
         after_count = len(session.q.reachability(**params).answer(snapshot="after").frame())
-        difference_count = len(
-            session.q.differentialReachability(**params)
-            .answer(snapshot="after", reference_snapshot="before")
-            .frame()
+        difference_answer = session.q.differentialReachability(**params).answer(
+            snapshot="after", reference_snapshot="before"
         )
+        difference_count = len(difference_answer.frame())
         status = (
             "differences_found"
             if difference_count
@@ -88,6 +347,12 @@ def evaluate_session(
             before_reachable_count=before_count,
             after_reachable_count=after_count,
         )
+        if directional:
+            impact = (
+                _empty_impact("inconclusive", "empty_reachable_scope")
+                if status == "inconclusive"
+                else _directional_impact(difference_answer, request["scope"], flow_type, trace_type)
+            )
     except Exception:
         # SDK errors may contain configuration lines, paths or server responses.
         result = {"status": "error", "reason": "engine_error"}
@@ -98,6 +363,13 @@ def evaluate_session(
                 result["cleanup_complete"] = True
             except Exception:
                 result["cleanup_complete"] = False
+        if directional:
+            if (
+                result["status"] in {"differences_found", "no_differences_in_scope", "inconclusive"}
+                and result.get("cleanup_complete") is not True
+            ):
+                impact = _empty_impact("unknown", "cleanup_unconfirmed")
+            result["reachability_impact"] = impact
     return result
 
 
@@ -142,7 +414,7 @@ def main() -> None:
     try:
         request = json.loads(sys.stdin.read(65_536))
         if "protocol" in request:
-            if request["protocol"] != "batfish-execution-0.2.0":
+            if request["protocol"] not in {"batfish-execution-0.2.0", "batfish-execution-0.3.0"}:
                 raise ValueError("unknown worker protocol")
             evidence = True
         with open(os.devnull, "w", encoding="utf-8") as quiet:
@@ -155,6 +427,11 @@ def main() -> None:
                     request,
                     flow.HeaderConstraints,
                     flow.PathConstraints,
+                    **(
+                        {"directional": True, "flow_type": flow.Flow, "trace_type": flow.Trace}
+                        if request.get("protocol") == "batfish-execution-0.3.0"
+                        else {}
+                    ),
                 )
     except Exception:
         result = {"status": "error", "reason": "engine_error"}
@@ -168,12 +445,15 @@ def main() -> None:
                 scope=request["scope"],
                 network_name=request["network_name"],
             )
+            impact = result.pop("reachability_impact", _empty_impact("not_observed", "not_run"))
             result = {
-                "version": "batfish-execution-0.2.0",
+                "version": request["protocol"],
                 "result": result,
                 "sdk_version": sdk_version,
                 "sdk_observation": sdk_observation,
             }
+            if request["protocol"] == "batfish-execution-0.3.0":
+                result["reachability_impact"] = impact
         except Exception:
             result = {"status": "error", "reason": "engine_error"}
     print(json.dumps(result))

@@ -16,6 +16,7 @@ import type {
   SourcePatchVerificationSummary,
   VerifySourcePatch,
 } from "./sourcePatchVerification";
+import { ReachabilityImpactView } from "./ReachabilityImpactView";
 
 const blockers: Record<string, string> = {
   device_syntax_not_verified: "Синтаксис на устройстве не проверен",
@@ -80,7 +81,7 @@ export function SourcePatchVerificationPanel({
   const busy = outerBusy || working;
   const frozen = busy || !!attempt;
   const ready = verifySourcePatchSchema.safeParse({
-    version: "source-patch-request-0.2.0",
+    version: "source-patch-request-0.3.0",
     verification_id: "00000000-0000-0000-0000-000000000001",
     draft_sha256: draft.draft_sha256,
     companions: companions.map(({ configuration_id, source_sha256 }) => ({
@@ -549,6 +550,23 @@ export function SourcePatchVerificationPanel({
                       Удаление временной сети:{" "}
                       {cleanup(network!.cleanup_complete)}.
                     </p>
+                    {"network_execution" in view.outcome &&
+                      "reachability_impact" in
+                        view.outcome.network_execution && (
+                        <ReachabilityImpactView
+                          impact={
+                            view.outcome.network_execution.reachability_impact
+                          }
+                        />
+                      )}
+                    {!(
+                      "network_execution" in view.outcome &&
+                      "reachability_impact" in view.outcome.network_execution
+                    ) && (
+                      <p>
+                        Направление изменения в исходной записи не сохранялось.
+                      </p>
+                    )}
                     {network!.cleanup_complete !== true && (
                       <p className="notice warning">
                         На движке могли остаться исходники. Сеть:{" "}

@@ -63,10 +63,10 @@ async function upload(page: Page, content: string, device?: string) {
   ).toBeEnabled();
   return (await response.json()) as ConfigurationSnapshot;
 }
-async function prepare(page: Page, sdkState = "observed") {
+async function prepare(page: Page, sdkState = "observed", direction?: string) {
   await connect(page);
   const suffix = `${test.info().project.name}-${Date.now()}`;
-  const hostname = `${sdkState === "observed" ? "source-edge-" : `source-sdk-${sdkState.replaceAll("_", "-")}-`}${suffix}`,
+  const hostname = `${direction ? `source-direction-${direction}-` : sdkState === "observed" ? "source-edge-" : `source-sdk-${sdkState.replaceAll("_", "-")}-`}${suffix}`,
     neighbor = `source-core-${suffix}`;
   const before = await upload(page, `hostname ${hostname}\n`);
   await page
@@ -154,13 +154,19 @@ test("exact retained pair and explicit companion are verified, then readable aft
     .getByLabel("Назначение IPv4 сетевой проверки", { exact: true })
     .fill("198.51.100.1/32");
   const row = await verify(page);
-  expect(row.version).toBe("source-patch-verification-0.2.0");
-  expect(row.intent.request.version).toBe("source-patch-request-0.2.0");
+  expect(row.version).toBe("source-patch-verification-0.3.0");
+  expect(row.intent.request.version).toBe("source-patch-request-0.3.0");
   expect(row.outcome).toMatchObject({
     network_execution: {
-      version: "batfish-execution-0.2.0",
+      version: "batfish-execution-0.3.0",
       sdk_version: "owned-browser-sdk-0.36.0",
       sdk_observation: "observed",
+      reachability_impact: {
+        state: "observed",
+        direction: "no_witnesses_returned",
+        lost_witness_count: 0,
+        gained_witness_count: 0,
+      },
     },
   });
   expect(row.intent.before.configuration_id).toBe(before.configuration_id);
@@ -210,6 +216,12 @@ test("exact retained pair and explicit companion are verified, then readable aft
   await expect(sourcePanel(page)).toContainText(
     "не удостоверяют исполняемый файл, качество или формальное одобрение",
   );
+  await expect(
+    sourcePanel(page).getByRole("region", {
+      name: "Направление примеров достижимости",
+      exact: true,
+    }),
+  ).toContainText("Запрос не вернул примеров различий");
   await expect(
     sourcePanel(page).getByRole("button", { name: /скачать.*исход/i }),
   ).toHaveCount(0);
@@ -296,7 +308,7 @@ for (const state of ["metadata_unavailable", "not_observed"] as const)
     expect(row.status).toBe("needs_review");
   });
 
-test("legacy source history remains byte-equal beside SDK-aware records", async ({
+test("legacy source history remains byte-equal beside directional records", async ({
   page,
 }) => {
   const { draft } = await prepare(page);
@@ -341,7 +353,127 @@ test("legacy source history remains byte-equal beside SDK-aware records", async 
     { headers },
   );
   expect(await reread.text()).toBe(legacyRaw);
+  await expect(sourcePanel(page)).toContainText(
+    "Направление изменения в исходной записи не сохранялось",
+  );
+  const sdkResponse = await page.request.post(
+    `/api/v2/patches/${draft.patch_id}/verify`,
+    {
+      headers,
+      data: {
+        ...current.intent.request,
+        version: "source-patch-request-0.2.0",
+        verification_id: crypto.randomUUID(),
+      },
+    },
+  );
+  expect(sdkResponse.status()).toBe(201);
+  const sdkRaw = await sdkResponse.text(),
+    sdk = JSON.parse(sdkRaw) as SourcePatchVerification;
+  expect(sdk.version).toBe("source-patch-verification-0.2.0");
+  expect(sdk.outcome).toHaveProperty(
+    "network_execution.sdk_observation",
+    "observed",
+  );
+  expect(sdk.outcome).not.toHaveProperty(
+    "network_execution.reachability_impact",
+  );
+  await sourcePanel(page)
+    .getByRole("button", { name: "Обновить сетевые проверки", exact: true })
+    .click();
+  await sourcePanel(page)
+    .getByRole("button", {
+      name: new RegExp(
+        `Открыть сетевую проверку ${sdk.verification_id.slice(0, 8)}`,
+      ),
+    })
+    .click();
+  await expect(sourcePanel(page)).toContainText(
+    "Направление изменения в исходной записи не сохранялось",
+  );
+  const sdkReread = await page.request.get(
+    `/api/v2/patches/${draft.patch_id}/verifications/${sdk.verification_id}`,
+    { headers },
+  );
+  expect(await sdkReread.text()).toBe(sdkRaw);
 });
+
+for (const [direction, label, lost, gained] of [
+  ["loss", "Наблюдены примеры потери успешной доставки", 1, 0],
+  ["gain", "Наблюдены примеры появления успешной доставки", 0, 1],
+  ["both", "Наблюдены примеры потери и появления успешной доставки", 1, 1],
+] as const)
+  test(`saved authored directional ${direction} witnesses are explicit without risk or formal promotion`, async ({
+    page,
+  }) => {
+    await prepare(page, "observed", direction);
+    const row = await verify(page);
+    if (row.version !== "source-patch-verification-0.3.0")
+      throw new Error("Expected directional protocol");
+    const impact = row.outcome!.network_execution.reachability_impact;
+    expect(impact).toMatchObject({
+      state: "observed",
+      lost_witness_count: lost,
+      gained_witness_count: gained,
+    });
+    const view = sourcePanel(page).getByRole("region", {
+      name: "Направление примеров достижимости",
+      exact: true,
+    });
+    await expect(view).toContainText(label);
+    await expect(view).toContainText(
+      `Примеров потери: ${lost}; появления: ${gained}`,
+    );
+    await expect(
+      view
+        .getByRole("table", { name: "Сохранённые примеры изменения доставки" })
+        .getByRole("row"),
+    ).toHaveCount(lost + gained + 1);
+    await expect(view).toContainText(
+      "точки входа, существующие и активные в обоих снимках",
+    );
+    await expect(view).toContainText(
+      "Адрес источника выводится по снимку после изменения",
+    );
+    await expect(view).toContainText("не число пакетов");
+    await expect(sourcePanel(page)).toContainText(
+      "Согласовано: нет. Применено: нет. ML: не запускался",
+    );
+    expect(row.approved).toBe(false);
+    expect(row.intent.preflight.formal_verification).toBe("not_run");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+
+for (const [direction, reason] of [
+  ["unknown", "Набор путей неполон или усечён"],
+  ["empty", "Достижимая область пуста"],
+  ["cleanup", "Очистка исходников на движке не подтверждена"],
+] as const)
+  test(`authored directional ${direction} retains unknown counts and its actual reason`, async ({
+    page,
+  }) => {
+    await prepare(page, "observed", direction);
+    const row = await verify(page);
+    if (row.version !== "source-patch-verification-0.3.0")
+      throw new Error("Expected directional protocol");
+    expect(row.outcome!.network_execution.reachability_impact).toMatchObject({
+      direction: null,
+      lost_witness_count: null,
+      gained_witness_count: null,
+      witnesses: [],
+    });
+    const view = sourcePanel(page).getByRole("region", {
+      name: "Направление примеров достижимости",
+      exact: true,
+    });
+    await expect(view).toContainText(reason);
+    await expect(view).not.toContainText("Примеров потери: 0");
+    await expect(view.getByRole("table")).toHaveCount(0);
+  });
 
 test("lost POST response is reconciled by immutable GET with one actual engine-fixture attempt", async ({
   page,

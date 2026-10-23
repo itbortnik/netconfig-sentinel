@@ -73,11 +73,12 @@ async function prepare(
   page: Page,
   networkError = false,
   all = false,
-  legacyNetwork = false,
+  legacyNetwork: boolean | "sdk" = false,
+  direction?: string,
 ) {
   const suffix = randomUUID().slice(0, 8),
     device = randomUUID();
-  const host = `source-evidence-${networkError ? "error-" : ""}${suffix}`;
+  const host = `${direction ? `source-direction-${direction}-` : `source-evidence-${networkError ? "error-" : ""}`}${suffix}`;
   const inventory = {
     device_role: "edge",
     site_class: "branch",
@@ -207,13 +208,16 @@ async function prepare(
     expect(mlResponse.status()).toBe(201);
     neural = (await mlResponse.json()) as SourceMlRecheck;
   }
-  if (all || networkError) {
+  if (all || networkError || direction) {
     const response = await page.request.post(`${prefix}/verify`, {
       headers,
       data: {
-        version: legacyNetwork
-          ? "source-patch-request-0.1.0"
-          : "source-patch-request-0.2.0",
+        version:
+          legacyNetwork === "sdk"
+            ? "source-patch-request-0.2.0"
+            : legacyNetwork
+              ? "source-patch-request-0.1.0"
+              : "source-patch-request-0.3.0",
         verification_id: randomUUID(),
         draft_sha256: draft.draft_sha256,
         companions: [],
@@ -293,8 +297,8 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
   await expect(panel(page).getByRole("checkbox")).toHaveCount(0);
   await choose(page, value);
   const report = await compose(page);
-  expect(report.version).toBe("source-evidence-report-0.2.0");
-  expect(report.request.version).toBe("source-evidence-request-0.2.0");
+  expect(report.version).toBe("source-evidence-report-0.3.0");
+  expect(report.request.version).toBe("source-evidence-request-0.3.0");
   expect(report).toMatchObject({
     status: "needs_review",
     formal_qualification: "not_proven",
@@ -306,8 +310,8 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
   });
   expect(report.network!.ml_status).toBe("not_run");
   expect(report.network).toMatchObject({
-    version: "source-patch-verification-0.2.0",
-    execution_version: "batfish-execution-0.2.0",
+    version: "source-patch-verification-0.3.0",
+    execution_version: "batfish-execution-0.3.0",
     sdk_version: "owned-browser-sdk-0.36.0",
     sdk_observation: "observed",
   });
@@ -381,7 +385,7 @@ test("network error is saved as actual evidence and absent model remains absent"
   expect(report.validation_blockers).toContain("formal_scope_not_passed");
 });
 
-test("SDK-aware report retains legacy child metadata without inventing an observation", async ({
+test("directional report retains legacy child metadata without inventing an observation", async ({
   page,
 }) => {
   const value = await prepare(page, true, false, true);
@@ -389,7 +393,7 @@ test("SDK-aware report retains legacy child metadata without inventing an observ
   await openPanel(page);
   await choose(page, value);
   const report = await compose(page);
-  expect(report.version).toBe("source-evidence-report-0.2.0");
+  expect(report.version).toBe("source-evidence-report-0.3.0");
   expect(report.network).toMatchObject({
     version: "source-patch-verification-0.1.0",
     sdk_version: null,
@@ -404,6 +408,29 @@ test("SDK-aware report retains legacy child metadata without inventing an observ
     { headers },
   );
   expect(JSON.stringify(await reread.json())).toBe(original);
+});
+test("directional report retains exact historical SDK child without inventing directional witnesses", async ({
+  page,
+}) => {
+  const value = await prepare(page, true, false, "sdk");
+  await openPanel(page);
+  await choose(page, value);
+  const report = await compose(page);
+  expect(report.version).toBe("source-evidence-report-0.3.0");
+  expect(report.network).toMatchObject({
+    version: "source-patch-verification-0.2.0",
+    execution_version: "batfish-execution-0.2.0",
+    sdk_observation: "observed",
+  });
+  expect(report.network).not.toHaveProperty("reachability_impact");
+  await expect(panel(page)).toContainText(
+    "Направление изменения в исходной записи не сохранялось",
+  );
+  const reread = await page.request.get(
+    `${value.prefix}/verifications/${value.network!.verification_id}`,
+    { headers },
+  );
+  expect(await reread.json()).toEqual(value.network);
 });
 
 test("resealed false SDK projection cannot replace metadata from the exact immutable child", async ({
@@ -431,6 +458,105 @@ test("resealed false SDK projection cannot replace metadata from the exact immut
   await expect(panel(page)).not.toContainText("fabricated-browser-sdk");
   await readAttempt(page).click();
   await expect(panel(page)).toContainText("SDK: owned-browser-sdk-0.36.0");
+});
+
+test("full selected directional child is refetched and a resealed opposite direction cannot replace it", async ({
+  page,
+}) => {
+  const value = await prepare(page, false, false, false, "loss");
+  let childGets = 0;
+  page.on("request", (request) => {
+    if (
+      request.method() === "GET" &&
+      request.url().endsWith(`/verifications/${value.network!.verification_id}`)
+    )
+      childGets++;
+  });
+  await openPanel(page);
+  await choose(page, value);
+  await page.route("**/api/v2/patches/*/evidence-reports", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const response = await route.fetch(),
+      changed = (await response.json()) as SourceEvidenceReport;
+    if (changed.network?.version !== "source-patch-verification-0.3.0")
+      throw new Error("Expected directional child projection");
+    const impact = changed.network.reachability_impact;
+    impact.direction = "gain_found";
+    impact.lost_witness_count = 0;
+    impact.gained_witness_count = 1;
+    for (const witness of impact.witnesses) {
+      [witness.before_dispositions, witness.after_dispositions] = [
+        witness.after_dispositions,
+        witness.before_dispositions,
+      ];
+      [witness.before_trace_count, witness.after_trace_count] = [
+        witness.after_trace_count,
+        witness.before_trace_count,
+      ];
+      witness.direction = "gain";
+    }
+    const { review_json: _json, review_sha256: _sha, ...body } = changed;
+    changed.review_json = stableJson(body);
+    changed.review_sha256 = createHash("sha256")
+      .update(changed.review_json)
+      .digest("hex");
+    await route.fulfill({ response, json: changed });
+  });
+  await save(page).click();
+  await expect(panel(page)).toContainText(
+    "Итог сохранения совместного отчёта не подтверждён",
+  );
+  await expect.poll(() => childGets).toBeGreaterThan(0);
+  await expect(readAttempt(page)).toBeEnabled();
+  await expect(
+    panel(page).getByRole("region", {
+      name: "Направление примеров достижимости",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await readAttempt(page).click();
+  const directionView = panel(page).getByRole("region", {
+    name: "Направление примеров достижимости",
+    exact: true,
+  });
+  await expect(directionView).toContainText(
+    "Наблюдены примеры потери успешной доставки",
+  );
+  await expect(directionView).toContainText("Примеров потери: 1; появления: 0");
+  await expect(panel(page)).toContainText("not_proven");
+});
+
+test("authored mixed directional report keeps both witnesses when reachable example totals are equal", async ({
+  page,
+}) => {
+  const value = await prepare(page, false, false, false, "both");
+  await openPanel(page);
+  await choose(page, value);
+  const report = await compose(page);
+  if (report.network?.version !== "source-patch-verification-0.3.0")
+    throw new Error("Expected directional child");
+  expect(report.network.result.before_reachable_count).toBe(
+    report.network.result.after_reachable_count,
+  );
+  expect(report.network.reachability_impact).toMatchObject({
+    direction: "loss_and_gain_found",
+    lost_witness_count: 1,
+    gained_witness_count: 1,
+  });
+  await expect(
+    panel(page).getByRole("region", {
+      name: "Направление примеров достижимости",
+      exact: true,
+    }),
+  ).toContainText("Наблюдены примеры потери и появления успешной доставки");
+  expect(report.formal_qualification).toBe("not_proven");
+  expect(report.risk_fused).toBe(false);
+  expect(report.approved).toBe(false);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 test("lost POST is frozen and recovered by exact GET with no second POST", async ({
   page,

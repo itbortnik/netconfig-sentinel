@@ -9,11 +9,12 @@ from app.api.source_deterministic_contracts import SourceDeterministicRecheck
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
 from app.api.source_patch_contracts import SourcePatchVerification
-from app.api.source_patch_sdk_contracts import (
+from app.api.source_patch_direction_contracts import (
     SourcePatchReview,
-    SourcePatchVerificationV2,
+    SourcePatchVerificationV3,
     parse_source_patch_review,
 )
+from app.api.source_patch_sdk_contracts import SourcePatchVerificationV2
 
 type EvidenceKind = Literal["deterministic", "forest", "neural", "network"]
 type Evidence = (
@@ -91,7 +92,10 @@ def bind_selected_source_evidence(
             SelectedSourceEvidence(
                 kind,
                 record.verification_id
-                if isinstance(record, (SourcePatchVerification, SourcePatchVerificationV2))
+                if isinstance(
+                    record,
+                    (SourcePatchVerification, SourcePatchVerificationV2, SourcePatchVerificationV3),
+                )
                 else record.recheck_id,
                 record.review_sha256,
             )

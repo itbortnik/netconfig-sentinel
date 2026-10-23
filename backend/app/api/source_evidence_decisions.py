@@ -20,13 +20,14 @@ from app.api.service import AnalysisService
 from app.api.source_evidence_decision_contracts import (
     ReviewSourceEvidenceReport,
 )
-from app.api.source_evidence_decision_sdk_contracts import (
-    ReviewSourceEvidenceReportV2,
+from app.api.source_evidence_decision_direction_contracts import (
+    ReviewSourceEvidenceReportV3,
     SourceEvidenceDecisionRecord,
     SourceEvidenceDecisionSummaryRecord,
     parse_source_evidence_decision_request,
     source_evidence_decision_summary,
 )
+from app.api.source_evidence_decision_sdk_contracts import ReviewSourceEvidenceReportV2
 from app.audit.results import capture_result
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
@@ -60,6 +61,7 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
                         "anyOf": [
                             _request_schema(ReviewSourceEvidenceReport),
                             _request_schema(ReviewSourceEvidenceReportV2),
+                            _request_schema(ReviewSourceEvidenceReportV3),
                         ]
                     }
                 },

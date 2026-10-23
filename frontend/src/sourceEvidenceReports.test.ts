@@ -18,6 +18,7 @@ import {
 import type { SourceEvidenceReport } from "./sourceEvidenceReports";
 import controls from "./testdata/sourceEvidenceControls.json";
 import sdkControls from "./testdata/sourceSdkControls.json";
+import directionControls from "./testdata/sourceDirectionControls.json";
 
 const token = "test-only-evidence-memory-bearer-token-32-characters";
 const digest = (raw: string) => createHash("sha256").update(raw).digest("hex");
@@ -74,6 +75,29 @@ function sdkFixture(index = 0) {
     },
   };
 }
+function directionFixture(index = 0) {
+  const item = structuredClone(directionControls.cases[index]!);
+  return {
+    draft: patchDraftSchema.parse(item.draft),
+    request: createSourceEvidenceReportSchema.parse(item.request),
+    report: sourceEvidenceReportSchema.parse(item.report),
+    summary: sourceEvidenceSummarySchema.parse(item.summary),
+    children: {
+      deterministic: sourceDeterministicRecheckSchema.parse(
+        item.children.deterministic,
+      ),
+      forest: item.children.forest
+        ? sourceForestRecheckSchema.parse(item.children.forest)
+        : null,
+      neural: item.children.neural
+        ? sourceMlRecheckSchema.parse(item.children.neural)
+        : null,
+      network: item.children.network
+        ? sourcePatchVerificationSchema.parse(item.children.network)
+        : null,
+    },
+  };
+}
 function reseal(row: SourceEvidenceReport) {
   const { review_json: _json, review_sha256: _sha, ...body } = row;
   row.review_json = stableJson(body);
@@ -98,6 +122,116 @@ function transportFor(value = fixture()) {
     throw new Error("Unexpected request");
   });
 }
+it.each(
+  directionControls.cases.map((item, index) => [item.name, index] as const),
+)(
+  "accepts exact Python directional report chain %s with historical child compatibility",
+  async (_name, index) => {
+    const value = directionFixture(index);
+    expect(await sourceEvidenceProofMatches(value.report)).toBe(true);
+    expect(
+      await sourceEvidenceReportBound(
+        value.report,
+        value.draft,
+        value.children,
+        value.request,
+        value.summary,
+      ),
+    ).toBe(true);
+    const send = transportFor(value),
+      api = new ApiClient(token, send);
+    expect(
+      await api.createSourceEvidenceReport(value.draft, value.request),
+    ).toEqual(value.report);
+    expect(
+      await api.sourceEvidenceReport(
+        value.draft,
+        value.report.report_id,
+        value.request,
+        value.summary,
+      ),
+    ).toEqual(value.report);
+    expect(await api.sourceEvidenceReports(value.draft)).toEqual([
+      value.summary,
+    ]);
+    for (const version of ["0.1.0", "0.2.0"]) {
+      expect(
+        sourceEvidenceReportSchema.safeParse({
+          ...value.report,
+          version: `source-evidence-report-${version}`,
+        }).success,
+      ).toBe(false);
+      expect(
+        await sourceEvidenceReportBound(
+          value.report,
+          value.draft,
+          value.children,
+          undefined,
+          {
+            ...value.summary,
+            version:
+              `source-evidence-summary-${version}` as typeof value.summary.version,
+          },
+        ),
+      ).toBe(false);
+      if (value.report.network?.version === "source-patch-verification-0.3.0")
+        expect(
+          sourceEvidenceReportSchema.safeParse({
+            ...value.report,
+            version: `source-evidence-report-${version}`,
+            request: {
+              ...value.request,
+              version: `source-evidence-request-${version}`,
+            },
+          }).success,
+        ).toBe(false);
+    }
+    expect(value.report.formal_qualification).toBe("not_proven");
+    expect(value.report.risk_fused).toBe(false);
+    expect(value.report.quality_proven).toBe(false);
+    expect(value.report.approved).toBe(false);
+    api.close();
+  },
+);
+it("rejects an internally valid resealed opposite direction against exact saved child witnesses", async () => {
+  const value = directionFixture(),
+    changed = structuredClone(value.report);
+  if (changed.network?.version !== "source-patch-verification-0.3.0")
+    throw new Error("Expected directional fixture");
+  const impact = changed.network.reachability_impact;
+  impact.direction = "gain_found";
+  impact.lost_witness_count = 0;
+  impact.gained_witness_count = 1;
+  for (const witness of impact.witnesses) {
+    [witness.before_dispositions, witness.after_dispositions] = [
+      witness.after_dispositions,
+      witness.before_dispositions,
+    ];
+    [witness.before_trace_count, witness.after_trace_count] = [
+      witness.after_trace_count,
+      witness.before_trace_count,
+    ];
+    witness.direction = "gain";
+  }
+  const resealed = sourceEvidenceReportSchema.parse(reseal(changed));
+  expect(await sourceEvidenceProofMatches(resealed)).toBe(true);
+  expect(
+    await sourceEvidenceReportBound(resealed, value.draft, value.children),
+  ).toBe(false);
+  const send = transportFor({ ...value, report: resealed }),
+    api = new ApiClient(token, send);
+  await expect(
+    api.sourceEvidenceReport(value.draft, resealed.report_id),
+  ).rejects.toMatchObject({ status: 0 });
+  expect(
+    send.mock.calls.some(([url]) =>
+      String(url).includes(
+        `/verifications/${value.children.network!.verification_id}`,
+      ),
+    ),
+  ).toBe(true);
+  api.close();
+});
 it.each(controls.cases.map((row, index) => [row.name, index] as const))(
   "accepts authored saved Python %s controls without asserting model or engine quality",
   async (_name, index) => {

@@ -21,13 +21,14 @@ from app.api.source_patch_contracts import (
     SourcePatchCapabilities,
     VerifySourcePatch,
 )
-from app.api.source_patch_sdk_contracts import (
+from app.api.source_patch_direction_contracts import (
     SourcePatchReview,
     SourcePatchSummary,
-    VerifySourcePatchV2,
+    VerifySourcePatchV3,
     parse_source_patch_request,
     source_patch_summary,
 )
+from app.api.source_patch_sdk_contracts import VerifySourcePatchV2
 from app.audit.results import capture_result
 from app.db.patch_records import PatchConflict
 from app.patching.persistent import PatchNotFound
@@ -71,6 +72,7 @@ def source_patch_capabilities(request: Request, service: Service) -> SourcePatch
                         "anyOf": [
                             _request_schema(VerifySourcePatch),
                             _request_schema(VerifySourcePatchV2),
+                            _request_schema(VerifySourcePatchV3),
                         ]
                     }
                 }

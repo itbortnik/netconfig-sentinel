@@ -396,6 +396,12 @@ joint-report and disposition payloads with version 0.2. It uses existing encrypt
 tables and audit kinds, retains immutable 0.1 history and never infers missing SDK
 metadata from a reader's current environment.
 
+The [directional source evidence](source-reachability-impact.md) adds explicit0.3
+records with bounded complete example traces, raw SDK scalar validation and exact
+source/joint/disposition projections. It preserves legacy payloads and stores
+unknown rather than interpreting truncated or unsupported frames. Witness counts
+do not become risk severity, exhaustive flow coverage or overall qualification.
+
 The [selected ordinary evidence report](source-evidence-reports.md) composes saved
 deterministic, numeric Forest, neural and scoped network records by explicit UUID
 and SHA. The deterministic result is required; optional results remain explicitly

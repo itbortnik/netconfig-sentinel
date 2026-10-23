@@ -15,8 +15,8 @@ from app.api.source_evidence_contracts import (
     MAX_SOURCE_EVIDENCE_BYTES,
     SourceEvidenceProjectionTooLarge,
 )
-from app.api.source_evidence_sdk_contracts import (
-    CreateSourceEvidenceReportV2,
+from app.api.source_evidence_direction_contracts import (
+    CreateSourceEvidenceReportV3,
     SourceEvidenceReportRecord,
     SourceEvidenceRequest,
     parse_source_evidence_report_json,
@@ -24,10 +24,15 @@ from app.api.source_evidence_sdk_contracts import (
     source_evidence_report,
     validate_source_evidence_report,
 )
+from app.api.source_evidence_sdk_contracts import CreateSourceEvidenceReportV2
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
 from app.api.source_patch_contracts import SourcePatchVerification
-from app.api.source_patch_sdk_contracts import SourcePatchReview, source_patch_view
+from app.api.source_patch_direction_contracts import (
+    SourcePatchReview,
+    SourcePatchVerificationV3,
+    source_patch_view,
+)
 from app.db.patch_records import PatchConflict, PatchRecords
 from app.db.source_deterministic_records import SourceDeterministicRecords
 from app.db.source_forest_records import SourceForestRecords
@@ -108,8 +113,14 @@ class SourceEvidenceRecords:
             if network_records is None:
                 raise SourceEvidenceInputNotFound("Selected network result is unavailable.")
             selected_network = source_patch_view(*network_records)
-            if not isinstance(request, CreateSourceEvidenceReportV2) and not isinstance(
-                selected_network, SourcePatchVerification
+            if (
+                isinstance(selected_network, SourcePatchVerificationV3)
+                and not isinstance(request, CreateSourceEvidenceReportV3)
+            ) or (
+                not isinstance(
+                    request, (CreateSourceEvidenceReportV2, CreateSourceEvidenceReportV3)
+                )
+                and not isinstance(selected_network, SourcePatchVerification)
             ):
                 raise PatchConflict("Selected network result requires a newer report protocol.")
             network = selected_network

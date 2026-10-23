@@ -289,6 +289,11 @@ def main() -> None:
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
                 from app.verification.batfish import BatfishExecution, BatfishResult
+                from app.verification.reachability_impact import (
+                    BatfishDirectionalExecution,
+                    ReachabilityImpact,
+                    empty_reachability_impact,
+                )
 
                 def synthetic_source_worker(before, after, scope, **kwargs):
                     # Explicit owned software fixture: no SDK/model/engine is invoked.
@@ -345,6 +350,89 @@ def main() -> None:
                     )
 
                 source_workflow.check_with_batfish_evidence = synthetic_source_execution
+
+                def synthetic_source_directional(before, after, scope, **kwargs):
+                    # Directional browser controls are authored DTOs, never live SDK evidence.
+                    execution = synthetic_source_execution(before, after, scope, **kwargs)
+                    fields = execution.result.model_dump()
+                    hostname = scope.start_node
+                    mode = next(
+                        (
+                            mode
+                            for mode in ("loss", "gain", "both", "unknown", "empty", "cleanup")
+                            if hostname.startswith("source-direction-" + mode + "-")
+                        ),
+                        None,
+                    )
+                    if mode in {"loss", "gain", "both", "unknown"}:
+                        fields.update(
+                            status="differences_found",
+                            reason="query_completed",
+                            difference_count=2 if mode == "both" else 1,
+                            before_reachable_count=0 if mode == "gain" else 1,
+                            after_reachable_count=0 if mode == "loss" else 1,
+                        )
+                    elif mode == "empty":
+                        fields.update(
+                            status="inconclusive",
+                            reason="empty_reachable_scope",
+                            difference_count=0,
+                            before_reachable_count=0,
+                            after_reachable_count=0,
+                        )
+                    elif mode == "cleanup":
+                        fields["cleanup_complete"] = False
+                    result = BatfishResult.model_validate(fields)
+                    if result.status in {"unavailable", "error", "incomplete"}:
+                        impact = empty_reachability_impact("not_observed", "not_run")
+                    elif result.cleanup_complete is not True:
+                        impact = empty_reachability_impact("unknown", "cleanup_unconfirmed")
+                    elif result.status == "inconclusive":
+                        impact = empty_reachability_impact("inconclusive", "empty_reachable_scope")
+                    elif mode == "unknown":
+                        impact = empty_reachability_impact("unknown", "incomplete_traces")
+                    else:
+                        witnesses = []
+                        for direction, digest in (("loss", "a" * 64), ("gain", "b" * 64)):
+                            if mode in {direction, "both"}:
+                                witnesses.append(
+                                    dict(
+                                        flow_sha256=digest,
+                                        direction=direction,
+                                        before_dispositions=[
+                                            "ACCEPTED" if direction == "loss" else "NULL_ROUTED"
+                                        ],
+                                        after_dispositions=[
+                                            "NULL_ROUTED" if direction == "loss" else "ACCEPTED"
+                                        ],
+                                        before_trace_count=1,
+                                        after_trace_count=1,
+                                    )
+                                )
+                        lost = sum(row["direction"] == "loss" for row in witnesses)
+                        gained = len(witnesses) - lost
+                        impact = ReachabilityImpact(
+                            state="observed",
+                            reason="query_completed",
+                            direction="loss_and_gain_found"
+                            if lost and gained
+                            else "loss_found"
+                            if lost
+                            else "gain_found"
+                            if gained
+                            else "no_witnesses_returned",
+                            lost_witness_count=lost,
+                            gained_witness_count=gained,
+                            witnesses=tuple(witnesses),
+                        )
+                    return BatfishDirectionalExecution(
+                        result=result,
+                        sdk_version=execution.sdk_version,
+                        sdk_observation=execution.sdk_observation,
+                        reachability_impact=impact,
+                    )
+
+                source_workflow.check_with_batfish_directional = synthetic_source_directional
                 verification = PatchVerificationSettings(allow_engine_upload=True)
             application = create_app(
                 settings,

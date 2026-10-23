@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import { SourceEvidenceDecisionPanel } from "./SourceEvidenceDecisionPanel";
+import { ReachabilityImpactView } from "./ReachabilityImpactView";
 import type { PatchDraft } from "./patches";
 import { date, shortId } from "./format";
 import type { SourceDeterministicSummary } from "./sourceDeterministicRecheck";
@@ -168,7 +169,7 @@ export function SourceEvidenceReportPanel({
         ? { record_id: identity(row), review_sha256: row.review_sha256 }
         : null;
     const request: CreateSourceEvidenceReport = {
-      version: "source-evidence-request-0.2.0",
+      version: "source-evidence-request-0.3.0",
       report_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: pin(selected.deterministic)!,
@@ -681,8 +682,9 @@ function EvidenceView({ view }: { view: SourceEvidenceReport }) {
             IPv6 и вся сеть этим не доказаны.
           </p>
           <p>
-            Различий: {missing(view.network.result.difference_count)}; достижимо
-            до: {missing(view.network.result.before_reachable_count)}; после:{" "}
+            Строк различий: {missing(view.network.result.difference_count)};
+            строк ответа до:{" "}
+            {missing(view.network.result.before_reachable_count)}; после:{" "}
             {missing(view.network.result.after_reachable_count)}. Очистка:{" "}
             {view.network.result.cleanup_complete === null
               ? "не подтверждена"
@@ -705,6 +707,11 @@ function EvidenceView({ view }: { view: SourceEvidenceReport }) {
               не удостоверяют исполняемый файл, качество или формальное
               одобрение.
             </p>
+          )}
+          {"reachability_impact" in view.network ? (
+            <ReachabilityImpactView impact={view.network.reachability_impact} />
+          ) : (
+            <p>Направление изменения в исходной записи не сохранялось.</p>
           )}
           <ul>
             {view.network.result.limitations.map((value, index) => (

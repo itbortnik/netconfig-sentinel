@@ -10,12 +10,15 @@ import sys
 import tempfile
 from ipaddress import IPv4Network
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.verification.snapshots import NetworkSnapshot, validate_snapshot_pair, write_snapshot
+
+if TYPE_CHECKING:
+    from app.verification.reachability_impact import BatfishDirectionalExecution
 
 
 class ReachabilityScope(BaseModel):
@@ -167,6 +170,28 @@ def check_with_batfish_evidence(
     return result
 
 
+def check_with_batfish_directional(
+    before: NetworkSnapshot,
+    after: NetworkSnapshot,
+    scope: ReachabilityScope,
+    *,
+    allow_local_upload: bool = False,
+    timeout_seconds: int = 60,
+) -> BatfishDirectionalExecution:
+    from app.verification.reachability_impact import BatfishDirectionalExecution
+
+    result = _check_with_batfish(
+        before,
+        after,
+        scope,
+        allow_local_upload=allow_local_upload,
+        timeout_seconds=timeout_seconds,
+        protocol="batfish-execution-0.3.0",
+    )
+    assert isinstance(result, BatfishDirectionalExecution)
+    return result
+
+
 def _check_with_batfish(
     before: NetworkSnapshot,
     after: NetworkSnapshot,
@@ -174,8 +199,13 @@ def _check_with_batfish(
     *,
     allow_local_upload: bool,
     timeout_seconds: int,
-    protocol: Literal["batfish-execution-0.2.0"] | None,
-) -> BatfishResult | BatfishExecution:
+    protocol: Literal["batfish-execution-0.2.0", "batfish-execution-0.3.0"] | None,
+) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution:
+    from app.verification.reachability_impact import (
+        BatfishDirectionalExecution,
+        empty_reachability_impact,
+    )
+
     validate_snapshot_pair(before, after)
     scope = ReachabilityScope.model_validate(scope.model_dump())
     if scope.start_node not in {config.hostname for config in before.configs}:
@@ -186,10 +216,19 @@ def _check_with_batfish(
         raise ValueError("timeout must be between 1 and 300 seconds")
     common = {"before_sha256": before.digest, "after_sha256": after.digest, "scope": scope}
 
-    def failure(status: str, reason: str) -> BatfishResult | BatfishExecution:
+    def failure(
+        status: str, reason: str
+    ) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution:
         result = BatfishResult.model_validate({**common, "status": status, "reason": reason})
         if protocol is None:
             return result
+        if protocol == "batfish-execution-0.3.0":
+            return BatfishDirectionalExecution(
+                result=result,
+                sdk_version=None,
+                sdk_observation="not_observed",
+                reachability_impact=empty_reachability_impact("not_observed", "not_run"),
+            )
         return BatfishExecution(result=result, sdk_version=None, sdk_observation="not_observed")
 
     if not allow_local_upload:
@@ -236,14 +275,20 @@ def _check_with_batfish(
                 ),
             )
             response_size = len(run.stdout) if protocol is None else len(run.stdout.encode("utf-8"))
-            if run.returncode != 0 or response_size > 32_768:
+            if run.returncode != 0 or response_size > (
+                131_072 if protocol == "batfish-execution-0.3.0" else 32_768
+            ):
                 return failure("error", "worker_failed")
             response = json.loads(run.stdout)
             if not isinstance(response, dict):
                 return failure("error", "worker_failed")
             if protocol is None:
                 return BatfishResult.model_validate({**response, **common})
-            execution = BatfishExecution.model_validate(response)
+            execution = (
+                BatfishDirectionalExecution.model_validate(response)
+                if protocol == "batfish-execution-0.3.0"
+                else BatfishExecution.model_validate(response)
+            )
             result = execution.result
             if (result.before_sha256, result.after_sha256, result.scope, result.network_name) != (
                 before.digest,

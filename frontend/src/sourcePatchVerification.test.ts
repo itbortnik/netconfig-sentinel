@@ -19,6 +19,7 @@ import {
   verifySourcePatchSchema,
 } from "./sourcePatchVerification";
 import sdkControls from "./testdata/sourceSdkControls.json";
+import directionControls from "./testdata/sourceDirectionControls.json";
 import type {
   SourcePatchVerification,
   SourcePatchVerificationSummary,
@@ -235,6 +236,102 @@ const capabilities = {
   maximum_network_bytes: 8388608,
   ml_status: "not_run",
 };
+
+it.each(directionControls.cases.filter((item) => item.network !== null))(
+  "accepts exact authored Python directional source $name without recasting historical protocols",
+  async (item) => {
+    const target = patchDraftSchema.parse(item.draft),
+      row = sourcePatchVerificationSchema.parse(item.network),
+      index = sourcePatchVerificationSummarySchema.parse(item.network_summary);
+    expect(await sourceReviewProofMatches(row)).toBe(true);
+    expect(
+      await sourceVerificationBound(row, target, row.intent.request, index),
+    ).toBe(true);
+    const send = transport(row),
+      api = new ApiClient("x".repeat(32), send);
+    expect(await api.verifySourcePatch(target, row.intent.request)).toEqual(
+      row,
+    );
+    expect(
+      await api.sourcePatchVerification(
+        target,
+        row.verification_id,
+        row.intent.request,
+        index,
+      ),
+    ).toEqual(row);
+    api.close();
+    if (row.version === "source-patch-verification-0.3.0") {
+      const changed = structuredClone(row);
+      changed.outcome!.network_execution.reachability_impact.limitations[0] =
+        "False universal coverage" as never;
+      expect(await sourceReviewProofMatches(changed)).toBe(false);
+      for (const version of ["0.1.0", "0.2.0"]) {
+        expect(
+          sourcePatchVerificationSchema.safeParse({
+            ...row,
+            version: `source-patch-verification-${version}`,
+          }).success,
+        ).toBe(false);
+        expect(
+          sourcePatchVerificationSchema.safeParse({
+            ...row,
+            intent: {
+              ...row.intent,
+              version: `source-patch-intent-${version}`,
+            },
+          }).success,
+        ).toBe(false);
+        expect(
+          await sourceVerificationBound(row, target, undefined, {
+            ...index,
+            version:
+              `source-patch-verification-summary-${version}` as typeof index.version,
+          }),
+        ).toBe(false);
+      }
+    }
+    expect(row.status).toBe("needs_review");
+    expect(row.approved).toBe(false);
+    expect(row.ml_status).toBe("not_run");
+  },
+);
+it("keeps directional pending state without made-up impact and recovers lost POST by exact GET", async () => {
+  const item = directionControls.cases[0]!,
+    target = patchDraftSchema.parse(item.draft),
+    saved = sourcePatchVerificationSchema.parse(item.network);
+  const { review_json: _json, review_sha256: _sha, ...body } = saved;
+  body.outcome = null;
+  body.execution_status = "pending_unknown";
+  body.validation_blockers = sourceValidationBlockers(body);
+  const raw = normative(body),
+    row = sourcePatchVerificationSchema.parse({
+      ...body,
+      review_json: raw,
+      review_sha256: digest(raw),
+    });
+  expect(await sourceVerificationBound(row, target, row.intent.request)).toBe(
+    true,
+  );
+  const send = transport(row),
+    api = new ApiClient("x".repeat(32), send);
+  send.mockRejectedValueOnce(new TypeError("lost directional response"));
+  await expect(
+    api.verifySourcePatch(target, row.intent.request),
+  ).rejects.toMatchObject({ status: 0 });
+  expect(
+    await api.sourcePatchVerification(
+      target,
+      row.verification_id,
+      row.intent.request,
+    ),
+  ).toEqual(row);
+  expect(row.outcome).toBeNull();
+  expect(
+    send.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+  api.close();
+});
 
 it.each(sdkControls.cases.filter((item) => item.network !== null))(
   "accepts authored SDK source proof $name without claiming actual SDK execution",

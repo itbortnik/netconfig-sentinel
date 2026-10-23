@@ -20,13 +20,14 @@ from app.api.service import AnalysisService
 from app.api.source_evidence_contracts import (
     CreateSourceEvidenceReport,
 )
-from app.api.source_evidence_sdk_contracts import (
-    CreateSourceEvidenceReportV2,
+from app.api.source_evidence_direction_contracts import (
+    CreateSourceEvidenceReportV3,
     SourceEvidenceReportRecord,
     SourceEvidenceSummaryRecord,
     parse_source_evidence_request,
     source_evidence_summary,
 )
+from app.api.source_evidence_sdk_contracts import CreateSourceEvidenceReportV2
 from app.audit.results import capture_result
 from app.db.patch_records import PatchConflict
 from app.db.source_evidence_records import SourceEvidenceInputNotFound, SourceEvidenceTooLarge
@@ -53,6 +54,7 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
                         "anyOf": [
                             _request_schema(CreateSourceEvidenceReport),
                             _request_schema(CreateSourceEvidenceReportV2),
+                            _request_schema(CreateSourceEvidenceReportV3),
                         ]
                     }
                 },

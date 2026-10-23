@@ -105,9 +105,14 @@ async function fill(
     .getByLabel("Комментарий к решению", { exact: true })
     .fill(comment);
 }
-async function prepare(page: Page, extras = false, legacy = false) {
+async function prepare(
+  page: Page,
+  extras = false,
+  legacy: boolean | "sdk" = false,
+  direction?: string,
+) {
   const device = randomUUID(),
-    host = `source-evidence-${extras ? "error-" : ""}${randomUUID().slice(0, 8)}`;
+    host = `${direction ? `source-direction-${direction}-` : `source-evidence-${extras ? "error-" : ""}`}${randomUUID().slice(0, 8)}`;
   const text = (telnet: boolean) =>
     `hostname ${host}\naaa new-model\nip ssh version 2\nline vty 0 4\n transport input ${telnet ? "telnet ssh" : "ssh"}\n!\ninterface GigabitEthernet0/1\n ip address 192.0.2.10 255.255.255.0\n!\n`;
   async function upload(content: string) {
@@ -187,9 +192,12 @@ async function prepare(page: Page, extras = false, legacy = false) {
     const networkResponse = await page.request.post(`${prefix}/verify`, {
       headers,
       data: {
-        version: legacy
-          ? "source-patch-request-0.1.0"
-          : "source-patch-request-0.2.0",
+        version:
+          legacy === "sdk"
+            ? "source-patch-request-0.2.0"
+            : legacy
+              ? "source-patch-request-0.1.0"
+              : "source-patch-request-0.3.0",
         verification_id: randomUUID(),
         draft_sha256: draft.draft_sha256,
         companions: [],
@@ -207,9 +215,12 @@ async function prepare(page: Page, extras = false, legacy = false) {
   const response = await page.request.post(`${prefix}/evidence-reports`, {
     headers,
     data: {
-      version: legacy
-        ? "source-evidence-request-0.1.0"
-        : "source-evidence-request-0.2.0",
+      version:
+        legacy === "sdk"
+          ? "source-evidence-request-0.2.0"
+          : legacy
+            ? "source-evidence-request-0.1.0"
+            : "source-evidence-request-0.3.0",
       report_id: randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: {
@@ -274,9 +285,9 @@ test("full accepted report is explicit; append-only dispositions preserve role, 
     "<img src=x onerror=alert(1)>\nЗапрос сведений 😀\tбез удостоверенной личности.";
   await fill(page, comment);
   const first = await record(page);
-  expect(first.version).toBe("source-evidence-decision-0.2.0");
-  expect(first.request.version).toBe("source-evidence-decision-request-0.2.0");
-  expect(first.report_version).toBe("source-evidence-report-0.2.0");
+  expect(first.version).toBe("source-evidence-decision-0.3.0");
+  expect(first.request.version).toBe("source-evidence-decision-request-0.3.0");
+  expect(first.report_version).toBe("source-evidence-report-0.3.0");
   expect(value.report.network).toMatchObject({
     sdk_version: "owned-browser-sdk-0.36.0",
     sdk_observation: "observed",
@@ -387,6 +398,80 @@ test("legacy report review explicitly preserves decision protocol 0.1 and unchan
   await expect(reports(page)).toContainText(
     "SDK: недоступно — исходная запись не сохраняла версию",
   );
+});
+test("historical SDK report review preserves decision protocol 0.2 without adding direction", async ({
+  page,
+}) => {
+  const value = await prepare(page, true, "sdk");
+  await openReport(page, value.report);
+  await openPanel(page);
+  await fill(
+    page,
+    "Исторический отчёт с версией SDK; направление не измерялось.",
+    "rejected",
+  );
+  const decision = await record(page);
+  expect(decision.version).toBe("source-evidence-decision-0.2.0");
+  expect(decision.request.version).toBe(
+    "source-evidence-decision-request-0.2.0",
+  );
+  expect(decision.report_version).toBe("source-evidence-report-0.2.0");
+  expect(value.report.network).not.toHaveProperty("reachability_impact");
+  await expect(reports(page)).toContainText(
+    "Направление изменения в исходной записи не сохранялось",
+  );
+  const reread = await page.request.get(
+    `${value.prefix}/evidence-reports/${value.report.report_id}`,
+    { headers },
+  );
+  expect(await reread.json()).toEqual(value.report);
+});
+test("directional decision rechecks its full parent chain and recovers only after exact child projection is restored", async ({
+  page,
+}) => {
+  const value = await prepare(page, true, false, "both");
+  await openReport(page, value.report);
+  await openPanel(page);
+  await fill(page);
+  let postCount = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST" && /\/decisions$/.test(request.url()))
+      postCount++;
+  });
+  const pattern = `**/api/v2/patches/*/evidence-reports/${value.report.report_id}`;
+  await page.route(pattern, async (route) => {
+    const response = await route.fetch(),
+      changed = (await response.json()) as SourceEvidenceReport;
+    if (changed.network?.version !== "source-patch-verification-0.3.0")
+      throw new Error("Expected directional parent");
+    changed.network.reachability_impact.witnesses[0]!.flow_sha256 = "0".repeat(
+      64,
+    );
+    const { review_json: _json, review_sha256: _sha, ...body } = changed;
+    changed.review_json = stableJson(body);
+    changed.review_sha256 = createHash("sha256")
+      .update(changed.review_json)
+      .digest("hex");
+    await route.fulfill({ response, json: changed });
+  });
+  await save(page).click();
+  await expect(panel(page)).toContainText(
+    "Итог сохранения решения не подтверждён",
+  );
+  await expect(save(page)).toBeDisabled();
+  await expect(readAttempt(page)).toBeEnabled();
+  await page.unroute(pattern);
+  await readAttempt(page).click();
+  await expect(panel(page)).toContainText("needs_more_information");
+  expect(postCount).toBe(1);
+  const directionView = reports(page).getByRole("region", {
+    name: "Направление примеров достижимости",
+    exact: true,
+  });
+  await expect(directionView).toContainText(
+    "Наблюдены примеры потери и появления успешной доставки",
+  );
+  expect(value.report.formal_qualification).toBe("not_proven");
 });
 test("comment uses Unicode codepoints and no default verdict or unsupported approval", async ({
   page,
@@ -560,7 +645,7 @@ test("actual immutable decision history paginates metadata and late detail after
     const response = await page.request.post(value.decisions, {
       headers,
       data: {
-        version: "source-evidence-decision-request-0.2.0",
+        version: "source-evidence-decision-request-0.3.0",
         decision_id: id,
         report_sha256: value.report.review_sha256,
         verdict: n % 2 ? "rejected" : "needs_more_information",

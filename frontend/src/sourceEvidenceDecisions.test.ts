@@ -17,6 +17,7 @@ import type { SourceEvidenceDecision } from "./sourceEvidenceDecisions";
 import controls from "./testdata/sourceEvidenceDecisionControls.json";
 import parents from "./testdata/sourceEvidenceControls.json";
 import sdkControls from "./testdata/sourceSdkControls.json";
+import directionControls from "./testdata/sourceDirectionControls.json";
 
 const token = "owned-source-evidence-decision-test-token-32-characters";
 const digest = (value: string) =>
@@ -61,6 +62,16 @@ function sdkFixture(index = 0) {
     },
   };
 }
+function directionFixture(index = 0) {
+  const item = structuredClone(directionControls.cases[index]!);
+  return {
+    decision: sourceEvidenceDecisionSchema.parse(item.decision),
+    summary: sourceEvidenceDecisionSummarySchema.parse(item.decision_summary),
+    report: sourceEvidenceReportSchema.parse(item.report),
+    draft: patchDraftSchema.parse(item.draft),
+    children: item.children,
+  };
+}
 function reseal(row: SourceEvidenceDecision) {
   const { decision_json: _json, decision_sha256: _sha, ...body } = row;
   row.decision_json = stableJson(body);
@@ -93,6 +104,74 @@ function transportFor(
     throw new Error("Unexpected owned transport call");
   });
 }
+it.each(
+  directionControls.cases.map((item, index) => [item.name, index] as const),
+)(
+  "accepts exact Python directional decision %s with full saved child proofs",
+  async (_name, index) => {
+    const value = directionFixture(index);
+    expect(await sourceEvidenceDecisionProofMatches(value.decision)).toBe(true);
+    expect(
+      await sourceEvidenceDecisionBound(
+        value.decision,
+        value.report,
+        value.decision.request,
+        value.summary,
+      ),
+    ).toBe(true);
+    const send = transportFor(value),
+      api = new ApiClient(token, send);
+    expect(
+      await api.reviewSourceEvidenceReport(
+        value.draft,
+        value.report,
+        value.decision.request,
+      ),
+    ).toEqual(value.decision);
+    expect(
+      await api.sourceEvidenceDecision(
+        value.draft,
+        value.report,
+        value.decision.decision_id,
+        value.decision.request,
+        value.summary,
+      ),
+    ).toEqual(value.decision);
+    expect(await api.sourceEvidenceDecisions(value.report)).toEqual([
+      value.summary,
+    ]);
+    for (const version of ["0.1.0", "0.2.0"]) {
+      await expect(
+        api.reviewSourceEvidenceReport(value.draft, value.report, {
+          ...value.decision.request,
+          version:
+            `source-evidence-decision-request-${version}` as typeof value.decision.request.version,
+        }),
+      ).rejects.toMatchObject({ status: 409 });
+      expect(
+        sourceEvidenceDecisionSchema.safeParse({
+          ...value.decision,
+          report_version: `source-evidence-report-${version}`,
+        }).success,
+      ).toBe(false);
+      expect(
+        await sourceEvidenceDecisionBound(
+          value.decision,
+          value.report,
+          undefined,
+          {
+            ...value.summary,
+            version:
+              `source-evidence-decision-summary-${version}` as typeof value.summary.version,
+          },
+        ),
+      ).toBe(false);
+    }
+    expect(value.decision.approved).toBe(false);
+    expect(value.decision.individual_identity_verified).toBe(false);
+    api.close();
+  },
+);
 it.each([0, 1])(
   "accepts bounded Python authored decision %s with exact original role, comment and parent pins",
   async (index) => {

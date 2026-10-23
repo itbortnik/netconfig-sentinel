@@ -10,6 +10,7 @@ import {
   batfishExecutionSchema,
   sourceNetworkResult,
 } from "./sourcePatchVerification";
+import { batfishDirectionalExecutionSchema } from "./sourceReachabilityImpact";
 
 const id = z.guid(),
   hash = z.string().regex(/^[0-9a-f]{64}$/);
@@ -46,9 +47,14 @@ const createSourceEvidenceReportV2Schema =
   createSourceEvidenceReportV1Schema.extend({
     version: z.literal("source-evidence-request-0.2.0"),
   });
+const createSourceEvidenceReportV3Schema =
+  createSourceEvidenceReportV1Schema.extend({
+    version: z.literal("source-evidence-request-0.3.0"),
+  });
 export const createSourceEvidenceReportSchema = z.union([
   createSourceEvidenceReportV1Schema,
   createSourceEvidenceReportV2Schema,
+  createSourceEvidenceReportV3Schema,
 ]);
 export type CreateSourceEvidenceReport = z.infer<
   typeof createSourceEvidenceReportSchema
@@ -238,11 +244,35 @@ const networkV2Schema = networkSchema
       }).success,
   );
 const networkEvidenceSchema = z.union([networkSchema, networkV2Schema]);
+const networkV3Schema = networkSchema
+  .extend({
+    version: z.literal("source-patch-verification-0.3.0"),
+    execution_version: z.literal("batfish-execution-0.3.0"),
+    sdk_version: batfishDirectionalExecutionSchema.shape.sdk_version,
+    sdk_observation: batfishDirectionalExecutionSchema.shape.sdk_observation,
+    reachability_impact:
+      batfishDirectionalExecutionSchema.shape.reachability_impact,
+  })
+  .refine(
+    (row) =>
+      batfishDirectionalExecutionSchema.safeParse({
+        version: row.execution_version,
+        result: row.result,
+        sdk_version: row.sdk_version,
+        sdk_observation: row.sdk_observation,
+        reachability_impact: row.reachability_impact,
+      }).success,
+  );
+const directionalNetworkEvidenceSchema = z.union([
+  networkSchema,
+  networkV2Schema,
+  networkV3Schema,
+]);
 export function sourceEvidenceBlockers(row: {
   original_statistical_present: boolean;
   forest: unknown | null;
   neural: unknown | null;
-  network: z.infer<typeof networkEvidenceSchema> | null;
+  network: z.infer<typeof directionalNetworkEvidenceSchema> | null;
 }) {
   const result = [
     "baseline_approval_not_proven",
@@ -308,7 +338,7 @@ const reportBase = z.strictObject({
 const validReport = (
   row: Omit<z.infer<typeof reportBase>, "version" | "request" | "network"> & {
     request: CreateSourceEvidenceReport;
-    network: z.infer<typeof networkEvidenceSchema> | null;
+    network: z.infer<typeof directionalNetworkEvidenceSchema> | null;
   },
 ) => {
   if (
@@ -365,6 +395,14 @@ export const sourceEvidenceReportSchema = z.union([
       network: networkEvidenceSchema.nullable(),
     })
     .refine(validReport),
+  z
+    .strictObject({
+      ...reportBase.shape,
+      version: z.literal("source-evidence-report-0.3.0"),
+      request: createSourceEvidenceReportV3Schema,
+      network: directionalNetworkEvidenceSchema.nullable(),
+    })
+    .refine(validReport),
 ]);
 export type SourceEvidenceReport = z.infer<typeof sourceEvidenceReportSchema>;
 const summaryBase = z.strictObject({
@@ -388,6 +426,9 @@ export const sourceEvidenceSummarySchema = z.union([
   summaryBase.refine(validSummary),
   summaryBase
     .extend({ version: z.literal("source-evidence-summary-0.2.0") })
+    .refine(validSummary),
+  summaryBase
+    .extend({ version: z.literal("source-evidence-summary-0.3.0") })
     .refine(validSummary),
 ]);
 export type SourceEvidenceSummary = z.infer<typeof sourceEvidenceSummarySchema>;
@@ -532,9 +573,11 @@ export async function sourceEvidenceReportBound(
         (!sourceEvidenceSummaryBound(summary, draft) ||
           !same(summary, {
             version:
-              row.version === "source-evidence-report-0.2.0"
-                ? "source-evidence-summary-0.2.0"
-                : "source-evidence-summary-0.1.0",
+              row.version === "source-evidence-report-0.3.0"
+                ? "source-evidence-summary-0.3.0"
+                : row.version === "source-evidence-report-0.2.0"
+                  ? "source-evidence-summary-0.2.0"
+                  : "source-evidence-summary-0.1.0",
             report_id: row.report_id,
             patch_id: row.patch_id,
             draft_sha256: row.draft_sha256,
@@ -700,6 +743,12 @@ export async function sourceEvidenceReportBound(
                 sdk_version: child.outcome.network_execution.sdk_version,
                 sdk_observation:
                   child.outcome.network_execution.sdk_observation,
+                ...("reachability_impact" in child.outcome.network_execution
+                  ? {
+                      reachability_impact:
+                        child.outcome.network_execution.reachability_impact,
+                    }
+                  : {}),
               }
             : { sdk_version: null }),
           ml_status: child.ml_status,

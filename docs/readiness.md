@@ -5,6 +5,39 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Для доступной части §16.5,7 добавлены [свидетельства направления достижимости](source-reachability-impact.md):
+source network и joint report0.3 сохраняют полные ограниченные наборы
+trace dispositions, flow hashes и направление loss/gain; decision0.3 хранит
+привязку к parent UUID/SHA и проверяет выбранную цепочку. Одинаковые общие счётчики
+не исключают встречные изменения; неизвестные/усечённые traces, неподдержанная форма,
+превышение бюджета и неподтверждённая очистка не становятся положительным результатом.
+Старые0.1/0.2 proofs/defaults/history сохранены; новые contracts используют прежние
+encrypted storage и atomic audit без migration. Десять actual local API/engine
+сценариев на authored Cisco/JunOS inputs проверили loss, gain, control, empty scope
+и loss+gain при before=after=1; сохранены10source,10joint и10service-role decisions.
+Restart/read/replay после удаления originals проходят без source reads или SDK calls.
+SDK2026.8.19.3660 и engine2026.08.27.3685 наблюдались в этих запусках; model calls/fits0.
+Новый CI entrypoint включает все10actual сценариев; локальный результат не заменяет
+проверку опубликованного commit. Общий formal остаётся `not_proven`, identity,
+approval/application и independent quality этим не установлены. Scope ограничен
+общими active ingress locations и after source-IP inference; примеры не доказывают
+неизменность всех flows, внешнюю доставку, management access или безопасность сети.
+[Отдельный actual HTTP report](evaluation/owned-source-direction-functional.json)
+связывает два новых joint reports с двумя прежними authored target pairs и шестью
+сохранёнными detector/model outputs без rerun. Выполнены два SDK calls суммарно:
+один completed результат сохранён при прерванной попытке и повторно выбран, второй
+получен при продолжении. Восемь service-role dispositions, history/replay после
+удаления originals/models/двух references на копии БД, полные selected child proofs
+и прежние физические строки проверены. Оба запроса вернули `no_witnesses_returned`,
+что не означает универсальную неизменность. Новых model calls/fits нет.
+Полный local Python run:4815pass/36skip/5warnings,91%coverage;10новых live skips
+в общем прогоне отдельно покрыты actual opt-in запуском выше. Ruff/mypy294runtime
+files в default/Linux/win32 проходят. Installed1054pass/18skip/4warnings на каждом
+Pydantic2.13.5/2.14.0/2.14.1;294runtime и3assets source-equal,694history и290oldinstalled
+hashes сохранены. UI899unit/typecheck/build/format и312browser cases проходят;
+browser responses — software fixtures. Собственные engine container/volume удалены.
+Local PostgreSQL не запускался; новая опубликованная поставка требует своего CI.
+
 Для §16.5–7 добавлена [наблюдаемая версия SDK в source network 0.2](source-network-sdk.md),
 совместном report 0.2 и decision 0.2 с сохранением старых 0.1 proof/defaults/history.
 Metadata читается внутри изолированного worker; engine error сохраняет observation,
@@ -36,13 +69,19 @@ responses — отдельные software fixtures, actual engine evidence пр�
 pass. Backend остановлен на mypy: новый Pydantic2.14.1 требует распознаваемую
 форму типа для пяти inline Annotated adapters. Frontend808unit/290browser pass,
 Compose161pass/1mobile timeout при начальной загрузке снимка в обычном patch test.
-Эти сбои сохранены; все четыре gates пока не пройдены. Последующие исправления
+Эти сбои сохранены; в этой попытке все четыре gates не пройдены. Последующие исправления
 и новая directional функция требуют проверки собственного commit.
 Минимальная правка пяти adapter declarations использует именованные Annotated
 aliases без изменения public models/functions и proof serialization. На Pydantic
 2.13.5 и2.14.1 прошли98связанных unit cases и49frozen DTO replays на каждой версии;
 mypy проходит с обеими сигнатурами TypeAdapter. Timeout старого Compose browser
 case не воспроизведён локально на desktop/mobile (2pass); тест не ослаблялся.
+Для исправления `c7af33b411c9e8ffbd7055d3c8b09ed4c1fbe1f6`
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39969361542)
+успешны: backend4683pass/35skip/91%coverage, PostgreSQL602pass/2skip/12deselected,
+Batfish41+2savedcandidate pass, шесть actual source/joint/decision SDK records,
+frontend808unit/290browser+162Compose pass. Это проверка SDK-совместимости;
+новые directional0.3 изменения этим commit не покрыты.
 
 Для доступной части §16.8 добавлены [сохранённые решения по совместному отчёту](source-evidence-decisions.md):
 engineer/admin явно выбирает report UUID/SHA и записывает `rejected` либо
