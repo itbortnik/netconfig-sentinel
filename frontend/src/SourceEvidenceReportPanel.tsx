@@ -6,7 +6,10 @@ import { date, shortId } from "./format";
 import type { SourceDeterministicSummary } from "./sourceDeterministicRecheck";
 import type { SourceForestSummary } from "./sourceForestRecheck";
 import type { SourceMlSummary } from "./sourceMlRecheck";
-import { sourceNetworkStatusNames } from "./sourcePatchVerification";
+import {
+  sourceNetworkStatusNames,
+  sdkObservationNames,
+} from "./sourcePatchVerification";
 import type { SourcePatchVerificationSummary } from "./sourcePatchVerification";
 import type {
   CreateSourceEvidenceReport,
@@ -165,7 +168,7 @@ export function SourceEvidenceReportPanel({
         ? { record_id: identity(row), review_sha256: row.review_sha256 }
         : null;
     const request: CreateSourceEvidenceReport = {
-      version: "source-evidence-request-0.1.0",
+      version: "source-evidence-request-0.2.0",
       report_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: pin(selected.deterministic)!,
@@ -689,11 +692,20 @@ function EvidenceView({ view }: { view: SourceEvidenceReport }) {
             .
           </p>
           <p>
-            Engine: {view.network.result.engine_version ?? "недоступно"}. SDK:
-            недоступно — исходная запись не сохраняла версию. Собственный
-            ML-статус сетевой записи: {view.network.ml_status}; отдельная
-            нейросетевая запись его не меняет.
+            Engine: {view.network.result.engine_version ?? "недоступно"}. SDK:{" "}
+            {"sdk_observation" in view.network
+              ? `${view.network.sdk_version ?? "недоступно"} · ${sdkObservationNames[view.network.sdk_observation]} (${view.network.sdk_observation})`
+              : "недоступно — исходная запись не сохраняла версию"}
+            . Собственный ML-статус сетевой записи: {view.network.ml_status};
+            отдельная нейросетевая запись его не меняет.
           </p>
+          {"sdk_observation" in view.network && (
+            <p className="hint">
+              SDK — сохранённые метаданные дистрибутива рабочего процесса. Они
+              не удостоверяют исполняемый файл, качество или формальное
+              одобрение.
+            </p>
+          )}
           <ul>
             {view.network.result.limitations.map((value, index) => (
               <li key={index}>{value}</li>

@@ -1,9 +1,36 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-21 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-23 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
+
+Для §16.5–7 добавлена [наблюдаемая версия SDK в source network 0.2](source-network-sdk.md),
+совместном report 0.2 и decision 0.2 с сохранением старых 0.1 proof/defaults/history.
+Metadata читается внутри изолированного worker; engine error сохраняет observation,
+а timeout/невалидный ответ не получают версию родительского пакета. API/storage/UI
+проверяют полные child/parent bindings, mixed protocol conflicts и immutable replay.
+[Actual HTTP evidence](evaluation/owned-source-sdk-functional.json): два SDK calls
+на двух прежних authored pairs, два новых report и восемь software dispositions;
+шесть прежних model/detector outputs выбраны без rerun, новых fits/весов нет.
+SDK2026.8.19.3660 наблюдался в обоих результатах; оба scoped network results —
+`no_differences_in_scope`, общий formal остаётся `not_proven`. Дополнительные шесть
+actual local API/engine сценариев Cisco/JunOS route_loss/control/empty_scope прошли
+с engine2026.08.27.3685, собственные временные сети удалены. Это software/network
+integration, не independent quality или human approval. Проверены unchanged old
+SQL rows и history после удаления originals/models/двух references на копии БД;
+653historical files/287oldinstalled runtime/3assets сохранены. UI109targeted unit,
+50затронутых browser cases, typecheck/build/format pass; backend24SDK API controls,
+61joint/decision SDK unit и19source SDK unit проходят. Независимый reviewer проверил
+worker/API/storage/UI и реальные concurrent cross-version UUID races без material
+findings. Полный local Python run:4692pass/26skip/5warnings,91%coverage; explicit
+live/DB и3Windows symlink skips отделены от pass. Ruff/mypy290 runtime files
+в default/Linux/win32 проходят. Installed931pass/8skip/4warnings на каждом
+Pydantic2.13.5/2.14.0;290runtime и3assets source-equal,653history и287oldinstalled
+hashes сохранены. Все808UI unit и290browser cases проходят; browser SDK
+responses — отдельные software fixtures, actual engine evidence приведены выше.
+Независимое release review сверило frozen sources, tests, assets и evidence.
+CI новой поставки ещё не запускался; прежний cbb CI не подтверждает SDK slice.
 
 Для доступной части §16.8 добавлены [сохранённые решения по совместному отчёту](source-evidence-decisions.md):
 engineer/admin явно выбирает report UUID/SHA и записывает `rejected` либо
@@ -27,7 +54,12 @@ Linux/win32 проходят. Installed776pass/8skip/4warnings на каждом
 16новых. Независимое backend/evidence/UI ревью не оставило существенных замечаний;
 две поддельные проекции отклонены. Исправленная UTC-нормализация SQL metadata
 сохраняет исходный offset в immutable proof; обе регрессии ±03:00 проходят.
-Live engine/PostgreSQL локально не запускались; точный CI новой поставки ожидается.
+Live engine/PostgreSQL локально не запускались. Для
+`cbb180d7a679ce2f38fd1463c7a05bf370d927a3` [все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39646288196)
+успешны: backend4528pass/35skip, PostgreSQL592pass/2skip/12deselected,
+Batfish41+2savedcandidate pass и шесть actual software dispositions по сетевым
+отчётам; frontend786unit,278browser+162Compose pass. Это записи сервисной роли,
+не подтверждение личности или approval. Следующие SDK-изменения этим CI не покрыты.
 
 Для §16.7 добавлен [совместный отчёт по сохранённым результатам](source-evidence-reports.md):
 явный выбор completed child UUID/SHA, точные source/canonical/analysis bindings,

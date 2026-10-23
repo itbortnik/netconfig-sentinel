@@ -8,13 +8,19 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api import source_evidence_decision_contracts
-from app.api.source_evidence_contracts import SourceEvidenceReport
 from app.api.source_evidence_decision_contracts import (
     MAX_SOURCE_EVIDENCE_DECISION_BYTES,
-    ReviewSourceEvidenceReport,
-    SourceEvidenceDecision,
     SourceEvidenceDecisionProjectionTooLarge,
 )
+from app.api.source_evidence_decision_sdk_contracts import (
+    SourceEvidenceDecisionRecord,
+    SourceEvidenceDecisionRequest,
+    parse_source_evidence_decision_json,
+    parse_source_evidence_decision_request,
+    source_evidence_decision,
+    validate_source_evidence_decision,
+)
+from app.api.source_evidence_sdk_contracts import SourceEvidenceReportRecord
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
 from app.db.source_evidence_records import SourceEvidenceRecords
@@ -36,7 +42,9 @@ class SourceEvidenceDecisionRecords:
     def __init__(self, store: Store) -> None:
         self.store = store
 
-    def _parent(self, session: Session, patch_id: UUID, report_id: UUID) -> SourceEvidenceReport:
+    def _parent(
+        self, session: Session, patch_id: UUID, report_id: UUID
+    ) -> SourceEvidenceReportRecord:
         # The report reader verifies its draft, proof and selected child records in this same
         # session. A self-consistent report DTO alone does not establish its saved dependencies.
         report = SourceEvidenceRecords(self.store)._get(session, report_id)
@@ -50,14 +58,14 @@ class SourceEvidenceDecisionRecords:
         self,
         patch_id: UUID,
         report_id: UUID,
-        request: ReviewSourceEvidenceReport,
+        request: SourceEvidenceDecisionRequest,
         service_role: Role,
-    ) -> SourceEvidenceDecision:
-        request = ReviewSourceEvidenceReport.model_validate(request.model_dump(warnings=False))
+    ) -> SourceEvidenceDecisionRecord:
+        request = parse_source_evidence_decision_request(request)
         with self.store._sessions() as session:
             report = self._parent(session, patch_id, report_id)
             try:
-                decision = SourceEvidenceDecision.from_report(
+                decision = source_evidence_decision(
                     report, request, service_role=service_role, created_at=datetime.now(UTC)
                 )
             except SourceEvidenceDecisionProjectionTooLarge:
@@ -70,7 +78,7 @@ class SourceEvidenceDecisionRecords:
             return decision
 
     @staticmethod
-    def _payload(decision: SourceEvidenceDecision) -> str:
+    def _payload(decision: SourceEvidenceDecisionRecord) -> str:
         if (
             len(decision.decision_json.encode("utf-8"))
             > source_evidence_decision_contracts.MAX_SOURCE_EVIDENCE_DECISION_BYTES
@@ -81,14 +89,16 @@ class SourceEvidenceDecisionRecords:
             raise SourceEvidenceDecisionTooLarge("Evidence decision exceeds the payload budget.")
         return raw
 
-    def _decision(self, session: Session, row: SourceEvidenceDecisionRow) -> SourceEvidenceDecision:
+    def _decision(
+        self, session: Session, row: SourceEvidenceDecisionRow
+    ) -> SourceEvidenceDecisionRecord:
         try:
             if len(row.payload) > MAX_SOURCE_EVIDENCE_DECISION_CIPHERTEXT_BYTES:
                 raise ValueError("oversized decision ciphertext")
             raw = self.store._decode(row.payload, kind="source_evidence_decision", row_id=row.id)
             if len(raw.encode("utf-8")) > MAX_SOURCE_EVIDENCE_DECISION_BYTES:
                 raise ValueError("oversized evidence decision")
-            decision = SourceEvidenceDecision.model_validate_json(raw)
+            decision = parse_source_evidence_decision_json(raw)
             stamp = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
             if (
                 str(decision.decision_id),
@@ -97,21 +107,23 @@ class SourceEvidenceDecisionRecords:
                 decision.created_at,
             ) != (row.id, row.patch_id, row.report_id, stamp):
                 raise ValueError("evidence decision metadata differs")
-            decision.validate_report(self._parent(session, decision.patch_id, decision.report_id))
+            validate_source_evidence_decision(
+                decision, self._parent(session, decision.patch_id, decision.report_id)
+            )
             return decision
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def _get(self, session: Session, decision_id: UUID) -> SourceEvidenceDecision | None:
+    def _get(self, session: Session, decision_id: UUID) -> SourceEvidenceDecisionRecord | None:
         row = session.get(SourceEvidenceDecisionRow, str(decision_id))
         return self._decision(session, row) if row is not None else None
 
-    def get(self, decision_id: UUID) -> SourceEvidenceDecision | None:
+    def get(self, decision_id: UUID) -> SourceEvidenceDecisionRecord | None:
         with self.store._sessions() as session:
             return self._get(session, decision_id)
 
     @staticmethod
-    def _same(stored: SourceEvidenceDecision, incoming: SourceEvidenceDecision) -> None:
+    def _same(stored: SourceEvidenceDecisionRecord, incoming: SourceEvidenceDecisionRecord) -> None:
         # Role and timestamp come from the winning insertion. A replay under another
         # authorized service key must preserve the original captured role and proof.
         if (stored.patch_id, stored.report_id, stored.request) != (
@@ -132,9 +144,11 @@ class SourceEvidenceDecisionRecords:
             )
         )
 
-    def add(self, decision: SourceEvidenceDecision) -> tuple[SourceEvidenceDecision, bool]:
+    def add(
+        self, decision: SourceEvidenceDecisionRecord
+    ) -> tuple[SourceEvidenceDecisionRecord, bool]:
         raw = self._payload(decision)
-        decision = SourceEvidenceDecision.model_validate_json(raw)
+        decision = parse_source_evidence_decision_json(raw)
         key = str(decision.decision_id)
         try:
             with self.store._sessions.begin() as session:
@@ -144,7 +158,7 @@ class SourceEvidenceDecisionRecords:
                     return existing, False
                 report = self._parent(session, decision.patch_id, decision.report_id)
                 try:
-                    decision.validate_report(report)
+                    validate_source_evidence_decision(decision, report)
                 except SourceEvidenceDecisionProjectionTooLarge:
                     raise SourceEvidenceDecisionTooLarge(
                         "Evidence decision exceeds the proof budget."

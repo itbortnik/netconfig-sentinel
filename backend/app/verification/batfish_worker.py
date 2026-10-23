@@ -6,7 +6,9 @@ import contextlib
 import importlib
 import json
 import os
+import re
 import sys
+from importlib import metadata
 from typing import Any
 
 
@@ -120,12 +122,34 @@ def _session() -> Any:
     )
 
 
+def _sdk_metadata() -> tuple[str | None, str]:
+    """Observe only the imported worker SDK's distribution metadata, never paths or errors."""
+    try:
+        version = metadata.version("pybatfish")
+        if (
+            not isinstance(version, str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}", version) is None
+        ):
+            raise ValueError("invalid SDK distribution metadata")
+        return version, "observed"
+    except Exception:
+        return None, "metadata_unavailable"
+
+
 def main() -> None:
+    evidence = False
+    sdk_version, sdk_observation = None, "not_observed"
     try:
         request = json.loads(sys.stdin.read(65_536))
+        if "protocol" in request:
+            if request["protocol"] != "batfish-execution-0.2.0":
+                raise ValueError("unknown worker protocol")
+            evidence = True
         with open(os.devnull, "w", encoding="utf-8") as quiet:
             with contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
                 flow = importlib.import_module("pybatfish.datamodel.flow")
+                if evidence:
+                    sdk_version, sdk_observation = _sdk_metadata()
                 result = evaluate_session(
                     _session(),
                     request,
@@ -134,6 +158,24 @@ def main() -> None:
                 )
     except Exception:
         result = {"status": "error", "reason": "engine_error"}
+    if evidence:
+        try:
+            # Echo the exact new protocol's bindings. The parent checks these rather than
+            # overwriting a mismatched worker response with its own requested inputs.
+            result.update(
+                before_sha256=request["before_sha256"],
+                after_sha256=request["after_sha256"],
+                scope=request["scope"],
+                network_name=request["network_name"],
+            )
+            result = {
+                "version": "batfish-execution-0.2.0",
+                "result": result,
+                "sdk_version": sdk_version,
+                "sdk_observation": sdk_observation,
+            }
+        except Exception:
+            result = {"status": "error", "reason": "engine_error"}
     print(json.dumps(result))
 
 

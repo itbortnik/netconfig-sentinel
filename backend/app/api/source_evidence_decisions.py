@@ -19,8 +19,13 @@ from app.api.configurations import (
 from app.api.service import AnalysisService
 from app.api.source_evidence_decision_contracts import (
     ReviewSourceEvidenceReport,
-    SourceEvidenceDecision,
-    SourceEvidenceDecisionSummary,
+)
+from app.api.source_evidence_decision_sdk_contracts import (
+    ReviewSourceEvidenceReportV2,
+    SourceEvidenceDecisionRecord,
+    SourceEvidenceDecisionSummaryRecord,
+    parse_source_evidence_decision_request,
+    source_evidence_decision_summary,
 )
 from app.audit.results import capture_result
 from app.core.permissions import Role
@@ -41,16 +46,23 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
 
 @router.post(
     "",
-    response_model=SourceEvidenceDecision,
+    response_model=SourceEvidenceDecisionRecord,
     status_code=201,
     responses={
-        200: {"model": SourceEvidenceDecision, "description": "Existing immutable decision."}
+        200: {"model": SourceEvidenceDecisionRecord, "description": "Existing immutable decision."}
     },
     openapi_extra={
         "requestBody": {
             "required": True,
             "content": {
-                "application/json": {"schema": _request_schema(ReviewSourceEvidenceReport)},
+                "application/json": {
+                    "schema": {
+                        "anyOf": [
+                            _request_schema(ReviewSourceEvidenceReport),
+                            _request_schema(ReviewSourceEvidenceReportV2),
+                        ]
+                    }
+                },
             },
         }
     },
@@ -61,10 +73,10 @@ async def record_source_evidence_decision(
     request: Request,
     response: Response,
     service: VerificationService,
-) -> SourceEvidenceDecision:
+) -> SourceEvidenceDecisionRecord:
     body = await _request_body(request, maximum=16 * 1024)
     try:
-        options = ReviewSourceEvidenceReport.model_validate(
+        options = parse_source_evidence_decision_request(
             json.loads(body.decode(), object_pairs_hook=_unique_keys)
         )
     except (ValueError, RecursionError):
@@ -91,7 +103,7 @@ async def record_source_evidence_decision(
     return capture_result(request, result)
 
 
-@router.get("", response_model=list[SourceEvidenceDecisionSummary])
+@router.get("", response_model=list[SourceEvidenceDecisionSummaryRecord])
 def list_source_evidence_decisions(
     patch_id: UUID,
     report_id: UUID,
@@ -99,7 +111,7 @@ def list_source_evidence_decisions(
     service: Service,
     limit: Limit = 20,
     offset: Offset = 0,
-) -> list[SourceEvidenceDecisionSummary]:
+) -> list[SourceEvidenceDecisionSummaryRecord]:
     workflow = SourceEvidenceDecisionWorkflow(service.store)
     try:
         workflow.reports.get(patch_id, report_id)
@@ -108,16 +120,16 @@ def list_source_evidence_decisions(
     return capture_result(
         request,
         [
-            SourceEvidenceDecisionSummary.from_decision(workflow.get(patch_id, report_id, key))
+            source_evidence_decision_summary(workflow.get(patch_id, report_id, key))
             for key in workflow.records.list_ids(patch_id, report_id, limit=limit, offset=offset)
         ],
     )
 
 
-@router.get("/{decision_id}", response_model=SourceEvidenceDecision)
+@router.get("/{decision_id}", response_model=SourceEvidenceDecisionRecord)
 def get_source_evidence_decision(
     patch_id: UUID, report_id: UUID, decision_id: UUID, request: Request, service: Service
-) -> SourceEvidenceDecision:
+) -> SourceEvidenceDecisionRecord:
     try:
         return capture_result(
             request,

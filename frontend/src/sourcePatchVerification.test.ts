@@ -5,8 +5,10 @@ import { stableJson } from "./contracts";
 import type { ConfigurationSummary } from "./contracts";
 import { patchDraftSchema } from "./patches";
 import {
+  batfishExecutionSchema,
   sourceCompanionEligible,
   sourceNetworkDigest,
+  sourceNetworkResult,
   sourcePatchCapabilitiesSchema,
   sourcePatchVerificationSchema,
   sourcePatchVerificationSummarySchema,
@@ -16,11 +18,16 @@ import {
   sourceVerificationBound,
   verifySourcePatchSchema,
 } from "./sourcePatchVerification";
+import sdkControls from "./testdata/sourceSdkControls.json";
 import type {
   SourcePatchVerification,
   SourcePatchVerificationSummary,
 } from "./sourcePatchVerification";
 
+type LegacySourcePatchVerification = Extract<
+  SourcePatchVerification,
+  { version: "source-patch-verification-0.1.0" }
+>;
 const id = (n: number) =>
   `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
 const digest = (raw: string) => createHash("sha256").update(raw).digest("hex");
@@ -153,13 +160,13 @@ function normative(value: unknown) {
     );
 }
 function seal(
-  row: Omit<SourcePatchVerification, "review_json" | "review_sha256">,
+  row: Omit<LegacySourcePatchVerification, "review_json" | "review_sha256">,
 ) {
   if (row.outcome) row.outcome.intent_sha256 = digest(normative(row.intent));
   const raw = normative(row);
   return { ...row, review_json: raw, review_sha256: digest(raw) };
 }
-function verification(pending = false): SourcePatchVerification {
+function verification(pending = false): LegacySourcePatchVerification {
   const body = {
     version: "source-patch-verification-0.1.0",
     verification_id: request.verification_id,
@@ -196,9 +203,12 @@ function verification(pending = false): SourcePatchVerification {
     ml_status: "not_run",
     approved: false,
     applied: false,
-  } as Omit<SourcePatchVerification, "review_json" | "review_sha256">;
+  } as Omit<LegacySourcePatchVerification, "review_json" | "review_sha256">;
   body.validation_blockers = sourceValidationBlockers(body);
-  return sourcePatchVerificationSchema.parse(seal(body));
+  const parsed = sourcePatchVerificationSchema.parse(seal(body));
+  if (parsed.version !== "source-patch-verification-0.1.0")
+    throw new Error("Expected legacy fixture");
+  return parsed;
 }
 function summary(row = verification()): SourcePatchVerificationSummary {
   return sourcePatchVerificationSummarySchema.parse({
@@ -225,6 +235,110 @@ const capabilities = {
   maximum_network_bytes: 8388608,
   ml_status: "not_run",
 };
+
+it.each(sdkControls.cases.filter((item) => item.network !== null))(
+  "accepts authored SDK source proof $name without claiming actual SDK execution",
+  async (item) => {
+    const target = patchDraftSchema.parse(item.draft),
+      row = sourcePatchVerificationSchema.parse(item.network),
+      network = sourceNetworkResult(row.outcome),
+      index = sourcePatchVerificationSummarySchema.parse({
+        version:
+          row.version === "source-patch-verification-0.2.0"
+            ? "source-patch-verification-summary-0.2.0"
+            : "source-patch-verification-summary-0.1.0",
+        verification_id: row.verification_id,
+        patch_id: row.patch_id,
+        draft_sha256: row.draft_sha256,
+        review_sha256: row.review_sha256,
+        created_at: row.intent.created_at,
+        completed_at: row.outcome?.completed_at ?? null,
+        execution_status: row.execution_status,
+        network_status: network?.status ?? null,
+        cleanup_complete: network?.cleanup_complete ?? null,
+        status: row.status,
+      });
+    expect(await sourceReviewProofMatches(row)).toBe(true);
+    expect(
+      await sourceVerificationBound(row, target, row.intent.request, index),
+    ).toBe(true);
+    expect(row.approved).toBe(false);
+    expect(row.ml_status).toBe("not_run");
+    expect(
+      await sourceVerificationBound(row, target, undefined, {
+        ...index,
+        version:
+          index.version === "source-patch-verification-summary-0.2.0"
+            ? "source-patch-verification-summary-0.1.0"
+            : "source-patch-verification-summary-0.2.0",
+      }),
+    ).toBe(false);
+    const send = transport(row),
+      api = new ApiClient("x".repeat(32), send);
+    expect(await api.verifySourcePatch(target, row.intent.request)).toEqual(
+      row,
+    );
+    expect(JSON.parse(String(send.mock.calls[0]?.[1]?.body))).toEqual(
+      row.intent.request,
+    );
+    api.close();
+    if (row.version === "source-patch-verification-0.2.0") {
+      for (const change of [
+        { version: "source-patch-verification-0.1.0" },
+        { intent: { ...row.intent, version: "source-patch-intent-0.1.0" } },
+        { outcome: { ...row.outcome!, version: "source-patch-outcome-0.1.0" } },
+      ])
+        expect(
+          sourcePatchVerificationSchema.safeParse({ ...row, ...change })
+            .success,
+        ).toBe(false);
+    } else {
+      expect(row.outcome).not.toHaveProperty("network_execution");
+    }
+  },
+);
+it("keeps SDK-aware pending outcomes unobserved and recovers a lost response only through explicit GET", async () => {
+  const item = sdkControls.cases[0]!,
+    target = patchDraftSchema.parse(item.draft),
+    saved = sourcePatchVerificationSchema.parse(item.network);
+  if (saved.version !== "source-patch-verification-0.2.0")
+    throw new Error("Expected SDK-aware fixture");
+  const altered = structuredClone(saved);
+  altered.outcome!.network_execution.sdk_version = "changed-without-proof";
+  expect(await sourceReviewProofMatches(altered)).toBe(false);
+  const { review_json: _json, review_sha256: _sha, ...body } = saved;
+  body.outcome = null;
+  body.execution_status = "pending_unknown";
+  body.validation_blockers = sourceValidationBlockers(body);
+  const raw = stableJson(body),
+    row = sourcePatchVerificationSchema.parse({
+      ...body,
+      review_json: raw,
+      review_sha256: digest(raw),
+    });
+  expect(await sourceVerificationBound(row, target, row.intent.request)).toBe(
+    true,
+  );
+  expect(row.outcome).toBeNull();
+  expect(row.validation_blockers).toContain("network_execution_unknown");
+  const send = transport(row),
+    api = new ApiClient("x".repeat(32), send);
+  send.mockRejectedValueOnce(new TypeError("lost owned response"));
+  await expect(
+    api.verifySourcePatch(target, row.intent.request),
+  ).rejects.toMatchObject({ status: 0 });
+  expect(
+    await api.sourcePatchVerification(
+      target,
+      row.verification_id,
+      row.intent.request,
+    ),
+  ).toEqual(row);
+  expect(
+    send.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+  api.close();
+});
 
 it("verifies exact normative bytes, typed equality and the nested intent proof without float reserialization", async () => {
   const row = verification();
@@ -322,6 +436,90 @@ it("rejects request coercion, duplicate companions, unexpected fields and invali
       health_checked: true,
     }).success,
   ).toBe(false);
+});
+it("accepts worker-observed SDK metadata and metadata failure without inventing a version", () => {
+  const result = verification().outcome!.network_result;
+  for (const sdk_version of ["0.36.0", "1!0.36.0+owned_1", "a".repeat(128)]) {
+    expect(
+      batfishExecutionSchema.safeParse({
+        version: "batfish-execution-0.2.0",
+        result,
+        sdk_version,
+        sdk_observation: "observed",
+      }).success,
+    ).toBe(true);
+  }
+  const metadataUnavailable = {
+    version: "batfish-execution-0.2.0",
+    result,
+    sdk_version: null,
+    sdk_observation: "metadata_unavailable",
+  };
+  expect(batfishExecutionSchema.safeParse(metadataUnavailable).success).toBe(
+    true,
+  );
+  for (const change of [
+    { sdk_observation: "not_observed" },
+    { sdk_observation: "observed" },
+    { sdk_version: "0.36.0" },
+    { sdk_version: undefined },
+    { sdk_observation: undefined },
+    { sdk_observation: "unknown" },
+  ])
+    expect(
+      batfishExecutionSchema.safeParse({ ...metadataUnavailable, ...change })
+        .success,
+    ).toBe(false);
+  for (const sdk_version of [
+    "",
+    " 0.36.0",
+    "0.36.0\n",
+    "0.36.0\r",
+    "0.36.0\u2028",
+    "0.36.0\u2029",
+    "версия",
+    "a".repeat(129),
+  ])
+    expect(
+      batfishExecutionSchema.safeParse({
+        ...metadataUnavailable,
+        sdk_version,
+        sdk_observation: "observed",
+      }).success,
+    ).toBe(false);
+});
+it("keeps failed worker execution unobserved while retaining observation after an engine error", () => {
+  const successful = verification().outcome!.network_result;
+  for (const [status, reason] of [
+    ["unavailable", "upload_not_authorized"],
+    ["unavailable", "sdk_missing"],
+    ["error", "worker_failed"],
+    ["error", "timeout"],
+    ["error", "engine_error"],
+  ]) {
+    const result = {
+      ...successful,
+      status,
+      reason,
+      difference_count: null,
+      before_reachable_count: null,
+      after_reachable_count: null,
+    };
+    for (const sdk_observation of [
+      "not_observed",
+      "observed",
+      "metadata_unavailable",
+    ]) {
+      expect(
+        batfishExecutionSchema.safeParse({
+          version: "batfish-execution-0.2.0",
+          result,
+          sdk_version: sdk_observation === "observed" ? "0.36.0" : null,
+          sdk_observation,
+        }).success,
+      ).toBe(reason === "engine_error" || sdk_observation === "not_observed");
+    }
+  }
 });
 it("rejects internally inconsistent source pairs, selection, preflight and scope", () => {
   const row = verification();

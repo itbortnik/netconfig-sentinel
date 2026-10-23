@@ -17,6 +17,7 @@ import {
 } from "./sourceEvidenceReports";
 import type { SourceEvidenceReport } from "./sourceEvidenceReports";
 import controls from "./testdata/sourceEvidenceControls.json";
+import sdkControls from "./testdata/sourceSdkControls.json";
 
 const token = "test-only-evidence-memory-bearer-token-32-characters";
 const digest = (raw: string) => createHash("sha256").update(raw).digest("hex");
@@ -39,6 +40,36 @@ function fixture(index = 1) {
         : null,
       network: item.children.network
         ? sourcePatchVerificationSchema.parse(item.children.network)
+        : null,
+    },
+  };
+}
+function sdkFixture(index = 0) {
+  const item = structuredClone(sdkControls.cases[index]!),
+    report = sourceEvidenceReportSchema.parse(item.report);
+  return {
+    draft: patchDraftSchema.parse(item.draft),
+    request: createSourceEvidenceReportSchema.parse(report.request),
+    report,
+    summary: sourceEvidenceSummarySchema.parse({
+      version: "source-evidence-summary-0.2.0",
+      report_id: report.report_id,
+      patch_id: report.patch_id,
+      draft_sha256: report.draft_sha256,
+      before_analysis_id: report.before_analysis_id,
+      review_sha256: report.review_sha256,
+      created_at: report.created_at,
+      selected_kinds: (
+        ["deterministic", "forest", "neural", "network"] as const
+      ).filter((kind) => report[kind] !== null),
+      status: report.status,
+    }),
+    children: {
+      deterministic: sourceDeterministicRecheckSchema.parse(item.deterministic),
+      forest: sourceForestRecheckSchema.parse(item.forest),
+      neural: sourceMlRecheckSchema.parse(item.neural),
+      network: item.network
+        ? sourcePatchVerificationSchema.parse(item.network)
         : null,
     },
   };
@@ -91,6 +122,93 @@ it.each(controls.cases.map((row, index) => [row.name, index] as const))(
     ).toBeLessThan(20000);
   },
 );
+it.each(sdkControls.cases.map((row, index) => [row.name, index] as const))(
+  "verifies full authored SDK-aware report chain %s including legacy or absent network",
+  async (_name, index) => {
+    const value = sdkFixture(index);
+    expect(await sourceEvidenceProofMatches(value.report)).toBe(true);
+    expect(
+      await sourceEvidenceReportBound(
+        value.report,
+        value.draft,
+        value.children,
+        value.request,
+        value.summary,
+      ),
+    ).toBe(true);
+    const api = new ApiClient(token, transportFor(value));
+    expect(
+      await api.createSourceEvidenceReport(value.draft, value.request),
+    ).toEqual(value.report);
+    expect(
+      await api.sourceEvidenceReport(
+        value.draft,
+        value.report.report_id,
+        value.request,
+        value.summary,
+      ),
+    ).toEqual(value.report);
+    expect(await api.sourceEvidenceReports(value.draft)).toEqual([
+      value.summary,
+    ]);
+    api.close();
+    expect(value.report.formal_qualification).toBe("not_proven");
+    expect(value.report.quality_proven).toBe(false);
+    expect(value.report.approved).toBe(false);
+    expect(
+      sourceEvidenceReportSchema.safeParse({
+        ...value.report,
+        version: "source-evidence-report-0.1.0",
+      }).success,
+    ).toBe(false);
+    if (value.report.network?.version === "source-patch-verification-0.2.0")
+      expect(
+        sourceEvidenceReportSchema.safeParse({
+          ...value.report,
+          version: "source-evidence-report-0.1.0",
+          request: {
+            ...value.report.request,
+            version: "source-evidence-request-0.1.0",
+          },
+        }).success,
+      ).toBe(false);
+    expect(
+      await sourceEvidenceReportBound(
+        value.report,
+        value.draft,
+        value.children,
+        value.request,
+        { ...value.summary, version: "source-evidence-summary-0.1.0" },
+      ),
+    ).toBe(false);
+  },
+);
+it("rejects coherently resealed SDK metadata and observation projections against the exact saved child", async () => {
+  for (const update of [
+    { sdk_version: "fabricated-sdk-9" },
+    { sdk_version: null, sdk_observation: "metadata_unavailable" as const },
+  ]) {
+    const value = sdkFixture();
+    if (value.report.network?.version !== "source-patch-verification-0.2.0")
+      throw new Error("Expected SDK-aware fixture");
+    Object.assign(value.report.network, update);
+    reseal(value.report);
+    sourceEvidenceReportSchema.parse(value.report);
+    expect(await sourceEvidenceProofMatches(value.report)).toBe(true);
+    expect(
+      await sourceEvidenceReportBound(
+        value.report,
+        value.draft,
+        value.children,
+      ),
+    ).toBe(false);
+    const api = new ApiClient(token, transportFor(value));
+    await expect(
+      api.createSourceEvidenceReport(value.draft, value.request),
+    ).rejects.toMatchObject({ status: 0 });
+    api.close();
+  }
+});
 it.each([
   { status: "validated" },
   { formal_qualification: "passed" },

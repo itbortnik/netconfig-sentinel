@@ -8,11 +8,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.contracts import SnapshotBinding
-from app.api.source_patch_contracts import (
-    MAX_SOURCE_REVIEW_BYTES,
-    SourcePatchIntent,
-    SourcePatchOutcome,
-    SourcePatchVerification,
+from app.api.source_patch_contracts import MAX_SOURCE_REVIEW_BYTES
+from app.api.source_patch_sdk_contracts import (
+    SourcePatchIntentRecord,
+    SourcePatchOutcomeRecord,
+    parse_source_patch_intent_json,
+    parse_source_patch_outcome_json,
+    source_patch_view,
 )
 from app.db.patch_records import PatchConflict, PatchRecords
 from app.db.store import StorageIntegrityError, Store
@@ -43,9 +45,9 @@ class SourcePatchRecords:
             raise StorageIntegrityError("Stored data is unavailable.")
         return self.store._encode(value, kind=kind, row_id=key)
 
-    def _intent(self, session: Session, row: SourcePatchIntentRow) -> SourcePatchIntent:
+    def _intent(self, session: Session, row: SourcePatchIntentRow) -> SourcePatchIntentRecord:
         try:
-            intent = SourcePatchIntent.model_validate_json(
+            intent = parse_source_patch_intent_json(
                 self._plain(row.payload, "source_patch_intent", row.id)
             )
             timestamp = (
@@ -95,21 +97,23 @@ class SourcePatchRecords:
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def _outcome(self, row: SourcePatchOutcomeRow, intent: SourcePatchIntent) -> SourcePatchOutcome:
+    def _outcome(
+        self, row: SourcePatchOutcomeRow, intent: SourcePatchIntentRecord
+    ) -> SourcePatchOutcomeRecord:
         try:
-            outcome = SourcePatchOutcome.model_validate_json(
+            outcome = parse_source_patch_outcome_json(
                 self._plain(row.payload, "source_patch_outcome", row.verification_id)
             )
             if str(outcome.verification_id) != row.verification_id:
                 raise ValueError("source review result metadata differs")
-            SourcePatchVerification.from_records(intent, outcome)
+            source_patch_view(intent, outcome)
             return outcome
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
     def _get(
         self, session: Session, key: UUID
-    ) -> tuple[SourcePatchIntent, SourcePatchOutcome | None] | None:
+    ) -> tuple[SourcePatchIntentRecord, SourcePatchOutcomeRecord | None] | None:
         row = session.get(SourcePatchIntentRow, str(key))
         if row is None:
             return None
@@ -117,12 +121,14 @@ class SourcePatchRecords:
         result = session.get(SourcePatchOutcomeRow, row.id)
         return intent, self._outcome(result, intent) if result is not None else None
 
-    def get(self, key: UUID) -> tuple[SourcePatchIntent, SourcePatchOutcome | None] | None:
+    def get(
+        self, key: UUID
+    ) -> tuple[SourcePatchIntentRecord, SourcePatchOutcomeRecord | None] | None:
         with self.store._sessions() as session:
             return self._get(session, key)
 
     @staticmethod
-    def _same(stored: SourcePatchIntent, incoming: SourcePatchIntent) -> None:
+    def _same(stored: SourcePatchIntentRecord, incoming: SourcePatchIntentRecord) -> None:
         if stored.patch_id != incoming.patch_id or stored.request != incoming.request:
             raise PatchConflict("Source review identity conflicts.")
 
@@ -132,8 +138,8 @@ class SourcePatchRecords:
             AuditRow(id=str(uuid4()), action=action, resource_id=key, created_at=datetime.now(UTC))
         )
 
-    def reserve(self, intent: SourcePatchIntent) -> bool:
-        intent = SourcePatchIntent.model_validate(intent.model_dump(warnings=False))
+    def reserve(self, intent: SourcePatchIntentRecord) -> bool:
+        intent = parse_source_patch_intent_json(intent.model_dump_json(warnings=False))
         key = str(intent.request.verification_id)
         try:
             with self.store._sessions.begin() as session:
@@ -144,7 +150,7 @@ class SourcePatchRecords:
                 row = SourcePatchIntentRow(
                     id=key,
                     patch_id=str(intent.patch_id),
-                    created_at=intent.created_at,
+                    created_at=intent.created_at.astimezone(UTC),
                     payload=self._encode(intent.model_dump_json(), "source_patch_intent", key),
                 )
                 self._intent(session, row)
@@ -158,8 +164,8 @@ class SourcePatchRecords:
             self._same(raced[0], intent)
             return False
 
-    def complete(self, outcome: SourcePatchOutcome) -> None:
-        outcome = SourcePatchOutcome.model_validate(outcome.model_dump(warnings=False))
+    def complete(self, outcome: SourcePatchOutcomeRecord) -> None:
+        outcome = parse_source_patch_outcome_json(outcome.model_dump_json(warnings=False))
         key = str(outcome.verification_id)
         with self.store._sessions.begin() as session:
             saved = self._get(session, outcome.verification_id)

@@ -391,6 +391,11 @@ frozen data and source/analysis bindings, never execute detectors or reload the
 reference, raw originals or models. Not-selected comparisons remain null. These
 results do not fuse risk, qualify model quality, run formal queries or approve changes.
 
+The [recorded SDK observation](source-network-sdk.md) extends explicit source,
+joint-report and disposition payloads with version 0.2. It uses existing encrypted
+tables and audit kinds, retains immutable 0.1 history and never infers missing SDK
+metadata from a reader's current environment.
+
 The [selected ordinary evidence report](source-evidence-reports.md) composes saved
 deterministic, numeric Forest, neural and scoped network records by explicit UUID
 and SHA. The deterministic result is required; optional results remain explicitly

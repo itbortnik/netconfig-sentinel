@@ -9,10 +9,15 @@ from app.api.source_deterministic_contracts import SourceDeterministicRecheck
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
 from app.api.source_patch_contracts import SourcePatchVerification
+from app.api.source_patch_sdk_contracts import (
+    SourcePatchReview,
+    SourcePatchVerificationV2,
+    parse_source_patch_review,
+)
 
 type EvidenceKind = Literal["deterministic", "forest", "neural", "network"]
 type Evidence = (
-    SourceDeterministicRecheck | SourceForestRecheck | SourceMlRecheck | SourcePatchVerification
+    SourceDeterministicRecheck | SourceForestRecheck | SourceMlRecheck | SourcePatchReview
 )
 
 
@@ -29,7 +34,7 @@ def bind_selected_source_evidence(
     *,
     forest: SourceForestRecheck | None = None,
     neural: SourceMlRecheck | None = None,
-    network: SourcePatchVerification | None = None,
+    network: SourcePatchReview | None = None,
 ) -> tuple[SelectedSourceEvidence, ...]:
     """Bind completed selected records, without implying all required checks exist.
 
@@ -56,9 +61,7 @@ def bind_selected_source_evidence(
             ("neural", SourceMlRecheck.model_validate(neural.model_dump(warnings=False)))
         )
     if network is not None:
-        selected.append(
-            ("network", SourcePatchVerification.model_validate(network.model_dump(warnings=False)))
-        )
+        selected.append(("network", parse_source_patch_review(network)))
     result = []
     for kind, record in selected:
         if (
@@ -88,7 +91,7 @@ def bind_selected_source_evidence(
             SelectedSourceEvidence(
                 kind,
                 record.verification_id
-                if isinstance(record, SourcePatchVerification)
+                if isinstance(record, (SourcePatchVerification, SourcePatchVerificationV2))
                 else record.recheck_id,
                 record.review_sha256,
             )

@@ -45,6 +45,11 @@ from app.api.source_evidence_decision_contracts import (
     SourceEvidenceDecision,
     SourceEvidenceDecisionSummary,
 )
+from app.api.source_evidence_decision_sdk_contracts import (
+    SourceEvidenceDecisionSummaryV2,
+    SourceEvidenceDecisionV2,
+)
+from app.api.source_evidence_sdk_contracts import SourceEvidenceReportV2, SourceEvidenceSummaryV2
 from app.api.source_forest_contracts import (
     SourceForestRecheck,
     SourceForestSelection,
@@ -61,6 +66,10 @@ from app.api.source_patch_contracts import (
     SourcePatchVerification,
     SourcePatchVerificationSummary,
     source_review_fingerprint,
+)
+from app.api.source_patch_sdk_contracts import (
+    SourcePatchVerificationSummaryV2,
+    SourcePatchVerificationV2,
 )
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
 from app.domain import Finding
@@ -118,9 +127,15 @@ _SUPPORTED = (
     SourcePatchCapabilities,
     SourcePatchVerification,
     SourcePatchVerificationSummary,
+    SourcePatchVerificationV2,
+    SourcePatchVerificationSummaryV2,
     SourceMlCapabilities,
     SourceEvidenceReport,
     SourceEvidenceSummary,
+    SourceEvidenceReportV2,
+    SourceEvidenceSummaryV2,
+    SourceEvidenceDecisionV2,
+    SourceEvidenceDecisionSummaryV2,
     SourceEvidenceDecision,
     SourceEvidenceDecisionSummary,
     SourceDeterministicSelection,
@@ -175,20 +190,38 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["intent_sha256"] = source_ml_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256
-    if isinstance(value, (SourceEvidenceReport, SourceEvidenceSummary)):
+    if isinstance(
+        value,
+        (
+            SourceEvidenceReport,
+            SourceEvidenceSummary,
+            SourceEvidenceReportV2,
+            SourceEvidenceSummaryV2,
+        ),
+    ):
         selected["review_sha256"] = value.review_sha256
-    if isinstance(value, (SourceEvidenceDecision, SourceEvidenceDecisionSummary)):
+    if isinstance(
+        value,
+        (
+            SourceEvidenceDecision,
+            SourceEvidenceDecisionSummary,
+            SourceEvidenceDecisionV2,
+            SourceEvidenceDecisionSummaryV2,
+        ),
+    ):
         selected["report_sha256"] = value.report_sha256
         selected["decision_sha256"] = value.decision_sha256
         selected["recorded_service_role"] = value.service_role
         selected["verdict"] = (
-            value.request.verdict if isinstance(value, SourceEvidenceDecision) else value.verdict
+            value.request.verdict
+            if isinstance(value, (SourceEvidenceDecision, SourceEvidenceDecisionV2))
+            else value.verdict
         )
-    if isinstance(value, SourceEvidenceDecision):
+    if isinstance(value, (SourceEvidenceDecision, SourceEvidenceDecisionV2)):
         selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["before_source_sha256"] = value.before.source_sha256
         selected["after_source_sha256"] = value.after.source_sha256
-    if isinstance(value, SourceEvidenceReport):
+    if isinstance(value, (SourceEvidenceReport, SourceEvidenceReportV2)):
         selected["before_analysis_sha256"] = value.before_analysis_sha256
         selected["before_source_sha256"] = value.before.source_sha256
         selected["after_source_sha256"] = value.after.source_sha256
@@ -229,10 +262,18 @@ def _selected(value: BaseModel) -> dict[str, object]:
         selected["intent_sha256"] = source_ml_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256
-    if isinstance(value, (SourcePatchVerification, SourcePatchVerificationSummary)):
+    if isinstance(
+        value,
+        (
+            SourcePatchVerification,
+            SourcePatchVerificationSummary,
+            SourcePatchVerificationV2,
+            SourcePatchVerificationSummaryV2,
+        ),
+    ):
         selected["review_sha256"] = value.review_sha256
         selected["execution_status"] = value.execution_status
-    if isinstance(value, SourcePatchVerification):
+    if isinstance(value, (SourcePatchVerification, SourcePatchVerificationV2)):
         selected["intent_sha256"] = source_review_fingerprint(value.intent)
         selected["before_source_sha256"] = value.intent.before.source_sha256
         selected["after_source_sha256"] = value.intent.after.source_sha256

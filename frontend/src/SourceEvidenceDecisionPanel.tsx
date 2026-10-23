@@ -95,7 +95,10 @@ export function SourceEvidenceDecisionPanel({
     )
       return;
     const request: ReviewSourceEvidenceReport = {
-      version: "source-evidence-decision-request-0.1.0",
+      version:
+        report.version === "source-evidence-report-0.2.0"
+          ? "source-evidence-decision-request-0.2.0"
+          : "source-evidence-decision-request-0.1.0",
       decision_id: crypto.randomUUID(),
       report_sha256: report.review_sha256,
       verdict,
@@ -219,6 +222,8 @@ export function SourceEvidenceDecisionPanel({
           )}
           <p className="mono">
             Рассматриваемый отчёт: {report.report_id}
+            <br />
+            Версия отчёта: {report.version}
             <br />
             SHA-256 отчёта: {report.review_sha256}
           </p>

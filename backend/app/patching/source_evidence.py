@@ -4,8 +4,11 @@ from uuid import UUID
 
 from app.api.source_evidence_contracts import (
     MAX_SOURCE_EVIDENCE_BYTES,
-    CreateSourceEvidenceReport,
-    SourceEvidenceReport,
+)
+from app.api.source_evidence_sdk_contracts import (
+    SourceEvidenceReportRecord,
+    SourceEvidenceRequest,
+    parse_source_evidence_request,
 )
 from app.db.patch_records import PatchConflict
 from app.db.source_evidence_records import SourceEvidenceRecords, SourceEvidenceTooLarge
@@ -19,21 +22,21 @@ class SourceEvidenceWorkflow:
         self.records = SourceEvidenceRecords(store)
 
     @staticmethod
-    def _view(report: SourceEvidenceReport) -> SourceEvidenceReport:
+    def _view(report: SourceEvidenceReportRecord) -> SourceEvidenceReportRecord:
         if len(report.model_dump_json().encode()) > MAX_SOURCE_EVIDENCE_BYTES * 4:
             raise SourceEvidenceTooLarge()
         return report
 
-    def get(self, patch_id: UUID, report_id: UUID) -> SourceEvidenceReport:
+    def get(self, patch_id: UUID, report_id: UUID) -> SourceEvidenceReportRecord:
         report = self.records.get(report_id)
         if report is None or report.patch_id != patch_id:
             raise PatchNotFound()
         return self._view(report)
 
     def create(
-        self, patch_id: UUID, options: CreateSourceEvidenceReport
-    ) -> tuple[SourceEvidenceReport, bool]:
-        options = CreateSourceEvidenceReport.model_validate(options.model_dump(warnings=False))
+        self, patch_id: UUID, options: SourceEvidenceRequest
+    ) -> tuple[SourceEvidenceReportRecord, bool]:
+        options = parse_source_evidence_request(options)
         existing = self.records.get(options.report_id)
         if existing is not None:
             if existing.patch_id != patch_id or existing.request != options:

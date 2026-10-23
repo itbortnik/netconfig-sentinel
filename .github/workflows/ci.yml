@@ -129,6 +129,7 @@ jobs:
           backend/tests/integration/test_source_deterministic_postgres.py
           backend/tests/integration/test_source_evidence_api.py
           backend/tests/integration/test_source_evidence_decision_api.py
+          backend/tests/integration/test_source_evidence_sdk_api.py
           -k "not actual_isolated_native"
 
   frontend:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from hashlib import sha256
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, Protocol, Self
 from uuid import UUID
 
 from pydantic import Field, StrictBool, TypeAdapter, field_validator, model_validator
@@ -253,11 +253,16 @@ class SourceNetworkEvidence(_CompletedEvidence):
     network_device_count: int = Field(ge=1, le=32, strict=True)
 
 
+class _NetworkEvidenceResult(Protocol):
+    @property
+    def result(self) -> BatfishResult: ...
+
+
 def source_evidence_blockers(
     original_statistical_present: bool,
     forest: SourceForestEvidence | None,
     neural: SourceNeuralEvidence | None,
-    network: SourceNetworkEvidence | None,
+    network: _NetworkEvidenceResult | None,
 ) -> tuple[str, ...]:
     result = [
         "baseline_approval_not_proven",

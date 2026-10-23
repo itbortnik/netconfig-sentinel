@@ -19,9 +19,14 @@ from app.api.configurations import (
 from app.api.service import AnalysisService
 from app.api.source_patch_contracts import (
     SourcePatchCapabilities,
-    SourcePatchVerification,
-    SourcePatchVerificationSummary,
     VerifySourcePatch,
+)
+from app.api.source_patch_sdk_contracts import (
+    SourcePatchReview,
+    SourcePatchSummary,
+    VerifySourcePatchV2,
+    parse_source_patch_request,
+    source_patch_summary,
 )
 from app.audit.results import capture_result
 from app.db.patch_records import PatchConflict
@@ -54,24 +59,31 @@ def source_patch_capabilities(request: Request, service: Service) -> SourcePatch
 
 @router.post(
     "/{patch_id}/verify",
-    response_model=SourcePatchVerification,
+    response_model=SourcePatchReview,
     status_code=201,
-    responses={
-        200: {"model": SourcePatchVerification, "description": "Existing attempt; no execution."}
-    },
+    responses={200: {"model": SourcePatchReview, "description": "Existing attempt; no execution."}},
     openapi_extra={
         "requestBody": {
             "required": True,
-            "content": {"application/json": {"schema": _request_schema(VerifySourcePatch)}},
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "anyOf": [
+                            _request_schema(VerifySourcePatch),
+                            _request_schema(VerifySourcePatchV2),
+                        ]
+                    }
+                }
+            },
         }
     },
 )
 async def verify_source_patch(
     patch_id: UUID, request: Request, response: Response, service: VerifyService
-) -> SourcePatchVerification:
+) -> SourcePatchReview:
     body = await _request_body(request, maximum=16 * 1024)
     try:
-        options = VerifySourcePatch.model_validate(
+        options = parse_source_patch_request(
             json.loads(body.decode(), object_pairs_hook=_unique_keys)
         )
     except (ValueError, RecursionError):
@@ -109,10 +121,10 @@ async def verify_source_patch(
     return capture_result(request, result)
 
 
-@router.get("/{patch_id}/verifications", response_model=list[SourcePatchVerificationSummary])
+@router.get("/{patch_id}/verifications", response_model=list[SourcePatchSummary])
 def list_source_patch_verifications(
     patch_id: UUID, request: Request, service: Service, limit: Limit = 20, offset: Offset = 0
-) -> list[SourcePatchVerificationSummary]:
+) -> list[SourcePatchSummary]:
     workflow = SourcePatchWorkflow(service.store)
     try:
         workflow.drafts.draft(patch_id)
@@ -121,16 +133,16 @@ def list_source_patch_verifications(
     return capture_result(
         request,
         [
-            SourcePatchVerificationSummary.from_verification(workflow.get(patch_id, key))
+            source_patch_summary(workflow.get(patch_id, key))
             for key in workflow.records.list_ids(patch_id, limit=limit, offset=offset)
         ],
     )
 
 
-@router.get("/{patch_id}/verifications/{verification_id}", response_model=SourcePatchVerification)
+@router.get("/{patch_id}/verifications/{verification_id}", response_model=SourcePatchReview)
 def get_source_patch_verification(
     patch_id: UUID, verification_id: UUID, request: Request, service: Service
-) -> SourcePatchVerification:
+) -> SourcePatchReview:
     try:
         return capture_result(
             request, SourcePatchWorkflow(service.store).get(patch_id, verification_id)

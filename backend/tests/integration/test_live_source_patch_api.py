@@ -2,6 +2,7 @@
 
 import json
 import os
+from importlib.metadata import version as distribution_version
 from uuid import uuid4
 
 import app.patching.source_review as workflow_module
@@ -50,6 +51,7 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         companion = upload(client, core.text)
         body = options(
             draft,
+            version="source-patch-request-0.2.0",
             companions=[
                 {
                     "configuration_id": companion["configuration_id"],
@@ -64,7 +66,13 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         response = post(client, draft, body)
         assert response.status_code == 201, response.text
         saved = response.json()
-        result = saved["outcome"]["network_result"]
+        execution = saved["outcome"]["network_execution"]
+        result = execution["result"]
+        assert saved["version"] == "source-patch-verification-0.2.0"
+        assert execution["version"] == "batfish-execution-0.2.0"
+        assert execution["sdk_observation"] == "observed"
+        # This is an independent comparison, never a parent-side fill of a stored record.
+        assert execution["sdk_version"] == distribution_version("pybatfish")
         expected = {
             "route_loss": "differences_found",
             "reachable_control": "no_differences_in_scope",
@@ -79,6 +87,8 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
                     "status": result["status"],
                     "reason": result["reason"],
                     "engine_version": result["engine_version"],
+                    "sdk_version": execution["sdk_version"],
+                    "sdk_observation": execution["sdk_observation"],
                     "before_reachable_count": result["before_reachable_count"],
                     "after_reachable_count": result["after_reachable_count"],
                     "difference_count": result["difference_count"],
@@ -131,6 +141,7 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         assert deterministic.status_code == 201, deterministic.text
         assert deterministic.json()["execution_status"] == "completed"
         composition = {
+            "version": "source-evidence-request-0.2.0",
             "report_id": str(uuid4()),
             "draft_sha256": draft["draft_sha256"],
             "deterministic": {
@@ -147,7 +158,11 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         joint = client.post(base + "/evidence-reports", headers=HEADERS, json=composition)
         assert joint.status_code == 201, joint.text
         report = joint.json()
+        assert report["version"] == "source-evidence-report-0.2.0"
         assert report["network"]["result"] == result
+        assert report["network"]["execution_version"] == execution["version"]
+        assert report["network"]["sdk_version"] == execution["sdk_version"]
+        assert report["network"]["sdk_observation"] == "observed"
         assert report["network"]["ml_status"] == "not_run" and report["neural"] is None
         assert report["formal_qualification"] == "not_proven" and report["status"] == "needs_review"
         assert report["approved"] is report["applied"] is False
@@ -162,6 +177,8 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
                     "scenario": scenario,
                     "network_status": report["network"]["result"]["status"],
                     "engine_version": report["network"]["result"]["engine_version"],
+                    "sdk_version": report["network"]["sdk_version"],
+                    "sdk_observation": report["network"]["sdk_observation"],
                     "overall_status": report["status"],
                     "formal_qualification": report["formal_qualification"],
                     "report_sha256": report["review_sha256"],
@@ -171,6 +188,7 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         )
         decision_url = base + "/evidence-reports/" + report["report_id"] + "/decisions"
         decision_request = {
+            "version": "source-evidence-decision-request-0.2.0",
             "decision_id": str(uuid4()),
             "report_sha256": report["review_sha256"],
             "verdict": "rejected" if scenario == "route_loss" else "needs_more_information",
@@ -179,6 +197,8 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
         response = client.post(decision_url, headers=HEADERS, json=decision_request)
         assert response.status_code == 201, response.text
         decision = response.json()
+        assert decision["version"] == "source-evidence-decision-0.2.0"
+        assert decision["report_version"] == report["version"]
         assert decision["request"]["verdict"] == decision_request["verdict"]
         assert decision["report_sha256"] == report["review_sha256"]
         assert decision["service_role"] == "admin"
@@ -199,6 +219,8 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
                     "decision_sha256": decision["decision_sha256"],
                     "verdict": decision["request"]["verdict"],
                     "recorded_service_role": decision["service_role"],
+                    "sdk_version": report["network"]["sdk_version"],
+                    "sdk_observation": report["network"]["sdk_observation"],
                     "individual_identity_verified": False,
                     "approved": False,
                 },
@@ -209,6 +231,11 @@ def test_saved_source_pair_with_actual_owned_engine(tmp_path, monkeypatch, vendo
             workflow_module,
             "check_with_batfish",
             lambda *a, **k: pytest.fail("replay must not query engine"),
+        )
+        monkeypatch.setattr(
+            workflow_module,
+            "check_with_batfish_evidence",
+            lambda *a, **k: pytest.fail("replay must not query SDK metadata or engine"),
         )
         with TestClient(create_app(settings)) as restarted:
             assert post(restarted, draft, body).json() == saved

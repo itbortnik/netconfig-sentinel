@@ -13,13 +13,21 @@ from app.api.patch_contracts import PatchDraft
 from app.api.source_deterministic_contracts import SourceDeterministicRecheck
 from app.api.source_evidence_contracts import (
     MAX_SOURCE_EVIDENCE_BYTES,
-    CreateSourceEvidenceReport,
     SourceEvidenceProjectionTooLarge,
-    SourceEvidenceReport,
+)
+from app.api.source_evidence_sdk_contracts import (
+    CreateSourceEvidenceReportV2,
+    SourceEvidenceReportRecord,
+    SourceEvidenceRequest,
+    parse_source_evidence_report_json,
+    parse_source_evidence_request,
+    source_evidence_report,
+    validate_source_evidence_report,
 )
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
 from app.api.source_patch_contracts import SourcePatchVerification
+from app.api.source_patch_sdk_contracts import SourcePatchReview, source_patch_view
 from app.db.patch_records import PatchConflict, PatchRecords
 from app.db.source_deterministic_records import SourceDeterministicRecords
 from app.db.source_forest_records import SourceForestRecords
@@ -46,7 +54,7 @@ class _SelectedInputs:
     deterministic: SourceDeterministicRecheck
     forest: SourceForestRecheck | None
     neural: SourceMlRecheck | None
-    network: SourcePatchVerification | None
+    network: SourcePatchReview | None
 
 
 class SourceEvidenceRecords:
@@ -54,11 +62,11 @@ class SourceEvidenceRecords:
         self.store = store
 
     def _inputs(
-        self, session: Session, patch_id: UUID, request: CreateSourceEvidenceReport
+        self, session: Session, patch_id: UUID, request: SourceEvidenceRequest
     ) -> _SelectedInputs:
         try:
             return self._load_inputs(session, patch_id, request)
-        except (SourceEvidenceInputNotFound, SourceEvidenceTooLarge):
+        except (SourceEvidenceInputNotFound, SourceEvidenceTooLarge, PatchConflict):
             raise
         except ValueError:
             # A stored child that cannot form its existing public DTO is corrupted, rather
@@ -66,7 +74,7 @@ class SourceEvidenceRecords:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
     def _load_inputs(
-        self, session: Session, patch_id: UUID, request: CreateSourceEvidenceReport
+        self, session: Session, patch_id: UUID, request: SourceEvidenceRequest
     ) -> _SelectedInputs:
         # Reuse integrity-checked readers in this session. History needs neither retained raw
         # sources nor model artifacts, reference snapshots, a policy catalog or an engine.
@@ -99,7 +107,12 @@ class SourceEvidenceRecords:
             )
             if network_records is None:
                 raise SourceEvidenceInputNotFound("Selected network result is unavailable.")
-            network = SourcePatchVerification.from_records(*network_records)
+            selected_network = source_patch_view(*network_records)
+            if not isinstance(request, CreateSourceEvidenceReportV2) and not isinstance(
+                selected_network, SourcePatchVerification
+            ):
+                raise PatchConflict("Selected network result requires a newer report protocol.")
+            network = selected_network
         # Admission is on the complete selected DTOs, including their proof strings, before
         # constructing a joint proof or inserting anything. Do not truncate selected evidence.
         size = 0
@@ -110,12 +123,12 @@ class SourceEvidenceRecords:
                     raise SourceEvidenceTooLarge("Selected evidence exceeds the report budget.")
         return _SelectedInputs(draft, deterministic, forest, neural, network)
 
-    def prepare(self, patch_id: UUID, request: CreateSourceEvidenceReport) -> SourceEvidenceReport:
-        request = CreateSourceEvidenceReport.model_validate(request.model_dump(warnings=False))
+    def prepare(self, patch_id: UUID, request: SourceEvidenceRequest) -> SourceEvidenceReportRecord:
+        request = parse_source_evidence_request(request)
         with self.store._sessions() as session:
             inputs = self._inputs(session, patch_id, request)
             try:
-                report = SourceEvidenceReport.from_evidence(
+                report = source_evidence_report(
                     inputs.draft,
                     request,
                     inputs.deterministic,
@@ -134,7 +147,7 @@ class SourceEvidenceRecords:
             return report
 
     @staticmethod
-    def _payload(report: SourceEvidenceReport) -> str:
+    def _payload(report: SourceEvidenceReportRecord) -> str:
         if (
             len(report.review_json.encode("utf-8"))
             > source_evidence_contracts.MAX_SOURCE_EVIDENCE_BYTES
@@ -145,14 +158,14 @@ class SourceEvidenceRecords:
             raise SourceEvidenceTooLarge("Selected evidence report exceeds the payload budget.")
         return raw
 
-    def _report(self, session: Session, row: SourceEvidenceReportRow) -> SourceEvidenceReport:
+    def _report(self, session: Session, row: SourceEvidenceReportRow) -> SourceEvidenceReportRecord:
         try:
             if len(row.payload) > MAX_SOURCE_EVIDENCE_CIPHERTEXT_BYTES:
                 raise ValueError("oversized evidence ciphertext")
             raw = self.store._decode(row.payload, kind="source_evidence_report", row_id=row.id)
             if len(raw.encode("utf-8")) > MAX_SOURCE_EVIDENCE_BYTES:
                 raise ValueError("oversized evidence report")
-            report = SourceEvidenceReport.model_validate_json(raw)
+            report = parse_source_evidence_report_json(raw)
             stamp = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
             if (str(report.report_id), str(report.patch_id), report.created_at) != (
                 row.id,
@@ -161,7 +174,8 @@ class SourceEvidenceRecords:
             ):
                 raise ValueError("evidence metadata differs")
             inputs = self._inputs(session, report.patch_id, report.request)
-            report.validate_evidence(
+            validate_source_evidence_report(
+                report,
                 inputs.draft,
                 inputs.deterministic,
                 forest=inputs.forest,
@@ -172,16 +186,16 @@ class SourceEvidenceRecords:
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def _get(self, session: Session, report_id: UUID) -> SourceEvidenceReport | None:
+    def _get(self, session: Session, report_id: UUID) -> SourceEvidenceReportRecord | None:
         row = session.get(SourceEvidenceReportRow, str(report_id))
         return self._report(session, row) if row is not None else None
 
-    def get(self, report_id: UUID) -> SourceEvidenceReport | None:
+    def get(self, report_id: UUID) -> SourceEvidenceReportRecord | None:
         with self.store._sessions() as session:
             return self._get(session, report_id)
 
     @staticmethod
-    def _same(stored: SourceEvidenceReport, incoming: SourceEvidenceReport) -> None:
+    def _same(stored: SourceEvidenceReportRecord, incoming: SourceEvidenceReportRecord) -> None:
         if stored.patch_id != incoming.patch_id or stored.request != incoming.request:
             raise PatchConflict("Evidence report identity conflicts.")
 
@@ -196,9 +210,9 @@ class SourceEvidenceRecords:
             )
         )
 
-    def add(self, report: SourceEvidenceReport) -> tuple[SourceEvidenceReport, bool]:
+    def add(self, report: SourceEvidenceReportRecord) -> tuple[SourceEvidenceReportRecord, bool]:
         raw = self._payload(report)
-        report = SourceEvidenceReport.model_validate_json(raw)
+        report = parse_source_evidence_report_json(raw)
         key = str(report.report_id)
         try:
             with self.store._sessions.begin() as session:
@@ -210,7 +224,8 @@ class SourceEvidenceRecords:
                 # cannot insert an unchecked projection by bypassing prepare().
                 inputs = self._inputs(session, report.patch_id, report.request)
                 try:
-                    report.validate_evidence(
+                    validate_source_evidence_report(
+                        report,
                         inputs.draft,
                         inputs.deterministic,
                         forest=inputs.forest,
@@ -232,7 +247,7 @@ class SourceEvidenceRecords:
                     SourceEvidenceReportRow(
                         id=key,
                         patch_id=str(report.patch_id),
-                        created_at=report.created_at,
+                        created_at=report.created_at.astimezone(UTC),
                         payload=payload,
                     )
                 )

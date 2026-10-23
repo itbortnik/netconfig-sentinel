@@ -6,6 +6,8 @@ import { date, shortId } from "./format";
 import {
   sourceCompanionEligible,
   sourceNetworkStatusNames,
+  sourceNetworkResult,
+  sdkObservationNames,
   verifySourcePatchSchema,
 } from "./sourcePatchVerification";
 import type {
@@ -78,6 +80,7 @@ export function SourcePatchVerificationPanel({
   const busy = outerBusy || working;
   const frozen = busy || !!attempt;
   const ready = verifySourcePatchSchema.safeParse({
+    version: "source-patch-request-0.2.0",
     verification_id: "00000000-0000-0000-0000-000000000001",
     draft_sha256: draft.draft_sha256,
     companions: companions.map(({ configuration_id, source_sha256 }) => ({
@@ -87,6 +90,7 @@ export function SourcePatchVerificationPanel({
     scope: { start_node: startNode, destination },
     allow_local_engine_upload: consent,
   });
+  const network = sourceNetworkResult(view?.outcome ?? null);
   const knownHost = [
     draft.diff.before.hostname,
     ...companions.map((row) => row.hostname),
@@ -520,41 +524,35 @@ export function SourcePatchVerificationPanel({
                 view.outcome && (
                   <>
                     <p>
-                      {
-                        sourceNetworkStatusNames[
-                          view.outcome.network_result.status
-                        ]
-                      }{" "}
-                      ({view.outcome.network_result.status})
+                      {sourceNetworkStatusNames[network!.status]} (
+                      {network!.status})
                     </p>
                     <p>
-                      Причина: {view.outcome.network_result.reason}. Версия
-                      движка:{" "}
-                      {view.outcome.network_result.engine_version ??
-                        "не получена"}
-                      .
+                      Причина: {network!.reason}. Версия движка:{" "}
+                      {network!.engine_version ?? "не получена"}.
+                    </p>
+                    <p aria-label="Метаданные SDK сетевой проверки">
+                      SDK:{" "}
+                      {"network_execution" in view.outcome
+                        ? `${view.outcome.network_execution.sdk_version ?? "недоступно"} · ${sdkObservationNames[view.outcome.network_execution.sdk_observation]} (${view.outcome.network_execution.sdk_observation})`
+                        : "недоступно — исходная запись не сохраняла версию"}
+                      . Метаданные дистрибутива не удостоверяют исполняемый
+                      файл, качество или формальное одобрение.
                     </p>
                     <p>
                       Строк ответа до:{" "}
-                      {view.outcome.network_result.before_reachable_count ??
-                        "не получены"}{" "}
-                      · после:{" "}
-                      {view.outcome.network_result.after_reachable_count ??
-                        "не получены"}{" "}
-                      · различий:{" "}
-                      {view.outcome.network_result.difference_count ??
-                        "не получены"}
+                      {network!.before_reachable_count ?? "не получены"} ·
+                      после: {network!.after_reachable_count ?? "не получены"} ·
+                      различий: {network!.difference_count ?? "не получены"}
                     </p>
                     <p>
                       Удаление временной сети:{" "}
-                      {cleanup(view.outcome.network_result.cleanup_complete)}.
+                      {cleanup(network!.cleanup_complete)}.
                     </p>
-                    {view.outcome.network_result.cleanup_complete !== true && (
+                    {network!.cleanup_complete !== true && (
                       <p className="notice warning">
                         На движке могли остаться исходники. Сеть:{" "}
-                        {view.outcome.network_result.network_name ??
-                          "имя не получено"}
-                        .
+                        {network!.network_name ?? "имя не получено"}.
                       </p>
                     )}
                   </>

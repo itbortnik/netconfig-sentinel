@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import type { ConfigurationSnapshot } from "../../src/contracts";
 import type { PatchDraft } from "../../src/patches";
+import { sourceNetworkResult } from "../../src/sourcePatchVerification";
 import type {
   SourcePatchVerification,
   VerifySourcePatch,
@@ -62,10 +63,10 @@ async function upload(page: Page, content: string, device?: string) {
   ).toBeEnabled();
   return (await response.json()) as ConfigurationSnapshot;
 }
-async function prepare(page: Page) {
+async function prepare(page: Page, sdkState = "observed") {
   await connect(page);
   const suffix = `${test.info().project.name}-${Date.now()}`;
-  const hostname = `source-edge-${suffix}`,
+  const hostname = `${sdkState === "observed" ? "source-edge-" : `source-sdk-${sdkState.replaceAll("_", "-")}-`}${suffix}`,
     neighbor = `source-core-${suffix}`;
   const before = await upload(page, `hostname ${hostname}\n`);
   await page
@@ -153,6 +154,15 @@ test("exact retained pair and explicit companion are verified, then readable aft
     .getByLabel("Назначение IPv4 сетевой проверки", { exact: true })
     .fill("198.51.100.1/32");
   const row = await verify(page);
+  expect(row.version).toBe("source-patch-verification-0.2.0");
+  expect(row.intent.request.version).toBe("source-patch-request-0.2.0");
+  expect(row.outcome).toMatchObject({
+    network_execution: {
+      version: "batfish-execution-0.2.0",
+      sdk_version: "owned-browser-sdk-0.36.0",
+      sdk_observation: "observed",
+    },
+  });
   expect(row.intent.before.configuration_id).toBe(before.configuration_id);
   expect(row.intent.after.configuration_id).toBe(after.configuration_id);
   expect(row.intent.request.companions).toEqual([
@@ -168,7 +178,7 @@ test("exact retained pair and explicit companion are verified, then readable aft
   expect(row.intent.before_network_sha256).not.toBe(
     before.canonical.source.sha256,
   );
-  expect(row.outcome?.network_result.engine_version).toBe(
+  expect(sourceNetworkResult(row.outcome)?.engine_version).toBe(
     "owned-browser-fixture",
   );
   expect(row).toMatchObject({
@@ -191,6 +201,14 @@ test("exact retained pair and explicit companion are verified, then readable aft
   );
   await expect(sourcePanel(page)).toContainText(
     "Удаление временной сети: подтверждено",
+  );
+  await expect(
+    sourcePanel(page).getByLabel("Метаданные SDK сетевой проверки", {
+      exact: true,
+    }),
+  ).toContainText("owned-browser-sdk-0.36.0");
+  await expect(sourcePanel(page)).toContainText(
+    "не удостоверяют исполняемый файл, качество или формальное одобрение",
   );
   await expect(
     sourcePanel(page).getByRole("button", { name: /скачать.*исход/i }),
@@ -248,6 +266,81 @@ test("exact retained pair and explicit companion are verified, then readable aft
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+for (const state of ["metadata_unavailable", "not_observed"] as const)
+  test(`saved SDK state ${state} is explicit and never inferred from the browser`, async ({
+    page,
+  }) => {
+    await prepare(page, state);
+    const row = await verify(page);
+    expect(row.outcome).toMatchObject({
+      network_execution: {
+        sdk_version: null,
+        sdk_observation: state,
+        result: {
+          status:
+            state === "not_observed" ? "error" : "no_differences_in_scope",
+        },
+      },
+    });
+    await expect(
+      sourcePanel(page).getByLabel("Метаданные SDK сетевой проверки", {
+        exact: true,
+      }),
+    ).toContainText(state);
+    await expect(sourcePanel(page)).not.toContainText(
+      "owned-browser-sdk-0.36.0",
+    );
+    expect(row.approved).toBe(false);
+    expect(row.status).toBe("needs_review");
+  });
+
+test("legacy source history remains byte-equal beside SDK-aware records", async ({
+  page,
+}) => {
+  const { draft } = await prepare(page);
+  const current = await verify(page);
+  const legacyResponse = await page.request.post(
+    `/api/v2/patches/${draft.patch_id}/verify`,
+    {
+      headers,
+      data: {
+        ...current.intent.request,
+        version: "source-patch-request-0.1.0",
+        verification_id: crypto.randomUUID(),
+      },
+    },
+  );
+  expect(legacyResponse.status()).toBe(201);
+  const legacyRaw = await legacyResponse.text();
+  const legacy = JSON.parse(legacyRaw) as SourcePatchVerification;
+  expect(legacy.outcome).not.toHaveProperty("network_execution");
+  await sourcePanel(page)
+    .getByRole("button", { name: "Обновить сетевые проверки", exact: true })
+    .click();
+  await sourcePanel(page)
+    .getByRole("button", {
+      name: new RegExp(
+        `Открыть сетевую проверку ${legacy.verification_id.slice(0, 8)}`,
+      ),
+    })
+    .click();
+  await expect(
+    sourcePanel(page).getByLabel("Метаданные SDK сетевой проверки", {
+      exact: true,
+    }),
+  ).toContainText("исходная запись не сохраняла версию");
+  await expect(
+    sourcePanel(page).getByLabel("Метаданные SDK сетевой проверки", {
+      exact: true,
+    }),
+  ).not.toContainText("observed");
+  const reread = await page.request.get(
+    `/api/v2/patches/${draft.patch_id}/verifications/${legacy.verification_id}`,
+    { headers },
+  );
+  expect(await reread.text()).toBe(legacyRaw);
 });
 
 test("lost POST response is reconciled by immutable GET with one actual engine-fixture attempt", async ({

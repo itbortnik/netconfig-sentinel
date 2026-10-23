@@ -6,6 +6,10 @@ import type { SourceDeterministicRecheck } from "./sourceDeterministicRecheck";
 import type { SourceForestRecheck } from "./sourceForestRecheck";
 import type { SourceMlRecheck } from "./sourceMlRecheck";
 import type { SourcePatchVerification } from "./sourcePatchVerification";
+import {
+  batfishExecutionSchema,
+  sourceNetworkResult,
+} from "./sourcePatchVerification";
 
 const id = z.guid(),
   hash = z.string().regex(/^[0-9a-f]{64}$/);
@@ -29,7 +33,7 @@ const memberSchema = snapshotBindingSchema
   .strict()
   .extend({ canonical_sha256: hash });
 const selectedSchema = z.strictObject({ record_id: id, review_sha256: hash });
-export const createSourceEvidenceReportSchema = z.strictObject({
+const createSourceEvidenceReportV1Schema = z.strictObject({
   version: z.literal("source-evidence-request-0.1.0"),
   report_id: id,
   draft_sha256: hash,
@@ -38,6 +42,14 @@ export const createSourceEvidenceReportSchema = z.strictObject({
   neural: selectedSchema.nullable(),
   network: selectedSchema.nullable(),
 });
+const createSourceEvidenceReportV2Schema =
+  createSourceEvidenceReportV1Schema.extend({
+    version: z.literal("source-evidence-request-0.2.0"),
+  });
+export const createSourceEvidenceReportSchema = z.union([
+  createSourceEvidenceReportV1Schema,
+  createSourceEvidenceReportV2Schema,
+]);
 export type CreateSourceEvidenceReport = z.infer<
   typeof createSourceEvidenceReportSchema
 >;
@@ -209,11 +221,28 @@ const networkSchema = z.strictObject({
   ml_status: z.literal("not_run"),
   network_device_count: count.min(1).max(32),
 });
+const networkV2Schema = networkSchema
+  .extend({
+    version: z.literal("source-patch-verification-0.2.0"),
+    execution_version: z.literal("batfish-execution-0.2.0"),
+    sdk_version: batfishExecutionSchema.shape.sdk_version,
+    sdk_observation: batfishExecutionSchema.shape.sdk_observation,
+  })
+  .refine(
+    (row) =>
+      batfishExecutionSchema.safeParse({
+        version: row.execution_version,
+        result: row.result,
+        sdk_version: row.sdk_version,
+        sdk_observation: row.sdk_observation,
+      }).success,
+  );
+const networkEvidenceSchema = z.union([networkSchema, networkV2Schema]);
 export function sourceEvidenceBlockers(row: {
   original_statistical_present: boolean;
   forest: unknown | null;
   neural: unknown | null;
-  network: z.infer<typeof networkSchema> | null;
+  network: z.infer<typeof networkEvidenceSchema> | null;
 }) {
   const result = [
     "baseline_approval_not_proven",
@@ -246,103 +275,121 @@ export function sourceEvidenceBlockers(row: {
   }
   return result;
 }
-export const sourceEvidenceReportSchema = z
-  .strictObject({
-    version: z.literal("source-evidence-report-0.1.0"),
-    request: createSourceEvidenceReportSchema,
-    report_id: id,
-    patch_id: id,
-    draft_sha256: hash,
-    before: memberSchema,
-    after: memberSchema,
-    before_analysis_id: id,
-    before_analysis_sha256: hash,
-    original_statistical_present: z.boolean(),
-    created_at: timestamp,
-    deterministic: deterministicSchema,
-    forest: forestSchema.nullable(),
-    neural: neuralSchema.nullable(),
-    network: networkSchema.nullable(),
-    validation_blockers: blockers,
-    status: z.literal("needs_review"),
-    formal_qualification: z.literal("not_proven"),
-    risk_fused: z.literal(false),
-    calibrated: z.literal(false),
-    quality_proven: z.literal(false),
-    approved: z.literal(false),
-    applied: z.literal(false),
-    review_json: z
-      .string()
-      .min(1)
-      .max(4 * 1024 * 1024),
-    review_sha256: hash,
-  })
-  .refine((row) => {
+const reportBase = z.strictObject({
+  version: z.literal("source-evidence-report-0.1.0"),
+  request: createSourceEvidenceReportV1Schema,
+  report_id: id,
+  patch_id: id,
+  draft_sha256: hash,
+  before: memberSchema,
+  after: memberSchema,
+  before_analysis_id: id,
+  before_analysis_sha256: hash,
+  original_statistical_present: z.boolean(),
+  created_at: timestamp,
+  deterministic: deterministicSchema,
+  forest: forestSchema.nullable(),
+  neural: neuralSchema.nullable(),
+  network: networkSchema.nullable(),
+  validation_blockers: blockers,
+  status: z.literal("needs_review"),
+  formal_qualification: z.literal("not_proven"),
+  risk_fused: z.literal(false),
+  calibrated: z.literal(false),
+  quality_proven: z.literal(false),
+  approved: z.literal(false),
+  applied: z.literal(false),
+  review_json: z
+    .string()
+    .min(1)
+    .max(4 * 1024 * 1024),
+  review_sha256: hash,
+});
+const validReport = (
+  row: Omit<z.infer<typeof reportBase>, "version" | "request" | "network"> & {
+    request: CreateSourceEvidenceReport;
+    network: z.infer<typeof networkEvidenceSchema> | null;
+  },
+) => {
+  if (
+    row.report_id !== row.request.report_id ||
+    row.draft_sha256 !== row.request.draft_sha256 ||
+    row.before.device_id !== row.after.device_id ||
+    row.before.configuration_id === row.after.configuration_id ||
+    row.before.source_sha256 === row.after.source_sha256 ||
+    evidenceInstant(row.before.created_at) >
+      evidenceInstant(row.after.created_at) ||
+    evidenceInstant(row.after.created_at) > evidenceInstant(row.created_at) ||
+    (row.forest !== null && !row.original_statistical_present) ||
+    !same(row.validation_blockers, sourceEvidenceBlockers(row))
+  )
+    return false;
+  for (const kind of kinds) {
+    const selected = row.request[kind],
+      value = row[kind];
+    if ((selected === null) !== (value === null)) return false;
     if (
-      row.report_id !== row.request.report_id ||
-      row.draft_sha256 !== row.request.draft_sha256 ||
-      row.before.device_id !== row.after.device_id ||
-      row.before.configuration_id === row.after.configuration_id ||
-      row.before.source_sha256 === row.after.source_sha256 ||
-      evidenceInstant(row.before.created_at) >
-        evidenceInstant(row.after.created_at) ||
-      evidenceInstant(row.after.created_at) > evidenceInstant(row.created_at) ||
-      (row.forest !== null && !row.original_statistical_present) ||
-      !same(row.validation_blockers, sourceEvidenceBlockers(row))
+      selected &&
+      value &&
+      (selected.record_id !== value.record_id ||
+        selected.review_sha256 !== value.review_sha256 ||
+        evidenceInstant(value.created_at) >
+          evidenceInstant(value.completed_at) ||
+        evidenceInstant(value.created_at) <
+          evidenceInstant(row.after.created_at) ||
+        evidenceInstant(value.completed_at) > evidenceInstant(row.created_at))
     )
       return false;
-    for (const kind of kinds) {
-      const selected = row.request[kind],
-        value = row[kind];
-      if ((selected === null) !== (value === null)) return false;
-      if (
-        selected &&
-        value &&
-        (selected.record_id !== value.record_id ||
-          selected.review_sha256 !== value.review_sha256 ||
-          evidenceInstant(value.created_at) >
-            evidenceInstant(value.completed_at) ||
-          evidenceInstant(value.created_at) <
-            evidenceInstant(row.after.created_at) ||
-          evidenceInstant(value.completed_at) > evidenceInstant(row.created_at))
-      )
-        return false;
-    }
-    const reference = row.deterministic.reference;
-    return (
-      (!reference ||
-        (reference.device_id === row.before.device_id &&
-          ![row.before.configuration_id, row.after.configuration_id].includes(
-            reference.configuration_id,
-          ) &&
-          evidenceInstant(reference.created_at) <=
-            evidenceInstant(row.before.created_at))) &&
-      (!row.neural ||
-        (row.neural.before.raw_source_sha256 === row.before.source_sha256 &&
-          row.neural.after.raw_source_sha256 === row.after.source_sha256))
-    );
-  });
-export type SourceEvidenceReport = z.infer<typeof sourceEvidenceReportSchema>;
-export const sourceEvidenceSummarySchema = z
-  .strictObject({
-    version: z.literal("source-evidence-summary-0.1.0"),
-    report_id: id,
-    patch_id: id,
-    draft_sha256: hash,
-    before_analysis_id: id,
-    review_sha256: hash,
-    created_at: timestamp,
-    selected_kinds: z.array(z.enum(kinds)).min(1).max(4),
-    status: z.literal("needs_review"),
-  })
-  .refine(
-    (row) =>
-      row.selected_kinds[0] === "deterministic" &&
-      same(
-        row.selected_kinds,
-        kinds.filter((kind) => row.selected_kinds.includes(kind)),
-      ),
+  }
+  const reference = row.deterministic.reference;
+  return (
+    (!reference ||
+      (reference.device_id === row.before.device_id &&
+        ![row.before.configuration_id, row.after.configuration_id].includes(
+          reference.configuration_id,
+        ) &&
+        evidenceInstant(reference.created_at) <=
+          evidenceInstant(row.before.created_at))) &&
+    (!row.neural ||
+      (row.neural.before.raw_source_sha256 === row.before.source_sha256 &&
+        row.neural.after.raw_source_sha256 === row.after.source_sha256))
   );
+};
+export const sourceEvidenceReportSchema = z.union([
+  reportBase.refine(validReport),
+  z
+    .strictObject({
+      ...reportBase.shape,
+      version: z.literal("source-evidence-report-0.2.0"),
+      request: createSourceEvidenceReportV2Schema,
+      network: networkEvidenceSchema.nullable(),
+    })
+    .refine(validReport),
+]);
+export type SourceEvidenceReport = z.infer<typeof sourceEvidenceReportSchema>;
+const summaryBase = z.strictObject({
+  version: z.literal("source-evidence-summary-0.1.0"),
+  report_id: id,
+  patch_id: id,
+  draft_sha256: hash,
+  before_analysis_id: id,
+  review_sha256: hash,
+  created_at: timestamp,
+  selected_kinds: z.array(z.enum(kinds)).min(1).max(4),
+  status: z.literal("needs_review"),
+});
+const validSummary = (row: Omit<z.infer<typeof summaryBase>, "version">) =>
+  row.selected_kinds[0] === "deterministic" &&
+  same(
+    row.selected_kinds,
+    kinds.filter((kind) => row.selected_kinds.includes(kind)),
+  );
+export const sourceEvidenceSummarySchema = z.union([
+  summaryBase.refine(validSummary),
+  summaryBase
+    .extend({ version: z.literal("source-evidence-summary-0.2.0") })
+    .refine(validSummary),
+]);
 export type SourceEvidenceSummary = z.infer<typeof sourceEvidenceSummarySchema>;
 export type SourceEvidenceChildren = {
   deterministic: SourceDeterministicRecheck;
@@ -484,7 +531,10 @@ export async function sourceEvidenceReportBound(
       (summary &&
         (!sourceEvidenceSummaryBound(summary, draft) ||
           !same(summary, {
-            version: "source-evidence-summary-0.1.0",
+            version:
+              row.version === "source-evidence-report-0.2.0"
+                ? "source-evidence-summary-0.2.0"
+                : "source-evidence-summary-0.1.0",
             report_id: row.report_id,
             patch_id: row.patch_id,
             draft_sha256: row.draft_sha256,
@@ -643,8 +693,15 @@ export async function sourceEvidenceReportBound(
         !same(row.network, {
           ...common(child),
           kind: "network",
-          result: child.outcome!.network_result,
-          sdk_version: null,
+          result: sourceNetworkResult(child.outcome),
+          ...(child.outcome && "network_execution" in child.outcome
+            ? {
+                execution_version: child.outcome.network_execution.version,
+                sdk_version: child.outcome.network_execution.sdk_version,
+                sdk_observation:
+                  child.outcome.network_execution.sdk_observation,
+              }
+            : { sdk_version: null }),
           ml_status: child.ml_status,
           network_device_count: 1 + child.intent.companions.length,
         })

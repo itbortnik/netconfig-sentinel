@@ -69,7 +69,12 @@ async function openPanel(page: Page) {
     .click();
   await expect(panel(page).getByRole("status")).toBeHidden();
 }
-async function prepare(page: Page, networkError = false, all = false) {
+async function prepare(
+  page: Page,
+  networkError = false,
+  all = false,
+  legacyNetwork = false,
+) {
   const suffix = randomUUID().slice(0, 8),
     device = randomUUID();
   const host = `source-evidence-${networkError ? "error-" : ""}${suffix}`;
@@ -206,7 +211,9 @@ async function prepare(page: Page, networkError = false, all = false) {
     const response = await page.request.post(`${prefix}/verify`, {
       headers,
       data: {
-        version: "source-patch-request-0.1.0",
+        version: legacyNetwork
+          ? "source-patch-request-0.1.0"
+          : "source-patch-request-0.2.0",
         verification_id: randomUUID(),
         draft_sha256: draft.draft_sha256,
         companions: [],
@@ -286,6 +293,8 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
   await expect(panel(page).getByRole("checkbox")).toHaveCount(0);
   await choose(page, value);
   const report = await compose(page);
+  expect(report.version).toBe("source-evidence-report-0.2.0");
+  expect(report.request.version).toBe("source-evidence-request-0.2.0");
   expect(report).toMatchObject({
     status: "needs_review",
     formal_qualification: "not_proven",
@@ -296,7 +305,12 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
     applied: false,
   });
   expect(report.network!.ml_status).toBe("not_run");
-  expect(report.network!.sdk_version).toBeNull();
+  expect(report.network).toMatchObject({
+    version: "source-patch-verification-0.2.0",
+    execution_version: "batfish-execution-0.2.0",
+    sdk_version: "owned-browser-sdk-0.36.0",
+    sdk_observation: "observed",
+  });
   expect(report.forest!.scores).toEqual(value.forest!.outcome!.report!.scores);
   await expect(
     panel(page).getByRole("table", { name: "Forest в совместном отчёте" }),
@@ -307,7 +321,7 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
   await expect(panel(page)).toContainText(
     "Собственный ML-статус сетевой записи: not_run",
   );
-  await expect(panel(page)).toContainText("SDK: недоступно");
+  await expect(panel(page)).toContainText("SDK: owned-browser-sdk-0.36.0");
   const storedBefore = await (
     await page.request.get(
       `${value.prefix}/deterministic-rechecks/${value.deterministic.recheck_id}`,
@@ -355,12 +369,68 @@ test("network error is saved as actual evidence and absent model remains absent"
   await choose(page, value);
   const report = await compose(page);
   expect(report.network!.result.status).toBe("error");
+  expect(report.network).toMatchObject({
+    sdk_version: "owned-browser-sdk-0.36.0",
+    sdk_observation: "observed",
+  });
   expect(report.neural).toBeNull();
   expect(report.forest).toBeNull();
   await expect(panel(page)).toContainText("Ошибка сетевой проверки (error)");
   await expect(panel(page)).not.toContainText("Сетевой результат отсутствует");
   await expect(panel(page)).toContainText("Нейросетевой результат не выбран");
   expect(report.validation_blockers).toContain("formal_scope_not_passed");
+});
+
+test("SDK-aware report retains legacy child metadata without inventing an observation", async ({
+  page,
+}) => {
+  const value = await prepare(page, true, false, true);
+  const original = JSON.stringify(value.network);
+  await openPanel(page);
+  await choose(page, value);
+  const report = await compose(page);
+  expect(report.version).toBe("source-evidence-report-0.2.0");
+  expect(report.network).toMatchObject({
+    version: "source-patch-verification-0.1.0",
+    sdk_version: null,
+  });
+  expect(report.network).not.toHaveProperty("sdk_observation");
+  expect(report.network).not.toHaveProperty("execution_version");
+  await expect(panel(page)).toContainText(
+    "SDK: недоступно — исходная запись не сохраняла версию",
+  );
+  const reread = await page.request.get(
+    `${value.prefix}/verifications/${value.network!.verification_id}`,
+    { headers },
+  );
+  expect(JSON.stringify(await reread.json())).toBe(original);
+});
+
+test("resealed false SDK projection cannot replace metadata from the exact immutable child", async ({
+  page,
+}) => {
+  const value = await prepare(page, true);
+  await openPanel(page);
+  await choose(page, value);
+  await page.route("**/api/v2/patches/*/evidence-reports", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const response = await route.fetch(),
+      changed = (await response.json()) as SourceEvidenceReport;
+    changed.network!.sdk_version = "fabricated-browser-sdk";
+    const { review_json: _json, review_sha256: _sha, ...body } = changed;
+    changed.review_json = stableJson(body);
+    changed.review_sha256 = createHash("sha256")
+      .update(changed.review_json)
+      .digest("hex");
+    await route.fulfill({ response, json: changed });
+  });
+  await save(page).click();
+  await expect(panel(page)).toContainText(
+    "Итог сохранения совместного отчёта не подтверждён",
+  );
+  await expect(panel(page)).not.toContainText("fabricated-browser-sdk");
+  await readAttempt(page).click();
+  await expect(panel(page)).toContainText("SDK: owned-browser-sdk-0.36.0");
 });
 test("lost POST is frozen and recovered by exact GET with no second POST", async ({
   page,

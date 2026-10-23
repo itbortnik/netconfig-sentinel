@@ -105,7 +105,7 @@ async function fill(
     .getByLabel("Комментарий к решению", { exact: true })
     .fill(comment);
 }
-async function prepare(page: Page, extras = false) {
+async function prepare(page: Page, extras = false, legacy = false) {
   const device = randomUUID(),
     host = `source-evidence-${extras ? "error-" : ""}${randomUUID().slice(0, 8)}`;
   const text = (telnet: boolean) =>
@@ -187,7 +187,9 @@ async function prepare(page: Page, extras = false) {
     const networkResponse = await page.request.post(`${prefix}/verify`, {
       headers,
       data: {
-        version: "source-patch-request-0.1.0",
+        version: legacy
+          ? "source-patch-request-0.1.0"
+          : "source-patch-request-0.2.0",
         verification_id: randomUUID(),
         draft_sha256: draft.draft_sha256,
         companions: [],
@@ -205,7 +207,9 @@ async function prepare(page: Page, extras = false) {
   const response = await page.request.post(`${prefix}/evidence-reports`, {
     headers,
     data: {
-      version: "source-evidence-request-0.1.0",
+      version: legacy
+        ? "source-evidence-request-0.1.0"
+        : "source-evidence-request-0.2.0",
       report_id: randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: {
@@ -270,6 +274,13 @@ test("full accepted report is explicit; append-only dispositions preserve role, 
     "<img src=x onerror=alert(1)>\nЗапрос сведений 😀\tбез удостоверенной личности.";
   await fill(page, comment);
   const first = await record(page);
+  expect(first.version).toBe("source-evidence-decision-0.2.0");
+  expect(first.request.version).toBe("source-evidence-decision-request-0.2.0");
+  expect(first.report_version).toBe("source-evidence-report-0.2.0");
+  expect(value.report.network).toMatchObject({
+    sdk_version: "owned-browser-sdk-0.36.0",
+    sdk_observation: "observed",
+  });
   expect(first.service_role).toBe("engineer");
   expect(first.request.comment).toBe(comment);
   await expect(
@@ -345,6 +356,37 @@ test("full accepted report is explicit; append-only dispositions preserve role, 
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+test("legacy report review explicitly preserves decision protocol 0.1 and unchanged parent bytes", async ({
+  page,
+}) => {
+  const value = await prepare(page, true, true);
+  const parentRaw = await (
+    await page.request.get(
+      `${value.prefix}/evidence-reports/${value.report.report_id}`,
+      { headers },
+    )
+  ).text();
+  await openReport(page, value.report);
+  await openPanel(page);
+  await fill(page, "Исторический отчёт без наблюдения SDK.", "rejected");
+  const decision = await record(page);
+  expect(decision.version).toBe("source-evidence-decision-0.1.0");
+  expect(decision.request.version).toBe(
+    "source-evidence-decision-request-0.1.0",
+  );
+  expect(decision.report_version).toBe("source-evidence-report-0.1.0");
+  expect(
+    await (
+      await page.request.get(
+        `${value.prefix}/evidence-reports/${value.report.report_id}`,
+        { headers },
+      )
+    ).text(),
+  ).toBe(parentRaw);
+  await expect(reports(page)).toContainText(
+    "SDK: недоступно — исходная запись не сохраняла версию",
+  );
 });
 test("comment uses Unicode codepoints and no default verdict or unsupported approval", async ({
   page,
@@ -518,7 +560,7 @@ test("actual immutable decision history paginates metadata and late detail after
     const response = await page.request.post(value.decisions, {
       headers,
       data: {
-        version: "source-evidence-decision-request-0.1.0",
+        version: "source-evidence-decision-request-0.2.0",
         decision_id: id,
         report_sha256: value.report.review_sha256,
         verdict: n % 2 ? "rejected" : "needs_more_information",

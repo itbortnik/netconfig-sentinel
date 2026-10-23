@@ -936,6 +936,8 @@ export class ApiClient {
     if (
       report.patch_id !== draft.patch_id ||
       report.draft_sha256 !== draft.draft_sha256 ||
+      (request.version === "source-evidence-decision-request-0.2.0") !==
+        (report.version === "source-evidence-report-0.2.0") ||
       request.report_sha256 !== report.review_sha256
     )
       throw new ApiError(409, messages[409]!);

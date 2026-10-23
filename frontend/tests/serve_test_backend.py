@@ -288,11 +288,11 @@ def main() -> None:
             ):
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
-                from app.verification.batfish import BatfishResult
+                from app.verification.batfish import BatfishExecution, BatfishResult
 
                 def synthetic_source_worker(before, after, scope, **kwargs):
                     # Explicit owned software fixture: no SDK/model/engine is invoked.
-                    hostname = before.configs[0].hostname
+                    hostname = scope.start_node
                     failed = (
                         options.source_evidence_fixture or options.source_evidence_decision_fixture
                     ) and hostname.startswith("source-evidence-error-")
@@ -321,6 +321,30 @@ def main() -> None:
                     )
 
                 source_workflow.check_with_batfish = synthetic_source_worker
+
+                def synthetic_source_execution(before, after, scope, **kwargs):
+                    # Explicit software controls for the SDK metadata wire; no SDK is loaded.
+                    hostname = scope.start_node
+                    if hostname.startswith("source-sdk-not-observed-"):
+                        return BatfishExecution(
+                            result=BatfishResult(
+                                before_sha256=before.digest,
+                                after_sha256=after.digest,
+                                scope=scope,
+                                status="error",
+                                reason="worker_failed",
+                            ),
+                            sdk_version=None,
+                            sdk_observation="not_observed",
+                        )
+                    unavailable = hostname.startswith("source-sdk-metadata-unavailable-")
+                    return BatfishExecution(
+                        result=synthetic_source_worker(before, after, scope, **kwargs),
+                        sdk_version=None if unavailable else "owned-browser-sdk-0.36.0",
+                        sdk_observation="metadata_unavailable" if unavailable else "observed",
+                    )
+
+                source_workflow.check_with_batfish_evidence = synthetic_source_execution
                 verification = PatchVerificationSettings(allow_engine_upload=True)
             application = create_app(
                 settings,

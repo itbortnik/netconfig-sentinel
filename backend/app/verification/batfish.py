@@ -98,6 +98,35 @@ class BatfishResult(BaseModel):
         return self
 
 
+class BatfishExecution(BaseModel):
+    """Worker-observed SDK distribution metadata, without a binary identity claim."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    version: Literal["batfish-execution-0.2.0"] = "batfish-execution-0.2.0"
+    result: BatfishResult
+    sdk_version: str | None = Field(
+        min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$"
+    )
+    sdk_observation: Literal["observed", "not_observed", "metadata_unavailable"]
+
+    @model_validator(mode="after")
+    def observed_metadata(self) -> BatfishExecution:
+        if (self.sdk_observation == "observed") != (self.sdk_version is not None):
+            raise ValueError("SDK observation differs from its recorded version")
+        if (
+            self.result.reason
+            in {"upload_not_authorized", "sdk_missing", "worker_failed", "timeout"}
+            and self.sdk_observation != "not_observed"
+        ):
+            raise ValueError("unobserved worker execution cannot record SDK metadata")
+        if self.sdk_observation == "not_observed" and self.result.status not in {
+            "unavailable",
+            "error",
+        }:
+            raise ValueError("completed SDK calls require an observation or metadata failure")
+        return self
+
+
 def check_with_batfish(
     before: NetworkSnapshot,
     after: NetworkSnapshot,
@@ -106,6 +135,47 @@ def check_with_batfish(
     allow_local_upload: bool = False,
     timeout_seconds: int = 60,
 ) -> BatfishResult:
+    result = _check_with_batfish(
+        before,
+        after,
+        scope,
+        allow_local_upload=allow_local_upload,
+        timeout_seconds=timeout_seconds,
+        protocol=None,
+    )
+    assert isinstance(result, BatfishResult)
+    return result
+
+
+def check_with_batfish_evidence(
+    before: NetworkSnapshot,
+    after: NetworkSnapshot,
+    scope: ReachabilityScope,
+    *,
+    allow_local_upload: bool = False,
+    timeout_seconds: int = 60,
+) -> BatfishExecution:
+    result = _check_with_batfish(
+        before,
+        after,
+        scope,
+        allow_local_upload=allow_local_upload,
+        timeout_seconds=timeout_seconds,
+        protocol="batfish-execution-0.2.0",
+    )
+    assert isinstance(result, BatfishExecution)
+    return result
+
+
+def _check_with_batfish(
+    before: NetworkSnapshot,
+    after: NetworkSnapshot,
+    scope: ReachabilityScope,
+    *,
+    allow_local_upload: bool,
+    timeout_seconds: int,
+    protocol: Literal["batfish-execution-0.2.0"] | None,
+) -> BatfishResult | BatfishExecution:
     validate_snapshot_pair(before, after)
     scope = ReachabilityScope.model_validate(scope.model_dump())
     if scope.start_node not in {config.hostname for config in before.configs}:
@@ -116,8 +186,11 @@ def check_with_batfish(
         raise ValueError("timeout must be between 1 and 300 seconds")
     common = {"before_sha256": before.digest, "after_sha256": after.digest, "scope": scope}
 
-    def failure(status: str, reason: str) -> BatfishResult:
-        return BatfishResult.model_validate({**common, "status": status, "reason": reason})
+    def failure(status: str, reason: str) -> BatfishResult | BatfishExecution:
+        result = BatfishResult.model_validate({**common, "status": status, "reason": reason})
+        if protocol is None:
+            return result
+        return BatfishExecution(result=result, sdk_version=None, sdk_observation="not_observed")
 
     if not allow_local_upload:
         return failure("unavailable", "upload_not_authorized")
@@ -136,6 +209,10 @@ def check_with_batfish(
             "scope": scope.model_dump(mode="json"),
             "nodes": {f"configs/{item.filename}": item.hostname for item in before.configs},
         }
+        if protocol is not None:
+            request.update(
+                protocol=protocol, before_sha256=before.digest, after_sha256=after.digest
+            )
         try:
             environment = {
                 key: value
@@ -158,14 +235,25 @@ def check_with_batfish(
                     else 0
                 ),
             )
-            if run.returncode != 0 or len(run.stdout) > 32_768:
+            response_size = len(run.stdout) if protocol is None else len(run.stdout.encode("utf-8"))
+            if run.returncode != 0 or response_size > 32_768:
                 return failure("error", "worker_failed")
             response = json.loads(run.stdout)
             if not isinstance(response, dict):
                 return failure("error", "worker_failed")
-            result = BatfishResult.model_validate({**response, **common})
+            if protocol is None:
+                return BatfishResult.model_validate({**response, **common})
+            execution = BatfishExecution.model_validate(response)
+            result = execution.result
+            if (result.before_sha256, result.after_sha256, result.scope, result.network_name) != (
+                before.digest,
+                after.digest,
+                scope,
+                network_name,
+            ):
+                return failure("error", "worker_failed")
+            return execution
         except subprocess.TimeoutExpired:
             return failure("error", "timeout")
         except (OSError, ValueError):
             return failure("error", "worker_failed")
-    return result

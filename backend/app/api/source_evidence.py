@@ -19,8 +19,13 @@ from app.api.configurations import (
 from app.api.service import AnalysisService
 from app.api.source_evidence_contracts import (
     CreateSourceEvidenceReport,
-    SourceEvidenceReport,
-    SourceEvidenceSummary,
+)
+from app.api.source_evidence_sdk_contracts import (
+    CreateSourceEvidenceReportV2,
+    SourceEvidenceReportRecord,
+    SourceEvidenceSummaryRecord,
+    parse_source_evidence_request,
+    source_evidence_summary,
 )
 from app.audit.results import capture_result
 from app.db.patch_records import PatchConflict
@@ -34,24 +39,33 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
 
 @router.post(
     "/{patch_id}/evidence-reports",
-    response_model=SourceEvidenceReport,
+    response_model=SourceEvidenceReportRecord,
     status_code=201,
-    responses={200: {"model": SourceEvidenceReport, "description": "Existing immutable report."}},
+    responses={
+        200: {"model": SourceEvidenceReportRecord, "description": "Existing immutable report."}
+    },
     openapi_extra={
         "requestBody": {
             "required": True,
             "content": {
-                "application/json": {"schema": _request_schema(CreateSourceEvidenceReport)},
+                "application/json": {
+                    "schema": {
+                        "anyOf": [
+                            _request_schema(CreateSourceEvidenceReport),
+                            _request_schema(CreateSourceEvidenceReportV2),
+                        ]
+                    }
+                },
             },
         }
     },
 )
 async def create_source_evidence_report(
     patch_id: UUID, request: Request, response: Response, service: VerificationService
-) -> SourceEvidenceReport:
+) -> SourceEvidenceReportRecord:
     body = await _request_body(request, maximum=16 * 1024)
     try:
-        options = CreateSourceEvidenceReport.model_validate(
+        options = parse_source_evidence_request(
             json.loads(body.decode(), object_pairs_hook=_unique_keys)
         )
     except (ValueError, RecursionError):
@@ -75,10 +89,10 @@ async def create_source_evidence_report(
     return capture_result(request, result)
 
 
-@router.get("/{patch_id}/evidence-reports", response_model=list[SourceEvidenceSummary])
+@router.get("/{patch_id}/evidence-reports", response_model=list[SourceEvidenceSummaryRecord])
 def list_source_evidence_reports(
     patch_id: UUID, request: Request, service: Service, limit: Limit = 20, offset: Offset = 0
-) -> list[SourceEvidenceSummary]:
+) -> list[SourceEvidenceSummaryRecord]:
     workflow = SourceEvidenceWorkflow(service.store)
     try:
         workflow.drafts.draft(patch_id)
@@ -87,16 +101,16 @@ def list_source_evidence_reports(
     return capture_result(
         request,
         [
-            SourceEvidenceSummary.from_report(workflow.get(patch_id, key))
+            source_evidence_summary(workflow.get(patch_id, key))
             for key in workflow.records.list_ids(patch_id, limit=limit, offset=offset)
         ],
     )
 
 
-@router.get("/{patch_id}/evidence-reports/{report_id}", response_model=SourceEvidenceReport)
+@router.get("/{patch_id}/evidence-reports/{report_id}", response_model=SourceEvidenceReportRecord)
 def get_source_evidence_report(
     patch_id: UUID, report_id: UUID, request: Request, service: Service
-) -> SourceEvidenceReport:
+) -> SourceEvidenceReportRecord:
     try:
         return capture_result(
             request, SourceEvidenceWorkflow(service.store).get(patch_id, report_id)

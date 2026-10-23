@@ -16,6 +16,7 @@ import {
 import type { SourceEvidenceDecision } from "./sourceEvidenceDecisions";
 import controls from "./testdata/sourceEvidenceDecisionControls.json";
 import parents from "./testdata/sourceEvidenceControls.json";
+import sdkControls from "./testdata/sourceSdkControls.json";
 
 const token = "owned-source-evidence-decision-test-token-32-characters";
 const digest = (value: string) =>
@@ -31,13 +32,49 @@ function fixture(index = 0) {
     children: parent.children,
   };
 }
+function sdkFixture(index = 0) {
+  const item = structuredClone(sdkControls.cases[index]!),
+    decision = sourceEvidenceDecisionSchema.parse(item.decision);
+  return {
+    decision,
+    summary: sourceEvidenceDecisionSummarySchema.parse({
+      version: "source-evidence-decision-summary-0.2.0",
+      decision_id: decision.decision_id,
+      patch_id: decision.patch_id,
+      report_id: decision.report_id,
+      report_sha256: decision.report_sha256,
+      decision_sha256: decision.decision_sha256,
+      created_at: decision.created_at,
+      verdict: decision.request.verdict,
+      service_role: decision.service_role,
+      individual_identity_verified: false,
+      approved: false,
+      applied: false,
+    }),
+    report: sourceEvidenceReportSchema.parse(item.report),
+    draft: patchDraftSchema.parse(item.draft),
+    children: {
+      deterministic: item.deterministic,
+      forest: item.forest,
+      neural: item.neural,
+      network: item.network,
+    },
+  };
+}
 function reseal(row: SourceEvidenceDecision) {
   const { decision_json: _json, decision_sha256: _sha, ...body } = row;
   row.decision_json = stableJson(body);
   row.decision_sha256 = digest(row.decision_json);
   return row;
 }
-function transportFor(value = fixture()) {
+function transportFor(
+  value: Omit<ReturnType<typeof fixture>, "children"> & {
+    children: Record<
+      "deterministic" | "forest" | "neural" | "network",
+      unknown
+    >;
+  } = fixture(),
+) {
   return vi.fn<typeof fetch>().mockImplementation(async (url) => {
     const path = String(url);
     if (/\/decisions\?/.test(path)) return Response.json([value.summary]);
@@ -87,6 +124,98 @@ it.each([0, 1])(
     api.close();
   },
 );
+it.each(sdkControls.cases.map((row, index) => [row.name, index] as const))(
+  "accepts SDK-aware decision %s only with its exact complete saved report chain",
+  async (_name, index) => {
+    const value = sdkFixture(index);
+    expect(await sourceEvidenceDecisionProofMatches(value.decision)).toBe(true);
+    expect(
+      await sourceEvidenceDecisionBound(
+        value.decision,
+        value.report,
+        value.decision.request,
+        value.summary,
+      ),
+    ).toBe(true);
+    const api = new ApiClient(token, transportFor(value));
+    expect(
+      await api.reviewSourceEvidenceReport(
+        value.draft,
+        value.report,
+        value.decision.request,
+      ),
+    ).toEqual(value.decision);
+    expect(
+      await api.sourceEvidenceDecision(
+        value.draft,
+        value.report,
+        value.decision.decision_id,
+        value.decision.request,
+        value.summary,
+      ),
+    ).toEqual(value.decision);
+    expect(await api.sourceEvidenceDecisions(value.report)).toEqual([
+      value.summary,
+    ]);
+    api.close();
+    expect(value.decision.individual_identity_verified).toBe(false);
+    expect(value.decision.approved).toBe(false);
+    expect(
+      sourceEvidenceDecisionSchema.safeParse({
+        ...value.decision,
+        version: "source-evidence-decision-0.1.0",
+      }).success,
+    ).toBe(false);
+    expect(
+      sourceEvidenceDecisionSchema.safeParse({
+        ...value.decision,
+        report_version: "source-evidence-report-0.1.0",
+      }).success,
+    ).toBe(false);
+    expect(
+      await sourceEvidenceDecisionBound(
+        value.decision,
+        value.report,
+        undefined,
+        { ...value.summary, version: "source-evidence-decision-summary-0.1.0" },
+      ),
+    ).toBe(false);
+  },
+);
+it("rejects mixed decision protocol before sending and keeps a resealed SDK projection uncertain", async () => {
+  const value = sdkFixture(),
+    send = transportFor(value),
+    api = new ApiClient(token, send);
+  await expect(
+    api.reviewSourceEvidenceReport(value.draft, value.report, {
+      ...value.decision.request,
+      version: "source-evidence-decision-request-0.1.0",
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(send).not.toHaveBeenCalled();
+  api.close();
+  if (value.report.network?.version !== "source-patch-verification-0.2.0")
+    throw new Error("Expected SDK-aware fixture");
+  value.report.network.sdk_version = "resealed-false-sdk";
+  const { review_json: _json, review_sha256: _sha, ...body } = value.report;
+  value.report.review_json = stableJson(body);
+  value.report.review_sha256 = digest(value.report.review_json);
+  value.decision.report_sha256 = value.report.review_sha256;
+  value.decision.request.report_sha256 = value.report.review_sha256;
+  reseal(value.decision);
+  expect(await sourceEvidenceDecisionBound(value.decision, value.report)).toBe(
+    true,
+  );
+  const client = new ApiClient(token, transportFor(value));
+  await expect(
+    client.sourceEvidenceDecision(
+      value.draft,
+      value.report,
+      value.decision.decision_id,
+    ),
+  ).rejects.toMatchObject({ status: 0 });
+  client.close();
+});
 it.each([true, 0, 1, "false"])(
   "rejects numeric or promoted flags %j",
   (flag) => {

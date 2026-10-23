@@ -4,8 +4,11 @@ from uuid import UUID
 
 from app.api.source_evidence_decision_contracts import (
     MAX_SOURCE_EVIDENCE_DECISION_BYTES,
-    ReviewSourceEvidenceReport,
-    SourceEvidenceDecision,
+)
+from app.api.source_evidence_decision_sdk_contracts import (
+    SourceEvidenceDecisionRecord,
+    SourceEvidenceDecisionRequest,
+    parse_source_evidence_decision_request,
 )
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
@@ -24,12 +27,14 @@ class SourceEvidenceDecisionWorkflow:
         self.records = SourceEvidenceDecisionRecords(store)
 
     @staticmethod
-    def _view(decision: SourceEvidenceDecision) -> SourceEvidenceDecision:
+    def _view(decision: SourceEvidenceDecisionRecord) -> SourceEvidenceDecisionRecord:
         if len(decision.model_dump_json().encode()) > MAX_SOURCE_EVIDENCE_DECISION_BYTES * 4:
             raise SourceEvidenceDecisionTooLarge()
         return decision
 
-    def get(self, patch_id: UUID, report_id: UUID, decision_id: UUID) -> SourceEvidenceDecision:
+    def get(
+        self, patch_id: UUID, report_id: UUID, decision_id: UUID
+    ) -> SourceEvidenceDecisionRecord:
         decision = self.records.get(decision_id)
         if decision is None or (decision.patch_id, decision.report_id) != (patch_id, report_id):
             raise PatchNotFound()
@@ -39,10 +44,10 @@ class SourceEvidenceDecisionWorkflow:
         self,
         patch_id: UUID,
         report_id: UUID,
-        options: ReviewSourceEvidenceReport,
+        options: SourceEvidenceDecisionRequest,
         service_role: Role,
-    ) -> tuple[SourceEvidenceDecision, bool]:
-        options = ReviewSourceEvidenceReport.model_validate(options.model_dump(warnings=False))
+    ) -> tuple[SourceEvidenceDecisionRecord, bool]:
+        options = parse_source_evidence_decision_request(options)
         existing = self.records.get(options.decision_id)
         if existing is not None:
             if (existing.patch_id, existing.report_id) != (
