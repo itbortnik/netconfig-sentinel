@@ -30,7 +30,19 @@ Pydantic2.13.5/2.14.0;290runtime и3assets source-equal,653history и287oldinsta
 hashes сохранены. Все808UI unit и290browser cases проходят; browser SDK
 responses — отдельные software fixtures, actual engine evidence приведены выше.
 Независимое release review сверило frozen sources, tests, assets и evidence.
-CI новой поставки ещё не запускался; прежний cbb CI не подтверждает SDK slice.
+Для SDK commit `124b9dcc657b39ca5fefaa5819a4201a3232c1ca`
+[CI](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39916517546)
+завершён с двумя success: PostgreSQL602pass/2skip/12deselected, Batfish41+2savedcandidate
+pass. Backend остановлен на mypy: новый Pydantic2.14.1 требует распознаваемую
+форму типа для пяти inline Annotated adapters. Frontend808unit/290browser pass,
+Compose161pass/1mobile timeout при начальной загрузке снимка в обычном patch test.
+Эти сбои сохранены; все четыре gates пока не пройдены. Последующие исправления
+и новая directional функция требуют проверки собственного commit.
+Минимальная правка пяти adapter declarations использует именованные Annotated
+aliases без изменения public models/functions и proof serialization. На Pydantic
+2.13.5 и2.14.1 прошли98связанных unit cases и49frozen DTO replays на каждой версии;
+mypy проходит с обеими сигнатурами TypeAdapter. Timeout старого Compose browser
+case не воспроизведён локально на desktop/mobile (2pass); тест не ослаблялся.
 
 Для доступной части §16.8 добавлены [сохранённые решения по совместному отчёту](source-evidence-decisions.md):
 engineer/admin явно выбирает report UUID/SHA и записывает `rejected` либо

@@ -194,12 +194,10 @@ SourceEvidenceDecisionRecord = SourceEvidenceDecision | SourceEvidenceDecisionV2
 SourceEvidenceDecisionSummaryRecord = (
     SourceEvidenceDecisionSummary | SourceEvidenceDecisionSummaryV2
 )
-_REQUEST: TypeAdapter[SourceEvidenceDecisionRequest] = TypeAdapter(
-    Annotated[SourceEvidenceDecisionRequest, Field(discriminator="version")]
-)
-_DECISION: TypeAdapter[SourceEvidenceDecisionRecord] = TypeAdapter(
-    Annotated[SourceEvidenceDecisionRecord, Field(discriminator="version")]
-)
+_DiscriminatedRequest = Annotated[SourceEvidenceDecisionRequest, Field(discriminator="version")]
+_REQUEST: TypeAdapter[SourceEvidenceDecisionRequest] = TypeAdapter(_DiscriminatedRequest)
+_DiscriminatedDecision = Annotated[SourceEvidenceDecisionRecord, Field(discriminator="version")]
+_DECISION: TypeAdapter[SourceEvidenceDecisionRecord] = TypeAdapter(_DiscriminatedDecision)
 
 
 def parse_source_evidence_decision_request(value: object) -> SourceEvidenceDecisionRequest:

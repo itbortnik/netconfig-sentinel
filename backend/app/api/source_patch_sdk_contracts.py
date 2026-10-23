@@ -271,9 +271,8 @@ SourcePatchSummary = SourcePatchVerificationSummary | SourcePatchVerificationSum
 _REQUEST: TypeAdapter[SourcePatchRequest] = TypeAdapter(SourcePatchRequest)
 _INTENT: TypeAdapter[SourcePatchIntentRecord] = TypeAdapter(SourcePatchIntentRecord)
 _OUTCOME: TypeAdapter[SourcePatchOutcomeRecord] = TypeAdapter(SourcePatchOutcomeRecord)
-_REVIEW: TypeAdapter[SourcePatchReview] = TypeAdapter(
-    Annotated[SourcePatchReview, Field(discriminator="version")]
-)
+_DiscriminatedReview = Annotated[SourcePatchReview, Field(discriminator="version")]
+_REVIEW: TypeAdapter[SourcePatchReview] = TypeAdapter(_DiscriminatedReview)
 
 
 def parse_source_patch_request(value: object) -> SourcePatchRequest:

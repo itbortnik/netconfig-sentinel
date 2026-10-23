@@ -316,12 +316,10 @@ class SourceEvidenceSummaryV2(Frozen):
 SourceEvidenceRequest = CreateSourceEvidenceReport | CreateSourceEvidenceReportV2
 SourceEvidenceReportRecord = SourceEvidenceReport | SourceEvidenceReportV2
 SourceEvidenceSummaryRecord = SourceEvidenceSummary | SourceEvidenceSummaryV2
-_REQUEST: TypeAdapter[SourceEvidenceRequest] = TypeAdapter(
-    Annotated[SourceEvidenceRequest, Field(discriminator="version")]
-)
-_REPORT: TypeAdapter[SourceEvidenceReportRecord] = TypeAdapter(
-    Annotated[SourceEvidenceReportRecord, Field(discriminator="version")]
-)
+_DiscriminatedRequest = Annotated[SourceEvidenceRequest, Field(discriminator="version")]
+_REQUEST: TypeAdapter[SourceEvidenceRequest] = TypeAdapter(_DiscriminatedRequest)
+_DiscriminatedReport = Annotated[SourceEvidenceReportRecord, Field(discriminator="version")]
+_REPORT: TypeAdapter[SourceEvidenceReportRecord] = TypeAdapter(_DiscriminatedReport)
 
 
 def parse_source_evidence_request(value: object) -> SourceEvidenceRequest:
