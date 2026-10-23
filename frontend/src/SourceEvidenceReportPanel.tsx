@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
+import { SourceRiskAssessmentPanel } from "./SourceRiskAssessmentPanel";
 import { SourceEvidenceDecisionPanel } from "./SourceEvidenceDecisionPanel";
 import { ReachabilityImpactView } from "./ReachabilityImpactView";
 import type { PatchDraft } from "./patches";
@@ -98,6 +99,7 @@ export function SourceEvidenceReportPanel({
   const [open, setOpen] = useState(false),
     [working, setWorking] = useState(false);
   const [decisionGuard, setDecisionGuard] = useState(false);
+  const [riskGuard, setRiskGuard] = useState(false);
   const [pages, setPages] = useState<Pages>(emptyPages),
     [selected, setSelected] = useState<Selections>(emptySelections);
   const [history, setHistory] = useState<SourceEvidenceSummary[]>([]),
@@ -118,9 +120,9 @@ export function SourceEvidenceReportPanel({
       alive.current = false;
     };
   }, []);
-  const busy = outerBusy || working || decisionGuard;
+  const busy = outerBusy || working || decisionGuard || riskGuard;
   async function operation(action: () => Promise<void>) {
-    if (lock.current || outerBusy || decisionGuard) return;
+    if (lock.current || outerBusy || decisionGuard || riskGuard) return;
     lock.current = true;
     setWorking(true);
     try {
@@ -473,12 +475,21 @@ export function SourceEvidenceReportPanel({
           {view && (
             <>
               <EvidenceView view={view} />
+              <SourceRiskAssessmentPanel
+                key={`risk-${view.report_id}-${view.review_sha256}`}
+                client={client}
+                draft={draft}
+                report={view}
+                busy={outerBusy || working || decisionGuard}
+                onError={onError}
+                onGuardChange={setRiskGuard}
+              />
               <SourceEvidenceDecisionPanel
                 key={`${view.report_id}-${view.review_sha256}`}
                 client={client}
                 draft={draft}
                 report={view}
-                busy={outerBusy || working}
+                busy={outerBusy || working || riskGuard}
                 onError={onError}
                 onGuardChange={setDecisionGuard}
               />
@@ -497,7 +508,8 @@ function EvidenceView({ view }: { view: SourceEvidenceReport }) {
       <h4>Совместный отчёт сохранён — требуется рассмотрение</h4>
       <p>
         Статус: needs_review. Общая формальная квалификация: not_proven.
-        Качество доказано: нет. Калибровка: нет. Объединение риска: нет.
+        Качество доказано: нет. Калибровка: нет. Объединение риска в этой
+        записи: нет; экспериментальный приоритет сохраняется отдельно.
         Согласовано: нет. Применено: нет.
       </p>
       <p className="mono">

@@ -30,6 +30,7 @@ from app.api.source_evidence_decisions import router as source_evidence_decision
 from app.api.source_forest import router as source_forest_router
 from app.api.source_ml import router as source_ml_router
 from app.api.source_patch_reviews import router as source_patch_review_router
+from app.api.source_risk_assessments import router as source_risk_router
 from app.audit.http import journal_response
 from app.audit.journal import OperationJournal
 from app.core.configuration_model import ConfigurationModelSettings
@@ -98,6 +99,7 @@ def create_app(
             source_deterministic_router,
             source_evidence_router,
             source_evidence_decision_router,
+            source_risk_router,
             model_patch_router,
             grounded_model_patch_router,
             model_patch_review_router,
@@ -159,6 +161,7 @@ def create_app(
     application.include_router(source_deterministic_router)
     application.include_router(source_evidence_router)
     application.include_router(source_evidence_decision_router)
+    application.include_router(source_risk_router)
     application.include_router(model_patch_router)
     application.include_router(grounded_model_patch_router)
     application.include_router(model_patch_review_router)

@@ -19,6 +19,7 @@
     "test:e2e:source-forest": "playwright test --config=playwright.source-forest.config.ts",
     "test:e2e:source-deterministic": "playwright test --config=playwright.source-deterministic.config.ts",
     "test:e2e:source-evidence": "playwright test --config=playwright.source-evidence.config.ts",
+    "test:e2e:source-risk": "playwright test --config=playwright.source-risk.config.ts",
     "test:e2e:source-evidence-decisions": "playwright test --config=playwright.source-evidence-decisions.config.ts"
   },
   "dependencies": {

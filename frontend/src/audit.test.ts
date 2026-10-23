@@ -234,3 +234,21 @@ it("does not expose a late audit response from a disconnected session", async ()
   release(new Response(JSON.stringify(record)));
   await expect(request).rejects.toMatchObject({ name: "AbortError" });
 });
+
+it("accepts new separate risk audit operations without promoting identity", () => {
+  for (const operation of [
+    "create_source_risk_assessment",
+    "list_source_risk_assessments",
+    "get_source_risk_assessment",
+  ]) {
+    expect(
+      operationRecordSchema.safeParse({
+        ...record,
+        receipt: { ...record.receipt, operation },
+        completion: null,
+        outcome: "pending",
+        authorization: "not_checked",
+      }).success,
+    ).toBe(true);
+  }
+});

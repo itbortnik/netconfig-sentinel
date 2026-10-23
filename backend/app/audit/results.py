@@ -83,6 +83,7 @@ from app.api.source_patch_sdk_contracts import (
     SourcePatchVerificationSummaryV2,
     SourcePatchVerificationV2,
 )
+from app.api.source_risk_contracts import SourceRiskAssessment, SourceRiskSummary
 from app.audit.contracts import OperationPage, OperationRecord, ResultMetadata, metadata_hash
 from app.domain import Finding
 from app.domain.fingerprints import finding_fingerprint
@@ -101,6 +102,7 @@ _IDENTIFIERS = (
     "inference_id",
     "recheck_id",
     "report_id",
+    "assessment_id",
     "before_analysis_id",
 )
 _HASHES = (
@@ -154,6 +156,8 @@ _SUPPORTED = (
     SourceEvidenceDecisionV3,
     SourceEvidenceDecisionSummaryV2,
     SourceEvidenceDecisionSummaryV3,
+    SourceRiskAssessment,
+    SourceRiskSummary,
     SourceEvidenceDecision,
     SourceEvidenceDecisionSummary,
     SourceDeterministicSelection,
@@ -191,6 +195,17 @@ def _selected(value: BaseModel) -> dict[str, object]:
         item = getattr(value, name, None)
         if isinstance(item, str):
             selected[name] = item
+    if isinstance(value, (SourceRiskAssessment, SourceRiskSummary)):
+        # Bind metadata only: no score, component, model output, prose or witnesses.
+        selected["review_sha256"] = value.review_sha256
+        selected["report_sha256"] = value.report_sha256
+        selected["report_version"] = value.report_version
+        selected["recorded_service_role"] = value.service_role
+        selected["profile_version"] = (
+            value.composition.profile_version
+            if isinstance(value, SourceRiskAssessment)
+            else value.profile_version
+        )
     if isinstance(value, ConfigurationSnapshot):
         selected["source_sha256"] = value.canonical.source.sha256
         selected["version"] = f"canonical-schema-{value.canonical.schema_version}"

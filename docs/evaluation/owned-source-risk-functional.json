@@ -1,0 +1,1422 @@
+{
+  "actual_risk_assessments": 4,
+  "applied": false,
+  "approved": false,
+  "authored_target_pairs_reused": 2,
+  "completed_utc": "2026-10-23T20:04:28.538836+00:00",
+  "cross_role_replay_preserves_actor_time_proof": true,
+  "formal_qualification": "not_proven",
+  "goal_completed": false,
+  "history_after_original_model_reference_removal": true,
+  "independent_quality_denominator": null,
+  "individual_identity_verified": false,
+  "limitations": [
+    "Two prior authored pairs are reused; repeated records do not enlarge an independent corpus.",
+    "Weights, bands and raw model mappings are engineering defaults, not calibrated operational risk.",
+    "Selected saved outputs are not new model or verifier executions.",
+    "No differential witness returned by these ordinary scopes establishes universal invariance.",
+    "Shared service roles do not verify an individual engineer or approve a change."
+  ],
+  "migration": "0016_to_0017_additive",
+  "new_fits": 0,
+  "new_model_or_engine_calls": 0,
+  "old_physical_rows_unchanged": true,
+  "parent_functional_sha256": "2c24b911a415f333a4f26fc85d1d1738c46d7360cd29e3f641e9b25ce0d611ab",
+  "profile_version": "source-priority-profile-0.1.0",
+  "protocol_sha256": "780bfbecce5ee0d2c871f358d622abe1f53324bad6ad5ff97466e80e0921b099",
+  "quality_proven": false,
+  "recorded_service_roles": [
+    "engineer",
+    "admin"
+  ],
+  "records": [
+    {
+      "assessment": {
+        "applied": false,
+        "approved": false,
+        "assessment_id": "35c70f00-babf-4827-ac23-afbb4ad0bc66",
+        "composition": {
+          "after": {
+            "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+            "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+            "created_at": "2026-10-19T18:33:11.905499Z",
+            "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+            "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+          },
+          "applicable_guardrails": [],
+          "applied": false,
+          "applied_guardrails": [],
+          "approved": false,
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "band": "high",
+          "before": {
+            "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+            "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+            "created_at": "2026-10-19T18:33:11.889099Z",
+            "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+            "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+          },
+          "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+          "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+          "calibrated": false,
+          "candidate_parser_confidence": 1.0,
+          "components": [
+            {
+              "configured_weight": 0.35,
+              "contribution": 0.375,
+              "effective_weight": 0.5,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+                "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "policy_engine",
+                "finding_count": 4,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 0.0,
+                  "confidence": 1.0,
+                  "finding_id": "01c948c5-fb58-515b-8c55-99070a5caa62",
+                  "severity": "high"
+                }
+              },
+              "raw_score": 0.75,
+              "reason": "available",
+              "source": "policy",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.15,
+              "contribution": 0.2142857142857143,
+              "effective_weight": 0.2142857142857143,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+                "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "peer_baseline",
+                "finding_count": 1,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 1.0,
+                  "confidence": 1.0,
+                  "finding_id": "8d59f4e6-c729-5c35-b7e6-21ae6af07f4e",
+                  "severity": "medium"
+                }
+              },
+              "raw_score": 1.0,
+              "reason": "available",
+              "source": "peer_group",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.0,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "forest",
+                "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+                "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+                "version": "source-forest-recheck-0.1.0"
+              },
+              "observation": {
+                "after_decision_function": 0.0005777332324019557,
+                "after_prediction": 1,
+                "after_score_samples": -0.5491916294890309,
+                "artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+                "candidate_parser_confidence": 1.0,
+                "decision_offset": -0.5497693627214328,
+                "interpretation": "retained_forest_numeric_proxy_not_new_finding",
+                "kind": "forest",
+                "model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+                "model_version": "isolation-forest-0.1.0",
+                "normalized_anomaly": 0.9914672657958103,
+                "proxy_confidence": 0.16,
+                "raw_anomaly_score": 0.5491916294890309,
+                "training_sample_count": 8,
+                "training_score_max": 0.5497693627214328,
+                "training_score_min": 0.48206149574975554
+              },
+              "raw_score": 0.0,
+              "reason": "available",
+              "source": "statistical",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.045218246323721754,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "neural",
+                "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+                "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2",
+                "version": "source-ml-recheck-0.1.0"
+              },
+              "observation": {
+                "anomaly_head_enabled": true,
+                "anomaly_score": 0.31652772426605225,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "interpretation": "retained_uncalibrated_anomaly_head",
+                "kind": "neural",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "target_semantics": "injected_mutation"
+              },
+              "raw_score": 0.31652772426605225,
+              "reason": "available",
+              "source": "transformer",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.3,
+              "contribution": null,
+              "effective_weight": 0.0,
+              "evidence": {
+                "kind": "network",
+                "record_id": "78878662-c6a1-4fde-aa82-f1884f46d7c8",
+                "review_sha256": "a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71",
+                "version": "source-patch-verification-0.3.0"
+              },
+              "observation": {
+                "execution": {
+                  "reachability_impact": {
+                    "direction": "no_witnesses_returned",
+                    "gained_witness_count": 0,
+                    "limitations": [
+                      "Returned flows are examples, not all packets or the size of the affected flow space.",
+                      "Differential queries use ingress locations present and active in both snapshots.",
+                      "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+                      "Successful subnet delivery or exit does not establish delivery to an external device.",
+                      "No severity, whole-network safety, management access, approval or application is inferred."
+                    ],
+                    "lost_witness_count": 0,
+                    "max_traces": 16,
+                    "max_witnesses": 64,
+                    "method": "differential-success-example-flows-0.1.0",
+                    "reason": "query_completed",
+                    "state": "observed",
+                    "version": "reachability-impact-0.1.0",
+                    "witnesses": []
+                  },
+                  "result": {
+                    "after_reachable_count": 1,
+                    "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+                    "before_reachable_count": 1,
+                    "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+                    "cleanup_complete": true,
+                    "difference_count": 0,
+                    "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                    "limitations": [
+                      "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                      "Differences may be reachability gains or losses; counts are not impact severity.",
+                      "No patch validation, approval or application is performed.",
+                      "External topology completeness and operational state are not established."
+                    ],
+                    "network_name": "sentinel-0cdf9698384a48e785a4316772f720f1",
+                    "reason": "query_completed",
+                    "requires_human_review": true,
+                    "scope": {
+                      "destination": "192.0.2.1/32",
+                      "start_node": "deterministic-target"
+                    },
+                    "status": "no_differences_in_scope",
+                    "version": "batfish-check-0.1.0"
+                  },
+                  "sdk_observation": "observed",
+                  "sdk_version": "2026.8.19.3660",
+                  "version": "batfish-execution-0.3.0"
+                },
+                "kind": "verification",
+                "protocol_version": "source-patch-verification-0.3.0",
+                "result": {
+                  "after_reachable_count": 1,
+                  "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+                  "before_reachable_count": 1,
+                  "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+                  "cleanup_complete": true,
+                  "difference_count": 0,
+                  "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                  "limitations": [
+                    "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                    "Differences may be reachability gains or losses; counts are not impact severity.",
+                    "No patch validation, approval or application is performed.",
+                    "External topology completeness and operational state are not established."
+                  ],
+                  "network_name": "sentinel-0cdf9698384a48e785a4316772f720f1",
+                  "reason": "query_completed",
+                  "requires_human_review": true,
+                  "scope": {
+                    "destination": "192.0.2.1/32",
+                    "start_node": "deterministic-target"
+                  },
+                  "status": "no_differences_in_scope",
+                  "version": "batfish-check-0.1.0"
+                }
+              },
+              "raw_score": null,
+              "reason": "network_adverse_evidence_unavailable",
+              "source": "verification",
+              "status": "unavailable"
+            }
+          ],
+          "coverage": "supported_complete",
+          "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+          "formal_qualification": "not_proven",
+          "individual_identity_verified": false,
+          "limitations": [
+            "This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.",
+            "Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.",
+            "Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.",
+            "Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.",
+            "Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.",
+            "The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.",
+            "The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.",
+            "No model or verifier is rerun, and no quality, individual identity, approval or application is established."
+          ],
+          "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+          "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+          "report_version": "source-evidence-report-0.3.0",
+          "review_status": "needs_review",
+          "score": 0.634503960609436,
+          "selected_evidence": [
+            {
+              "kind": "deterministic",
+              "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+              "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+              "version": "source-deterministic-recheck-0.1.0"
+            },
+            {
+              "kind": "forest",
+              "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+              "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+              "version": "source-forest-recheck-0.1.0"
+            },
+            {
+              "kind": "neural",
+              "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+              "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2",
+              "version": "source-ml-recheck-0.1.0"
+            },
+            {
+              "kind": "network",
+              "record_id": "78878662-c6a1-4fde-aa82-f1884f46d7c8",
+              "review_sha256": "a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71",
+              "version": "source-patch-verification-0.3.0"
+            }
+          ],
+          "side": "after",
+          "status": "completed",
+          "version": "source-priority-composition-0.1.0"
+        },
+        "created_at": "2026-10-23T20:04:13.736500Z",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "report_version": "source-evidence-report-0.3.0",
+        "request": {
+          "assessment_id": "35c70f00-babf-4827-ac23-afbb4ad0bc66",
+          "profile_version": "source-priority-profile-0.1.0",
+          "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+          "version": "source-risk-request-0.1.0"
+        },
+        "review_json": "{\"applied\":false,\"approved\":false,\"assessment_id\":\"35c70f00-babf-4827-ac23-afbb4ad0bc66\",\"composition\":{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applicable_guardrails\":[],\"applied\":false,\"applied_guardrails\":[],\"approved\":false,\"availability_mask\":[\"policy\",\"peer_group\",\"statistical\",\"transformer\"],\"band\":\"high\",\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"calibrated\":false,\"candidate_parser_confidence\":1.0,\"components\":[{\"configured_weight\":0.35,\"contribution\":0.375,\"effective_weight\":0.5,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"policy_engine\",\"finding_count\":4,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":0.0,\"confidence\":1.0,\"finding_id\":\"01c948c5-fb58-515b-8c55-99070a5caa62\",\"severity\":\"high\"}},\"raw_score\":0.75,\"reason\":\"available\",\"source\":\"policy\",\"status\":\"completed\"},{\"configured_weight\":0.15,\"contribution\":0.2142857142857143,\"effective_weight\":0.2142857142857143,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"peer_baseline\",\"finding_count\":1,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":1.0,\"confidence\":1.0,\"finding_id\":\"8d59f4e6-c729-5c35-b7e6-21ae6af07f4e\",\"severity\":\"medium\"}},\"raw_score\":1.0,\"reason\":\"available\",\"source\":\"peer_group\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.0,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"forest\",\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\",\"version\":\"source-forest-recheck-0.1.0\"},\"observation\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d\",\"candidate_parser_confidence\":1.0,\"decision_offset\":-0.5497693627214328,\"interpretation\":\"retained_forest_numeric_proxy_not_new_finding\",\"kind\":\"forest\",\"model_id\":\"04d9a9e3-fbeb-42ff-be7a-728dd57eb64f\",\"model_version\":\"isolation-forest-0.1.0\",\"normalized_anomaly\":0.9914672657958103,\"proxy_confidence\":0.16,\"raw_anomaly_score\":0.5491916294890309,\"training_sample_count\":8,\"training_score_max\":0.5497693627214328,\"training_score_min\":0.48206149574975554},\"raw_score\":0.0,\"reason\":\"available\",\"source\":\"statistical\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.045218246323721754,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"neural\",\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\",\"version\":\"source-ml-recheck-0.1.0\"},\"observation\":{\"anomaly_head_enabled\":true,\"anomaly_score\":0.31652772426605225,\"classes\":[\"telnet_enabled\"],\"interpretation\":\"retained_uncalibrated_anomaly_head\",\"kind\":\"neural\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"target_semantics\":\"injected_mutation\"},\"raw_score\":0.31652772426605225,\"reason\":\"available\",\"source\":\"transformer\",\"status\":\"completed\"},{\"configured_weight\":0.3,\"contribution\":null,\"effective_weight\":0.0,\"evidence\":{\"kind\":\"network\",\"record_id\":\"78878662-c6a1-4fde-aa82-f1884f46d7c8\",\"review_sha256\":\"a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71\",\"version\":\"source-patch-verification-0.3.0\"},\"observation\":{\"execution\":{\"reachability_impact\":{\"direction\":\"no_witnesses_returned\",\"gained_witness_count\":0,\"limitations\":[\"Returned flows are examples, not all packets or the size of the affected flow space.\",\"Differential queries use ingress locations present and active in both snapshots.\",\"Source IP inference uses the after snapshot; removed ingress locations are not covered.\",\"Successful subnet delivery or exit does not establish delivery to an external device.\",\"No severity, whole-network safety, management access, approval or application is inferred.\"],\"lost_witness_count\":0,\"max_traces\":16,\"max_witnesses\":64,\"method\":\"differential-success-example-flows-0.1.0\",\"reason\":\"query_completed\",\"state\":\"observed\",\"version\":\"reachability-impact-0.1.0\",\"witnesses\":[]},\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf\",\"before_reachable_count\":1,\"before_sha256\":\"f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-0cdf9698384a48e785a4316772f720f1\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"},\"sdk_observation\":\"observed\",\"sdk_version\":\"2026.8.19.3660\",\"version\":\"batfish-execution-0.3.0\"},\"kind\":\"verification\",\"protocol_version\":\"source-patch-verification-0.3.0\",\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf\",\"before_reachable_count\":1,\"before_sha256\":\"f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-0cdf9698384a48e785a4316772f720f1\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"}},\"raw_score\":null,\"reason\":\"network_adverse_evidence_unavailable\",\"source\":\"verification\",\"status\":\"unavailable\"}],\"coverage\":\"supported_complete\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"formal_qualification\":\"not_proven\",\"individual_identity_verified\":false,\"limitations\":[\"This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.\",\"Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.\",\"Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.\",\"Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.\",\"Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.\",\"The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.\",\"The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.\",\"No model or verifier is rerun, and no quality, individual identity, approval or application is established.\"],\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"profile_version\":\"source-priority-profile-0.1.0\",\"quality_proven\":false,\"report_id\":\"69496ad0-cce1-42a9-85eb-aa8cf4efdf60\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"report_version\":\"source-evidence-report-0.3.0\",\"review_status\":\"needs_review\",\"score\":0.634503960609436,\"selected_evidence\":[{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},{\"kind\":\"forest\",\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\",\"version\":\"source-forest-recheck-0.1.0\"},{\"kind\":\"neural\",\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\",\"version\":\"source-ml-recheck-0.1.0\"},{\"kind\":\"network\",\"record_id\":\"78878662-c6a1-4fde-aa82-f1884f46d7c8\",\"review_sha256\":\"a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71\",\"version\":\"source-patch-verification-0.3.0\"}],\"side\":\"after\",\"status\":\"completed\",\"version\":\"source-priority-composition-0.1.0\"},\"created_at\":\"2026-10-23T20:04:13.736500Z\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"69496ad0-cce1-42a9-85eb-aa8cf4efdf60\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"report_version\":\"source-evidence-report-0.3.0\",\"request\":{\"assessment_id\":\"35c70f00-babf-4827-ac23-afbb4ad0bc66\",\"profile_version\":\"source-priority-profile-0.1.0\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"version\":\"source-risk-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-risk-assessment-0.1.0\"}",
+        "review_sha256": "1a137418e1e5690a73f9573db07fd3e51c85e37362b3a753b9a46b7311668479",
+        "service_role": "engineer",
+        "version": "source-risk-assessment-0.1.0"
+      },
+      "request": {
+        "assessment_id": "35c70f00-babf-4827-ac23-afbb4ad0bc66",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "version": "source-risk-request-0.1.0"
+      },
+      "summary": {
+        "applicable_guardrails": [],
+        "applied": false,
+        "approved": false,
+        "assessment_id": "35c70f00-babf-4827-ac23-afbb4ad0bc66",
+        "availability_mask": [
+          "policy",
+          "peer_group",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "composition_status": "completed",
+        "coverage": "supported_complete",
+        "created_at": "2026-10-23T20:04:13.736500Z",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "report_version": "source-evidence-report-0.3.0",
+        "review_sha256": "1a137418e1e5690a73f9573db07fd3e51c85e37362b3a753b9a46b7311668479",
+        "score": 0.634503960609436,
+        "service_role": "engineer",
+        "version": "source-risk-summary-0.1.0"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "assessment": {
+        "applied": false,
+        "approved": false,
+        "assessment_id": "6ad61aeb-55ab-429a-a803-4b91f389e055",
+        "composition": {
+          "after": {
+            "canonical_sha256": "c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6",
+            "configuration_id": "ae36cf44-8f98-4956-b852-541a32ecec6d",
+            "created_at": "2026-10-19T18:33:11.905499Z",
+            "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+            "source_sha256": "f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1"
+          },
+          "applicable_guardrails": [],
+          "applied": false,
+          "applied_guardrails": [],
+          "approved": false,
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "band": "high",
+          "before": {
+            "canonical_sha256": "f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec",
+            "configuration_id": "1214943a-3085-44d1-a2f5-a22a49fd72b3",
+            "created_at": "2026-10-19T18:33:11.889099Z",
+            "device_id": "6a5d3ca7-a714-46aa-bc2d-3798593f8772",
+            "source_sha256": "faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7"
+          },
+          "before_analysis_id": "e740c334-35b2-4560-9e0c-4cc5ae1efe91",
+          "before_analysis_sha256": "e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c",
+          "calibrated": false,
+          "candidate_parser_confidence": 1.0,
+          "components": [
+            {
+              "configured_weight": 0.35,
+              "contribution": 0.375,
+              "effective_weight": 0.5,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+                "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "policy_engine",
+                "finding_count": 4,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 0.0,
+                  "confidence": 1.0,
+                  "finding_id": "01c948c5-fb58-515b-8c55-99070a5caa62",
+                  "severity": "high"
+                }
+              },
+              "raw_score": 0.75,
+              "reason": "available",
+              "source": "policy",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.15,
+              "contribution": 0.2142857142857143,
+              "effective_weight": 0.2142857142857143,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+                "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "peer_baseline",
+                "finding_count": 1,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 1.0,
+                  "confidence": 1.0,
+                  "finding_id": "8d59f4e6-c729-5c35-b7e6-21ae6af07f4e",
+                  "severity": "medium"
+                }
+              },
+              "raw_score": 1.0,
+              "reason": "available",
+              "source": "peer_group",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.0,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "forest",
+                "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+                "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+                "version": "source-forest-recheck-0.1.0"
+              },
+              "observation": {
+                "after_decision_function": 0.0005777332324019557,
+                "after_prediction": 1,
+                "after_score_samples": -0.5491916294890309,
+                "artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+                "candidate_parser_confidence": 1.0,
+                "decision_offset": -0.5497693627214328,
+                "interpretation": "retained_forest_numeric_proxy_not_new_finding",
+                "kind": "forest",
+                "model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+                "model_version": "isolation-forest-0.1.0",
+                "normalized_anomaly": 0.9914672657958103,
+                "proxy_confidence": 0.16,
+                "raw_anomaly_score": 0.5491916294890309,
+                "training_sample_count": 8,
+                "training_score_max": 0.5497693627214328,
+                "training_score_min": 0.48206149574975554
+              },
+              "raw_score": 0.0,
+              "reason": "available",
+              "source": "statistical",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.045218246323721754,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "neural",
+                "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+                "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2",
+                "version": "source-ml-recheck-0.1.0"
+              },
+              "observation": {
+                "anomaly_head_enabled": true,
+                "anomaly_score": 0.31652772426605225,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "interpretation": "retained_uncalibrated_anomaly_head",
+                "kind": "neural",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "target_semantics": "injected_mutation"
+              },
+              "raw_score": 0.31652772426605225,
+              "reason": "available",
+              "source": "transformer",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.3,
+              "contribution": null,
+              "effective_weight": 0.0,
+              "evidence": {
+                "kind": "network",
+                "record_id": "78878662-c6a1-4fde-aa82-f1884f46d7c8",
+                "review_sha256": "a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71",
+                "version": "source-patch-verification-0.3.0"
+              },
+              "observation": {
+                "execution": {
+                  "reachability_impact": {
+                    "direction": "no_witnesses_returned",
+                    "gained_witness_count": 0,
+                    "limitations": [
+                      "Returned flows are examples, not all packets or the size of the affected flow space.",
+                      "Differential queries use ingress locations present and active in both snapshots.",
+                      "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+                      "Successful subnet delivery or exit does not establish delivery to an external device.",
+                      "No severity, whole-network safety, management access, approval or application is inferred."
+                    ],
+                    "lost_witness_count": 0,
+                    "max_traces": 16,
+                    "max_witnesses": 64,
+                    "method": "differential-success-example-flows-0.1.0",
+                    "reason": "query_completed",
+                    "state": "observed",
+                    "version": "reachability-impact-0.1.0",
+                    "witnesses": []
+                  },
+                  "result": {
+                    "after_reachable_count": 1,
+                    "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+                    "before_reachable_count": 1,
+                    "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+                    "cleanup_complete": true,
+                    "difference_count": 0,
+                    "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                    "limitations": [
+                      "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                      "Differences may be reachability gains or losses; counts are not impact severity.",
+                      "No patch validation, approval or application is performed.",
+                      "External topology completeness and operational state are not established."
+                    ],
+                    "network_name": "sentinel-0cdf9698384a48e785a4316772f720f1",
+                    "reason": "query_completed",
+                    "requires_human_review": true,
+                    "scope": {
+                      "destination": "192.0.2.1/32",
+                      "start_node": "deterministic-target"
+                    },
+                    "status": "no_differences_in_scope",
+                    "version": "batfish-check-0.1.0"
+                  },
+                  "sdk_observation": "observed",
+                  "sdk_version": "2026.8.19.3660",
+                  "version": "batfish-execution-0.3.0"
+                },
+                "kind": "verification",
+                "protocol_version": "source-patch-verification-0.3.0",
+                "result": {
+                  "after_reachable_count": 1,
+                  "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+                  "before_reachable_count": 1,
+                  "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+                  "cleanup_complete": true,
+                  "difference_count": 0,
+                  "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                  "limitations": [
+                    "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                    "Differences may be reachability gains or losses; counts are not impact severity.",
+                    "No patch validation, approval or application is performed.",
+                    "External topology completeness and operational state are not established."
+                  ],
+                  "network_name": "sentinel-0cdf9698384a48e785a4316772f720f1",
+                  "reason": "query_completed",
+                  "requires_human_review": true,
+                  "scope": {
+                    "destination": "192.0.2.1/32",
+                    "start_node": "deterministic-target"
+                  },
+                  "status": "no_differences_in_scope",
+                  "version": "batfish-check-0.1.0"
+                }
+              },
+              "raw_score": null,
+              "reason": "network_adverse_evidence_unavailable",
+              "source": "verification",
+              "status": "unavailable"
+            }
+          ],
+          "coverage": "supported_complete",
+          "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+          "formal_qualification": "not_proven",
+          "individual_identity_verified": false,
+          "limitations": [
+            "This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.",
+            "Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.",
+            "Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.",
+            "Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.",
+            "Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.",
+            "The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.",
+            "The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.",
+            "No model or verifier is rerun, and no quality, individual identity, approval or application is established."
+          ],
+          "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+          "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+          "report_version": "source-evidence-report-0.3.0",
+          "review_status": "needs_review",
+          "score": 0.634503960609436,
+          "selected_evidence": [
+            {
+              "kind": "deterministic",
+              "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+              "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+              "version": "source-deterministic-recheck-0.1.0"
+            },
+            {
+              "kind": "forest",
+              "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+              "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+              "version": "source-forest-recheck-0.1.0"
+            },
+            {
+              "kind": "neural",
+              "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+              "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2",
+              "version": "source-ml-recheck-0.1.0"
+            },
+            {
+              "kind": "network",
+              "record_id": "78878662-c6a1-4fde-aa82-f1884f46d7c8",
+              "review_sha256": "a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71",
+              "version": "source-patch-verification-0.3.0"
+            }
+          ],
+          "side": "after",
+          "status": "completed",
+          "version": "source-priority-composition-0.1.0"
+        },
+        "created_at": "2026-10-23T20:04:14.259496Z",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "report_version": "source-evidence-report-0.3.0",
+        "request": {
+          "assessment_id": "6ad61aeb-55ab-429a-a803-4b91f389e055",
+          "profile_version": "source-priority-profile-0.1.0",
+          "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+          "version": "source-risk-request-0.1.0"
+        },
+        "review_json": "{\"applied\":false,\"approved\":false,\"assessment_id\":\"6ad61aeb-55ab-429a-a803-4b91f389e055\",\"composition\":{\"after\":{\"canonical_sha256\":\"c83ed9b0077f8d7f368de891ab0e37c951d5827293b0c5d2b31057e4269da0f6\",\"configuration_id\":\"ae36cf44-8f98-4956-b852-541a32ecec6d\",\"created_at\":\"2026-10-19T18:33:11.905499Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"f41765e359a668edf94832a13b54f6bc235c93e4f4f74c724ae1f1cb98be26c1\"},\"applicable_guardrails\":[],\"applied\":false,\"applied_guardrails\":[],\"approved\":false,\"availability_mask\":[\"policy\",\"peer_group\",\"statistical\",\"transformer\"],\"band\":\"high\",\"before\":{\"canonical_sha256\":\"f4e3e9c62bfc16a6754944fdc21f2b9595297e4cdaceec58552ded3e1cf984ec\",\"configuration_id\":\"1214943a-3085-44d1-a2f5-a22a49fd72b3\",\"created_at\":\"2026-10-19T18:33:11.889099Z\",\"device_id\":\"6a5d3ca7-a714-46aa-bc2d-3798593f8772\",\"source_sha256\":\"faab15445262ff053dcf54fb43b249da479797b22fd51087e9dcdc402fa257e7\"},\"before_analysis_id\":\"e740c334-35b2-4560-9e0c-4cc5ae1efe91\",\"before_analysis_sha256\":\"e719a138e1be7be3fbc3117354b5962f96b78b47d926e0c36810dad5003d2d0c\",\"calibrated\":false,\"candidate_parser_confidence\":1.0,\"components\":[{\"configured_weight\":0.35,\"contribution\":0.375,\"effective_weight\":0.5,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"policy_engine\",\"finding_count\":4,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":0.0,\"confidence\":1.0,\"finding_id\":\"01c948c5-fb58-515b-8c55-99070a5caa62\",\"severity\":\"high\"}},\"raw_score\":0.75,\"reason\":\"available\",\"source\":\"policy\",\"status\":\"completed\"},{\"configured_weight\":0.15,\"contribution\":0.2142857142857143,\"effective_weight\":0.2142857142857143,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"peer_baseline\",\"finding_count\":1,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":1.0,\"confidence\":1.0,\"finding_id\":\"8d59f4e6-c729-5c35-b7e6-21ae6af07f4e\",\"severity\":\"medium\"}},\"raw_score\":1.0,\"reason\":\"available\",\"source\":\"peer_group\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.0,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"forest\",\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\",\"version\":\"source-forest-recheck-0.1.0\"},\"observation\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d\",\"candidate_parser_confidence\":1.0,\"decision_offset\":-0.5497693627214328,\"interpretation\":\"retained_forest_numeric_proxy_not_new_finding\",\"kind\":\"forest\",\"model_id\":\"04d9a9e3-fbeb-42ff-be7a-728dd57eb64f\",\"model_version\":\"isolation-forest-0.1.0\",\"normalized_anomaly\":0.9914672657958103,\"proxy_confidence\":0.16,\"raw_anomaly_score\":0.5491916294890309,\"training_sample_count\":8,\"training_score_max\":0.5497693627214328,\"training_score_min\":0.48206149574975554},\"raw_score\":0.0,\"reason\":\"available\",\"source\":\"statistical\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.045218246323721754,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"neural\",\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\",\"version\":\"source-ml-recheck-0.1.0\"},\"observation\":{\"anomaly_head_enabled\":true,\"anomaly_score\":0.31652772426605225,\"classes\":[\"telnet_enabled\"],\"interpretation\":\"retained_uncalibrated_anomaly_head\",\"kind\":\"neural\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"target_semantics\":\"injected_mutation\"},\"raw_score\":0.31652772426605225,\"reason\":\"available\",\"source\":\"transformer\",\"status\":\"completed\"},{\"configured_weight\":0.3,\"contribution\":null,\"effective_weight\":0.0,\"evidence\":{\"kind\":\"network\",\"record_id\":\"78878662-c6a1-4fde-aa82-f1884f46d7c8\",\"review_sha256\":\"a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71\",\"version\":\"source-patch-verification-0.3.0\"},\"observation\":{\"execution\":{\"reachability_impact\":{\"direction\":\"no_witnesses_returned\",\"gained_witness_count\":0,\"limitations\":[\"Returned flows are examples, not all packets or the size of the affected flow space.\",\"Differential queries use ingress locations present and active in both snapshots.\",\"Source IP inference uses the after snapshot; removed ingress locations are not covered.\",\"Successful subnet delivery or exit does not establish delivery to an external device.\",\"No severity, whole-network safety, management access, approval or application is inferred.\"],\"lost_witness_count\":0,\"max_traces\":16,\"max_witnesses\":64,\"method\":\"differential-success-example-flows-0.1.0\",\"reason\":\"query_completed\",\"state\":\"observed\",\"version\":\"reachability-impact-0.1.0\",\"witnesses\":[]},\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf\",\"before_reachable_count\":1,\"before_sha256\":\"f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-0cdf9698384a48e785a4316772f720f1\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"},\"sdk_observation\":\"observed\",\"sdk_version\":\"2026.8.19.3660\",\"version\":\"batfish-execution-0.3.0\"},\"kind\":\"verification\",\"protocol_version\":\"source-patch-verification-0.3.0\",\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf\",\"before_reachable_count\":1,\"before_sha256\":\"f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-0cdf9698384a48e785a4316772f720f1\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"}},\"raw_score\":null,\"reason\":\"network_adverse_evidence_unavailable\",\"source\":\"verification\",\"status\":\"unavailable\"}],\"coverage\":\"supported_complete\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"formal_qualification\":\"not_proven\",\"individual_identity_verified\":false,\"limitations\":[\"This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.\",\"Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.\",\"Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.\",\"Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.\",\"Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.\",\"The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.\",\"The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.\",\"No model or verifier is rerun, and no quality, individual identity, approval or application is established.\"],\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"profile_version\":\"source-priority-profile-0.1.0\",\"quality_proven\":false,\"report_id\":\"69496ad0-cce1-42a9-85eb-aa8cf4efdf60\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"report_version\":\"source-evidence-report-0.3.0\",\"review_status\":\"needs_review\",\"score\":0.634503960609436,\"selected_evidence\":[{\"kind\":\"deterministic\",\"record_id\":\"ee97618c-4425-4117-a2d5-bc8ceea7e93d\",\"review_sha256\":\"7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf\",\"version\":\"source-deterministic-recheck-0.1.0\"},{\"kind\":\"forest\",\"record_id\":\"a93098f9-d624-4eb5-b542-21b419893a59\",\"review_sha256\":\"c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c\",\"version\":\"source-forest-recheck-0.1.0\"},{\"kind\":\"neural\",\"record_id\":\"8a989ba0-32a6-4697-afe5-06331c633370\",\"review_sha256\":\"5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2\",\"version\":\"source-ml-recheck-0.1.0\"},{\"kind\":\"network\",\"record_id\":\"78878662-c6a1-4fde-aa82-f1884f46d7c8\",\"review_sha256\":\"a8a209adddee9a47a97a918bea5b5b0e978caafdd1b1cf19cd083132f63feb71\",\"version\":\"source-patch-verification-0.3.0\"}],\"side\":\"after\",\"status\":\"completed\",\"version\":\"source-priority-composition-0.1.0\"},\"created_at\":\"2026-10-23T20:04:14.259496Z\",\"draft_sha256\":\"4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4\",\"individual_identity_verified\":false,\"patch_id\":\"cb7248f4-acf4-441b-ae9c-ec1478c497bb\",\"report_id\":\"69496ad0-cce1-42a9-85eb-aa8cf4efdf60\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"report_version\":\"source-evidence-report-0.3.0\",\"request\":{\"assessment_id\":\"6ad61aeb-55ab-429a-a803-4b91f389e055\",\"profile_version\":\"source-priority-profile-0.1.0\",\"report_sha256\":\"a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50\",\"version\":\"source-risk-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-risk-assessment-0.1.0\"}",
+        "review_sha256": "1c38850579d3c89a679bb6d666bfa483b66d3d765983d3f5c735877bcc261ee1",
+        "service_role": "admin",
+        "version": "source-risk-assessment-0.1.0"
+      },
+      "request": {
+        "assessment_id": "6ad61aeb-55ab-429a-a803-4b91f389e055",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "version": "source-risk-request-0.1.0"
+      },
+      "summary": {
+        "applicable_guardrails": [],
+        "applied": false,
+        "approved": false,
+        "assessment_id": "6ad61aeb-55ab-429a-a803-4b91f389e055",
+        "availability_mask": [
+          "policy",
+          "peer_group",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "composition_status": "completed",
+        "coverage": "supported_complete",
+        "created_at": "2026-10-23T20:04:14.259496Z",
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "individual_identity_verified": false,
+        "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_id": "69496ad0-cce1-42a9-85eb-aa8cf4efdf60",
+        "report_sha256": "a68d9deb782ae3176650f204b2f298d5475db2fc5d093c65679b6934eaeb8d50",
+        "report_version": "source-evidence-report-0.3.0",
+        "review_sha256": "1c38850579d3c89a679bb6d666bfa483b66d3d765983d3f5c735877bcc261ee1",
+        "score": 0.634503960609436,
+        "service_role": "admin",
+        "version": "source-risk-summary-0.1.0"
+      },
+      "vendor": "cisco"
+    },
+    {
+      "assessment": {
+        "applied": false,
+        "approved": false,
+        "assessment_id": "d8a10a53-02f7-4620-bd4b-f6f7eb76accd",
+        "composition": {
+          "after": {
+            "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+            "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+            "created_at": "2026-10-19T18:33:12.226057Z",
+            "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+            "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+          },
+          "applicable_guardrails": [],
+          "applied": false,
+          "applied_guardrails": [],
+          "approved": false,
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "band": "high",
+          "before": {
+            "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+            "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+            "created_at": "2026-10-19T18:33:12.212066Z",
+            "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+            "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+          },
+          "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+          "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+          "calibrated": false,
+          "candidate_parser_confidence": 1.0,
+          "components": [
+            {
+              "configured_weight": 0.35,
+              "contribution": 0.375,
+              "effective_weight": 0.5,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+                "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "policy_engine",
+                "finding_count": 4,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 0.0,
+                  "confidence": 1.0,
+                  "finding_id": "912b8eae-29ca-530b-8f07-765b45885da2",
+                  "severity": "high"
+                }
+              },
+              "raw_score": 0.75,
+              "reason": "available",
+              "source": "policy",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.15,
+              "contribution": 0.2142857142857143,
+              "effective_weight": 0.2142857142857143,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+                "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "peer_baseline",
+                "finding_count": 1,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 1.0,
+                  "confidence": 1.0,
+                  "finding_id": "66a9e697-3367-597d-bf72-e9f5b6a0be11",
+                  "severity": "medium"
+                }
+              },
+              "raw_score": 1.0,
+              "reason": "available",
+              "source": "peer_group",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.0,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "forest",
+                "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+                "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+                "version": "source-forest-recheck-0.1.0"
+              },
+              "observation": {
+                "after_decision_function": 0.0005777332324019557,
+                "after_prediction": 1,
+                "after_score_samples": -0.5491916294890309,
+                "artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+                "candidate_parser_confidence": 1.0,
+                "decision_offset": -0.5497693627214328,
+                "interpretation": "retained_forest_numeric_proxy_not_new_finding",
+                "kind": "forest",
+                "model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+                "model_version": "isolation-forest-0.1.0",
+                "normalized_anomaly": 0.9914672657958103,
+                "proxy_confidence": 0.16,
+                "raw_anomaly_score": 0.5491916294890309,
+                "training_sample_count": 8,
+                "training_score_max": 0.5497693627214328,
+                "training_score_min": 0.48206149574975554
+              },
+              "raw_score": 0.0,
+              "reason": "available",
+              "source": "statistical",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.04648874487195697,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "neural",
+                "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+                "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d",
+                "version": "source-ml-recheck-0.1.0"
+              },
+              "observation": {
+                "anomaly_head_enabled": true,
+                "anomaly_score": 0.32542121410369873,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "interpretation": "retained_uncalibrated_anomaly_head",
+                "kind": "neural",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "target_semantics": "injected_mutation"
+              },
+              "raw_score": 0.32542121410369873,
+              "reason": "available",
+              "source": "transformer",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.3,
+              "contribution": null,
+              "effective_weight": 0.0,
+              "evidence": {
+                "kind": "network",
+                "record_id": "ccd86eae-9688-4dee-8ea5-ca43515c3c81",
+                "review_sha256": "ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697",
+                "version": "source-patch-verification-0.3.0"
+              },
+              "observation": {
+                "execution": {
+                  "reachability_impact": {
+                    "direction": "no_witnesses_returned",
+                    "gained_witness_count": 0,
+                    "limitations": [
+                      "Returned flows are examples, not all packets or the size of the affected flow space.",
+                      "Differential queries use ingress locations present and active in both snapshots.",
+                      "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+                      "Successful subnet delivery or exit does not establish delivery to an external device.",
+                      "No severity, whole-network safety, management access, approval or application is inferred."
+                    ],
+                    "lost_witness_count": 0,
+                    "max_traces": 16,
+                    "max_witnesses": 64,
+                    "method": "differential-success-example-flows-0.1.0",
+                    "reason": "query_completed",
+                    "state": "observed",
+                    "version": "reachability-impact-0.1.0",
+                    "witnesses": []
+                  },
+                  "result": {
+                    "after_reachable_count": 1,
+                    "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+                    "before_reachable_count": 1,
+                    "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+                    "cleanup_complete": true,
+                    "difference_count": 0,
+                    "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                    "limitations": [
+                      "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                      "Differences may be reachability gains or losses; counts are not impact severity.",
+                      "No patch validation, approval or application is performed.",
+                      "External topology completeness and operational state are not established."
+                    ],
+                    "network_name": "sentinel-f6f87a6421754eb7b7ca7e0431faf4c9",
+                    "reason": "query_completed",
+                    "requires_human_review": true,
+                    "scope": {
+                      "destination": "192.0.2.1/32",
+                      "start_node": "deterministic-target"
+                    },
+                    "status": "no_differences_in_scope",
+                    "version": "batfish-check-0.1.0"
+                  },
+                  "sdk_observation": "observed",
+                  "sdk_version": "2026.8.19.3660",
+                  "version": "batfish-execution-0.3.0"
+                },
+                "kind": "verification",
+                "protocol_version": "source-patch-verification-0.3.0",
+                "result": {
+                  "after_reachable_count": 1,
+                  "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+                  "before_reachable_count": 1,
+                  "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+                  "cleanup_complete": true,
+                  "difference_count": 0,
+                  "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                  "limitations": [
+                    "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                    "Differences may be reachability gains or losses; counts are not impact severity.",
+                    "No patch validation, approval or application is performed.",
+                    "External topology completeness and operational state are not established."
+                  ],
+                  "network_name": "sentinel-f6f87a6421754eb7b7ca7e0431faf4c9",
+                  "reason": "query_completed",
+                  "requires_human_review": true,
+                  "scope": {
+                    "destination": "192.0.2.1/32",
+                    "start_node": "deterministic-target"
+                  },
+                  "status": "no_differences_in_scope",
+                  "version": "batfish-check-0.1.0"
+                }
+              },
+              "raw_score": null,
+              "reason": "network_adverse_evidence_unavailable",
+              "source": "verification",
+              "status": "unavailable"
+            }
+          ],
+          "coverage": "supported_complete",
+          "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+          "formal_qualification": "not_proven",
+          "individual_identity_verified": false,
+          "limitations": [
+            "This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.",
+            "Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.",
+            "Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.",
+            "Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.",
+            "Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.",
+            "The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.",
+            "The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.",
+            "No model or verifier is rerun, and no quality, individual identity, approval or application is established."
+          ],
+          "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+          "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+          "report_version": "source-evidence-report-0.3.0",
+          "review_status": "needs_review",
+          "score": 0.6357744591576713,
+          "selected_evidence": [
+            {
+              "kind": "deterministic",
+              "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+              "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+              "version": "source-deterministic-recheck-0.1.0"
+            },
+            {
+              "kind": "forest",
+              "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+              "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+              "version": "source-forest-recheck-0.1.0"
+            },
+            {
+              "kind": "neural",
+              "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+              "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d",
+              "version": "source-ml-recheck-0.1.0"
+            },
+            {
+              "kind": "network",
+              "record_id": "ccd86eae-9688-4dee-8ea5-ca43515c3c81",
+              "review_sha256": "ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697",
+              "version": "source-patch-verification-0.3.0"
+            }
+          ],
+          "side": "after",
+          "status": "completed",
+          "version": "source-priority-composition-0.1.0"
+        },
+        "created_at": "2026-10-23T20:04:14.901475Z",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "report_version": "source-evidence-report-0.3.0",
+        "request": {
+          "assessment_id": "d8a10a53-02f7-4620-bd4b-f6f7eb76accd",
+          "profile_version": "source-priority-profile-0.1.0",
+          "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+          "version": "source-risk-request-0.1.0"
+        },
+        "review_json": "{\"applied\":false,\"approved\":false,\"assessment_id\":\"d8a10a53-02f7-4620-bd4b-f6f7eb76accd\",\"composition\":{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applicable_guardrails\":[],\"applied\":false,\"applied_guardrails\":[],\"approved\":false,\"availability_mask\":[\"policy\",\"peer_group\",\"statistical\",\"transformer\"],\"band\":\"high\",\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"calibrated\":false,\"candidate_parser_confidence\":1.0,\"components\":[{\"configured_weight\":0.35,\"contribution\":0.375,\"effective_weight\":0.5,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"policy_engine\",\"finding_count\":4,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":0.0,\"confidence\":1.0,\"finding_id\":\"912b8eae-29ca-530b-8f07-765b45885da2\",\"severity\":\"high\"}},\"raw_score\":0.75,\"reason\":\"available\",\"source\":\"policy\",\"status\":\"completed\"},{\"configured_weight\":0.15,\"contribution\":0.2142857142857143,\"effective_weight\":0.2142857142857143,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"peer_baseline\",\"finding_count\":1,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":1.0,\"confidence\":1.0,\"finding_id\":\"66a9e697-3367-597d-bf72-e9f5b6a0be11\",\"severity\":\"medium\"}},\"raw_score\":1.0,\"reason\":\"available\",\"source\":\"peer_group\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.0,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"forest\",\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\",\"version\":\"source-forest-recheck-0.1.0\"},\"observation\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b\",\"candidate_parser_confidence\":1.0,\"decision_offset\":-0.5497693627214328,\"interpretation\":\"retained_forest_numeric_proxy_not_new_finding\",\"kind\":\"forest\",\"model_id\":\"bfa0009b-859a-49c4-bad5-306953310bf2\",\"model_version\":\"isolation-forest-0.1.0\",\"normalized_anomaly\":0.9914672657958103,\"proxy_confidence\":0.16,\"raw_anomaly_score\":0.5491916294890309,\"training_sample_count\":8,\"training_score_max\":0.5497693627214328,\"training_score_min\":0.48206149574975554},\"raw_score\":0.0,\"reason\":\"available\",\"source\":\"statistical\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.04648874487195697,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"neural\",\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\",\"version\":\"source-ml-recheck-0.1.0\"},\"observation\":{\"anomaly_head_enabled\":true,\"anomaly_score\":0.32542121410369873,\"classes\":[\"telnet_enabled\"],\"interpretation\":\"retained_uncalibrated_anomaly_head\",\"kind\":\"neural\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"target_semantics\":\"injected_mutation\"},\"raw_score\":0.32542121410369873,\"reason\":\"available\",\"source\":\"transformer\",\"status\":\"completed\"},{\"configured_weight\":0.3,\"contribution\":null,\"effective_weight\":0.0,\"evidence\":{\"kind\":\"network\",\"record_id\":\"ccd86eae-9688-4dee-8ea5-ca43515c3c81\",\"review_sha256\":\"ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697\",\"version\":\"source-patch-verification-0.3.0\"},\"observation\":{\"execution\":{\"reachability_impact\":{\"direction\":\"no_witnesses_returned\",\"gained_witness_count\":0,\"limitations\":[\"Returned flows are examples, not all packets or the size of the affected flow space.\",\"Differential queries use ingress locations present and active in both snapshots.\",\"Source IP inference uses the after snapshot; removed ingress locations are not covered.\",\"Successful subnet delivery or exit does not establish delivery to an external device.\",\"No severity, whole-network safety, management access, approval or application is inferred.\"],\"lost_witness_count\":0,\"max_traces\":16,\"max_witnesses\":64,\"method\":\"differential-success-example-flows-0.1.0\",\"reason\":\"query_completed\",\"state\":\"observed\",\"version\":\"reachability-impact-0.1.0\",\"witnesses\":[]},\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662\",\"before_reachable_count\":1,\"before_sha256\":\"876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-f6f87a6421754eb7b7ca7e0431faf4c9\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"},\"sdk_observation\":\"observed\",\"sdk_version\":\"2026.8.19.3660\",\"version\":\"batfish-execution-0.3.0\"},\"kind\":\"verification\",\"protocol_version\":\"source-patch-verification-0.3.0\",\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662\",\"before_reachable_count\":1,\"before_sha256\":\"876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-f6f87a6421754eb7b7ca7e0431faf4c9\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"}},\"raw_score\":null,\"reason\":\"network_adverse_evidence_unavailable\",\"source\":\"verification\",\"status\":\"unavailable\"}],\"coverage\":\"supported_complete\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"formal_qualification\":\"not_proven\",\"individual_identity_verified\":false,\"limitations\":[\"This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.\",\"Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.\",\"Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.\",\"Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.\",\"Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.\",\"The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.\",\"The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.\",\"No model or verifier is rerun, and no quality, individual identity, approval or application is established.\"],\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"profile_version\":\"source-priority-profile-0.1.0\",\"quality_proven\":false,\"report_id\":\"1adb915a-018d-42b0-ba51-d320b92f7a93\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"report_version\":\"source-evidence-report-0.3.0\",\"review_status\":\"needs_review\",\"score\":0.6357744591576713,\"selected_evidence\":[{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},{\"kind\":\"forest\",\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\",\"version\":\"source-forest-recheck-0.1.0\"},{\"kind\":\"neural\",\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\",\"version\":\"source-ml-recheck-0.1.0\"},{\"kind\":\"network\",\"record_id\":\"ccd86eae-9688-4dee-8ea5-ca43515c3c81\",\"review_sha256\":\"ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697\",\"version\":\"source-patch-verification-0.3.0\"}],\"side\":\"after\",\"status\":\"completed\",\"version\":\"source-priority-composition-0.1.0\"},\"created_at\":\"2026-10-23T20:04:14.901475Z\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"1adb915a-018d-42b0-ba51-d320b92f7a93\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"report_version\":\"source-evidence-report-0.3.0\",\"request\":{\"assessment_id\":\"d8a10a53-02f7-4620-bd4b-f6f7eb76accd\",\"profile_version\":\"source-priority-profile-0.1.0\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"version\":\"source-risk-request-0.1.0\"},\"service_role\":\"engineer\",\"version\":\"source-risk-assessment-0.1.0\"}",
+        "review_sha256": "b849acf58f555f3b2425fd95cc6cfe32fc4b4b6f0cf0f60a87421f89252e18fd",
+        "service_role": "engineer",
+        "version": "source-risk-assessment-0.1.0"
+      },
+      "request": {
+        "assessment_id": "d8a10a53-02f7-4620-bd4b-f6f7eb76accd",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "version": "source-risk-request-0.1.0"
+      },
+      "summary": {
+        "applicable_guardrails": [],
+        "applied": false,
+        "approved": false,
+        "assessment_id": "d8a10a53-02f7-4620-bd4b-f6f7eb76accd",
+        "availability_mask": [
+          "policy",
+          "peer_group",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "composition_status": "completed",
+        "coverage": "supported_complete",
+        "created_at": "2026-10-23T20:04:14.901475Z",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "report_version": "source-evidence-report-0.3.0",
+        "review_sha256": "b849acf58f555f3b2425fd95cc6cfe32fc4b4b6f0cf0f60a87421f89252e18fd",
+        "score": 0.6357744591576713,
+        "service_role": "engineer",
+        "version": "source-risk-summary-0.1.0"
+      },
+      "vendor": "juniper"
+    },
+    {
+      "assessment": {
+        "applied": false,
+        "approved": false,
+        "assessment_id": "c08b6edf-fadf-4360-9c61-2cdcfbab9feb",
+        "composition": {
+          "after": {
+            "canonical_sha256": "e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c",
+            "configuration_id": "0e247353-2a05-498c-9562-d3c542bdbd06",
+            "created_at": "2026-10-19T18:33:12.226057Z",
+            "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+            "source_sha256": "8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f"
+          },
+          "applicable_guardrails": [],
+          "applied": false,
+          "applied_guardrails": [],
+          "approved": false,
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "band": "high",
+          "before": {
+            "canonical_sha256": "45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b",
+            "configuration_id": "006e6f38-c036-490c-886c-614dc7111205",
+            "created_at": "2026-10-19T18:33:12.212066Z",
+            "device_id": "bb5057b4-3d27-4bb7-9402-eda1fa4912e8",
+            "source_sha256": "92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a"
+          },
+          "before_analysis_id": "6ca02de5-e187-4add-bde3-d2c8fe786aca",
+          "before_analysis_sha256": "178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405",
+          "calibrated": false,
+          "candidate_parser_confidence": 1.0,
+          "components": [
+            {
+              "configured_weight": 0.35,
+              "contribution": 0.375,
+              "effective_weight": 0.5,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+                "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "policy_engine",
+                "finding_count": 4,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 0.0,
+                  "confidence": 1.0,
+                  "finding_id": "912b8eae-29ca-530b-8f07-765b45885da2",
+                  "severity": "high"
+                }
+              },
+              "raw_score": 0.75,
+              "reason": "available",
+              "source": "policy",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.15,
+              "contribution": 0.2142857142857143,
+              "effective_weight": 0.2142857142857143,
+              "evidence": {
+                "kind": "deterministic",
+                "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+                "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+                "version": "source-deterministic-recheck-0.1.0"
+              },
+              "observation": {
+                "critical_policy_present": false,
+                "detector": "peer_baseline",
+                "finding_count": 1,
+                "kind": "findings",
+                "strongest": {
+                  "anomaly_score": 1.0,
+                  "confidence": 1.0,
+                  "finding_id": "66a9e697-3367-597d-bf72-e9f5b6a0be11",
+                  "severity": "medium"
+                }
+              },
+              "raw_score": 1.0,
+              "reason": "available",
+              "source": "peer_group",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.0,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "forest",
+                "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+                "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+                "version": "source-forest-recheck-0.1.0"
+              },
+              "observation": {
+                "after_decision_function": 0.0005777332324019557,
+                "after_prediction": 1,
+                "after_score_samples": -0.5491916294890309,
+                "artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+                "candidate_parser_confidence": 1.0,
+                "decision_offset": -0.5497693627214328,
+                "interpretation": "retained_forest_numeric_proxy_not_new_finding",
+                "kind": "forest",
+                "model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+                "model_version": "isolation-forest-0.1.0",
+                "normalized_anomaly": 0.9914672657958103,
+                "proxy_confidence": 0.16,
+                "raw_anomaly_score": 0.5491916294890309,
+                "training_sample_count": 8,
+                "training_score_max": 0.5497693627214328,
+                "training_score_min": 0.48206149574975554
+              },
+              "raw_score": 0.0,
+              "reason": "available",
+              "source": "statistical",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.1,
+              "contribution": 0.04648874487195697,
+              "effective_weight": 0.14285714285714288,
+              "evidence": {
+                "kind": "neural",
+                "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+                "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d",
+                "version": "source-ml-recheck-0.1.0"
+              },
+              "observation": {
+                "anomaly_head_enabled": true,
+                "anomaly_score": 0.32542121410369873,
+                "classes": [
+                  "telnet_enabled"
+                ],
+                "interpretation": "retained_uncalibrated_anomaly_head",
+                "kind": "neural",
+                "model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+                "target_semantics": "injected_mutation"
+              },
+              "raw_score": 0.32542121410369873,
+              "reason": "available",
+              "source": "transformer",
+              "status": "completed"
+            },
+            {
+              "configured_weight": 0.3,
+              "contribution": null,
+              "effective_weight": 0.0,
+              "evidence": {
+                "kind": "network",
+                "record_id": "ccd86eae-9688-4dee-8ea5-ca43515c3c81",
+                "review_sha256": "ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697",
+                "version": "source-patch-verification-0.3.0"
+              },
+              "observation": {
+                "execution": {
+                  "reachability_impact": {
+                    "direction": "no_witnesses_returned",
+                    "gained_witness_count": 0,
+                    "limitations": [
+                      "Returned flows are examples, not all packets or the size of the affected flow space.",
+                      "Differential queries use ingress locations present and active in both snapshots.",
+                      "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+                      "Successful subnet delivery or exit does not establish delivery to an external device.",
+                      "No severity, whole-network safety, management access, approval or application is inferred."
+                    ],
+                    "lost_witness_count": 0,
+                    "max_traces": 16,
+                    "max_witnesses": 64,
+                    "method": "differential-success-example-flows-0.1.0",
+                    "reason": "query_completed",
+                    "state": "observed",
+                    "version": "reachability-impact-0.1.0",
+                    "witnesses": []
+                  },
+                  "result": {
+                    "after_reachable_count": 1,
+                    "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+                    "before_reachable_count": 1,
+                    "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+                    "cleanup_complete": true,
+                    "difference_count": 0,
+                    "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                    "limitations": [
+                      "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                      "Differences may be reachability gains or losses; counts are not impact severity.",
+                      "No patch validation, approval or application is performed.",
+                      "External topology completeness and operational state are not established."
+                    ],
+                    "network_name": "sentinel-f6f87a6421754eb7b7ca7e0431faf4c9",
+                    "reason": "query_completed",
+                    "requires_human_review": true,
+                    "scope": {
+                      "destination": "192.0.2.1/32",
+                      "start_node": "deterministic-target"
+                    },
+                    "status": "no_differences_in_scope",
+                    "version": "batfish-check-0.1.0"
+                  },
+                  "sdk_observation": "observed",
+                  "sdk_version": "2026.8.19.3660",
+                  "version": "batfish-execution-0.3.0"
+                },
+                "kind": "verification",
+                "protocol_version": "source-patch-verification-0.3.0",
+                "result": {
+                  "after_reachable_count": 1,
+                  "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+                  "before_reachable_count": 1,
+                  "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+                  "cleanup_complete": true,
+                  "difference_count": 0,
+                  "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+                  "limitations": [
+                    "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+                    "Differences may be reachability gains or losses; counts are not impact severity.",
+                    "No patch validation, approval or application is performed.",
+                    "External topology completeness and operational state are not established."
+                  ],
+                  "network_name": "sentinel-f6f87a6421754eb7b7ca7e0431faf4c9",
+                  "reason": "query_completed",
+                  "requires_human_review": true,
+                  "scope": {
+                    "destination": "192.0.2.1/32",
+                    "start_node": "deterministic-target"
+                  },
+                  "status": "no_differences_in_scope",
+                  "version": "batfish-check-0.1.0"
+                }
+              },
+              "raw_score": null,
+              "reason": "network_adverse_evidence_unavailable",
+              "source": "verification",
+              "status": "unavailable"
+            }
+          ],
+          "coverage": "supported_complete",
+          "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+          "formal_qualification": "not_proven",
+          "individual_identity_verified": false,
+          "limitations": [
+            "This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.",
+            "Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.",
+            "Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.",
+            "Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.",
+            "Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.",
+            "The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.",
+            "The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.",
+            "No model or verifier is rerun, and no quality, individual identity, approval or application is established."
+          ],
+          "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+          "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+          "report_version": "source-evidence-report-0.3.0",
+          "review_status": "needs_review",
+          "score": 0.6357744591576713,
+          "selected_evidence": [
+            {
+              "kind": "deterministic",
+              "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+              "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+              "version": "source-deterministic-recheck-0.1.0"
+            },
+            {
+              "kind": "forest",
+              "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+              "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+              "version": "source-forest-recheck-0.1.0"
+            },
+            {
+              "kind": "neural",
+              "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+              "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d",
+              "version": "source-ml-recheck-0.1.0"
+            },
+            {
+              "kind": "network",
+              "record_id": "ccd86eae-9688-4dee-8ea5-ca43515c3c81",
+              "review_sha256": "ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697",
+              "version": "source-patch-verification-0.3.0"
+            }
+          ],
+          "side": "after",
+          "status": "completed",
+          "version": "source-priority-composition-0.1.0"
+        },
+        "created_at": "2026-10-23T20:04:15.396673Z",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "report_version": "source-evidence-report-0.3.0",
+        "request": {
+          "assessment_id": "c08b6edf-fadf-4360-9c61-2cdcfbab9feb",
+          "profile_version": "source-priority-profile-0.1.0",
+          "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+          "version": "source-risk-request-0.1.0"
+        },
+        "review_json": "{\"applied\":false,\"approved\":false,\"assessment_id\":\"c08b6edf-fadf-4360-9c61-2cdcfbab9feb\",\"composition\":{\"after\":{\"canonical_sha256\":\"e20aa668ae890da9893f4615e60fb8559a0efa713c4e05b175b0be14c8845d7c\",\"configuration_id\":\"0e247353-2a05-498c-9562-d3c542bdbd06\",\"created_at\":\"2026-10-19T18:33:12.226057Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"8e42bba9f9f31e4805ea8b38f42cd668eeec09c341a4d40a33aa9eb09bd9346f\"},\"applicable_guardrails\":[],\"applied\":false,\"applied_guardrails\":[],\"approved\":false,\"availability_mask\":[\"policy\",\"peer_group\",\"statistical\",\"transformer\"],\"band\":\"high\",\"before\":{\"canonical_sha256\":\"45289f04e58d99653331ed87c79b3080558ad3be1acc5168ac9c3cd9999dd12b\",\"configuration_id\":\"006e6f38-c036-490c-886c-614dc7111205\",\"created_at\":\"2026-10-19T18:33:12.212066Z\",\"device_id\":\"bb5057b4-3d27-4bb7-9402-eda1fa4912e8\",\"source_sha256\":\"92abde1859cc357405bd042e73b453b9e5b6e084604a91bd61d7f20b120e7e4a\"},\"before_analysis_id\":\"6ca02de5-e187-4add-bde3-d2c8fe786aca\",\"before_analysis_sha256\":\"178ed497efe69997dc4dbe8b78b43b4fa5f8ce27cff3f35d648ac03c86d61405\",\"calibrated\":false,\"candidate_parser_confidence\":1.0,\"components\":[{\"configured_weight\":0.35,\"contribution\":0.375,\"effective_weight\":0.5,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"policy_engine\",\"finding_count\":4,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":0.0,\"confidence\":1.0,\"finding_id\":\"912b8eae-29ca-530b-8f07-765b45885da2\",\"severity\":\"high\"}},\"raw_score\":0.75,\"reason\":\"available\",\"source\":\"policy\",\"status\":\"completed\"},{\"configured_weight\":0.15,\"contribution\":0.2142857142857143,\"effective_weight\":0.2142857142857143,\"evidence\":{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},\"observation\":{\"critical_policy_present\":false,\"detector\":\"peer_baseline\",\"finding_count\":1,\"kind\":\"findings\",\"strongest\":{\"anomaly_score\":1.0,\"confidence\":1.0,\"finding_id\":\"66a9e697-3367-597d-bf72-e9f5b6a0be11\",\"severity\":\"medium\"}},\"raw_score\":1.0,\"reason\":\"available\",\"source\":\"peer_group\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.0,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"forest\",\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\",\"version\":\"source-forest-recheck-0.1.0\"},\"observation\":{\"after_decision_function\":0.0005777332324019557,\"after_prediction\":1,\"after_score_samples\":-0.5491916294890309,\"artifact_sha256\":\"105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b\",\"candidate_parser_confidence\":1.0,\"decision_offset\":-0.5497693627214328,\"interpretation\":\"retained_forest_numeric_proxy_not_new_finding\",\"kind\":\"forest\",\"model_id\":\"bfa0009b-859a-49c4-bad5-306953310bf2\",\"model_version\":\"isolation-forest-0.1.0\",\"normalized_anomaly\":0.9914672657958103,\"proxy_confidence\":0.16,\"raw_anomaly_score\":0.5491916294890309,\"training_sample_count\":8,\"training_score_max\":0.5497693627214328,\"training_score_min\":0.48206149574975554},\"raw_score\":0.0,\"reason\":\"available\",\"source\":\"statistical\",\"status\":\"completed\"},{\"configured_weight\":0.1,\"contribution\":0.04648874487195697,\"effective_weight\":0.14285714285714288,\"evidence\":{\"kind\":\"neural\",\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\",\"version\":\"source-ml-recheck-0.1.0\"},\"observation\":{\"anomaly_head_enabled\":true,\"anomaly_score\":0.32542121410369873,\"classes\":[\"telnet_enabled\"],\"interpretation\":\"retained_uncalibrated_anomaly_head\",\"kind\":\"neural\",\"model_sha256\":\"289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4\",\"target_semantics\":\"injected_mutation\"},\"raw_score\":0.32542121410369873,\"reason\":\"available\",\"source\":\"transformer\",\"status\":\"completed\"},{\"configured_weight\":0.3,\"contribution\":null,\"effective_weight\":0.0,\"evidence\":{\"kind\":\"network\",\"record_id\":\"ccd86eae-9688-4dee-8ea5-ca43515c3c81\",\"review_sha256\":\"ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697\",\"version\":\"source-patch-verification-0.3.0\"},\"observation\":{\"execution\":{\"reachability_impact\":{\"direction\":\"no_witnesses_returned\",\"gained_witness_count\":0,\"limitations\":[\"Returned flows are examples, not all packets or the size of the affected flow space.\",\"Differential queries use ingress locations present and active in both snapshots.\",\"Source IP inference uses the after snapshot; removed ingress locations are not covered.\",\"Successful subnet delivery or exit does not establish delivery to an external device.\",\"No severity, whole-network safety, management access, approval or application is inferred.\"],\"lost_witness_count\":0,\"max_traces\":16,\"max_witnesses\":64,\"method\":\"differential-success-example-flows-0.1.0\",\"reason\":\"query_completed\",\"state\":\"observed\",\"version\":\"reachability-impact-0.1.0\",\"witnesses\":[]},\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662\",\"before_reachable_count\":1,\"before_sha256\":\"876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-f6f87a6421754eb7b7ca7e0431faf4c9\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"},\"sdk_observation\":\"observed\",\"sdk_version\":\"2026.8.19.3660\",\"version\":\"batfish-execution-0.3.0\"},\"kind\":\"verification\",\"protocol_version\":\"source-patch-verification-0.3.0\",\"result\":{\"after_reachable_count\":1,\"after_sha256\":\"522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662\",\"before_reachable_count\":1,\"before_sha256\":\"876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258\",\"cleanup_complete\":true,\"difference_count\":0,\"engine_version\":\"{\\\"Batfish\\\": \\\"2026.08.27.3685\\\", \\\"api_version\\\": \\\"0.0.0\\\"}\",\"limitations\":[\"Only the supplied snapshot and explicit IPv4 destination/start node are modeled.\",\"Differences may be reachability gains or losses; counts are not impact severity.\",\"No patch validation, approval or application is performed.\",\"External topology completeness and operational state are not established.\"],\"network_name\":\"sentinel-f6f87a6421754eb7b7ca7e0431faf4c9\",\"reason\":\"query_completed\",\"requires_human_review\":true,\"scope\":{\"destination\":\"192.0.2.1/32\",\"start_node\":\"deterministic-target\"},\"status\":\"no_differences_in_scope\",\"version\":\"batfish-check-0.1.0\"}},\"raw_score\":null,\"reason\":\"network_adverse_evidence_unavailable\",\"source\":\"verification\",\"status\":\"unavailable\"}],\"coverage\":\"supported_complete\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"formal_qualification\":\"not_proven\",\"individual_identity_verified\":false,\"limitations\":[\"This unitless engineering priority is not calibrated risk, probability, detector severity or detector confidence.\",\"Unavailable source weights are redistributed only within the recorded availability mask; partial coverage suppresses the aggregate. Completed zero does not establish overall safety.\",\"Forest normalization and confidence proxy are engineering operations; no new Finding is asserted.\",\"Neural values retain supported classes and injected-mutation or confirmed-anomaly target semantics; other classes are not qualified.\",\"Scoped differential examples use common active ingress locations and source IP inference from the after snapshot; they do not prove whole-network safety or formal qualification.\",\"The candidate after-side score and raw model outputs do not establish paired quality, a ranking delta or comparable scores across availability masks.\",\"The profile weights and priority bands at 0.25, 0.50 and 0.80 have not been calibrated or independently qualified.\",\"No model or verifier is rerun, and no quality, individual identity, approval or application is established.\"],\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"profile_version\":\"source-priority-profile-0.1.0\",\"quality_proven\":false,\"report_id\":\"1adb915a-018d-42b0-ba51-d320b92f7a93\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"report_version\":\"source-evidence-report-0.3.0\",\"review_status\":\"needs_review\",\"score\":0.6357744591576713,\"selected_evidence\":[{\"kind\":\"deterministic\",\"record_id\":\"d306e36b-09cc-4852-96a1-8b2c8a5491ba\",\"review_sha256\":\"d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90\",\"version\":\"source-deterministic-recheck-0.1.0\"},{\"kind\":\"forest\",\"record_id\":\"4d7f6f77-b763-4818-a34d-c2e1f5810e2f\",\"review_sha256\":\"ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f\",\"version\":\"source-forest-recheck-0.1.0\"},{\"kind\":\"neural\",\"record_id\":\"f4e25f75-97a8-4e10-9668-ae7d78c6be19\",\"review_sha256\":\"f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d\",\"version\":\"source-ml-recheck-0.1.0\"},{\"kind\":\"network\",\"record_id\":\"ccd86eae-9688-4dee-8ea5-ca43515c3c81\",\"review_sha256\":\"ef955b43b6b884b465bd1f36bb088d237daf68bdbebafdf6066090c7d49a5697\",\"version\":\"source-patch-verification-0.3.0\"}],\"side\":\"after\",\"status\":\"completed\",\"version\":\"source-priority-composition-0.1.0\"},\"created_at\":\"2026-10-23T20:04:15.396673Z\",\"draft_sha256\":\"1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c\",\"individual_identity_verified\":false,\"patch_id\":\"f477365e-cb0d-4fd5-9b10-ef952b549ae1\",\"report_id\":\"1adb915a-018d-42b0-ba51-d320b92f7a93\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"report_version\":\"source-evidence-report-0.3.0\",\"request\":{\"assessment_id\":\"c08b6edf-fadf-4360-9c61-2cdcfbab9feb\",\"profile_version\":\"source-priority-profile-0.1.0\",\"report_sha256\":\"b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1\",\"version\":\"source-risk-request-0.1.0\"},\"service_role\":\"admin\",\"version\":\"source-risk-assessment-0.1.0\"}",
+        "review_sha256": "24c2b670bbb68e447803ca809b1378678edf8f411851b9835a44903c38811c3d",
+        "service_role": "admin",
+        "version": "source-risk-assessment-0.1.0"
+      },
+      "request": {
+        "assessment_id": "c08b6edf-fadf-4360-9c61-2cdcfbab9feb",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "version": "source-risk-request-0.1.0"
+      },
+      "summary": {
+        "applicable_guardrails": [],
+        "applied": false,
+        "approved": false,
+        "assessment_id": "c08b6edf-fadf-4360-9c61-2cdcfbab9feb",
+        "availability_mask": [
+          "policy",
+          "peer_group",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "composition_status": "completed",
+        "coverage": "supported_complete",
+        "created_at": "2026-10-23T20:04:15.396673Z",
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "individual_identity_verified": false,
+        "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+        "profile_version": "source-priority-profile-0.1.0",
+        "report_id": "1adb915a-018d-42b0-ba51-d320b92f7a93",
+        "report_sha256": "b4f1f017390b2d7bcd286542e6c301adc04d1ef3561dc379e9873b37cbfa4ae1",
+        "report_version": "source-evidence-report-0.3.0",
+        "review_sha256": "24c2b670bbb68e447803ca809b1378678edf8f411851b9835a44903c38811c3d",
+        "score": 0.6357744591576713,
+        "service_role": "admin",
+        "version": "source-risk-summary-0.1.0"
+      },
+      "vendor": "juniper"
+    }
+  ],
+  "removed_reference_configurations_on_history_copy": 2,
+  "score_semantics": "uncalibrated_unitless_after_side_engineering_priority",
+  "selected_existing_outputs_not_rerun": true,
+  "version": "owned-source-risk-functional-0.1.0"
+}

@@ -94,6 +94,7 @@ class Store:
                     "patch_deterministic_recheck_outcomes",
                     "patch_evidence_reports",
                     "patch_evidence_decisions",
+                    "patch_risk_assessments",
                     "operation_receipts",
                     "operation_completions",
                     "configuration_sources",

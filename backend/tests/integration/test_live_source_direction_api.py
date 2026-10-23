@@ -311,6 +311,69 @@ def test_saved_directional_pair_with_actual_owned_engine(tmp_path, monkeypatch, 
                 sort_keys=True,
             )
         )
+        # This new assessment consumes the already-saved actual network evidence;
+        # it performs no additional SDK query or model execution.
+        from app.api.source_risk_contracts import SourceRiskAssessment
+
+        risk_url = base + "/evidence-reports/" + report["report_id"] + "/risk-assessments"
+        risk_request = {
+            "version": "source-risk-request-0.1.0",
+            "assessment_id": str(uuid4()),
+            "report_sha256": report["review_sha256"],
+            "profile_version": "source-priority-profile-0.1.0",
+        }
+        risk_response = client.post(risk_url, headers=HEADERS, json=risk_request)
+        assert risk_response.status_code == 201, risk_response.text
+        risk = risk_response.json()
+        assert SourceRiskAssessment.model_validate(risk).model_dump(mode="json") == risk
+        assert risk["report_sha256"] == report["review_sha256"]
+        assert risk["service_role"] == "admin"
+        assert risk["individual_identity_verified"] is risk["approved"] is risk["applied"] is False
+        priority = risk["composition"]
+        assert priority["formal_qualification"] == "not_proven"
+        assert priority["calibrated"] is priority["quality_proven"] is False
+        assert priority["review_status"] == "needs_review"
+        verification = next(
+            row for row in priority["components"] if row["source"] == "verification"
+        )
+        scoped_loss = scenario in {"route_loss", "equal_totals_mixed"}
+        assert (
+            (verification["raw_score"] == 1.0)
+            if scoped_loss
+            else (
+                verification["raw_score"] is None
+                and verification["effective_weight"] == 0
+                and verification["contribution"] is None
+            )
+        )
+        assert (
+            any(row["kind"] == "observed_scoped_loss" for row in priority["applied_guardrails"])
+            == scoped_loss
+        )
+        if scoped_loss:
+            assert priority["score"] >= 0.95
+        print(
+            "OWNED_SOURCE_RISK_RESULT="
+            + json.dumps(
+                {
+                    "vendor": vendor,
+                    "scenario": scenario,
+                    "assessment_sha256": risk["review_sha256"],
+                    "report_sha256": report["review_sha256"],
+                    "profile_version": priority["profile_version"],
+                    "score": priority["score"],
+                    "band": priority["band"],
+                    "availability_mask": priority["availability_mask"],
+                    "network_component": verification["raw_score"],
+                    "scoped_loss_guardrail_applied": scoped_loss,
+                    "formal_qualification": priority["formal_qualification"],
+                    "quality_proven": False,
+                    "individual_identity_verified": False,
+                    "approved": False,
+                },
+                sort_keys=True,
+            )
+        )
         monkeypatch.setattr(
             workflow_module,
             "check_with_batfish",
@@ -356,6 +419,16 @@ def test_saved_directional_pair_with_actual_owned_engine(tmp_path, monkeypatch, 
                 ).json()
                 == decision
             )
+            replay = restarted.post(risk_url, headers=HEADERS, json=risk_request)
+            assert replay.status_code == 200 and replay.json() == risk
+            historical_risk = restarted.get(
+                risk_url + "/" + risk_request["assessment_id"], headers=HEADERS
+            )
+            assert historical_risk.status_code == 200 and historical_risk.json() == risk
+            risk_history = restarted.get(risk_url, headers=HEADERS)
+            assert risk_history.status_code == 200
+            assert len(risk_history.json()) == 1
+            assert risk_history.json()[0]["review_sha256"] == risk["review_sha256"]
         # A foreign parent never exposes this result.
         assert (
             client.get(

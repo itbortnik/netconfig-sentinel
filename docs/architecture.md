@@ -424,3 +424,16 @@ timestamp and proof across authorized callers; comments remain outside operation
 metadata and list summaries. The client independently fetches the complete parent
 trust chain and renders comments as text. Decisions never mutate parent results,
 execute checks, identify an individual engineer, approve or apply a configuration.
+
+A separate [source engineering priority](source-risk-assessments.md) binds an explicit
+ordinary report UUID/SHA to a fixed versioned after-side composition. Migration0017
+adds an encrypted append-only assessment and atomic domain audit without rewriting
+parent reports or dispositions. The pure adapter retains typed policy/peer, Forest,
+neural and directional network observations; unavailable inputs remain unavailable,
+and partial coverage suppresses the aggregate while retaining adverse guards.
+Creation, reads and replay fully recompose from immutable children in one session,
+without source/model/reference reads or detector/verifier execution. The browser
+independently fetches the same trust chain. First server role/time/proof survive
+cross-role replay and races. Unitless weights and bands are uncalibrated engineering
+defaults; the record never establishes model quality, full formal qualification,
+individual identity, approval or application.

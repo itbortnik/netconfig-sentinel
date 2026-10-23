@@ -1,0 +1,212 @@
+{
+  "actual_joint_reports": 10,
+  "actual_risk_assessments": 10,
+  "actual_scenario_executions": 10,
+  "actual_service_role_dispositions": 10,
+  "actual_source_reports": 10,
+  "applied": false,
+  "approved": false,
+  "completed_utc": "2026-10-23T20:07:57.860026+00:00",
+  "formal_qualification": "not_proven",
+  "goal_completed": false,
+  "independent_quality_denominator": null,
+  "individual_identity_verified": false,
+  "log_sha256": "64083ace97e703ab5584f027fba608109ab573c0ab19ab2cef82639930b5a84b",
+  "new_model_calls_or_fits": 0,
+  "original_sources_deleted_before_restart": true,
+  "passed": 10,
+  "protocol_sha256": "fe6ff10be0a9cae397d6a5427858711ee1aec508636b019b08ba8283ad470839",
+  "qualification": "Ten authored loopback integration scenarios, not independent model-quality evidence.",
+  "quality_proven": false,
+  "records": [
+    {
+      "approved": false,
+      "assessment_sha256": "11dad923e59d114c8d1ba56db1240992b16718abfd097cfb984c395ee07d710e",
+      "availability_mask": [
+        "policy",
+        "verification"
+      ],
+      "band": "critical",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": 1.0,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "3fac871d19aedc0a51c35ef1635769d3a807026207b9afa7358d3228cd433241",
+      "scenario": "route_loss",
+      "scoped_loss_guardrail_applied": true,
+      "score": 0.95,
+      "vendor": "cisco"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "64f33164e02c11512f4e53a73cd04a25f4f42aef494e8a0c0e177ca80447c29c",
+      "availability_mask": [
+        "policy",
+        "verification"
+      ],
+      "band": "critical",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": 1.0,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "39b70e2c8487cb4d63f40a8c3c6e48002dc2d35204a418f181d9e53b41266c40",
+      "scenario": "route_loss",
+      "scoped_loss_guardrail_applied": true,
+      "score": 0.95,
+      "vendor": "juniper"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "c59181108aee28ab799ce8e7caa38e3cb2310be7982b5617ed7f586bee927be5",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "7d8db017698ce983f64375f0fb024de644b76c9faf1bd7a50a759d001d7f8a85",
+      "scenario": "route_gain",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "cisco"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "e2333fb790a4a74c6cf4acc26785e816d2089a7fa83a12d5986280219528e6f0",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "523139d020cff26cf5b084ed8788ecbfac5cc5c25ecef4c2afb1b9e0625795c5",
+      "scenario": "route_gain",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "juniper"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "48940efd712a798739ae174d3a6c05ebf4489c1aecfdc4ba48a22f2bcccdb819",
+      "availability_mask": [
+        "policy",
+        "verification"
+      ],
+      "band": "critical",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": 1.0,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "a5aef42f1deea6271651aff2127ef30250975a1edfa08405f137c6b4b9699735",
+      "scenario": "equal_totals_mixed",
+      "scoped_loss_guardrail_applied": true,
+      "score": 0.95,
+      "vendor": "cisco"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "40d5a55acd5e4a4ff1ffff756d230c3e8f187da4a09aa053d7081871bacfa26d",
+      "availability_mask": [
+        "policy",
+        "verification"
+      ],
+      "band": "critical",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": 1.0,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "1e05ad5e4fd6a2a1f713ef754e5d1a4d9da79288aab24993050eaf1baf3c6132",
+      "scenario": "equal_totals_mixed",
+      "scoped_loss_guardrail_applied": true,
+      "score": 0.95,
+      "vendor": "juniper"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "2d1803b7ba1f76ecc5352836b2e99b6096d724a23fc3ee64cfeef8361f6f2cc6",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "3a374543d6cac9b88233566b54cb44b561f447772a42b45408bf0008c2694e25",
+      "scenario": "reachable_control",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "cisco"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "28efe1cf261e8438ca9cd4e18e5451d46b764d92136c2e5895df786bd9864446",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "008cf93063c7292bf5dd9ac66be1e47d28ea301b5c1f4318f68207507648283c",
+      "scenario": "reachable_control",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "juniper"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "af2bad12fef8577c896c228f37a428fee28c2a6a4e92c34535be96ae0bc76ce6",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "6df559df9ca25704116275f974a8daefe1d39ab85c8ad81b1f7b84c0fe29c9c0",
+      "scenario": "empty_scope",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "cisco"
+    },
+    {
+      "approved": false,
+      "assessment_sha256": "0e9d5d5e6d7dc2c09f5f291153d9490be39e5584754bf89fe597453c844bf804",
+      "availability_mask": [
+        "policy"
+      ],
+      "band": "high",
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "network_component": null,
+      "profile_version": "source-priority-profile-0.1.0",
+      "quality_proven": false,
+      "report_sha256": "4a9c8ff7bb2c0ac1ad64dc9bac714a192b011b626af32dc8840850b9f8eb761e",
+      "scenario": "empty_scope",
+      "scoped_loss_guardrail_applied": false,
+      "score": 0.75,
+      "vendor": "juniper"
+    }
+  ],
+  "replay_queries_forbidden": true,
+  "results_sha256": "7b5672385571d5383575e4cac65f6d90d5e606c90aee390d6a5fa1d7b05671d1",
+  "runtime_and_tests_unchanged": true,
+  "runtime_files": 300,
+  "version": "owned-source-risk-network-functional-0.1.0"
+}

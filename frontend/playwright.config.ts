@@ -17,6 +17,7 @@ export default defineConfig({
     "**/sourceDeterministicRecheck.spec.ts",
     "**/sourceEvidenceReport.spec.ts",
     "**/sourceEvidenceDecision.spec.ts",
+    "**/sourceRiskAssessment.spec.ts",
   ],
   timeout: 30_000,
   expect: { timeout: 10_000 },

@@ -71,6 +71,7 @@ jobs:
           backend/tests/integration/test_live_model_patch_batfish.py -q -s
           backend/tests/integration/test_live_source_patch_api.py
           backend/tests/integration/test_live_source_direction_api.py
+          backend/tests/unit/test_reachability_impact.py
           --junitxml=owned-batfish-junit.xml
       - name: Check saved HTTP candidate with the real owned engine
         run: >-
@@ -132,6 +133,8 @@ jobs:
           backend/tests/integration/test_source_evidence_decision_api.py
           backend/tests/integration/test_source_evidence_sdk_api.py
           backend/tests/integration/test_source_direction_api.py
+          backend/tests/integration/test_source_risk_api.py
+          backend/tests/integration/test_source_risk_storage.py
           -k "not actual_isolated_native"
 
   frontend:
@@ -186,6 +189,8 @@ jobs:
         run: npm run test:e2e:source-evidence
       - name: Check owned service-role evidence decision browser workflow
         run: npm run test:e2e:source-evidence-decisions
+      - name: Check owned engineering priority browser workflow
+        run: npm run test:e2e:source-risk
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -198,6 +203,7 @@ jobs:
             artifacts/browser-source-deterministic-junit.xml
             artifacts/browser-source-evidence-junit.xml
             artifacts/browser-source-evidence-decisions-junit.xml
+            artifacts/browser-source-risk-junit.xml
           retention-days: 14
       - run: docker compose up --build -d
         working-directory: .

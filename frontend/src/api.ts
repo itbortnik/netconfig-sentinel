@@ -134,6 +134,18 @@ import type {
   SourceEvidenceDecisionSummary,
 } from "./sourceEvidenceDecisions";
 import {
+  createSourceRiskAssessmentSchema,
+  sourceRiskAssessmentSchema,
+  sourceRiskAssessmentBound,
+  sourceRiskSummarySchema,
+  sourceRiskSummaryBound,
+} from "./sourceRiskAssessments";
+import type {
+  CreateSourceRiskAssessment,
+  SourceRiskAssessment,
+  SourceRiskSummary,
+} from "./sourceRiskAssessments";
+import {
   operationPageSchema,
   operationRecordSchema,
   verifyReceiptBinding,
@@ -245,6 +257,7 @@ export class ApiClient {
       | RunSourceForestRecheck
       | RunSourceDeterministicRecheck
       | CreateSourceEvidenceReport
+      | CreateSourceRiskAssessment
       | ReviewSourceEvidenceReport,
     namespace: "v1" | "v2" = "v1",
     maximumResponseBytes?: number,
@@ -774,16 +787,14 @@ export class ApiClient {
       );
     return rows;
   }
-  private async acceptSourceEvidenceReport(
+  private async loadSourceEvidenceChildren(
     row: SourceEvidenceReport,
     draft: PatchDraft,
-    request?: CreateSourceEvidenceReport,
-    summary?: SourceEvidenceSummary,
   ) {
     // Each existing child client verifies its own normative proof. A valid parent
     // hash alone cannot authenticate compact projections asserted by the parent.
     const selected = row.request;
-    const [deterministic, forest, neural, network] = await Promise.all([
+    return Promise.all([
       this.sourceDeterministicRecheck(draft, selected.deterministic.record_id),
       selected.forest
         ? this.sourceForestRecheck(draft, selected.forest.record_id)
@@ -806,6 +817,15 @@ export class ApiClient {
         "Сохранённые результаты совместного отчёта не подтверждены.",
       );
     });
+  }
+  private async acceptSourceEvidenceReport(
+    row: SourceEvidenceReport,
+    draft: PatchDraft,
+    request?: CreateSourceEvidenceReport,
+    summary?: SourceEvidenceSummary,
+  ) {
+    const [deterministic, forest, neural, network] =
+      await this.loadSourceEvidenceChildren(row, draft);
     if (
       !(await sourceEvidenceReportBound(
         row,
@@ -853,6 +873,113 @@ export class ApiClient {
       "v2",
     );
     return this.acceptSourceEvidenceReport(row, draft, request);
+  }
+  async sourceRiskAssessments(report: SourceEvidenceReport, offset = 0) {
+    const rows = await this.request(
+      `/patches/${encodeURIComponent(report.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/risk-assessments?limit=20&offset=${offset}`,
+      z.array(sourceRiskSummarySchema).max(20),
+      undefined,
+      "v2",
+      128 * 1024,
+    );
+    if (
+      rows.some((row) => !sourceRiskSummaryBound(row, report)) ||
+      new Set(rows.map((row) => row.assessment_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История приоритетов не соответствует совместному отчёту.",
+      );
+    return rows;
+  }
+  private async acceptSourceRiskAssessment(
+    row: SourceRiskAssessment,
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    expected?: CreateSourceRiskAssessment,
+    summary?: SourceRiskSummary,
+  ) {
+    let checked: SourceEvidenceReport, children;
+    try {
+      checked = await this.request(
+        `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}`,
+        sourceEvidenceReportSchema,
+        undefined,
+        "v2",
+      );
+      children = await this.loadSourceEvidenceChildren(checked, draft);
+    } catch {
+      if (this.controller.signal.aborted)
+        throw new DOMException("Disconnected", "AbortError");
+      throw new ApiError(
+        0,
+        "Отчёт или сохранённые результаты приоритета не подтверждены. Прочитайте оценку по её ID.",
+      );
+    }
+    const [deterministic, forest, neural, network] = children;
+    if (
+      checked.review_sha256 !== report.review_sha256 ||
+      !(await sourceRiskAssessmentBound(
+        row,
+        draft,
+        checked,
+        { deterministic, forest, neural, network },
+        expected,
+        summary,
+      ))
+    )
+      throw new ApiError(
+        0,
+        "Привязки экспериментального приоритета не подтверждены.",
+      );
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async sourceRiskAssessment(
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    id: string,
+    expected?: CreateSourceRiskAssessment,
+    summary?: SourceRiskSummary,
+  ) {
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/risk-assessments/${encodeURIComponent(id)}`,
+      sourceRiskAssessmentSchema,
+      undefined,
+      "v2",
+      2 * 1024 * 1024,
+    );
+    if (row.assessment_id !== id)
+      throw new ApiError(0, "Идентификатор приоритета не подтверждён.");
+    return this.acceptSourceRiskAssessment(
+      row,
+      draft,
+      report,
+      expected,
+      summary,
+    );
+  }
+  async createSourceRiskAssessment(
+    draft: PatchDraft,
+    report: SourceEvidenceReport,
+    options: CreateSourceRiskAssessment,
+  ) {
+    const request = createSourceRiskAssessmentSchema.parse(options);
+    if (
+      report.patch_id !== draft.patch_id ||
+      report.draft_sha256 !== draft.draft_sha256 ||
+      request.report_sha256 !== report.review_sha256
+    )
+      throw new ApiError(409, messages[409]!);
+    const row = await this.request(
+      `/patches/${encodeURIComponent(draft.patch_id)}/evidence-reports/${encodeURIComponent(report.report_id)}/risk-assessments`,
+      sourceRiskAssessmentSchema,
+      request,
+      "v2",
+      2 * 1024 * 1024,
+    );
+    return this.acceptSourceRiskAssessment(row, draft, report, request);
   }
   async sourceEvidenceDecisions(report: SourceEvidenceReport, offset = 0) {
     const rows = await this.request(

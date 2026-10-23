@@ -5,6 +5,38 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Для доступной части §15/§16.7/§22.2 добавлена [отдельная инженерная оценка
+выбранного отчёта](source-risk-assessments.md): фиксированный профиль0.1 сохраняет
+after-side компоненты, исходные наблюдения, маску доступности, веса и ограничители.
+Это некалиброванный безразмерный приоритет, без оценки вероятности аварии.
+Partial suppresses aggregate с сохранением adverse observations; отсутствие
+сетевых loss evidence не заменяется безопасным нулём. Старые report0.1/0.2/0.3,
+decisions и risk/proof/history не пересчитываются. Additive encrypted storage0017,
+atomic audit и API/UI сохраняют первую серверную роль, время и proof при replay.
+[Actual HTTP evidence](evaluation/owned-source-risk-functional.json) проверяет
+четыре новые оценки по двум прежним authored pairs, полные bindings и историю
+после удаления originals/models/двух references на копии БД. Новых model/engine
+calls и fits0; повторные records не увеличивают независимый корпус.
+[Десять actual local network/API сценариев](evaluation/owned-source-risk-network-functional.json)
+связали новые source/joint/decision0.3 с отдельными оценками и подтвердили replay
+после удаления originals без новых SDK calls. Scoped loss и mixed loss/gain
+сохраняют ограничитель0.95; gain/control/empty scope не получают сетевой ноль.
+Движок2026.08.27.3685 и SDK2026.8.19.3660 наблюдались в этих запусках; модель
+не запускалась. Собственные engine container/volume/network удалены.
+Pure65unit, новые DTO/API/storage83, независимые5SQLite controls и дополнительный
+DTO41 на Pydantic2.14.1 проходят. UI925unit и24новых browser desktop/mobile pass;
+browser network/model outputs — synthetic fixtures. Partial UI semantics проверены
+normative unit controls; browser подтверждает существующий deterministic409 до
+создания joint report, а не успешный partial end-to-end workflow. Независимое
+backend/UI review не выявило material findings. Общий formal остаётся `not_proven`,
+calibration/independent quality, individual identity, approval/application не установлены.
+Полный local Python run:4964pass/36skip/5warnings,91%coverage; Ruff/mypy300runtime
+в default/Linux/win32 pass. Installed1203pass/18skip на каждой Pydantic2.13.5/2.14.0/2.14.1;
+300runtime/3assets source-equal,719history/294oldinstalled сохранены. UI925unit/336browser
+pass. Выбор нового spec в общем browser profile исправлен явным исключением;
+первоначальные неудачные попытки сохранены. Local PostgreSQL не запускался.
+CI нового commit ещё не выполнен; прежний зелёный CI его не покрывает.
+
 Для доступной части §16.5,7 добавлены [свидетельства направления достижимости](source-reachability-impact.md):
 source network и joint report0.3 сохраняют полные ограниченные наборы
 trace dispositions, flow hashes и направление loss/gain; decision0.3 хранит
@@ -36,7 +68,14 @@ files в default/Linux/win32 проходят. Installed1054pass/18skip/4warning
 Pydantic2.13.5/2.14.0/2.14.1;294runtime и3assets source-equal,694history и290oldinstalled
 hashes сохранены. UI899unit/typecheck/build/format и312browser cases проходят;
 browser responses — software fixtures. Собственные engine container/volume удалены.
-Local PostgreSQL не запускался; новая опубликованная поставка требует своего CI.
+Local PostgreSQL не запускался. Для опубликованного
+`004bd1aabc709622ccdb0ad1277da13a923f48d7` [все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/39975172414)
+успешны: backend4783pass/68skip/91%coverage, PostgreSQL631pass/2skip/12deselected,
+Batfish51+2savedcandidate pass, включая10новых actual directional API сценариев;
+всего16source/joint/decision records вместе с шестью SDK controls.
+Frontend899unit/312browser+162Compose pass. Backend skips включают opt-in live/DB
+и optional native SDK controls; локально SDK controls прошли, real engine проверен
+отдельной CI job. Последующие изменения этим CI не покрыты.
 
 Для §16.5–7 добавлена [наблюдаемая версия SDK в source network 0.2](source-network-sdk.md),
 совместном report 0.2 и decision 0.2 с сохранением старых 0.1 proof/defaults/history.

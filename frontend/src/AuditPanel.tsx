@@ -3,6 +3,12 @@ import { ApiClient } from "./api";
 import type { OperationPage, OperationRecord } from "./audit";
 import { date, shortId } from "./format";
 
+const operationLabel = (name: string) =>
+  ({
+    create_source_risk_assessment: "Сохранение экспериментального приоритета",
+    list_source_risk_assessments: "История экспериментальных приоритетов",
+    get_source_risk_assessment: "Чтение экспериментального приоритета",
+  })[name as "create_source_risk_assessment"] ?? name;
 const outcomes = {
   pending: "Итог не подтверждён",
   successful_response: "Успешный ответ API",
@@ -118,7 +124,7 @@ export function AuditPanel({
                 onClick={() => void detail(item)}
                 aria-label={`Операция ${item.receipt.operation_id}`}
               >
-                <strong>{item.receipt.operation}</strong>
+                <strong>{operationLabel(item.receipt.operation)}</strong>
                 <span>
                   {date(item.receipt.started_at)} ·{" "}
                   {shortId(item.receipt.operation_id)}
@@ -156,7 +162,8 @@ export function AuditPanel({
             UUID: <code>{selected.receipt.operation_id}</code>
           </p>
           <p>
-            {selected.receipt.method} · {selected.receipt.operation} ·{" "}
+            {selected.receipt.method} ·{" "}
+            {operationLabel(selected.receipt.operation)} ·{" "}
             {authorizations[selected.authorization]}
           </p>
           {selected.completion ? (

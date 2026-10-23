@@ -210,6 +210,7 @@ def main() -> None:
     mode.add_argument("--source-deterministic-fixture", action="store_true")
     mode.add_argument("--source-evidence-fixture", action="store_true")
     mode.add_argument("--source-evidence-decision-fixture", action="store_true")
+    mode.add_argument("--source-risk-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -273,6 +274,7 @@ def main() -> None:
                 options.source_ml_fixture
                 or options.source_evidence_fixture
                 or options.source_evidence_decision_fixture
+                or options.source_risk_fixture
             ):
                 import app.patching.source_ml as source_ml_workflow
                 from app.core.configuration_model import ConfigurationModelSettings
@@ -285,6 +287,7 @@ def main() -> None:
                 options.source_patch_fixture
                 or options.source_evidence_fixture
                 or options.source_evidence_decision_fixture
+                or options.source_risk_fixture
             ):
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
@@ -299,10 +302,14 @@ def main() -> None:
                     # Explicit owned software fixture: no SDK/model/engine is invoked.
                     hostname = scope.start_node
                     failed = (
-                        options.source_evidence_fixture or options.source_evidence_decision_fixture
+                        options.source_evidence_fixture
+                        or options.source_evidence_decision_fixture
+                        or options.source_risk_fixture
                     ) and hostname.startswith("source-evidence-error-")
                     empty = (
-                        options.source_evidence_fixture or options.source_evidence_decision_fixture
+                        options.source_evidence_fixture
+                        or options.source_evidence_decision_fixture
+                        or options.source_risk_fixture
                     ) and hostname.startswith("source-evidence-inconclusive-")
                     return BatfishResult(
                         before_sha256=before.digest,
@@ -444,7 +451,9 @@ def main() -> None:
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8308
+                port=8309
+                if options.source_risk_fixture
+                else 8308
                 if options.source_evidence_decision_fixture
                 else 8307
                 if options.source_evidence_fixture
