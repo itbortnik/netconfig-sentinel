@@ -18,6 +18,7 @@ export default defineConfig({
     "**/sourceEvidenceReport.spec.ts",
     "**/sourceEvidenceDecision.spec.ts",
     "**/sourceRiskAssessment.spec.ts",
+    "**/sourceIngress.spec.ts",
   ],
   timeout: 30_000,
   expect: { timeout: 10_000 },

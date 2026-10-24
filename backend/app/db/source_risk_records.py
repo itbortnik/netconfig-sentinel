@@ -8,11 +8,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api import source_risk_contracts
-from app.api.source_evidence_direction_contracts import SourceEvidenceReportRecord
+from app.api.source_evidence_scope_contracts import SourceEvidenceReportRecord
 from app.api.source_risk_contracts import (
-    CreateSourceRiskAssessment,
-    SourceRiskAssessment,
     SourceRiskProjectionTooLarge,
+)
+from app.api.source_risk_scope_contracts import (
+    SourceRiskRecord,
+    SourceRiskRequest,
+    parse_source_risk_json,
+    parse_source_risk_request,
+    source_risk_assessment,
+    validate_source_risk_record,
 )
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
@@ -46,10 +52,11 @@ class SourceRiskRecords:
             raise PatchConflict("Selected evidence report belongs to a different patch.")
         return report
 
-    def _validate(self, session: Session, assessment: SourceRiskAssessment) -> None:
+    def _validate(self, session: Session, assessment: SourceRiskRecord) -> None:
         report = self._parent(session, assessment.patch_id, assessment.report_id)
         inputs = self.reports._inputs(session, report.patch_id, report.request)
-        assessment.validate_evidence(
+        validate_source_risk_record(
+            assessment,
             inputs.draft,
             report,
             inputs.deterministic,
@@ -62,15 +69,15 @@ class SourceRiskRecords:
         self,
         patch_id: UUID,
         report_id: UUID,
-        request: CreateSourceRiskAssessment,
+        request: SourceRiskRequest,
         service_role: Role,
-    ) -> SourceRiskAssessment:
-        request = CreateSourceRiskAssessment.model_validate(request.model_dump(warnings=False))
+    ) -> SourceRiskRecord:
+        request = parse_source_risk_request(request)
         with self.store._sessions() as session:
             report = self._parent(session, patch_id, report_id)
             inputs = self.reports._inputs(session, report.patch_id, report.request)
             try:
-                assessment = SourceRiskAssessment.from_evidence(
+                assessment = source_risk_assessment(
                     inputs.draft,
                     report,
                     request,
@@ -89,7 +96,7 @@ class SourceRiskRecords:
             return assessment
 
     @staticmethod
-    def _payload(assessment: SourceRiskAssessment) -> str:
+    def _payload(assessment: SourceRiskRecord) -> str:
         if len(assessment.review_json.encode()) > source_risk_contracts.MAX_SOURCE_RISK_PROOF_BYTES:
             raise SourceRiskTooLarge("Priority assessment exceeds its proof budget.")
         raw = assessment.model_dump_json(warnings=False)
@@ -97,14 +104,14 @@ class SourceRiskRecords:
             raise SourceRiskTooLarge("Priority assessment exceeds its payload budget.")
         return raw
 
-    def _assessment(self, session: Session, row: SourceRiskAssessmentRow) -> SourceRiskAssessment:
+    def _assessment(self, session: Session, row: SourceRiskAssessmentRow) -> SourceRiskRecord:
         try:
             if len(row.payload) > MAX_SOURCE_RISK_CIPHERTEXT_BYTES:
                 raise ValueError("oversized assessment ciphertext")
             raw = self.store._decode(row.payload, kind="source_risk_assessment", row_id=row.id)
             if len(raw.encode()) > source_risk_contracts.MAX_SOURCE_RISK_BYTES:
                 raise ValueError("oversized assessment payload")
-            assessment = SourceRiskAssessment.model_validate_json(raw)
+            assessment = parse_source_risk_json(raw)
             stamp = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
             if (
                 str(assessment.assessment_id),
@@ -118,16 +125,16 @@ class SourceRiskRecords:
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
-    def _get(self, session: Session, assessment_id: UUID) -> SourceRiskAssessment | None:
+    def _get(self, session: Session, assessment_id: UUID) -> SourceRiskRecord | None:
         row = session.get(SourceRiskAssessmentRow, str(assessment_id))
         return self._assessment(session, row) if row is not None else None
 
-    def get(self, assessment_id: UUID) -> SourceRiskAssessment | None:
+    def get(self, assessment_id: UUID) -> SourceRiskRecord | None:
         with self.store._sessions() as session:
             return self._get(session, assessment_id)
 
     @staticmethod
-    def _same(stored: SourceRiskAssessment, incoming: SourceRiskAssessment) -> None:
+    def _same(stored: SourceRiskRecord, incoming: SourceRiskRecord) -> None:
         # Replay preserves the first insertion's server role, timestamp and normative proof.
         if (stored.patch_id, stored.report_id, stored.request) != (
             incoming.patch_id,
@@ -147,9 +154,9 @@ class SourceRiskRecords:
             )
         )
 
-    def add(self, assessment: SourceRiskAssessment) -> tuple[SourceRiskAssessment, bool]:
+    def add(self, assessment: SourceRiskRecord) -> tuple[SourceRiskRecord, bool]:
         raw = self._payload(assessment)
-        assessment = SourceRiskAssessment.model_validate_json(raw)
+        assessment = parse_source_risk_json(raw)
         key = str(assessment.assessment_id)
         try:
             with self.store._sessions.begin() as session:

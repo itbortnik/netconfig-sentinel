@@ -38,7 +38,8 @@ Report 0.1 отказывает новому network 0.2 с 409; несовме�
 Decision request/record 0.2 относится только к report 0.2; прежний 0.1 — к report
 0.1. Сохраняются явные `rejected`/`needs_more_information`, первоначальные сервисная
 роль, время и proof. Эти записи не удостоверяют individual identity и не дают
-approval. UI отправляет новые source/report requests явно как 0.2, выбирает
+approval. Протокол0.2 сохранён для истории; текущие новые source/report requests
+используют [наблюдения области0.4](source-ingress-observations.md). UI выбирает
 версию решения по выбранному отчёту, проверяет полную цепочку proofs и сохраняет
 неопределённый результат запроса до явного восстановления через GET.
 

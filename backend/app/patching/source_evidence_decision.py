@@ -5,7 +5,7 @@ from uuid import UUID
 from app.api.source_evidence_decision_contracts import (
     MAX_SOURCE_EVIDENCE_DECISION_BYTES,
 )
-from app.api.source_evidence_decision_direction_contracts import (
+from app.api.source_evidence_decision_scope_contracts import (
     SourceEvidenceDecisionRecord,
     SourceEvidenceDecisionRequest,
     parse_source_evidence_decision_request,

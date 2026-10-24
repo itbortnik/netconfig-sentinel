@@ -51,10 +51,15 @@ const reviewSourceEvidenceReportV3Schema =
   reviewSourceEvidenceReportV1Schema.extend({
     version: z.literal("source-evidence-decision-request-0.3.0"),
   });
+const reviewSourceEvidenceReportV4Schema =
+  reviewSourceEvidenceReportV1Schema.extend({
+    version: z.literal("source-evidence-decision-request-0.4.0"),
+  });
 export const reviewSourceEvidenceReportSchema = z.union([
   reviewSourceEvidenceReportV1Schema,
   reviewSourceEvidenceReportV2Schema,
   reviewSourceEvidenceReportV3Schema,
+  reviewSourceEvidenceReportV4Schema,
 ]);
 export type ReviewSourceEvidenceReport = z.infer<
   typeof reviewSourceEvidenceReportSchema
@@ -112,6 +117,14 @@ export const sourceEvidenceDecisionSchema = z.union([
       report_version: z.literal("source-evidence-report-0.3.0"),
     })
     .refine(validDecision),
+  z
+    .strictObject({
+      ...decisionBase.shape,
+      version: z.literal("source-evidence-decision-0.4.0"),
+      request: reviewSourceEvidenceReportV4Schema,
+      report_version: z.literal("source-evidence-report-0.4.0"),
+    })
+    .refine(validDecision),
 ]);
 export type SourceEvidenceDecision = z.infer<
   typeof sourceEvidenceDecisionSchema
@@ -136,6 +149,9 @@ export const sourceEvidenceDecisionSummarySchema = z.union([
   decisionSummaryV1Schema.extend({
     version: z.literal("source-evidence-decision-summary-0.3.0"),
   }),
+  decisionSummaryV1Schema.extend({
+    version: z.literal("source-evidence-decision-summary-0.4.0"),
+  }),
 ]);
 export type SourceEvidenceDecisionSummary = z.infer<
   typeof sourceEvidenceDecisionSummarySchema
@@ -146,11 +162,13 @@ export function sourceEvidenceDecisionSummaryBound(
 ) {
   return (
     row.version ===
-      (report.version === "source-evidence-report-0.3.0"
-        ? "source-evidence-decision-summary-0.3.0"
-        : report.version === "source-evidence-report-0.2.0"
-          ? "source-evidence-decision-summary-0.2.0"
-          : "source-evidence-decision-summary-0.1.0") &&
+      (report.version === "source-evidence-report-0.4.0"
+        ? "source-evidence-decision-summary-0.4.0"
+        : report.version === "source-evidence-report-0.3.0"
+          ? "source-evidence-decision-summary-0.3.0"
+          : report.version === "source-evidence-report-0.2.0"
+            ? "source-evidence-decision-summary-0.2.0"
+            : "source-evidence-decision-summary-0.1.0") &&
     row.patch_id === report.patch_id &&
     row.report_id === report.report_id &&
     row.report_sha256 === report.review_sha256 &&
@@ -187,6 +205,7 @@ export async function sourceEvidenceDecisionBound(
   summary?: SourceEvidenceDecisionSummary,
 ) {
   if (
+    !sourceEvidenceDecisionSchema.safeParse(row).success ||
     !(await sourceEvidenceDecisionProofMatches(row)) ||
     !(await sourceEvidenceProofMatches(report)) ||
     row.patch_id !== report.patch_id ||
@@ -207,11 +226,13 @@ export async function sourceEvidenceDecisionBound(
     (sourceEvidenceDecisionSummaryBound(summary, report) &&
       same(summary, {
         version:
-          row.version === "source-evidence-decision-0.3.0"
-            ? "source-evidence-decision-summary-0.3.0"
-            : row.version === "source-evidence-decision-0.2.0"
-              ? "source-evidence-decision-summary-0.2.0"
-              : "source-evidence-decision-summary-0.1.0",
+          row.version === "source-evidence-decision-0.4.0"
+            ? "source-evidence-decision-summary-0.4.0"
+            : row.version === "source-evidence-decision-0.3.0"
+              ? "source-evidence-decision-summary-0.3.0"
+              : row.version === "source-evidence-decision-0.2.0"
+                ? "source-evidence-decision-summary-0.2.0"
+                : "source-evidence-decision-summary-0.1.0",
         decision_id: row.decision_id,
         patch_id: row.patch_id,
         report_id: row.report_id,

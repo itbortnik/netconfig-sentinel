@@ -15,8 +15,7 @@ from app.api.source_evidence_contracts import (
     MAX_SOURCE_EVIDENCE_BYTES,
     SourceEvidenceProjectionTooLarge,
 )
-from app.api.source_evidence_direction_contracts import (
-    CreateSourceEvidenceReportV3,
+from app.api.source_evidence_scope_contracts import (
     SourceEvidenceReportRecord,
     SourceEvidenceRequest,
     parse_source_evidence_report_json,
@@ -24,13 +23,10 @@ from app.api.source_evidence_direction_contracts import (
     source_evidence_report,
     validate_source_evidence_report,
 )
-from app.api.source_evidence_sdk_contracts import CreateSourceEvidenceReportV2
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
-from app.api.source_patch_contracts import SourcePatchVerification
-from app.api.source_patch_direction_contracts import (
+from app.api.source_patch_scope_contracts import (
     SourcePatchReview,
-    SourcePatchVerificationV3,
     source_patch_view,
 )
 from app.db.patch_records import PatchConflict, PatchRecords
@@ -113,15 +109,13 @@ class SourceEvidenceRecords:
             if network_records is None:
                 raise SourceEvidenceInputNotFound("Selected network result is unavailable.")
             selected_network = source_patch_view(*network_records)
-            if (
-                isinstance(selected_network, SourcePatchVerificationV3)
-                and not isinstance(request, CreateSourceEvidenceReportV3)
-            ) or (
-                not isinstance(
-                    request, (CreateSourceEvidenceReportV2, CreateSourceEvidenceReportV3)
-                )
-                and not isinstance(selected_network, SourcePatchVerification)
-            ):
+            newest = {
+                "source-evidence-request-0.1.0": "source-patch-verification-0.1.0",
+                "source-evidence-request-0.2.0": "source-patch-verification-0.2.0",
+                "source-evidence-request-0.3.0": "source-patch-verification-0.3.0",
+                "source-evidence-request-0.4.0": "source-patch-verification-0.4.0",
+            }
+            if selected_network.version > newest[request.version]:
                 raise PatchConflict("Selected network result requires a newer report protocol.")
             network = selected_network
         # Admission is on the complete selected DTOs, including their proof strings, before

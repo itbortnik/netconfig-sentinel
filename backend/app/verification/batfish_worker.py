@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import importlib
+import importlib.util
 import json
 import os
 import re
@@ -12,7 +13,20 @@ from collections.abc import Mapping, Sequence
 from hashlib import sha256
 from importlib import metadata
 from ipaddress import IPv4Address, IPv4Network
+from pathlib import Path
 from typing import Any
+
+
+def _ingress_helper() -> Any:
+    # -I excludes the editable app from sys.path. Load only this trusted sibling;
+    # the extraction module is deliberately stdlib-only and imports no app package.
+    path = Path(__file__).resolve().with_name("ingress_scope_worker.py")
+    spec = importlib.util.spec_from_file_location("sentinel_ingress_scope_worker", path)
+    if spec is None or spec.loader is None:
+        raise ValueError("ingress extraction unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _empty_impact(state: str, reason: str) -> dict[str, Any]:
@@ -271,6 +285,7 @@ def evaluate_session(
     path_type: Any,
     *,
     directional: bool = False,
+    ingress_scope: bool = False,
     flow_type: Any = None,
     trace_type: Any = None,
 ) -> dict[str, Any]:
@@ -279,6 +294,8 @@ def evaluate_session(
     created = False
     network = request["network_name"]
     impact = _empty_impact("not_observed", "not_run")
+    helper = _ingress_helper() if ingress_scope else None
+    observation = helper.empty_scope(request, "not_observed", "not_run") if helper else None
     try:
         if network in session.list_networks():
             return result
@@ -320,7 +337,13 @@ def evaluate_session(
                 result.update(status="incomplete", reason="initialization_issues")
                 return result
         headers = header_type(dstIps=request["scope"]["destination"])
-        paths = path_type(startLocation=request["scope"]["start_node"])
+        paths = path_type(
+            startLocation=(
+                json.dumps(request["scope"]["start_node"])
+                if ingress_scope
+                else request["scope"]["start_node"]
+            )
+        )
         params = {
             "headers": headers,
             "pathConstraints": paths,
@@ -353,6 +376,8 @@ def evaluate_session(
                 if status == "inconclusive"
                 else _directional_impact(difference_answer, request["scope"], flow_type, trace_type)
             )
+        if helper is not None:
+            observation = helper.observe_scope(session, request)
     except Exception:
         # SDK errors may contain configuration lines, paths or server responses.
         result = {"status": "error", "reason": "engine_error"}
@@ -370,6 +395,16 @@ def evaluate_session(
             ):
                 impact = _empty_impact("unknown", "cleanup_unconfirmed")
             result["reachability_impact"] = impact
+        if helper is not None:
+            if result["status"] not in {
+                "differences_found",
+                "no_differences_in_scope",
+                "inconclusive",
+            }:
+                observation = helper.empty_scope(request, "not_observed", "not_run")
+            elif result.get("cleanup_complete") is not True:
+                observation = helper.empty_scope(request, "unknown", "cleanup_unconfirmed")
+            result["ingress_scope"] = observation
     return result
 
 
@@ -414,7 +449,11 @@ def main() -> None:
     try:
         request = json.loads(sys.stdin.read(65_536))
         if "protocol" in request:
-            if request["protocol"] not in {"batfish-execution-0.2.0", "batfish-execution-0.3.0"}:
+            if request["protocol"] not in {
+                "batfish-execution-0.2.0",
+                "batfish-execution-0.3.0",
+                "batfish-execution-0.4.0",
+            }:
                 raise ValueError("unknown worker protocol")
             evidence = True
         with open(os.devnull, "w", encoding="utf-8") as quiet:
@@ -428,8 +467,14 @@ def main() -> None:
                     flow.HeaderConstraints,
                     flow.PathConstraints,
                     **(
-                        {"directional": True, "flow_type": flow.Flow, "trace_type": flow.Trace}
-                        if request.get("protocol") == "batfish-execution-0.3.0"
+                        {
+                            "directional": True,
+                            "flow_type": flow.Flow,
+                            "trace_type": flow.Trace,
+                            "ingress_scope": request.get("protocol") == "batfish-execution-0.4.0",
+                        }
+                        if request.get("protocol")
+                        in {"batfish-execution-0.3.0", "batfish-execution-0.4.0"}
                         else {}
                     ),
                 )
@@ -446,17 +491,33 @@ def main() -> None:
                 network_name=request["network_name"],
             )
             impact = result.pop("reachability_impact", _empty_impact("not_observed", "not_run"))
+            observation = result.pop("ingress_scope", None)
             result = {
                 "version": request["protocol"],
                 "result": result,
                 "sdk_version": sdk_version,
                 "sdk_observation": sdk_observation,
             }
-            if request["protocol"] == "batfish-execution-0.3.0":
+            if request["protocol"] in {"batfish-execution-0.3.0", "batfish-execution-0.4.0"}:
                 result["reachability_impact"] = impact
+            if request["protocol"] == "batfish-execution-0.4.0":
+                result["ingress_scope"] = observation or _ingress_helper().empty_scope(
+                    request, "not_observed", "not_run"
+                )
         except Exception:
             result = {"status": "error", "reason": "engine_error"}
-    print(json.dumps(result))
+    if evidence and request.get("protocol") == "batfish-execution-0.4.0":
+        output = json.dumps(result, ensure_ascii=False)
+        if len(output.encode("utf-8")) > 262_144:
+            result["ingress_scope"] = _ingress_helper().empty_scope(
+                request, "unknown", "budget_exceeded"
+            )
+            output = json.dumps(result, ensure_ascii=False)
+        if len(output.encode("utf-8")) > 262_144:
+            output = json.dumps({"status": "error", "reason": "engine_error"})
+        print(output)
+    else:
+        print(json.dumps(result))
 
 
 if __name__ == "__main__":

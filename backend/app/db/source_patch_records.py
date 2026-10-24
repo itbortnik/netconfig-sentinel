@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.contracts import SnapshotBinding
 from app.api.source_patch_contracts import MAX_SOURCE_REVIEW_BYTES
-from app.api.source_patch_direction_contracts import (
+from app.api.source_patch_scope_contracts import (
     SourcePatchIntentRecord,
     SourcePatchOutcomeRecord,
     parse_source_patch_intent_json,

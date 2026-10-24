@@ -1,0 +1,576 @@
+{
+  "actual_new_joint_reports": 2,
+  "actual_new_risk_assessments": 4,
+  "actual_new_sdk_calls": 2,
+  "actual_new_service_role_decisions": 8,
+  "actual_new_source_records": 2,
+  "applied": false,
+  "approved": false,
+  "authored_target_pairs_reused": 2,
+  "completed_utc": "2026-10-24T19:23:15.790207+00:00",
+  "completion_sha256": "165a6e86b149723c05ac22175e1efa0c1f5a62dc13fe15bb7fbb35f491456f99",
+  "formal_qualification": "not_proven",
+  "full_selected_child_binding_verified": true,
+  "goal_completed": false,
+  "history_after_original_model_reference_removal": true,
+  "independent_quality_denominator": null,
+  "individual_identity_verified": false,
+  "limitations": [
+    "Two retained authored pairs are reused; these are functional records, not independent quality data.",
+    "IP-space strings are opaque, modeled Active is not operational link state, and flow coverage is not expanded.",
+    "No witnesses returned does not establish whole-network invariance, approval or safety."
+  ],
+  "new_fits": 0,
+  "new_model_calls": 0,
+  "new_weights": 0,
+  "old_physical_rows_preserved": true,
+  "protocol_sha256": "57ab01fc74773ac57fe8be0bdc69ccf42eca0cd1bab9ff91b2e6d57c5ba132bc",
+  "quality_proven": false,
+  "records": [
+    {
+      "assessments": [
+        {
+          "applied": false,
+          "approved": false,
+          "assessment_id": "36eda002-f76d-4b02-aa6b-f3f6ab43b3ea",
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "calibrated": false,
+          "composition_version": "source-priority-composition-0.2.0",
+          "individual_identity_verified": false,
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "review_sha256": "1e284e4e22735dc91d0837654142afaae5748f2862a7057247f03d709ecb9c77",
+          "score": 0.634503960609436,
+          "service_role": "engineer",
+          "version": "source-risk-assessment-0.2.0"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "assessment_id": "e0ecccdb-0dd0-4e48-9e3d-c551ef171c69",
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "calibrated": false,
+          "composition_version": "source-priority-composition-0.2.0",
+          "individual_identity_verified": false,
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "review_sha256": "a56aec20c3c4546ebbc3556145ea144c975d610f990008a12bb753e8ae7ce04a",
+          "score": 0.634503960609436,
+          "service_role": "admin",
+          "version": "source-risk-assessment-0.2.0"
+        }
+      ],
+      "decisions": [
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "fbe88f4b-2cf6-4678-ba33-6badc1406612",
+          "decision_sha256": "bac83381bc23f22bcd9a1e693271f2f3af1d97c2d8913f974c7e927791505411",
+          "individual_identity_verified": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "service_role": "engineer",
+          "verdict": "rejected"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "23192e0e-be80-4031-bf0d-4323ca557b50",
+          "decision_sha256": "bfb789e91a8f55a2021703f0ca1dca5680f66e10228126c6b316c8cf92d1d92a",
+          "individual_identity_verified": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "service_role": "engineer",
+          "verdict": "needs_more_information"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "03900ce1-17c5-4ad4-8cd9-68f0d63411f0",
+          "decision_sha256": "bbc7a8b7679e3b55278794c65d7d0e371eb391098cae8fe168795cbcd2d7690b",
+          "individual_identity_verified": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "service_role": "admin",
+          "verdict": "rejected"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "3348c9da-84e0-4f42-b894-3a0084dc10ab",
+          "decision_sha256": "70e8565a87f70a6f03294648093c84481fecba6808271f457b32e66ad592287c",
+          "individual_identity_verified": false,
+          "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+          "service_role": "admin",
+          "verdict": "needs_more_information"
+        }
+      ],
+      "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+      "network_execution": {
+        "ingress_scope": {
+          "acquisition_state": "observed",
+          "after": {
+            "interfaces": [
+              {
+                "active": true,
+                "canonical_id_sha256": "e3403bf6233ecc7f5f6d031b9bb2cfb8fef0b78814a65a714458ed20d94fd0a1",
+                "concrete_ipv4_prefixes": [
+                  "192.0.2.13/24"
+                ],
+                "eligibility_reason": "active_concrete_ipv4",
+                "eligible": true,
+                "interface": "GigabitEthernet0/1",
+                "interface_type": "PHYSICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=GigabitEthernet0/1}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.13]}",
+                "source_ip_sha256": "743f5a4742d3d0f79c66fe5167033a94b38bd40c214547daacfdf9835144af6b",
+                "switchport": false
+              }
+            ]
+          },
+          "after_common_assignments": [
+            {
+              "canonical_id_sha256": "e3403bf6233ecc7f5f6d031b9bb2cfb8fef0b78814a65a714458ed20d94fd0a1",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.13]}",
+              "source_ip_sha256": "743f5a4742d3d0f79c66fe5167033a94b38bd40c214547daacfdf9835144af6b"
+            }
+          ],
+          "after_eligible_only": [],
+          "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+          "before": {
+            "interfaces": [
+              {
+                "active": true,
+                "canonical_id_sha256": "e3403bf6233ecc7f5f6d031b9bb2cfb8fef0b78814a65a714458ed20d94fd0a1",
+                "concrete_ipv4_prefixes": [
+                  "192.0.2.12/24"
+                ],
+                "eligibility_reason": "active_concrete_ipv4",
+                "eligible": true,
+                "interface": "GigabitEthernet0/1",
+                "interface_type": "PHYSICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=GigabitEthernet0/1}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.12]}",
+                "source_ip_sha256": "d498f4d15438d0104cb53689134ead0ad84ea1896793a6be1d3aec44a79c1f4e",
+                "switchport": false
+              }
+            ]
+          },
+          "before_eligible_only": [],
+          "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+          "common_eligible": [
+            "e3403bf6233ecc7f5f6d031b9bb2cfb8fef0b78814a65a714458ed20d94fd0a1"
+          ],
+          "complete_flow_coverage": false,
+          "eligibility_complete": true,
+          "limitations": [
+            "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+            "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+            "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+            "After-context assignments for common eligible identities do not prove complete flow coverage.",
+            "Removed ingress, management access, external delivery, approval and safety are not established.",
+            "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+          ],
+          "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+          "network_name": "sentinel-7446c72068e44efcab3a5115564952e7",
+          "reason": "query_completed",
+          "scope": {
+            "destination": "192.0.2.1/32",
+            "start_node": "deterministic-target"
+          },
+          "selected_after_only": [],
+          "selected_before_only": [],
+          "semantic_ip_sets_verified": false,
+          "source_assignment_context": "after",
+          "version": "ingress-scope-0.1.0"
+        },
+        "reachability_impact": {
+          "direction": "no_witnesses_returned",
+          "gained_witness_count": 0,
+          "limitations": [
+            "Returned flows are examples, not all packets or the size of the affected flow space.",
+            "Differential queries use ingress locations present and active in both snapshots.",
+            "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+            "Successful subnet delivery or exit does not establish delivery to an external device.",
+            "No severity, whole-network safety, management access, approval or application is inferred."
+          ],
+          "lost_witness_count": 0,
+          "max_traces": 16,
+          "max_witnesses": 64,
+          "method": "differential-success-example-flows-0.1.0",
+          "reason": "query_completed",
+          "state": "observed",
+          "version": "reachability-impact-0.1.0",
+          "witnesses": []
+        },
+        "result": {
+          "after_reachable_count": 1,
+          "after_sha256": "0fb7951e98ace7efc04ee1287d02c04efe52c175826dd8dd07a66cf787c7cfcf",
+          "before_reachable_count": 1,
+          "before_sha256": "f73edf252092eeee17fcca2df6c92d0f50e6ef75ff4b576129bc22ed9886b9ae",
+          "cleanup_complete": true,
+          "difference_count": 0,
+          "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+          "limitations": [
+            "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+            "Differences may be reachability gains or losses; counts are not impact severity.",
+            "No patch validation, approval or application is performed.",
+            "External topology completeness and operational state are not established."
+          ],
+          "network_name": "sentinel-7446c72068e44efcab3a5115564952e7",
+          "reason": "query_completed",
+          "requires_human_review": true,
+          "scope": {
+            "destination": "192.0.2.1/32",
+            "start_node": "deterministic-target"
+          },
+          "status": "no_differences_in_scope",
+          "version": "batfish-check-0.1.0"
+        },
+        "sdk_observation": "observed",
+        "sdk_version": "2026.8.19.3660",
+        "version": "batfish-execution-0.4.0"
+      },
+      "patch_id": "cb7248f4-acf4-441b-ae9c-ec1478c497bb",
+      "report_id": "d00e632a-b16a-412d-8aac-c3226938e59f",
+      "report_sha256": "ac0f00cad87e791e53f5f427e8942c615d59beef02c16255c1d6c44a2d2e780c",
+      "report_version": "source-evidence-report-0.4.0",
+      "saved_record_bundle_sha256": "c0339b32f4c364ae37fef6ac097ae263343b4fa263fee6ead26c21e6d81d70f5",
+      "selected_existing_child_sha256": {
+        "deterministic": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf",
+        "forest": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c",
+        "neural": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2"
+      },
+      "selected_results": {
+        "deterministic": {
+          "record_id": "ee97618c-4425-4117-a2d5-bc8ceea7e93d",
+          "review_sha256": "7ace9a5ac472965340967b112578e8d74f24da79c72bc128c80cfacea353acdf"
+        },
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "forest": {
+          "record_id": "a93098f9-d624-4eb5-b542-21b419893a59",
+          "review_sha256": "c6ed5592f64a6b3fe7ab19b3eff4d038c7dd49eb61b40d5ad47a735bc92b242c"
+        },
+        "network": {
+          "record_id": "502cc927-3d94-4e14-a0d5-bdca6ccb8aef",
+          "review_sha256": "005a81ac8e9fdf5d77a5817649dec42abe442903ce56aaa98dc9640d07aea7c1"
+        },
+        "neural": {
+          "record_id": "8a989ba0-32a6-4697-afe5-06331c633370",
+          "review_sha256": "5d994ca876e728807d8606f316d7eb62867b9415f544a90fbb843169a87eabb2"
+        },
+        "report_id": "d00e632a-b16a-412d-8aac-c3226938e59f",
+        "version": "source-evidence-request-0.4.0"
+      },
+      "source_request": {
+        "allow_local_engine_upload": true,
+        "companions": [],
+        "draft_sha256": "4c15a7f6c26947ba1c2ac0cac3f569338ae712374b9cd446385c01d86cadb6c4",
+        "scope": {
+          "destination": "192.0.2.1/32",
+          "start_node": "deterministic-target"
+        },
+        "verification_id": "502cc927-3d94-4e14-a0d5-bdca6ccb8aef",
+        "version": "source-patch-request-0.4.0"
+      },
+      "source_review_sha256": "005a81ac8e9fdf5d77a5817649dec42abe442903ce56aaa98dc9640d07aea7c1",
+      "source_verification_id": "502cc927-3d94-4e14-a0d5-bdca6ccb8aef",
+      "vendor": "cisco"
+    },
+    {
+      "assessments": [
+        {
+          "applied": false,
+          "approved": false,
+          "assessment_id": "00baef08-a97d-4e62-912a-41f762328db6",
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "calibrated": false,
+          "composition_version": "source-priority-composition-0.2.0",
+          "individual_identity_verified": false,
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "review_sha256": "1b02f1a1b0d927afd6169a3ae4d3649bed17226778dfd7e8cfa9e7a5b30615a3",
+          "score": 0.6357744591576713,
+          "service_role": "engineer",
+          "version": "source-risk-assessment-0.2.0"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "assessment_id": "d09eb640-206e-4560-8c89-c2942056ac99",
+          "availability_mask": [
+            "policy",
+            "peer_group",
+            "statistical",
+            "transformer"
+          ],
+          "calibrated": false,
+          "composition_version": "source-priority-composition-0.2.0",
+          "individual_identity_verified": false,
+          "profile_version": "source-priority-profile-0.1.0",
+          "quality_proven": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "review_sha256": "740e75ff26a19ec6ce4672cf85932a8dc5779241f50de6243e2f5ee7c2fac058",
+          "score": 0.6357744591576713,
+          "service_role": "admin",
+          "version": "source-risk-assessment-0.2.0"
+        }
+      ],
+      "decisions": [
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "6caa4c24-afd1-47d1-bfa6-beb0dffc0573",
+          "decision_sha256": "4ca9117e1fe4f40e5edecaaf42a8a233de72d6be4c5e029f8381c8fc10f743de",
+          "individual_identity_verified": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "service_role": "engineer",
+          "verdict": "rejected"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "0772c93c-823c-4ea5-8064-6ed1dda5d782",
+          "decision_sha256": "ffb56efd65568e8d10d73eb76953fb6b9717c0b4b1850ad9ff1a70fcf6ca5176",
+          "individual_identity_verified": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "service_role": "engineer",
+          "verdict": "needs_more_information"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "5f927f42-24dd-438d-9d4a-3dda97901b45",
+          "decision_sha256": "334ea3c0b6572fd2b8c5f2c0625191ec7be0d83ee82a4183e9215cbadf6399fa",
+          "individual_identity_verified": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "service_role": "admin",
+          "verdict": "rejected"
+        },
+        {
+          "applied": false,
+          "approved": false,
+          "decision_id": "38520605-30fd-466b-a969-00081a8528fe",
+          "decision_sha256": "6040122c36e4aabfae9470c372a731833efc93950e69aec0b3caaa225d4e8f7f",
+          "individual_identity_verified": false,
+          "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+          "service_role": "admin",
+          "verdict": "needs_more_information"
+        }
+      ],
+      "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+      "network_execution": {
+        "ingress_scope": {
+          "acquisition_state": "observed",
+          "after": {
+            "interfaces": [
+              {
+                "active": true,
+                "canonical_id_sha256": "c44c8d5d445f3ee6b0112892ecbf191e7aa7f93dd692b15f79a85314f9baea6e",
+                "concrete_ipv4_prefixes": [
+                  "192.0.2.13/24"
+                ],
+                "eligibility_reason": "active_concrete_ipv4",
+                "eligible": true,
+                "interface": "ge-0/0/0.0",
+                "interface_type": "LOGICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=ge-0/0/0.0}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.13]}",
+                "source_ip_sha256": "743f5a4742d3d0f79c66fe5167033a94b38bd40c214547daacfdf9835144af6b",
+                "switchport": false
+              },
+              {
+                "active": true,
+                "canonical_id_sha256": "d5e3219a6810860d40cb682f2a82ea0e239658f2759e6a5d509bb36fb00fa649",
+                "concrete_ipv4_prefixes": [],
+                "eligibility_reason": "no_concrete_ipv4",
+                "eligible": null,
+                "interface": "ge-0/0/0",
+                "interface_type": "PHYSICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=ge-0/0/0}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "empty",
+                "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+                "switchport": false
+              }
+            ]
+          },
+          "after_common_assignments": null,
+          "after_eligible_only": null,
+          "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+          "before": {
+            "interfaces": [
+              {
+                "active": true,
+                "canonical_id_sha256": "c44c8d5d445f3ee6b0112892ecbf191e7aa7f93dd692b15f79a85314f9baea6e",
+                "concrete_ipv4_prefixes": [
+                  "192.0.2.12/24"
+                ],
+                "eligibility_reason": "active_concrete_ipv4",
+                "eligible": true,
+                "interface": "ge-0/0/0.0",
+                "interface_type": "LOGICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=ge-0/0/0.0}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.12]}",
+                "source_ip_sha256": "d498f4d15438d0104cb53689134ead0ad84ea1896793a6be1d3aec44a79c1f4e",
+                "switchport": false
+              },
+              {
+                "active": true,
+                "canonical_id_sha256": "d5e3219a6810860d40cb682f2a82ea0e239658f2759e6a5d509bb36fb00fa649",
+                "concrete_ipv4_prefixes": [],
+                "eligibility_reason": "no_concrete_ipv4",
+                "eligible": null,
+                "interface": "ge-0/0/0",
+                "interface_type": "PHYSICAL",
+                "location_rendering": "InterfaceLocation{nodeName=deterministic-target, interfaceName=ge-0/0/0}",
+                "node": "deterministic-target",
+                "source_ip_rendering": "empty",
+                "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+                "switchport": false
+              }
+            ]
+          },
+          "before_eligible_only": null,
+          "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+          "common_eligible": null,
+          "complete_flow_coverage": false,
+          "eligibility_complete": false,
+          "limitations": [
+            "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+            "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+            "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+            "After-context assignments for common eligible identities do not prove complete flow coverage.",
+            "Removed ingress, management access, external delivery, approval and safety are not established.",
+            "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+          ],
+          "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+          "network_name": "sentinel-9c4c0c61ad50446387d1bc0e654f72c1",
+          "reason": "query_completed",
+          "scope": {
+            "destination": "192.0.2.1/32",
+            "start_node": "deterministic-target"
+          },
+          "selected_after_only": [],
+          "selected_before_only": [],
+          "semantic_ip_sets_verified": false,
+          "source_assignment_context": "after",
+          "version": "ingress-scope-0.1.0"
+        },
+        "reachability_impact": {
+          "direction": "no_witnesses_returned",
+          "gained_witness_count": 0,
+          "limitations": [
+            "Returned flows are examples, not all packets or the size of the affected flow space.",
+            "Differential queries use ingress locations present and active in both snapshots.",
+            "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+            "Successful subnet delivery or exit does not establish delivery to an external device.",
+            "No severity, whole-network safety, management access, approval or application is inferred."
+          ],
+          "lost_witness_count": 0,
+          "max_traces": 16,
+          "max_witnesses": 64,
+          "method": "differential-success-example-flows-0.1.0",
+          "reason": "query_completed",
+          "state": "observed",
+          "version": "reachability-impact-0.1.0",
+          "witnesses": []
+        },
+        "result": {
+          "after_reachable_count": 1,
+          "after_sha256": "522c15f9e3f78b38cb47ea69042b8aee645441052ad4ea36add9ac21ecb5f662",
+          "before_reachable_count": 1,
+          "before_sha256": "876fd90a972a0e9fe5eeb2213a726748cd0b05349f8feaa47420bedbe8ce0258",
+          "cleanup_complete": true,
+          "difference_count": 0,
+          "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+          "limitations": [
+            "Only the supplied snapshot and explicit IPv4 destination/start node are modeled.",
+            "Differences may be reachability gains or losses; counts are not impact severity.",
+            "No patch validation, approval or application is performed.",
+            "External topology completeness and operational state are not established."
+          ],
+          "network_name": "sentinel-9c4c0c61ad50446387d1bc0e654f72c1",
+          "reason": "query_completed",
+          "requires_human_review": true,
+          "scope": {
+            "destination": "192.0.2.1/32",
+            "start_node": "deterministic-target"
+          },
+          "status": "no_differences_in_scope",
+          "version": "batfish-check-0.1.0"
+        },
+        "sdk_observation": "observed",
+        "sdk_version": "2026.8.19.3660",
+        "version": "batfish-execution-0.4.0"
+      },
+      "patch_id": "f477365e-cb0d-4fd5-9b10-ef952b549ae1",
+      "report_id": "bbb87d43-85aa-42ea-bd67-7e5743d04ddf",
+      "report_sha256": "18fd57f26bdce7933217fd9fec5081192af71baaa758d58bea7acfc92df1510b",
+      "report_version": "source-evidence-report-0.4.0",
+      "saved_record_bundle_sha256": "7eb95fe3837f934ba417482f5a5aa5b1b22a42d43ce8b0e63680269ee0aecb2e",
+      "selected_existing_child_sha256": {
+        "deterministic": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90",
+        "forest": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f",
+        "neural": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d"
+      },
+      "selected_results": {
+        "deterministic": {
+          "record_id": "d306e36b-09cc-4852-96a1-8b2c8a5491ba",
+          "review_sha256": "d4f03285bb74b7b3bfeb0bfc966542c60b116225e1fb3a1723d2ecf55d5d1d90"
+        },
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "forest": {
+          "record_id": "4d7f6f77-b763-4818-a34d-c2e1f5810e2f",
+          "review_sha256": "ae37eb2cce45cffa6553561abd707f33c2786bd97f3fb7d7b67382e917fd9b3f"
+        },
+        "network": {
+          "record_id": "eff990cf-5b8e-498f-b543-37545a1ade86",
+          "review_sha256": "80042cd3d1e5702e147451fb8575324b0832ced4babfdf30425942dad9b4f7a0"
+        },
+        "neural": {
+          "record_id": "f4e25f75-97a8-4e10-9668-ae7d78c6be19",
+          "review_sha256": "f140d9eced59528714f4da7c9602b9e9db04c45ed96761e261deaaeca5ddd50d"
+        },
+        "report_id": "bbb87d43-85aa-42ea-bd67-7e5743d04ddf",
+        "version": "source-evidence-request-0.4.0"
+      },
+      "source_request": {
+        "allow_local_engine_upload": true,
+        "companions": [],
+        "draft_sha256": "1785fb890b39c757f58b8d835074a51ba3f4e739f72db3472002bf0d03c7f42c",
+        "scope": {
+          "destination": "192.0.2.1/32",
+          "start_node": "deterministic-target"
+        },
+        "verification_id": "eff990cf-5b8e-498f-b543-37545a1ade86",
+        "version": "source-patch-request-0.4.0"
+      },
+      "source_review_sha256": "80042cd3d1e5702e147451fb8575324b0832ced4babfdf30425942dad9b4f7a0",
+      "source_verification_id": "eff990cf-5b8e-498f-b543-37545a1ade86",
+      "vendor": "juniper"
+    }
+  ],
+  "removed_reference_configurations": 2,
+  "selected_existing_detector_model_outputs": 6,
+  "version": "owned-source-ingress-functional-0.1.0"
+}

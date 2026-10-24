@@ -2,6 +2,7 @@ import { z } from "zod";
 import { snapshotBindingSchema, stableJson } from "./contracts";
 import { batfishSchema } from "./modelReviews";
 import { batfishDirectionalExecutionSchema } from "./sourceReachabilityImpact";
+import { batfishScopeExecutionSchema } from "./ingressScope";
 import { sourceNetworkResult } from "./sourcePatchVerification";
 import {
   evidenceInstant,
@@ -193,6 +194,33 @@ const observation = z.discriminatedUnion("kind", [
   neural,
   network,
 ]);
+const evidenceV2 = z
+  .strictObject({
+    ...evidence.shape,
+    version: z.enum([
+      ...childVersion.options,
+      "source-patch-verification-0.4.0",
+    ]),
+  })
+  .refine((r) =>
+    r.version.startsWith(
+      {
+        deterministic: "source-deterministic-recheck-",
+        forest: "source-forest-recheck-",
+        neural: "source-ml-recheck-",
+        network: "source-patch-verification-",
+      }[r.kind],
+    ),
+  );
+const networkV4 = z
+  .strictObject({
+    kind: z.literal("verification"),
+    protocol_version: z.literal("source-patch-verification-0.4.0"),
+    result: batfishSchema,
+    execution: batfishScopeExecutionSchema,
+  })
+  .refine((r) => same(r.result, r.execution.result));
+const observationV2 = z.union([findings, forest, neural, network, networkV4]);
 const component = z.strictObject({
   source,
   status: z.enum(["completed", "unavailable"]),
@@ -210,6 +238,10 @@ const component = z.strictObject({
   configured_weight: unit,
   effective_weight: unit,
   contribution: unit.nullable(),
+});
+const componentV2 = component.extend({
+  evidence: evidenceV2.nullable(),
+  observation: observationV2.nullable(),
 });
 const guardrail = z
   .strictObject({
@@ -257,14 +289,21 @@ const compositionBase = z.strictObject({
   ...flags,
   limitations: z.array(z.string()).length(8),
 });
-type Composition = z.infer<typeof compositionBase>;
-type Observation = z.infer<typeof observation>;
-type Component = z.infer<typeof component>;
+const compositionV2Base = compositionBase.extend({
+  version: z.literal("source-priority-composition-0.2.0"),
+  report_version: z.literal("source-evidence-report-0.4.0"),
+  selected_evidence: z.array(evidenceV2).min(1).max(4),
+  components: z.array(componentV2).length(5),
+});
+type Composition =
+  z.infer<typeof compositionBase> | z.infer<typeof compositionV2Base>;
+type Observation = z.infer<typeof observationV2>;
+type Component = z.infer<typeof component> | z.infer<typeof componentV2>;
 const same = (a: unknown, b: unknown) => stableJson(a) === stableJson(b);
 const severity = { info: 0.1, low: 0.25, medium: 0.5, high: 0.75, critical: 1 };
 const findingScore = (r: z.infer<typeof finding>) =>
   Math.max(severity[r.severity], r.anomaly_score) * r.confidence;
-const scopedLoss = (r: z.infer<typeof network>) =>
+const scopedLoss = (r: z.infer<typeof network> | z.infer<typeof networkV4>) =>
   r.execution !== null &&
   r.result.cleanup_complete === true &&
   r.execution.reachability_impact.state === "observed" &&
@@ -403,103 +442,135 @@ function validComposition(c: Composition) {
     same(c.applied_guardrails, complete ? rails : [])
   );
 }
-export const sourcePriorityCompositionSchema =
+const sourcePriorityCompositionV1Schema =
   compositionBase.refine(validComposition);
-export const createSourceRiskAssessmentSchema = z.strictObject({
+const sourcePriorityCompositionV2Schema =
+  compositionV2Base.refine(validComposition);
+export const sourcePriorityCompositionSchema = z.union([
+  sourcePriorityCompositionV1Schema,
+  sourcePriorityCompositionV2Schema,
+]);
+const createSourceRiskAssessmentV1Schema = z.strictObject({
   version: z.literal("source-risk-request-0.1.0"),
   assessment_id: id,
   report_sha256: hash,
   profile_version: z.literal("source-priority-profile-0.1.0"),
 });
+const createSourceRiskAssessmentV2Schema =
+  createSourceRiskAssessmentV1Schema.extend({
+    version: z.literal("source-risk-request-0.2.0"),
+  });
+export const createSourceRiskAssessmentSchema = z.union([
+  createSourceRiskAssessmentV1Schema,
+  createSourceRiskAssessmentV2Schema,
+]);
 export type CreateSourceRiskAssessment = z.infer<
   typeof createSourceRiskAssessmentSchema
 >;
-export const sourceRiskAssessmentSchema = z
-  .strictObject({
-    version: z.literal("source-risk-assessment-0.1.0"),
-    request: createSourceRiskAssessmentSchema,
-    assessment_id: id,
-    patch_id: id,
-    report_id: id,
-    report_sha256: hash,
-    report_version: reportVersion,
-    draft_sha256: hash,
-    created_at: timestamp,
-    service_role: z.enum(["engineer", "admin"]),
-    composition: sourcePriorityCompositionSchema,
-    ...flags,
-    review_json: z
-      .string()
-      .min(1)
-      .max(1024 * 1024),
-    review_sha256: hash,
-  })
-  .refine(
-    (r) =>
-      r.assessment_id === r.request.assessment_id &&
-      r.report_sha256 === r.request.report_sha256 &&
-      r.request.profile_version === r.composition.profile_version &&
-      [
-        "patch_id",
-        "report_id",
-        "report_sha256",
-        "report_version",
-        "draft_sha256",
-      ].every(
-        (k) => r[k as keyof typeof r] === r.composition[k as keyof Composition],
-      ) &&
-      new TextEncoder().encode(r.review_json).length <= 1024 * 1024 &&
-      new TextEncoder().encode(JSON.stringify(r)).length <= 2 * 1024 * 1024,
-  );
+const riskAssessmentBase = z.strictObject({
+  version: z.literal("source-risk-assessment-0.1.0"),
+  request: createSourceRiskAssessmentV1Schema,
+  assessment_id: id,
+  patch_id: id,
+  report_id: id,
+  report_sha256: hash,
+  report_version: reportVersion,
+  draft_sha256: hash,
+  created_at: timestamp,
+  service_role: z.enum(["engineer", "admin"]),
+  composition: sourcePriorityCompositionV1Schema,
+  ...flags,
+  review_json: z
+    .string()
+    .min(1)
+    .max(1024 * 1024),
+  review_sha256: hash,
+});
+const riskAssessmentV2Base = riskAssessmentBase.extend({
+  version: z.literal("source-risk-assessment-0.2.0"),
+  request: createSourceRiskAssessmentV2Schema,
+  report_version: z.literal("source-evidence-report-0.4.0"),
+  composition: sourcePriorityCompositionV2Schema,
+});
+const validAssessment = (
+  r: z.infer<typeof riskAssessmentBase> | z.infer<typeof riskAssessmentV2Base>,
+) =>
+  r.assessment_id === r.request.assessment_id &&
+  r.report_sha256 === r.request.report_sha256 &&
+  r.request.profile_version === r.composition.profile_version &&
+  [
+    "patch_id",
+    "report_id",
+    "report_sha256",
+    "report_version",
+    "draft_sha256",
+  ].every(
+    (k) => r[k as keyof typeof r] === r.composition[k as keyof Composition],
+  ) &&
+  new TextEncoder().encode(r.review_json).length <= 1024 * 1024 &&
+  new TextEncoder().encode(JSON.stringify(r)).length <= 2 * 1024 * 1024;
+export const sourceRiskAssessmentSchema = z.union([
+  riskAssessmentBase.refine(validAssessment),
+  riskAssessmentV2Base.refine(validAssessment),
+]);
 export type SourceRiskAssessment = z.infer<typeof sourceRiskAssessmentSchema>;
-export const sourceRiskSummarySchema = z
-  .strictObject({
-    version: z.literal("source-risk-summary-0.1.0"),
-    assessment_id: id,
-    patch_id: id,
-    report_id: id,
-    report_sha256: hash,
-    report_version: reportVersion,
-    draft_sha256: hash,
-    review_sha256: hash,
-    created_at: timestamp,
-    service_role: z.enum(["engineer", "admin"]),
-    profile_version: z.literal("source-priority-profile-0.1.0"),
-    composition_status: z.enum(["completed", "unavailable"]),
-    score: unit.nullable(),
-    band: band.nullable(),
-    coverage: z.enum(["supported_complete", "partial"]),
-    availability_mask: z.array(source).min(1).max(5),
-    applicable_guardrails: z
-      .array(z.enum(["critical_policy", "observed_scoped_loss"]))
-      .max(2),
-    ...flags,
-  })
-  .refine(
-    (r) =>
-      r.availability_mask[0] === "policy" &&
-      same(
-        r.availability_mask,
-        prioritySources.filter((s) => r.availability_mask.includes(s)),
-      ) &&
-      same(
-        r.applicable_guardrails,
-        (["critical_policy", "observed_scoped_loss"] as const).filter((s) =>
-          r.applicable_guardrails.includes(s),
-        ),
-      ) &&
-      (r.composition_status === "completed") ===
-        (r.coverage === "supported_complete") &&
-      (r.score !== null) === (r.coverage === "supported_complete") &&
-      (r.band !== null) === (r.coverage === "supported_complete") &&
-      (r.score === null || r.band === priorityBand(r.score)),
-  );
+const riskSummaryBase = z.strictObject({
+  version: z.literal("source-risk-summary-0.1.0"),
+  assessment_id: id,
+  patch_id: id,
+  report_id: id,
+  report_sha256: hash,
+  report_version: reportVersion,
+  draft_sha256: hash,
+  review_sha256: hash,
+  created_at: timestamp,
+  service_role: z.enum(["engineer", "admin"]),
+  profile_version: z.literal("source-priority-profile-0.1.0"),
+  composition_status: z.enum(["completed", "unavailable"]),
+  score: unit.nullable(),
+  band: band.nullable(),
+  coverage: z.enum(["supported_complete", "partial"]),
+  availability_mask: z.array(source).min(1).max(5),
+  applicable_guardrails: z
+    .array(z.enum(["critical_policy", "observed_scoped_loss"]))
+    .max(2),
+  ...flags,
+});
+const riskSummaryV2Base = riskSummaryBase.extend({
+  version: z.literal("source-risk-summary-0.2.0"),
+  report_version: z.literal("source-evidence-report-0.4.0"),
+});
+const validRiskSummary = (
+  r: z.infer<typeof riskSummaryBase> | z.infer<typeof riskSummaryV2Base>,
+) =>
+  r.availability_mask[0] === "policy" &&
+  same(
+    r.availability_mask,
+    prioritySources.filter((s) => r.availability_mask.includes(s)),
+  ) &&
+  same(
+    r.applicable_guardrails,
+    (["critical_policy", "observed_scoped_loss"] as const).filter((s) =>
+      r.applicable_guardrails.includes(s),
+    ),
+  ) &&
+  (r.composition_status === "completed") ===
+    (r.coverage === "supported_complete") &&
+  (r.score !== null) === (r.coverage === "supported_complete") &&
+  (r.band !== null) === (r.coverage === "supported_complete") &&
+  (r.score === null || r.band === priorityBand(r.score));
+export const sourceRiskSummarySchema = z.union([
+  riskSummaryBase.refine(validRiskSummary),
+  riskSummaryV2Base.refine(validRiskSummary),
+]);
 export type SourceRiskSummary = z.infer<typeof sourceRiskSummarySchema>;
 export function sourceRiskSummaryBound(
   r: SourceRiskSummary,
   p: SourceEvidenceReport,
 ) {
   return (
+    (r.version === "source-risk-summary-0.2.0") ===
+      (p.version === "source-evidence-report-0.4.0") &&
     r.patch_id === p.patch_id &&
     r.report_id === p.report_id &&
     r.report_sha256 === p.review_sha256 &&
@@ -510,8 +581,11 @@ export function sourceRiskSummaryBound(
 }
 export function sourceRiskSummary(r: SourceRiskAssessment): SourceRiskSummary {
   const c = r.composition;
-  return {
-    version: "source-risk-summary-0.1.0",
+  return sourceRiskSummarySchema.parse({
+    version:
+      r.version === "source-risk-assessment-0.2.0"
+        ? "source-risk-summary-0.2.0"
+        : "source-risk-summary-0.1.0",
     assessment_id: r.assessment_id,
     patch_id: r.patch_id,
     report_id: r.report_id,
@@ -531,7 +605,7 @@ export function sourceRiskSummary(r: SourceRiskAssessment): SourceRiskSummary {
     individual_identity_verified: false,
     approved: false,
     applied: false,
-  };
+  });
 }
 export async function sourceRiskProofMatches(r: SourceRiskAssessment) {
   try {
@@ -685,16 +759,18 @@ export async function sourceRiskAssessmentBound(
       outcome = n.outcome,
       result = sourceNetworkResult(outcome);
     if (!outcome || !result) return false;
-    observations[4] = {
+    const observedNetwork = observationV2.safeParse({
       kind: "verification",
       protocol_version: n.version,
       result,
       execution:
         "network_execution" in outcome &&
-        outcome.network_execution.version === "batfish-execution-0.3.0"
+        "reachability_impact" in outcome.network_execution
           ? outcome.network_execution
           : null,
-    };
+    });
+    if (!observedNetwork.success) return false;
+    observations[4] = observedNetwork.data;
   }
   return c.components.every((component, i) => {
     const expected = observations[i],

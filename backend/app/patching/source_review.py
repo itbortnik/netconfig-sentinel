@@ -13,13 +13,18 @@ from app.api.source_patch_contracts import (
     source_review_fingerprint,
 )
 from app.api.source_patch_direction_contracts import (
-    SourcePatchIntentRecord,
     SourcePatchIntentV3,
-    SourcePatchOutcomeRecord,
     SourcePatchOutcomeV3,
+    VerifySourcePatchV3,
+)
+from app.api.source_patch_scope_contracts import (
+    SourcePatchIntentRecord,
+    SourcePatchIntentV4,
+    SourcePatchOutcomeRecord,
+    SourcePatchOutcomeV4,
     SourcePatchRequest,
     SourcePatchReview,
-    VerifySourcePatchV3,
+    VerifySourcePatchV4,
     parse_source_patch_request,
     source_patch_view,
 )
@@ -40,7 +45,9 @@ from app.verification.batfish import (
     check_with_batfish,
     check_with_batfish_directional,
     check_with_batfish_evidence,
+    check_with_batfish_scope_evidence,
 )
+from app.verification.ingress_scope import BatfishScopeExecution, empty_ingress_scope
 from app.verification.patch_runtime import PatchVerificationDisabled, PatchVerificationRuntime
 from app.verification.preflight import review_configuration_change
 from app.verification.reachability_impact import (
@@ -147,7 +154,9 @@ class SourcePatchWorkflow:
                 preflight=preflight,
             )
             intent = (
-                SourcePatchIntentV3.model_validate(fields)
+                SourcePatchIntentV4.model_validate(fields)
+                if isinstance(options, VerifySourcePatchV4)
+                else SourcePatchIntentV3.model_validate(fields)
                 if isinstance(options, VerifySourcePatchV3)
                 else SourcePatchIntentV2.model_validate(fields)
                 if isinstance(options, VerifySourcePatchV2)
@@ -170,13 +179,20 @@ class SourcePatchWorkflow:
     @staticmethod
     def _outcome(
         intent: SourcePatchIntentRecord,
-        result: BatfishResult | BatfishExecution | BatfishDirectionalExecution,
+        result: BatfishResult
+        | BatfishExecution
+        | BatfishDirectionalExecution
+        | BatfishScopeExecution,
     ) -> SourcePatchOutcomeRecord:
         fields = {
             "verification_id": intent.request.verification_id,
             "intent_sha256": source_review_fingerprint(intent),
             "completed_at": datetime.now(UTC),
         }
+        if isinstance(intent, SourcePatchIntentV4):
+            if not isinstance(result, BatfishScopeExecution):
+                raise ValueError("network execution protocol differs")
+            return SourcePatchOutcomeV4.model_validate(fields | {"network_execution": result})
         if isinstance(intent, SourcePatchIntentV3):
             if not isinstance(result, BatfishDirectionalExecution):
                 raise ValueError("network execution protocol differs")
@@ -207,8 +223,22 @@ class SourcePatchWorkflow:
             if not self.records.reserve(intent):
                 return self.get(patch_id, options.verification_id), False
             try:
-                result: BatfishResult | BatfishExecution | BatfishDirectionalExecution
-                if isinstance(options, VerifySourcePatchV3):
+                result: (
+                    BatfishResult
+                    | BatfishExecution
+                    | BatfishDirectionalExecution
+                    | BatfishScopeExecution
+                )
+                if isinstance(options, VerifySourcePatchV4):
+                    scoped = check_with_batfish_scope_evidence(
+                        before,
+                        after,
+                        options.scope,
+                        allow_local_upload=True,
+                        timeout_seconds=runtime.settings.engine_timeout_seconds,
+                    )
+                    result = BatfishScopeExecution.model_validate(scoped.model_dump(warnings=False))
+                elif isinstance(options, VerifySourcePatchV3):
                     directional = check_with_batfish_directional(
                         before,
                         after,
@@ -258,7 +288,20 @@ class SourcePatchWorkflow:
                     reason="worker_failed",
                 )
                 result = (
-                    BatfishDirectionalExecution(
+                    BatfishScopeExecution(
+                        result=failed,
+                        sdk_version=None,
+                        sdk_observation="not_observed",
+                        reachability_impact=empty_reachability_impact("not_observed", "not_run"),
+                        ingress_scope=empty_ingress_scope(
+                            failed.before_sha256,
+                            failed.after_sha256,
+                            failed.scope,
+                            failed.network_name,
+                        ),
+                    )
+                    if isinstance(options, VerifySourcePatchV4)
+                    else BatfishDirectionalExecution(
                         result=failed,
                         sdk_version=None,
                         sdk_observation="not_observed",

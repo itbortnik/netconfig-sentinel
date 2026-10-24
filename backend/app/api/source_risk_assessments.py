@@ -19,8 +19,13 @@ from app.api.configurations import (
 from app.api.service import AnalysisService
 from app.api.source_risk_contracts import (
     CreateSourceRiskAssessment,
-    SourceRiskAssessment,
-    SourceRiskSummary,
+)
+from app.api.source_risk_scope_contracts import (
+    CreateSourceRiskAssessmentV2,
+    SourceRiskRecord,
+    SourceRiskSummaryRecord,
+    parse_source_risk_request,
+    source_risk_summary,
 )
 from app.audit.results import capture_result
 from app.core.permissions import Role
@@ -38,16 +43,21 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
 
 @router.post(
     "",
-    response_model=SourceRiskAssessment,
+    response_model=SourceRiskRecord,
     status_code=201,
-    responses={
-        200: {"model": SourceRiskAssessment, "description": "Existing immutable assessment."}
-    },
+    responses={200: {"model": SourceRiskRecord, "description": "Existing immutable assessment."}},
     openapi_extra={
         "requestBody": {
             "required": True,
             "content": {
-                "application/json": {"schema": _request_schema(CreateSourceRiskAssessment)}
+                "application/json": {
+                    "schema": {
+                        "anyOf": [
+                            _request_schema(CreateSourceRiskAssessment),
+                            _request_schema(CreateSourceRiskAssessmentV2),
+                        ]
+                    }
+                }
             },
         }
     },
@@ -58,10 +68,10 @@ async def create_source_risk_assessment(
     request: Request,
     response: Response,
     service: VerificationService,
-) -> SourceRiskAssessment:
+) -> SourceRiskRecord:
     body = await _request_body(request, maximum=16 * 1024)
     try:
-        options = CreateSourceRiskAssessment.model_validate(
+        options = parse_source_risk_request(
             json.loads(body.decode(), object_pairs_hook=_unique_keys)
         )
     except (ValueError, RecursionError):
@@ -90,7 +100,7 @@ async def create_source_risk_assessment(
     return capture_result(request, result)
 
 
-@router.get("", response_model=list[SourceRiskSummary])
+@router.get("", response_model=list[SourceRiskSummaryRecord])
 def list_source_risk_assessments(
     patch_id: UUID,
     report_id: UUID,
@@ -98,7 +108,7 @@ def list_source_risk_assessments(
     service: Service,
     limit: Limit = 20,
     offset: Offset = 0,
-) -> list[SourceRiskSummary]:
+) -> list[SourceRiskSummaryRecord]:
     workflow = SourceRiskWorkflow(service.store)
     try:
         workflow.reports.get(patch_id, report_id)
@@ -107,16 +117,16 @@ def list_source_risk_assessments(
     return capture_result(
         request,
         [
-            SourceRiskSummary.from_assessment(workflow.get(patch_id, report_id, key))
+            source_risk_summary(workflow.get(patch_id, report_id, key))
             for key in workflow.records.list_ids(patch_id, report_id, limit=limit, offset=offset)
         ],
     )
 
 
-@router.get("/{assessment_id}", response_model=SourceRiskAssessment)
+@router.get("/{assessment_id}", response_model=SourceRiskRecord)
 def get_source_risk_assessment(
     patch_id: UUID, report_id: UUID, assessment_id: UUID, request: Request, service: Service
-) -> SourceRiskAssessment:
+) -> SourceRiskRecord:
     try:
         return capture_result(
             request, SourceRiskWorkflow(service.store).get(patch_id, report_id, assessment_id)

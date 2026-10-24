@@ -1,3 +1,4 @@
+import { IngressScopeView } from "./IngressScopeView";
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import type { ConfigurationSummary } from "./contracts";
@@ -81,7 +82,7 @@ export function SourcePatchVerificationPanel({
   const busy = outerBusy || working;
   const frozen = busy || !!attempt;
   const ready = verifySourcePatchSchema.safeParse({
-    version: "source-patch-request-0.3.0",
+    version: "source-patch-request-0.4.0",
     verification_id: "00000000-0000-0000-0000-000000000001",
     draft_sha256: draft.draft_sha256,
     companions: companions.map(({ configuration_id, source_sha256 }) => ({
@@ -557,6 +558,12 @@ export function SourcePatchVerificationPanel({
                           impact={
                             view.outcome.network_execution.reachability_impact
                           }
+                        />
+                      )}
+                    {"network_execution" in view.outcome &&
+                      "ingress_scope" in view.outcome.network_execution && (
+                        <IngressScopeView
+                          scope={view.outcome.network_execution.ingress_scope}
                         />
                       )}
                     {!(

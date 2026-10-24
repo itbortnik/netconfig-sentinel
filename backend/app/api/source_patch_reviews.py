@@ -21,10 +21,11 @@ from app.api.source_patch_contracts import (
     SourcePatchCapabilities,
     VerifySourcePatch,
 )
-from app.api.source_patch_direction_contracts import (
+from app.api.source_patch_direction_contracts import VerifySourcePatchV3
+from app.api.source_patch_scope_contracts import (
     SourcePatchReview,
     SourcePatchSummary,
-    VerifySourcePatchV3,
+    VerifySourcePatchV4,
     parse_source_patch_request,
     source_patch_summary,
 )
@@ -73,6 +74,7 @@ def source_patch_capabilities(request: Request, service: Service) -> SourcePatch
                             _request_schema(VerifySourcePatch),
                             _request_schema(VerifySourcePatchV2),
                             _request_schema(VerifySourcePatchV3),
+                            _request_schema(VerifySourcePatchV4),
                         ]
                     }
                 }

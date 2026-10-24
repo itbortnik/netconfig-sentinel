@@ -1,9 +1,49 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-23 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-24 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
+
+Для доступной части §16.4/§16.5/§16.7 добавлены
+[наблюдения выбранных точек входа и адресов источника](source-ingress-observations.md):
+source/joint/decision0.4 и отдельные risk/composition0.2 сохраняют обе стороны,
+версионированные идентичности и полную привязку к worker execution. Пригодность
+без конкретного IPv4 остаётся неизвестной; неполный набор не выдаётся за полный.
+IP-space renderings непрозрачны, semantic IP sets/full flow coverage не доказаны.
+Новые поля не расширяют differential scope и не изменяют профиль приоритета0.1.
+Старые0.1–0.3/risk0.1 proofs/history сохранены, новых migration нет.
+
+[Actual HTTP-прогон](evaluation/owned-source-ingress-functional.json) сохранил
+два новых source/joint reports, четыре оценки и восемь решений сервисных ролей
+на двух прежних authored pairs с шестью выбранными detector/model outputs.
+Два SDK calls; новых model calls/fits0. Полные bindings, прежние SQL rows и
+история после удаления originals/models/двух references проверены на копии БД.
+[Отдельный actual engine/API прогон](evaluation/owned-source-ingress-network-functional.json)
+проверил16scenario views тех же двух authored basepairs:12observed captures и
+4not_observed/not_run при незавершённой базовой проверке. Сохранены16source/joint/
+decision/risk chains и replay после удаления исходных текстов. Shutdown/removal
+отдельного интерфейса, изменение адреса, control, empty scope и закрытый единственный
+вход различаются. Физический JunOS loopback disable не выдан за inactive logical unit;
+итоговый selected-unit fixture отключает unit явно. Первые4fail/8pass и1fail/15pass
+попытки сохранены; итог16pass. SDK2026.8.19.3660 наблюдался во всех16запусках;
+engine2026.08.27.3685 сохранён там, где базовая проверка его сохранила; ошибки не
+получают версию из родителя. Model calls/fits0. Собственные engine resources удалены.
+
+Независимое core/backend/UI/acceptance review закрывает два найденных P2:
+неожиданные resolver selectors и typed-instance bypass квалификационных literals.
+UI937unit/342browser pass, включая6новых desktop/mobile cases; build/types/format pass.
+Browser engine/model responses — software fixtures. Formal остаётся `not_proven`,
+калибровка, real-data quality, individual identity, approval и application не установлены.
+Полный local run:5148pass/52skip/5warnings,91%coverage. Ruff/mypy307runtime
+в default/Linux/win32 pass. Installed1387pass/34skip на каждой Pydantic2.13.5/2.14.0/2.14.1;
+LF-публикация связана с проверенными bytes преобразованием без изменения Python AST.
+Её wheel307runtime/3assets source-equal; дополнительные198related controls проходят
+на всех трёх версиях.750history/300oldinstalled сохранены. Первоначальные full/installed
+отказы из-за устаревшего ожидания unsupported0.4 сохранены, проверка перенесена на0.9;
+итоговые прогоны выше зелёные. Local PostgreSQL не запускался; actual engine проверен
+отдельно, opt-in skips не выданы за pass. CI нового commit не выполнен.
+Прежние успешные CI ниже относятся к своим указанным commit.
 
 Для доступной части §15/§16.7/§22.2 добавлена [отдельная инженерная оценка
 выбранного отчёта](source-risk-assessments.md): фиксированный профиль0.1 сохраняет
@@ -35,7 +75,11 @@ calibration/independent quality, individual identity, approval/application не 
 300runtime/3assets source-equal,719history/294oldinstalled сохранены. UI925unit/336browser
 pass. Выбор нового spec в общем browser profile исправлен явным исключением;
 первоначальные неудачные попытки сохранены. Local PostgreSQL не запускался.
-CI нового commit ещё не выполнен; прежний зелёный CI его не покрывает.
+Для опубликованного `c98776e50ad355ee7759d30109ff67c38be45fc7`
+[все четыре CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/40019205407)
+успешны: backend4932pass/68skip/92%coverage, PostgreSQL673pass/2skip/12deselected,
+Batfish127+2savedcandidate pass, включая10actual risk records;
+frontend925unit/336browser+162Compose pass. Последующие изменения этим CI не покрыты.
 
 Для доступной части §16.5,7 добавлены [свидетельства направления достижимости](source-reachability-impact.md):
 source network и joint report0.3 сохраняют полные ограниченные наборы

@@ -1,3 +1,4 @@
+import { IngressScopeView } from "./IngressScopeView";
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import { date, shortId } from "./format";
@@ -102,7 +103,10 @@ export function SourceRiskAssessmentPanel({
   async function save() {
     if (intent.current || !client.permits("verify")) return;
     const request: CreateSourceRiskAssessment = {
-      version: "source-risk-request-0.1.0",
+      version:
+        report.version === "source-evidence-report-0.4.0"
+          ? "source-risk-request-0.2.0"
+          : "source-risk-request-0.1.0",
       assessment_id: crypto.randomUUID(),
       report_sha256: report.review_sha256,
       profile_version: "source-priority-profile-0.1.0",
@@ -410,6 +414,16 @@ function RiskView({ view }: { view: SourceRiskAssessment }) {
         источника по снимку «после» ограничивают область вывода; доступ
         управления, IPv6 и вся сеть не доказаны.
       </p>
+      {c.components.map((row) =>
+        row.observation?.kind === "verification" &&
+        row.observation.execution &&
+        "ingress_scope" in row.observation.execution ? (
+          <IngressScopeView
+            key={row.source}
+            scope={row.observation.execution.ingress_scope}
+          />
+        ) : null,
+      )}
       <ul aria-label="Применимые нижние границы приоритета">
         {c.applicable_guardrails.map((g) => (
           <li key={g.kind}>

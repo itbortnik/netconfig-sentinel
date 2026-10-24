@@ -437,3 +437,13 @@ independently fetches the same trust chain. First server role/time/proof survive
 cross-role replay and races. Unitless weights and bands are uncalibrated engineering
 defaults; the record never establishes model quality, full formal qualification,
 individual identity, approval or application.
+
+The additive [ingress observation](source-ingress-observations.md) protocol uses
+source/joint/decision0.4 and assessment/composition0.2 on the same encrypted tables.
+Six bounded logical questions run inside the existing worker session and deadline,
+after successful base queries. Versioned identities, modeled interface properties
+and opaque per-side source-IP renderings are retained independently of directional
+witnesses. Unknown eligibility suppresses complete eligible sets, rather than
+publishing a partial set as complete. Unsupported captures remain unknown; a base
+query that did not complete leaves observation not performed. These observations
+do not widen the flow query or change priority profile0.1, formal status or history.

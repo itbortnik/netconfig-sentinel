@@ -154,11 +154,11 @@ test("exact retained pair and explicit companion are verified, then readable aft
     .getByLabel("Назначение IPv4 сетевой проверки", { exact: true })
     .fill("198.51.100.1/32");
   const row = await verify(page);
-  expect(row.version).toBe("source-patch-verification-0.3.0");
-  expect(row.intent.request.version).toBe("source-patch-request-0.3.0");
+  expect(row.version).toBe("source-patch-verification-0.4.0");
+  expect(row.intent.request.version).toBe("source-patch-request-0.4.0");
   expect(row.outcome).toMatchObject({
     network_execution: {
-      version: "batfish-execution-0.3.0",
+      version: "batfish-execution-0.4.0",
       sdk_version: "owned-browser-sdk-0.36.0",
       sdk_observation: "observed",
       reachability_impact: {
@@ -408,7 +408,7 @@ for (const [direction, label, lost, gained] of [
   }) => {
     await prepare(page, "observed", direction);
     const row = await verify(page);
-    if (row.version !== "source-patch-verification-0.3.0")
+    if (row.version !== "source-patch-verification-0.4.0")
       throw new Error("Expected directional protocol");
     const impact = row.outcome!.network_execution.reachability_impact;
     expect(impact).toMatchObject({
@@ -458,7 +458,7 @@ for (const [direction, reason] of [
   }) => {
     await prepare(page, "observed", direction);
     const row = await verify(page);
-    if (row.version !== "source-patch-verification-0.3.0")
+    if (row.version !== "source-patch-verification-0.4.0")
       throw new Error("Expected directional protocol");
     expect(row.outcome!.network_execution.reachability_impact).toMatchObject({
       direction: null,

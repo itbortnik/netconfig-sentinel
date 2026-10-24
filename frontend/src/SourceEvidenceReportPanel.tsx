@@ -1,3 +1,4 @@
+import { IngressScopeView } from "./IngressScopeView";
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import { SourceRiskAssessmentPanel } from "./SourceRiskAssessmentPanel";
@@ -171,7 +172,7 @@ export function SourceEvidenceReportPanel({
         ? { record_id: identity(row), review_sha256: row.review_sha256 }
         : null;
     const request: CreateSourceEvidenceReport = {
-      version: "source-evidence-request-0.3.0",
+      version: "source-evidence-request-0.4.0",
       report_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: pin(selected.deterministic)!,
@@ -724,6 +725,9 @@ function EvidenceView({ view }: { view: SourceEvidenceReport }) {
             <ReachabilityImpactView impact={view.network.reachability_impact} />
           ) : (
             <p>Направление изменения в исходной записи не сохранялось.</p>
+          )}
+          {"ingress_scope" in view.network && (
+            <IngressScopeView scope={view.network.ingress_scope} />
           )}
           <ul>
             {view.network.result.limitations.map((value, index) => (

@@ -238,7 +238,7 @@ def test_read_roles_cannot_create_even_malformed_body(risk_api, role):
     "change",
     [
         {"profile_version": "client-choice"},
-        {"version": "source-risk-request-0.2.0"},
+        {"version": "source-risk-request-0.9.0"},
         {"weights": {"policy": 1}},
         {"service_role": "admin"},
         {"approved": False},

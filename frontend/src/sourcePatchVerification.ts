@@ -7,6 +7,10 @@ import { preflightSchema } from "./patches";
 import type { PatchDraft } from "./patches";
 import { batfishSchema, scopeSchema } from "./modelReviews";
 import { batfishDirectionalExecutionSchema } from "./sourceReachabilityImpact";
+import {
+  batfishScopeExecutionSchema,
+  ingressScopeProofMatches,
+} from "./ingressScope";
 
 const id = z.guid();
 const hash = z.string().regex(/^[0-9a-f]{64}$/);
@@ -58,10 +62,17 @@ const verifySourcePatchV3Schema = z
     version: z.literal("source-patch-request-0.3.0"),
   })
   .refine(uniqueCompanions);
+const verifySourcePatchV4Schema = z
+  .strictObject({
+    ...verifySourcePatchBase.shape,
+    version: z.literal("source-patch-request-0.4.0"),
+  })
+  .refine(uniqueCompanions);
 export const verifySourcePatchSchema = z.union([
   verifySourcePatchV1Schema,
   verifySourcePatchV2Schema,
   verifySourcePatchV3Schema,
+  verifySourcePatchV4Schema,
 ]);
 export type VerifySourcePatch = z.infer<typeof verifySourcePatchSchema>;
 const memberSchema = z.strictObject({
@@ -138,6 +149,13 @@ const intentV3Schema = z
     request: verifySourcePatchV3Schema,
   })
   .refine(validIntent);
+const intentV4Schema = z
+  .strictObject({
+    ...intentBase.shape,
+    version: z.literal("source-patch-intent-0.4.0"),
+    request: verifySourcePatchV4Schema,
+  })
+  .refine(validIntent);
 export const batfishExecutionSchema = z
   .strictObject({
     version: z.literal("batfish-execution-0.2.0"),
@@ -181,15 +199,21 @@ const outcomeV3Schema = outcomeV1Schema.omit({ network_result: true }).extend({
   version: z.literal("source-patch-outcome-0.3.0"),
   network_execution: batfishDirectionalExecutionSchema,
 });
+const outcomeV4Schema = outcomeV1Schema.omit({ network_result: true }).extend({
+  version: z.literal("source-patch-outcome-0.4.0"),
+  network_execution: batfishScopeExecutionSchema,
+});
 const outcomeSchema = z.union([
   outcomeV1Schema,
   outcomeV2Schema,
   outcomeV3Schema,
+  outcomeV4Schema,
 ]);
 type SourcePatchIntent =
   | z.infer<typeof intentV1Schema>
   | z.infer<typeof intentV2Schema>
-  | z.infer<typeof intentV3Schema>;
+  | z.infer<typeof intentV3Schema>
+  | z.infer<typeof intentV4Schema>;
 export function sourceNetworkResult(
   outcome: z.infer<typeof outcomeSchema> | null,
 ) {
@@ -262,10 +286,19 @@ const sourcePatchVerificationV3Schema = z
     outcome: outcomeV3Schema.nullable(),
   })
   .refine(validVerification);
+const sourcePatchVerificationV4Schema = z
+  .strictObject({
+    ...verificationBase.shape,
+    version: z.literal("source-patch-verification-0.4.0"),
+    intent: intentV4Schema,
+    outcome: outcomeV4Schema.nullable(),
+  })
+  .refine(validVerification);
 export const sourcePatchVerificationSchema = z.union([
   sourcePatchVerificationV1Schema,
   sourcePatchVerificationV2Schema,
   sourcePatchVerificationV3Schema,
+  sourcePatchVerificationV4Schema,
 ]);
 export type SourcePatchVerification = z.infer<
   typeof sourcePatchVerificationSchema
@@ -330,6 +363,12 @@ export const sourcePatchVerificationSummarySchema = z.union([
       version: z.literal("source-patch-verification-summary-0.3.0"),
     })
     .refine(validSummary),
+  z
+    .strictObject({
+      ...summaryBase.shape,
+      version: z.literal("source-patch-verification-summary-0.4.0"),
+    })
+    .refine(validSummary),
 ]);
 export type SourcePatchVerificationSummary = z.infer<
   typeof sourcePatchVerificationSummarySchema
@@ -376,7 +415,16 @@ export async function sourceVerificationBound(
     [intent.after, draft.diff.after, intent.preflight.after],
   ] as const;
   return (
+    sourcePatchVerificationSchema.safeParse(row).success &&
     (await sourceReviewProofMatches(row)) &&
+    (!(
+      outcome &&
+      "network_execution" in outcome &&
+      "ingress_scope" in outcome.network_execution
+    ) ||
+      (await ingressScopeProofMatches(
+        outcome.network_execution.ingress_scope,
+      ))) &&
     row.patch_id === draft.patch_id &&
     row.draft_sha256 === draft.draft_sha256 &&
     Date.parse(intent.created_at) >= Date.parse(draft.created_at) &&
@@ -396,11 +444,13 @@ export async function sourceVerificationBound(
     (!summary ||
       (sourceSummaryBound(summary, draft) &&
         summary.version ===
-          (row.version === "source-patch-verification-0.3.0"
-            ? "source-patch-verification-summary-0.3.0"
-            : row.version === "source-patch-verification-0.2.0"
-              ? "source-patch-verification-summary-0.2.0"
-              : "source-patch-verification-summary-0.1.0") &&
+          (row.version === "source-patch-verification-0.4.0"
+            ? "source-patch-verification-summary-0.4.0"
+            : row.version === "source-patch-verification-0.3.0"
+              ? "source-patch-verification-summary-0.3.0"
+              : row.version === "source-patch-verification-0.2.0"
+                ? "source-patch-verification-summary-0.2.0"
+                : "source-patch-verification-summary-0.1.0") &&
         summary.verification_id === row.verification_id &&
         summary.review_sha256 === row.review_sha256 &&
         Date.parse(summary.created_at) === Date.parse(intent.created_at) &&

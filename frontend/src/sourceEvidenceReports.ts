@@ -11,6 +11,10 @@ import {
   sourceNetworkResult,
 } from "./sourcePatchVerification";
 import { batfishDirectionalExecutionSchema } from "./sourceReachabilityImpact";
+import {
+  batfishScopeExecutionSchema,
+  ingressScopeProofMatches,
+} from "./ingressScope";
 
 const id = z.guid(),
   hash = z.string().regex(/^[0-9a-f]{64}$/);
@@ -51,10 +55,15 @@ const createSourceEvidenceReportV3Schema =
   createSourceEvidenceReportV1Schema.extend({
     version: z.literal("source-evidence-request-0.3.0"),
   });
+const createSourceEvidenceReportV4Schema =
+  createSourceEvidenceReportV1Schema.extend({
+    version: z.literal("source-evidence-request-0.4.0"),
+  });
 export const createSourceEvidenceReportSchema = z.union([
   createSourceEvidenceReportV1Schema,
   createSourceEvidenceReportV2Schema,
   createSourceEvidenceReportV3Schema,
+  createSourceEvidenceReportV4Schema,
 ]);
 export type CreateSourceEvidenceReport = z.infer<
   typeof createSourceEvidenceReportSchema
@@ -263,16 +272,42 @@ const networkV3Schema = networkSchema
         reachability_impact: row.reachability_impact,
       }).success,
   );
+const networkV4Schema = networkSchema
+  .extend({
+    version: z.literal("source-patch-verification-0.4.0"),
+    execution_version: z.literal("batfish-execution-0.4.0"),
+    sdk_version: batfishScopeExecutionSchema.shape.sdk_version,
+    sdk_observation: batfishScopeExecutionSchema.shape.sdk_observation,
+    ingress_scope: batfishScopeExecutionSchema.shape.ingress_scope,
+    reachability_impact: batfishScopeExecutionSchema.shape.reachability_impact,
+  })
+  .refine(
+    (row) =>
+      batfishScopeExecutionSchema.safeParse({
+        version: row.execution_version,
+        result: row.result,
+        sdk_version: row.sdk_version,
+        sdk_observation: row.sdk_observation,
+        reachability_impact: row.reachability_impact,
+        ingress_scope: row.ingress_scope,
+      }).success,
+  );
 const directionalNetworkEvidenceSchema = z.union([
   networkSchema,
   networkV2Schema,
   networkV3Schema,
 ]);
+const scopeNetworkEvidenceSchema = z.union([
+  networkSchema,
+  networkV2Schema,
+  networkV3Schema,
+  networkV4Schema,
+]);
 export function sourceEvidenceBlockers(row: {
   original_statistical_present: boolean;
   forest: unknown | null;
   neural: unknown | null;
-  network: z.infer<typeof directionalNetworkEvidenceSchema> | null;
+  network: z.infer<typeof scopeNetworkEvidenceSchema> | null;
 }) {
   const result = [
     "baseline_approval_not_proven",
@@ -338,7 +373,7 @@ const reportBase = z.strictObject({
 const validReport = (
   row: Omit<z.infer<typeof reportBase>, "version" | "request" | "network"> & {
     request: CreateSourceEvidenceReport;
-    network: z.infer<typeof directionalNetworkEvidenceSchema> | null;
+    network: z.infer<typeof scopeNetworkEvidenceSchema> | null;
   },
 ) => {
   if (
@@ -403,6 +438,14 @@ export const sourceEvidenceReportSchema = z.union([
       network: directionalNetworkEvidenceSchema.nullable(),
     })
     .refine(validReport),
+  z
+    .strictObject({
+      ...reportBase.shape,
+      version: z.literal("source-evidence-report-0.4.0"),
+      request: createSourceEvidenceReportV4Schema,
+      network: scopeNetworkEvidenceSchema.nullable(),
+    })
+    .refine(validReport),
 ]);
 export type SourceEvidenceReport = z.infer<typeof sourceEvidenceReportSchema>;
 const summaryBase = z.strictObject({
@@ -429,6 +472,9 @@ export const sourceEvidenceSummarySchema = z.union([
     .refine(validSummary),
   summaryBase
     .extend({ version: z.literal("source-evidence-summary-0.3.0") })
+    .refine(validSummary),
+  summaryBase
+    .extend({ version: z.literal("source-evidence-summary-0.4.0") })
     .refine(validSummary),
 ]);
 export type SourceEvidenceSummary = z.infer<typeof sourceEvidenceSummarySchema>;
@@ -564,6 +610,7 @@ export async function sourceEvidenceReportBound(
 ) {
   try {
     if (
+      !sourceEvidenceReportSchema.safeParse(row).success ||
       !(await sourceEvidenceProofMatches(row)) ||
       row.patch_id !== draft.patch_id ||
       row.draft_sha256 !== draft.draft_sha256 ||
@@ -573,11 +620,13 @@ export async function sourceEvidenceReportBound(
         (!sourceEvidenceSummaryBound(summary, draft) ||
           !same(summary, {
             version:
-              row.version === "source-evidence-report-0.3.0"
-                ? "source-evidence-summary-0.3.0"
-                : row.version === "source-evidence-report-0.2.0"
-                  ? "source-evidence-summary-0.2.0"
-                  : "source-evidence-summary-0.1.0",
+              row.version === "source-evidence-report-0.4.0"
+                ? "source-evidence-summary-0.4.0"
+                : row.version === "source-evidence-report-0.3.0"
+                  ? "source-evidence-summary-0.3.0"
+                  : row.version === "source-evidence-report-0.2.0"
+                    ? "source-evidence-summary-0.2.0"
+                    : "source-evidence-summary-0.1.0",
             report_id: row.report_id,
             patch_id: row.patch_id,
             draft_sha256: row.draft_sha256,
@@ -733,6 +782,15 @@ export async function sourceEvidenceReportBound(
     if (children.network) {
       const child = children.network;
       if (
+        child.outcome &&
+        "network_execution" in child.outcome &&
+        "ingress_scope" in child.outcome.network_execution &&
+        !(await ingressScopeProofMatches(
+          child.outcome.network_execution.ingress_scope,
+        ))
+      )
+        return false;
+      if (
         !same(row.network, {
           ...common(child),
           kind: "network",
@@ -743,6 +801,12 @@ export async function sourceEvidenceReportBound(
                 sdk_version: child.outcome.network_execution.sdk_version,
                 sdk_observation:
                   child.outcome.network_execution.sdk_observation,
+                ...("ingress_scope" in child.outcome.network_execution
+                  ? {
+                      ingress_scope:
+                        child.outcome.network_execution.ingress_scope,
+                    }
+                  : {}),
                 ...("reachability_impact" in child.outcome.network_execution
                   ? {
                       reachability_impact:

@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.verification.snapshots import NetworkSnapshot, validate_snapshot_pair, write_snapshot
 
 if TYPE_CHECKING:
+    from app.verification.ingress_scope import BatfishScopeExecution
     from app.verification.reachability_impact import BatfishDirectionalExecution
 
 
@@ -192,6 +193,28 @@ def check_with_batfish_directional(
     return result
 
 
+def check_with_batfish_scope_evidence(
+    before: NetworkSnapshot,
+    after: NetworkSnapshot,
+    scope: ReachabilityScope,
+    *,
+    allow_local_upload: bool = False,
+    timeout_seconds: int = 60,
+) -> BatfishScopeExecution:
+    from app.verification.ingress_scope import BatfishScopeExecution
+
+    result = _check_with_batfish(
+        before,
+        after,
+        scope,
+        allow_local_upload=allow_local_upload,
+        timeout_seconds=timeout_seconds,
+        protocol="batfish-execution-0.4.0",
+    )
+    assert isinstance(result, BatfishScopeExecution)
+    return result
+
+
 def _check_with_batfish(
     before: NetworkSnapshot,
     after: NetworkSnapshot,
@@ -199,8 +222,12 @@ def _check_with_batfish(
     *,
     allow_local_upload: bool,
     timeout_seconds: int,
-    protocol: Literal["batfish-execution-0.2.0", "batfish-execution-0.3.0"] | None,
-) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution:
+    protocol: Literal[
+        "batfish-execution-0.2.0", "batfish-execution-0.3.0", "batfish-execution-0.4.0"
+    ]
+    | None,
+) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution | BatfishScopeExecution:
+    from app.verification.ingress_scope import BatfishScopeExecution, empty_ingress_scope
     from app.verification.reachability_impact import (
         BatfishDirectionalExecution,
         empty_reachability_impact,
@@ -218,10 +245,20 @@ def _check_with_batfish(
 
     def failure(
         status: str, reason: str
-    ) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution:
+    ) -> BatfishResult | BatfishExecution | BatfishDirectionalExecution | BatfishScopeExecution:
         result = BatfishResult.model_validate({**common, "status": status, "reason": reason})
         if protocol is None:
             return result
+        if protocol == "batfish-execution-0.4.0":
+            return BatfishScopeExecution(
+                result=result,
+                sdk_version=None,
+                sdk_observation="not_observed",
+                reachability_impact=empty_reachability_impact("not_observed", "not_run"),
+                ingress_scope=empty_ingress_scope(
+                    before.digest, after.digest, scope, result.network_name
+                ),
+            )
         if protocol == "batfish-execution-0.3.0":
             return BatfishDirectionalExecution(
                 result=result,
@@ -276,7 +313,11 @@ def _check_with_batfish(
             )
             response_size = len(run.stdout) if protocol is None else len(run.stdout.encode("utf-8"))
             if run.returncode != 0 or response_size > (
-                131_072 if protocol == "batfish-execution-0.3.0" else 32_768
+                262_144
+                if protocol == "batfish-execution-0.4.0"
+                else 131_072
+                if protocol == "batfish-execution-0.3.0"
+                else 32_768
             ):
                 return failure("error", "worker_failed")
             response = json.loads(run.stdout)
@@ -285,7 +326,9 @@ def _check_with_batfish(
             if protocol is None:
                 return BatfishResult.model_validate({**response, **common})
             execution = (
-                BatfishDirectionalExecution.model_validate(response)
+                BatfishScopeExecution.model_validate(response)
+                if protocol == "batfish-execution-0.4.0"
+                else BatfishDirectionalExecution.model_validate(response)
                 if protocol == "batfish-execution-0.3.0"
                 else BatfishExecution.model_validate(response)
             )

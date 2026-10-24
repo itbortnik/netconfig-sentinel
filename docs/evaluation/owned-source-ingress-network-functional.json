@@ -1,0 +1,2279 @@
+{
+  "actual_joint_reports": 16,
+  "actual_new_worker_calls_in_final_run": 16,
+  "actual_risk_assessments": 16,
+  "actual_service_role_decisions": 16,
+  "actual_source_records": 16,
+  "applied": false,
+  "approved": false,
+  "authored_basepairs": 2,
+  "earlier_failed_attempts_preserved": [
+    {
+      "attempt": 1,
+      "failed": 4,
+      "junit_sha256": "54518a3e5857fac1b28e7e49450e4d167fce6fe98f46d47fabb6af5f9f81b444",
+      "log_sha256": "2c64b751e8838c0480178c17817ca32738ad71f9b44718d8803b2a68b4fe966b",
+      "passed": 8
+    },
+    {
+      "attempt": 2,
+      "failed": 1,
+      "junit_sha256": "09d3d78f937f9bf09a20bce0312deb5ac1e378b1e99d486097becce5ebe54a69",
+      "log_sha256": "a68998b59fd5cc512f59c701ba549be6408521b8762f438efc61a8cd5670e1da",
+      "passed": 15
+    }
+  ],
+  "final_tests_passed": 16,
+  "formal_qualification": "not_proven",
+  "goal_completed": false,
+  "individual_identity_verified": false,
+  "junit_sha256": "791dd6f4d4da0db9897abbc18e4b0ecbe530436a7c9a94840d0cf24cea6e5068",
+  "limitations": [
+    "Sixteen scenario views reuse two authored basepairs, not sixteen independent networks.",
+    "Closed-origin base query errors/incomplete results retain not_observed/not_run; no zero-valued capture is invented.",
+    "Opaque assignments, modeled activity and per-side observations do not establish semantic IP sets, operational state or wider flow coverage.",
+    "A physical loopback disable was not treated as evidence of logical-unit inactivity; the final selected-unit fixture disables that unit explicitly."
+  ],
+  "log_sha256": "7ddb82f9823d183ee772e8b9b9a502a3f7eff9f6dd79b04e8875eea21d2a7dfb",
+  "model_calls_or_fits": 0,
+  "new_independent_quality_denominator": null,
+  "observed_ingress_captures": 12,
+  "protocol_sha256": "1bd3bf33e2e3a8b9cb5fe2f68b19b83601c95a676ef84879390180ba02d00449",
+  "quality_proven": false,
+  "records": [
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "c4dd1cd0033cf8bf1a6aa3533b2614f06885a4d5ea4dd9f608b6773e4adac4f1",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+            "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "3370dfd7f4622a5924661be28e136e555e0299d09ab033738c333b32e275570c",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [],
+        "before_sha256": "d1606398e2897e5d08f9d92f373e3033030f5ff00945ed72821ae842dda30ef8",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-6ff333db12fe4fee865cf24ee414d19a",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "differences_found",
+      "priority_score": 0.95,
+      "priority_status": "completed",
+      "raw_network_priority": 1.0,
+      "reachability_impact": {
+        "direction": "loss_found",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 1,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": [
+          {
+            "after_dispositions": [
+              "NULL_ROUTED"
+            ],
+            "after_trace_count": 1,
+            "before_dispositions": [
+              "ACCEPTED"
+            ],
+            "before_trace_count": 1,
+            "direction": "loss",
+            "flow_sha256": "ef7617e4237eeec58dea0b5467309778376e37d75b80650b8b74e976e377fe50"
+          }
+        ]
+      },
+      "replay_without_originals": true,
+      "report_sha256": "2ad7f18b504c71faea3de3d549c511feb4831c9a62717548d8662e8c7f5a4be8",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "be84edf93d2435a6a4949d93503361a6ed4ef665ec6ab067a66ed13c60dc06b2",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "route_loss",
+      "scoped_loss": true,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "164a55c87740e0d8f135e5585261dad59116daba6a32e5caef1777fa5daf8764",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "79dee76d0ce3519cd6173fb7d063d55ac0ae130bd12789132d1cdf237f85e1e8",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "f499b4a7adfb4c8ebadc6ed9a98c1b2b4d6072c7da8fd24c638dda7004c03ca7",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "3710eee89d09af99f8f38f5a4a11b9c4c4ef704bf242b95687209aa8d3d496fd",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-850037ccdefb4f77927dd6fb51e20465",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "differences_found",
+      "priority_score": 0.95,
+      "priority_status": "completed",
+      "raw_network_priority": 1.0,
+      "reachability_impact": {
+        "direction": "loss_found",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 1,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": [
+          {
+            "after_dispositions": [
+              "NULL_ROUTED"
+            ],
+            "after_trace_count": 1,
+            "before_dispositions": [
+              "ACCEPTED"
+            ],
+            "before_trace_count": 1,
+            "direction": "loss",
+            "flow_sha256": "ef7617e4237eeec58dea0b5467309778376e37d75b80650b8b74e976e377fe50"
+          }
+        ]
+      },
+      "replay_without_originals": true,
+      "report_sha256": "54b04bcbd02b0dbc1aeca422f73ca5ef75ba3cc41a3c45307cae9359a24bae53",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "c2a8e41ed51df357bc01e1e1ce617a30a348f2645ae3258764e8493278f66a3c",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "route_loss",
+      "scoped_loss": true,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "13d1fb1d5006f87928e89d1d77774ab0ba558b7f675f130006ace6bb936ef574",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "68613d04b912e950649a71de3068c1c026406dc28822dd391bb4493227fbd3d0",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+            "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "fbc7e756d883ae16f7be9e80c3cb834aeb939704b37af259f2148be88519da76",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [],
+        "before_sha256": "c66725cf93b645b8f43c2f5ac43c506aa0f875a5df85e870f905c4fd97ad299b",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-69745060a63045c49dd9c1a9d08af7a8",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "7e31c0476f98bf744c0e159b74a69388a36762a54b79fa9db854d283c53ddbe3",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "e3484dbd1642832f3d47189de1c83b71ce0e5f62445a922f2ab0acc5f4c1cd5e",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "reachable_control",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "176a48bdc2a3ca683132d931c975d91f669b56584ab6ca698a44b7e27bdd6869",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "932c0611dc6d1f09de5023a2e4c6a10aa4d978e6ef9f68ba2c98b3813beb2c80",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "17747642663f116152280a8456f65f9ebbcee92a39639add24ae6a738df03068",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "95156215ac3c493b7bfb8f4b8cf198101f132336ed1b2c9019154305c9a033ed",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-bfbe7684bc2242959c01da743c365efb",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "e6094e659607dda9dc6c648153c20b914bfc7cf834c03e2da2c7dc362745816f",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "0cb52c25a0b8ec82840cb4077e92156eb6b241793786551e92cba182018f4bbb",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "reachable_control",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "943e05e705186dde26f243cee08a745bf1b87e2426d02cb2b1f459c84ea9e8b6",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "not_run",
+      "acquisition_state": "not_observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "e650bcfe5a84f15887abf6178a1c2c32fab235eb05241d82185f12f72084b013",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": null,
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "not_observed",
+        "after": null,
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "c2272ad1bb9973648241a1b213ef976cf633f3b0d3a9ba9167c77c456ef78caa",
+        "before": null,
+        "before_eligible_only": null,
+        "before_sha256": "23b6f25b76bad54d00b529fd5206b1fc25b94be36b4d43a6b0a2f0b153809117",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": null,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-04ec211f01f04b1982529ee41598778b",
+        "reason": "not_run",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": null,
+        "selected_before_only": null,
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "engine_error",
+      "network_status": "error",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "not_run",
+        "state": "not_observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "9406013aee298a08299c6c773aefc53f9ee15ca8b3f305884c26165e573e3ce4",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "94f4a8680b6f9125fd0212aa6a56a8177c4cc7e3825fcca4b25d4b178c9eee0d",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "shutdown",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "f8d55a9f1098b43e45a021145256b425c8fa63ba8ba144964058bc2d8351f008",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "not_run",
+      "acquisition_state": "not_observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "b6c64f2f7353981a76118041e26566d73cdc3cd802dc3a17ef40643b1593d7b9",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": null,
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "not_observed",
+        "after": null,
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "80e63b0d9c684f0c4c1ba034176fb63c428df552007e6fd5e59c144e5eb047fe",
+        "before": null,
+        "before_eligible_only": null,
+        "before_sha256": "a95c88c5595b7198a1e1c07d680bab43348e4a59b0fe6bfd08ff6e840f136e80",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": null,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-0b4cf45251064aa8bbfeda870ebc6419",
+        "reason": "not_run",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": null,
+        "selected_before_only": null,
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "engine_error",
+      "network_status": "error",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "not_run",
+        "state": "not_observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "dd39e5b0016b4cd3cfcc0af155e904fb6376662e776a519402992dec246d6b3c",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "3dd7c91c97382f8500d351a41df70b8fd88e6f8834c0a594d972d1c8cc0595af",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "shutdown",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "98736f858ed8b3609eb243b8e9d146986c6b3c703168c13342bbe686094f174f",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "not_run",
+      "acquisition_state": "not_observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "3dfa998e465e7908bed69c4118425a0853f0d9e1791d3c8368dba3c7852178ec",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "not_observed",
+        "after": null,
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "c53d16e5d5bae1b43315045ec7a148146697816dd49723b8b9e83eb556e5a9f7",
+        "before": null,
+        "before_eligible_only": null,
+        "before_sha256": "92188e8fe1aaf2d243b854716017526d1c2bce2cae4219a29b30d6783e7ca468",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": null,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-9d9fb7e7dfe5416fabcfd9fc85b247fa",
+        "reason": "not_run",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": null,
+        "selected_before_only": null,
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "initialization_issues",
+      "network_status": "incomplete",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "not_run",
+        "state": "not_observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "8406c1a13ff4547504479a678b4ad332ee41fad63f718e8be215cfed244b291c",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "d58067db9b1c9b3550d4a90fd0f7e2f24fd35ff31de9d53bff80249c4347bc4e",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "interface_removed",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "bb4a86268e8f5271a64560d285cd80f098e6a092c85e242246678cac5d1fd9a2",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "not_run",
+      "acquisition_state": "not_observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "b286df77e236b75847636c7ba4b759244b47b571a78f260b8a9e45715636bf47",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": null,
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "not_observed",
+        "after": null,
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "21e7b2164886c393dcdc24fa00a9b9495a2a2e307b937dd04e7d6609f91d2f69",
+        "before": null,
+        "before_eligible_only": null,
+        "before_sha256": "23a29b118c9a8f4383a6cccf59c9ee883e70cfca673a6069f7ef8d44a55f8652",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": null,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-88026f770c7a4223b0f676637f01c6e9",
+        "reason": "not_run",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": null,
+        "selected_before_only": null,
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "engine_error",
+      "network_status": "error",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "not_run",
+        "state": "not_observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "5160e5542d756d2144a79579a538757e1591de3047d1d154e966af408198080c",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "4de509d5d8ab98add116b13ddf42d8b4659d06fb306df4053adc3d11559c1aa4",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "interface_removed",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "ceefcbcaaa4e5f5dca255d850301e172eda76988b42d815a9761c8414e75468a",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "70cdc0c186f02a820de43be6e9450a1ef5b7a78b7eb36686faf5424ba3a54d76",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": false,
+              "canonical_id_sha256": "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "inactive",
+              "eligible": false,
+              "interface": "Loopback1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=Loopback1}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+            "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "53aeeaa9fd71d4a043031bc48bdc9472cc618717948e434b616f6492f6516595",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "Loopback1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=Loopback1}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[203.0.113.10]}",
+              "source_ip_sha256": "f5359e7c77cd2346675a92d415216bb87148dcbffc4f41439f5808d44ae453e8",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [
+          "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623"
+        ],
+        "before_sha256": "786b665f7b8013f97a867ee019d64da65e40b8af83094af61ddf7e84c7312ed4",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-14e3cf652deb4c259be79eb7e4aa75b4",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "d2050fa57b16c67caf1ed28ad79fc42736e19e8a363016f494eee5f95256a8b4",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "824804f6a8345799c6f519085cf2be48be68228ff7ea33d8403505f344801077",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "shutdown_selected",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "e350dcc856ec5bc198ccebd63a12ae8912278ca7f0f864a7da8429d96580add2",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "24bc64307f719c83fc0cba18a98d3d3acc0dad2a7bab6a09d7760a4eeff35152",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": false,
+              "canonical_id_sha256": "45279095f48317474e3812fce6b4624c1dd4a2debce022b4058dd74d0a0f0300",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "inactive",
+              "eligible": false,
+              "interface": "lo1.0",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1.0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "a00a607ab70cfa384bd2c524a5bd6e742111439b047d2a3b2241fac42543da91",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "lo1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "4fab35fe0afaed04a047c6ba424640f3050c7bd490f7563fb7e7b032b66b7b50",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "45279095f48317474e3812fce6b4624c1dd4a2debce022b4058dd74d0a0f0300",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "lo1.0",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[203.0.113.10]}",
+              "source_ip_sha256": "f5359e7c77cd2346675a92d415216bb87148dcbffc4f41439f5808d44ae453e8",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "a00a607ab70cfa384bd2c524a5bd6e742111439b047d2a3b2241fac42543da91",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "lo1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "9388d19195056191d12b1afd15e31c44a2ec4d31789f081122c26568b0b78f5c",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-1d5032197c1f480cb9b5024603b5dec4",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "412fb929ce05eed20d98348d9d3d174d5afca3abfbafb0d3a48b6df3408cfbed",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "594d2a3dd49bc4a2312442c394e36a52b8222144ad8639615466c3129a050e40",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "shutdown_selected",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "f0442ce735ba67554f9506f423621d7423112bceecffc45dfd9f1031a9b8e461",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "6c5a49d1f963d4caad8bfe6d92db6e267181db73d3ce43872f57eb2060c23f8c",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+            "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "764f711999794e7bbbde5f90097f4425414f1d2d71c4c008ce70cda25074f822",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "Loopback1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=Loopback1}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[203.0.113.10]}",
+              "source_ip_sha256": "f5359e7c77cd2346675a92d415216bb87148dcbffc4f41439f5808d44ae453e8",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [
+          "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623"
+        ],
+        "before_sha256": "7c9649267e13849334225be4efc22e0a3bddd974eb7ff0084bb589e9a7951d7f",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-0c2a5b891c5d42768315aa892cc39102",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [
+          "7c201671e009b8f5068611bb3783592456b0845848e81859df601b058afa9623"
+        ],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "912d2a7bb22b04eca8d87941f535537090900b70ee78ff98d1f085c9214b93c3",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "5ec0175866b1e31447e49c47827363217580cd680886a0e943810dd87d5fc7c1",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "interface_removed_selected",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "7768380608d34f60ed5fddb852cd70e141bb454d3a29d246be8edd5c8ba26d32",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "64a492bc3f9b48c7ee27b5582159753017ec3d1a358d49feb10d54aa2ddf7bbb",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "b7f0aab78724a10e178a5151308aa826adfe21bed84f87032f00a96b486c9132",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "45279095f48317474e3812fce6b4624c1dd4a2debce022b4058dd74d0a0f0300",
+              "concrete_ipv4_prefixes": [
+                "203.0.113.10/32"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "lo1.0",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[203.0.113.10]}",
+              "source_ip_sha256": "f5359e7c77cd2346675a92d415216bb87148dcbffc4f41439f5808d44ae453e8",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "a00a607ab70cfa384bd2c524a5bd6e742111439b047d2a3b2241fac42543da91",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "lo1",
+              "interface_type": "LOOPBACK",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=lo1}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "c6750363d27dd146db75c786327deebe4e3aee2264dc0808f2eb592c08af3500",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-db07a1b45c79495a8f36a2cbdfb19bb1",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [
+          "45279095f48317474e3812fce6b4624c1dd4a2debce022b4058dd74d0a0f0300",
+          "a00a607ab70cfa384bd2c524a5bd6e742111439b047d2a3b2241fac42543da91"
+        ],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "no_differences_in_scope",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": "no_witnesses_returned",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 0,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "630e97f962b4c3548677dcc900acf88fa95a127920c4a8f5e0a25cbf81dbc1a1",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "d6daaa66d7c9bd2e9ea78bd979a4bffbd805ea71feb311791d5b19084d74c9d9",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "interface_removed_selected",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "185b1deaf02904c02ebd723c3be18be85aa053bb2e1a659317b154ba7720deaa",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "615b8d63966521367e695091f0aa86acc953cfa2aa46e66d43e33383a07ebe0a",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.5/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.5]}",
+              "source_ip_sha256": "f3cced7cf62ac0ab9f59539e8cc332ffaea73254db55d372a3ff87de3ad3cce5",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.5]}",
+            "source_ip_sha256": "f3cced7cf62ac0ab9f59539e8cc332ffaea73254db55d372a3ff87de3ad3cce5"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "8daf55ce41080c5d5da6050b74257a0f534e86c1f2b779464ba7a6f929947951",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [],
+        "before_sha256": "49cb487e8fde60384763ef7a3ee1d9be724863e4a04ce307146dbddc52994b7e",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-f89c3fa24ad34c16972adf4681ba9c9f",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "differences_found",
+      "priority_score": 0.95,
+      "priority_status": "completed",
+      "raw_network_priority": 1.0,
+      "reachability_impact": {
+        "direction": "loss_found",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 1,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": [
+          {
+            "after_dispositions": [
+              "NO_ROUTE"
+            ],
+            "after_trace_count": 1,
+            "before_dispositions": [
+              "ACCEPTED"
+            ],
+            "before_trace_count": 1,
+            "direction": "loss",
+            "flow_sha256": "77cc868f7f2033f5b4439bb060eab54d82bf45ebb748136cdef9b6bbbc519470"
+          }
+        ]
+      },
+      "replay_without_originals": true,
+      "report_sha256": "ee8d48712485b77073ed1555e7eee6aa3eab4a711c95a03ac4c3bcdfab0ca717",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "18be951ba23eb7ccf0f29fa0bc219069f7554620717359fbf799663687b8a16c",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "source_address_changed",
+      "scoped_loss": true,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "faa586fd5fe3080cc7c3c7a86685e157f6f814896c9c780acf253b9ce25a7c11",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "9584f48b05d731f3d09c52c46128b646f7d4f845ff23ee97701ad829a3aa3e1e",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.5/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.5]}",
+              "source_ip_sha256": "f3cced7cf62ac0ab9f59539e8cc332ffaea73254db55d372a3ff87de3ad3cce5",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "cc81454935baed44646cbfa60c9cf1b9cad883da24a3b468c8beeb36a614bf53",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "0b2786e859028f959c410ecb461db0b039a749a1926013de0d8543c87c853cba",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-b14dae34b11548a38b72fa941af5e150",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "query_completed",
+      "network_status": "differences_found",
+      "priority_score": 0.95,
+      "priority_status": "completed",
+      "raw_network_priority": 1.0,
+      "reachability_impact": {
+        "direction": "loss_found",
+        "gained_witness_count": 0,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": 1,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "query_completed",
+        "state": "observed",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": [
+          {
+            "after_dispositions": [
+              "NO_ROUTE"
+            ],
+            "after_trace_count": 1,
+            "before_dispositions": [
+              "ACCEPTED"
+            ],
+            "before_trace_count": 1,
+            "direction": "loss",
+            "flow_sha256": "77cc868f7f2033f5b4439bb060eab54d82bf45ebb748136cdef9b6bbbc519470"
+          }
+        ]
+      },
+      "replay_without_originals": true,
+      "report_sha256": "da2333734921c38d42dca2b20dc1c45b6028997e423bb50a55bd85798e38034a",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "c7eb0b5c78ab61ef9bdf53e0a3938d46f22e434030abfc6baade32cf03a25a61",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "source_address_changed",
+      "scoped_loss": true,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "0d1e85bcbe75b911723d67c9715fc567decbbf1a63ee99fe954ccca8f69bb381",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "0c6f021db760843a159e8789c04fdd4136fc5d636f580f09541333019aaa4260",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": [
+          {
+            "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+            "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+            "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353"
+          }
+        ],
+        "after_eligible_only": [],
+        "after_sha256": "d575463e9880f936edad03bdf87e401a7fb74a2300021495599123e2da49555c",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "GigabitEthernet0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=GigabitEthernet0/0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": [],
+        "before_sha256": "8781264587359a343a27e7db5ff890c854153e68b006a51f5ba4b53f3fa3a641",
+        "common_eligible": [
+          "b2a805d0618be08d5129f1ba0c0232a5c406d2345f7034d039e1c524ee6068c5"
+        ],
+        "complete_flow_coverage": false,
+        "eligibility_complete": true,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-d8eb7f2fd30548aba902013e9979b448",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "203.0.113.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "empty_reachable_scope",
+      "network_status": "inconclusive",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "empty_reachable_scope",
+        "state": "inconclusive",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "786d3fb1b6b06a5f511e509c156a0cc4291e150dddbe42c77111a83c00590b32",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "200fd734668d766f5edd5c5001591ccb8300556b58a651191cee0f407c741504",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "empty_scope",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "535befaa25136b3ce65d7afe59a09ebee84cd57b8172a2eb6a5e5eb365fcba13",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "cisco"
+    },
+    {
+      "acquisition_reason": "query_completed",
+      "acquisition_state": "observed",
+      "applied": false,
+      "approved": false,
+      "basepair_count": 2,
+      "cleanup_complete": true,
+      "composition_version": "source-priority-composition-0.2.0",
+      "decision_sha256": "b136d0a3d3b0eb8f74c45e84996c1bcbb9bb05d824c17e37aeb936224b131ca3",
+      "decision_version": "source-evidence-decision-0.4.0",
+      "engine_version": "{\"Batfish\": \"2026.08.27.3685\", \"api_version\": \"0.0.0\"}",
+      "formal_qualification": "not_proven",
+      "independent_quality": false,
+      "individual_identity_verified": false,
+      "ingress_scope": {
+        "acquisition_state": "observed",
+        "after": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "after_common_assignments": null,
+        "after_eligible_only": null,
+        "after_sha256": "4b8d2c038ffcb7bc61bb2b3434394e4821f7dbfca5575e5e7f9a5da1f1cec773",
+        "before": {
+          "interfaces": [
+            {
+              "active": true,
+              "canonical_id_sha256": "0b830898b6f10b28dfa481bdb4d5e67d34fd624e0e61e3d9d33c431df814787f",
+              "concrete_ipv4_prefixes": [
+                "192.0.2.1/30"
+              ],
+              "eligibility_reason": "active_concrete_ipv4",
+              "eligible": true,
+              "interface": "ge-0/0/0.0",
+              "interface_type": "LOGICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0.0}",
+              "node": "edge",
+              "source_ip_rendering": "IpWildcardSetIpSpace{blacklist=[], whitelist=[192.0.2.1]}",
+              "source_ip_sha256": "02005cdab7683be12880b0b12ab4b6f8a3bda90faa1f7eef55af7b90646a9353",
+              "switchport": false
+            },
+            {
+              "active": true,
+              "canonical_id_sha256": "cb2b789643868b639a8e278b4e875bf965607b574dc9a4eefc3ab18966bf14d6",
+              "concrete_ipv4_prefixes": [],
+              "eligibility_reason": "no_concrete_ipv4",
+              "eligible": null,
+              "interface": "ge-0/0/0",
+              "interface_type": "PHYSICAL",
+              "location_rendering": "InterfaceLocation{nodeName=edge, interfaceName=ge-0/0/0}",
+              "node": "edge",
+              "source_ip_rendering": "empty",
+              "source_ip_sha256": "2e1cfa82b035c26cbbbdae632cea070514eb8b773f616aaeaf668e2f0be8f10d",
+              "switchport": false
+            }
+          ]
+        },
+        "before_eligible_only": null,
+        "before_sha256": "20f96fa9e33873b50556f5fdde3c4551f95ca8e0a08931f2cb3a88bab867a78b",
+        "common_eligible": null,
+        "complete_flow_coverage": false,
+        "eligibility_complete": false,
+        "limitations": [
+          "Selection and concrete IPv4 origination eligibility are observed, not a complete ingress universe.",
+          "Active is a modeled property, not operational link state; missing concrete IPv4 remains unknown.",
+          "Source IP assignments are opaque engine renderings; equality and IP-set semantics are unverified.",
+          "After-context assignments for common eligible identities do not prove complete flow coverage.",
+          "Removed ingress, management access, external delivery, approval and safety are not established.",
+          "Admission byte limits are post-download checks, not hard HTTP receive-memory bounds."
+        ],
+        "method": "selected-interface-concrete-ipv4-origination-0.1.0",
+        "network_name": "sentinel-10c8c695cf594378802d71e90eb8d10c",
+        "reason": "query_completed",
+        "scope": {
+          "destination": "203.0.113.1/32",
+          "start_node": "edge"
+        },
+        "selected_after_only": [],
+        "selected_before_only": [],
+        "semantic_ip_sets_verified": false,
+        "source_assignment_context": "after",
+        "version": "ingress-scope-0.1.0"
+      },
+      "network_reason": "empty_reachable_scope",
+      "network_status": "inconclusive",
+      "priority_score": 0.75,
+      "priority_status": "completed",
+      "raw_network_priority": null,
+      "reachability_impact": {
+        "direction": null,
+        "gained_witness_count": null,
+        "limitations": [
+          "Returned flows are examples, not all packets or the size of the affected flow space.",
+          "Differential queries use ingress locations present and active in both snapshots.",
+          "Source IP inference uses the after snapshot; removed ingress locations are not covered.",
+          "Successful subnet delivery or exit does not establish delivery to an external device.",
+          "No severity, whole-network safety, management access, approval or application is inferred."
+        ],
+        "lost_witness_count": null,
+        "max_traces": 16,
+        "max_witnesses": 64,
+        "method": "differential-success-example-flows-0.1.0",
+        "reason": "empty_reachable_scope",
+        "state": "inconclusive",
+        "version": "reachability-impact-0.1.0",
+        "witnesses": []
+      },
+      "replay_without_originals": true,
+      "report_sha256": "5cfac3cec8d473208a7ef736116166e2aeea24b5778c8da218e37c3402c8adc9",
+      "report_version": "source-evidence-report-0.4.0",
+      "risk_fused": false,
+      "risk_sha256": "03a2424d062d8dd7c1fa1775cb52aa964032970ccea109d7ede0f7f3bb7693a5",
+      "risk_version": "source-risk-assessment-0.2.0",
+      "scenario": "empty_scope",
+      "scoped_loss": false,
+      "sdk_observation": "observed",
+      "sdk_version": "2026.8.19.3660",
+      "source_sha256": "42b10ba3a92820df458d9e7c418c3ce145178b1eca923975ff799b7a437880f2",
+      "source_version": "source-patch-verification-0.4.0",
+      "vendor": "juniper"
+    }
+  ],
+  "scenario_views": 16,
+  "unperformed_ingress_captures": 4,
+  "version": "owned-source-ingress-network-functional-0.1.0"
+}

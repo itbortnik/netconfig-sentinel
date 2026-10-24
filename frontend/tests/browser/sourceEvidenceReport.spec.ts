@@ -297,8 +297,8 @@ test("closed panel does not fetch; actual saved deterministic/Forest and synthet
   await expect(panel(page).getByRole("checkbox")).toHaveCount(0);
   await choose(page, value);
   const report = await compose(page);
-  expect(report.version).toBe("source-evidence-report-0.3.0");
-  expect(report.request.version).toBe("source-evidence-request-0.3.0");
+  expect(report.version).toBe("source-evidence-report-0.4.0");
+  expect(report.request.version).toBe("source-evidence-request-0.4.0");
   expect(report).toMatchObject({
     status: "needs_review",
     formal_qualification: "not_proven",
@@ -393,7 +393,7 @@ test("directional report retains legacy child metadata without inventing an obse
   await openPanel(page);
   await choose(page, value);
   const report = await compose(page);
-  expect(report.version).toBe("source-evidence-report-0.3.0");
+  expect(report.version).toBe("source-evidence-report-0.4.0");
   expect(report.network).toMatchObject({
     version: "source-patch-verification-0.1.0",
     sdk_version: null,
@@ -416,7 +416,7 @@ test("directional report retains exact historical SDK child without inventing di
   await openPanel(page);
   await choose(page, value);
   const report = await compose(page);
-  expect(report.version).toBe("source-evidence-report-0.3.0");
+  expect(report.version).toBe("source-evidence-report-0.4.0");
   expect(report.network).toMatchObject({
     version: "source-patch-verification-0.2.0",
     execution_version: "batfish-execution-0.2.0",

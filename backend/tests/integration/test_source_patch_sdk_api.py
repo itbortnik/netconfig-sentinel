@@ -130,7 +130,7 @@ def test_invalid_sdk_worker_cannot_save_unbound_observation(sdk_api, monkeypatch
 @pytest.mark.parametrize(
     "field,value,status",
     [
-        ("version", "source-patch-request-0.4.0", 400),
+        ("version", "source-patch-request-0.9.0", 400),
         ("allow_local_engine_upload", False, 403),
     ],
 )

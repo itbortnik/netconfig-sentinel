@@ -96,11 +96,13 @@ export function SourceEvidenceDecisionPanel({
       return;
     const request: ReviewSourceEvidenceReport = {
       version:
-        report.version === "source-evidence-report-0.3.0"
-          ? "source-evidence-decision-request-0.3.0"
-          : report.version === "source-evidence-report-0.2.0"
-            ? "source-evidence-decision-request-0.2.0"
-            : "source-evidence-decision-request-0.1.0",
+        report.version === "source-evidence-report-0.4.0"
+          ? "source-evidence-decision-request-0.4.0"
+          : report.version === "source-evidence-report-0.3.0"
+            ? "source-evidence-decision-request-0.3.0"
+            : report.version === "source-evidence-report-0.2.0"
+              ? "source-evidence-decision-request-0.2.0"
+              : "source-evidence-decision-request-0.1.0",
       decision_id: crypto.randomUUID(),
       report_sha256: report.review_sha256,
       verdict,

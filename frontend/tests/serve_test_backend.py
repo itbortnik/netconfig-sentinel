@@ -1,6 +1,7 @@
 """Ephemeral loopback-only backend for browser tests; never touches the working database."""
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -8,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Thread
+from uuid import uuid4
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY / "backend"))
@@ -211,6 +213,7 @@ def main() -> None:
     mode.add_argument("--source-evidence-fixture", action="store_true")
     mode.add_argument("--source-evidence-decision-fixture", action="store_true")
     mode.add_argument("--source-risk-fixture", action="store_true")
+    mode.add_argument("--source-ingress-fixture", action="store_true")
     options = parser.parse_args()
     artifacts = REPOSITORY / "artifacts"
     artifacts.mkdir(exist_ok=True)
@@ -275,6 +278,7 @@ def main() -> None:
                 or options.source_evidence_fixture
                 or options.source_evidence_decision_fixture
                 or options.source_risk_fixture
+                or options.source_ingress_fixture
             ):
                 import app.patching.source_ml as source_ml_workflow
                 from app.core.configuration_model import ConfigurationModelSettings
@@ -288,6 +292,7 @@ def main() -> None:
                 or options.source_evidence_fixture
                 or options.source_evidence_decision_fixture
                 or options.source_risk_fixture
+                or options.source_ingress_fixture
             ):
                 import app.patching.source_review as source_workflow
                 from app.core.patch_verification import PatchVerificationSettings
@@ -305,11 +310,13 @@ def main() -> None:
                         options.source_evidence_fixture
                         or options.source_evidence_decision_fixture
                         or options.source_risk_fixture
+                        or options.source_ingress_fixture
                     ) and hostname.startswith("source-evidence-error-")
                     empty = (
                         options.source_evidence_fixture
                         or options.source_evidence_decision_fixture
                         or options.source_risk_fixture
+                        or options.source_ingress_fixture
                     ) and hostname.startswith("source-evidence-inconclusive-")
                     return BatfishResult(
                         before_sha256=before.digest,
@@ -440,6 +447,140 @@ def main() -> None:
                     )
 
                 source_workflow.check_with_batfish_directional = synthetic_source_directional
+
+                def synthetic_source_scope(before, after, scope, **kwargs):
+                    # Software-only browser data; these rows are never SDK observations.
+                    from app.parsers import parse_configuration
+                    from app.verification.ingress_scope import (
+                        BatfishScopeExecution,
+                        IngressScopeObservation,
+                        empty_ingress_scope,
+                    )
+                    from app.verification.ingress_scope_worker import (
+                        INGRESS_LIMITATIONS,
+                        INGRESS_METHOD,
+                        canonical_id,
+                        derived_fields,
+                        eligibility,
+                        location_rendering,
+                    )
+
+                    execution = synthetic_source_directional(before, after, scope, **kwargs)
+                    fields = execution.result.model_dump()
+                    if fields["network_name"] is None:
+                        fields["network_name"] = "sentinel-" + uuid4().hex
+                    result = BatfishResult.model_validate(fields)
+                    state, reason = "not_observed", "not_run"
+                    queried = result.status in {
+                        "differences_found",
+                        "no_differences_in_scope",
+                        "inconclusive",
+                    }
+                    if queried and result.cleanup_complete is not True:
+                        state, reason = "unknown", "cleanup_unconfirmed"
+                    elif queried and "ingress-query-failed" in scope.start_node:
+                        state, reason = "unknown", "query_failed"
+                    elif queried and "ingress-budget" in scope.start_node:
+                        state, reason = "unknown", "budget_exceeded"
+                    observation = empty_ingress_scope(
+                        before.digest,
+                        after.digest,
+                        scope,
+                        result.network_name,
+                        state=state,
+                        reason=reason,
+                    )
+                    if queried and state == "not_observed":
+                        sides = []
+                        for snapshot in (before, after):
+                            rows = {}
+                            for config in snapshot.configs:
+                                if config.hostname != scope.start_node:
+                                    continue
+                                canonical = parse_configuration(
+                                    config.text, filename=config.filename
+                                )
+                                for interface in canonical.interfaces:
+                                    name = interface.name
+                                    if interface.unit is not None:
+                                        name += "." + interface.unit
+                                    prefixes = sorted(
+                                        {
+                                            address.address
+                                            for address in interface.addresses
+                                            if address.family == "ipv4"
+                                        }
+                                    )
+                                    active = interface.enabled is not False
+                                    switchport = interface.switchport_mode is not None
+                                    entries = [(name, active, switchport, prefixes)]
+                                    if (
+                                        canonical.device.platform == "junos"
+                                        and interface.unit is not None
+                                    ):
+                                        entries.append((interface.name, active, False, []))
+                                    for (
+                                        entry_name,
+                                        entry_active,
+                                        entry_switchport,
+                                        entry_prefixes,
+                                    ) in entries:
+                                        identifier = canonical_id(scope.start_node, entry_name)
+                                        eligible, why = eligibility(
+                                            entry_active, entry_switchport, entry_prefixes
+                                        )
+                                        rendered = "owned-browser-ip-space:" + ",".join(
+                                            entry_prefixes
+                                        )
+                                        rows[identifier] = dict(
+                                            node=scope.start_node,
+                                            interface=entry_name,
+                                            canonical_id_sha256=identifier,
+                                            location_rendering=location_rendering(
+                                                scope.start_node, entry_name
+                                            ),
+                                            active=entry_active,
+                                            switchport=entry_switchport,
+                                            interface_type="LOGICAL"
+                                            if "." in entry_name
+                                            else "PHYSICAL",
+                                            concrete_ipv4_prefixes=entry_prefixes,
+                                            eligible=eligible,
+                                            eligibility_reason=why,
+                                            source_ip_rendering=rendered,
+                                            source_ip_sha256=hashlib.sha256(
+                                                rendered.encode()
+                                            ).hexdigest(),
+                                        )
+                            sides.append({"interfaces": [rows[key] for key in sorted(rows)]})
+                        observation = IngressScopeObservation.model_validate(
+                            dict(
+                                version="ingress-scope-0.1.0",
+                                before_sha256=before.digest,
+                                after_sha256=after.digest,
+                                scope=scope.model_dump(mode="json"),
+                                network_name=result.network_name,
+                                acquisition_state="observed",
+                                reason="query_completed",
+                                before=sides[0],
+                                after=sides[1],
+                                **derived_fields(sides[0], sides[1]),
+                                semantic_ip_sets_verified=False,
+                                complete_flow_coverage=False,
+                                source_assignment_context="after",
+                                method=INGRESS_METHOD,
+                                limitations=INGRESS_LIMITATIONS,
+                            )
+                        )
+                    return BatfishScopeExecution(
+                        result=result,
+                        sdk_version=execution.sdk_version,
+                        sdk_observation=execution.sdk_observation,
+                        reachability_impact=execution.reachability_impact,
+                        ingress_scope=observation,
+                    )
+
+                source_workflow.check_with_batfish_scope_evidence = synthetic_source_scope
                 verification = PatchVerificationSettings(allow_engine_upload=True)
             application = create_app(
                 settings,
@@ -451,7 +592,9 @@ def main() -> None:
             uvicorn.run(
                 application,
                 host="127.0.0.1",
-                port=8309
+                port=8310
+                if options.source_ingress_fixture
+                else 8309
                 if options.source_risk_fixture
                 else 8308
                 if options.source_evidence_decision_fixture
