@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-24 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-25 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -35,15 +35,24 @@ engine2026.08.27.3685 сохранён там, где базовая прове�
 UI937unit/342browser pass, включая6новых desktop/mobile cases; build/types/format pass.
 Browser engine/model responses — software fixtures. Formal остаётся `not_proven`,
 калибровка, real-data quality, individual identity, approval и application не установлены.
-Полный local run:5148pass/52skip/5warnings,91%coverage. Ruff/mypy307runtime
+Для исходной поставки `a98d6234193649e4f9b903c8d4c549bcf2d7d935`
+полный local run:5148pass/52skip/5warnings,91%coverage. Ruff/mypy307runtime
 в default/Linux/win32 pass. Installed1387pass/34skip на каждой Pydantic2.13.5/2.14.0/2.14.1;
 LF-публикация связана с проверенными bytes преобразованием без изменения Python AST.
 Её wheel307runtime/3assets source-equal; дополнительные198related controls проходят
 на всех трёх версиях.750history/300oldinstalled сохранены. Первоначальные full/installed
 отказы из-за устаревшего ожидания unsupported0.4 сохранены, проверка перенесена на0.9;
 итоговые прогоны выше зелёные. Local PostgreSQL не запускался; actual engine проверен
-отдельно, opt-in skips не выданы за pass. CI нового commit не выполнен.
-Прежние успешные CI ниже относятся к своим указанным commit.
+отдельно, opt-in skips не выданы за pass.
+В [exact-commit CI](https://github.com/itbortnik/netconfig-sentinel/actions/runs/40126564069)
+PostgreSQL683pass/2skip/12deselected, Batfish143+2savedcandidate pass,
+frontend937unit/342browser+162Compose pass. Backend остановился на mypy до тестов:
+Pydantic2.14.1 TypeForm не распознал два inline Annotated discriminator expressions.
+В [коррекции совместимости](evaluation/owned-source-ingress-typeform-compat.json)
+они вынесены в именованные aliases без изменения публичных classes/functions,
+JSON schemas, discriminator, DTO или старых proofs.198related controls проходят на
+Pydantic2.13.5/2.14.0/2.14.1; mypy с Pydantic2.14.1 для Python3.12/Linux проверил307files.
+Полный CI текущей коррекции ещё не выполнен; прежние CI относятся к указанным commit.
 
 Для доступной части §15/§16.7/§22.2 добавлена [отдельная инженерная оценка
 выбранного отчёта](source-risk-assessments.md): фиксированный профиль0.1 сохраняет

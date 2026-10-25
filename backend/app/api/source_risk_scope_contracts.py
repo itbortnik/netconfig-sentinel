@@ -283,12 +283,10 @@ class SourceRiskSummaryV2(Frozen):
 SourceRiskRequest = legacy.CreateSourceRiskAssessment | CreateSourceRiskAssessmentV2
 SourceRiskRecord = legacy.SourceRiskAssessment | SourceRiskAssessmentV2
 SourceRiskSummaryRecord = legacy.SourceRiskSummary | SourceRiskSummaryV2
-_REQUEST: TypeAdapter[SourceRiskRequest] = TypeAdapter(
-    Annotated[SourceRiskRequest, Field(discriminator="version")]
-)
-_ASSESSMENT: TypeAdapter[SourceRiskRecord] = TypeAdapter(
-    Annotated[SourceRiskRecord, Field(discriminator="version")]
-)
+_DiscriminatedRequest = Annotated[SourceRiskRequest, Field(discriminator="version")]
+_DiscriminatedAssessment = Annotated[SourceRiskRecord, Field(discriminator="version")]
+_REQUEST: TypeAdapter[SourceRiskRequest] = TypeAdapter(_DiscriminatedRequest)
+_ASSESSMENT: TypeAdapter[SourceRiskRecord] = TypeAdapter(_DiscriminatedAssessment)
 
 
 def parse_source_risk_request(value: object) -> SourceRiskRequest:

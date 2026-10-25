@@ -1,0 +1,60 @@
+{
+  "applied": false,
+  "approved": false,
+  "cause": "Inline Annotated discriminator expressions are not recognized by the Pydantic2.14.1 TypeForm signature during type checking.",
+  "change": "Use two named Annotated aliases with the same unions and version discriminator.",
+  "completed_utc": "2026-10-25T08:55:04.943888+00:00",
+  "formal_qualification": "not_proven",
+  "goal_completed": false,
+  "individual_identity_verified": false,
+  "json_schemas_exactly_equal": true,
+  "mypy": {
+    "log_sha256": "75db787ce40e4db1d7b8c13049d3bfdc55fc8d15c5cc1d1f27745a3cc4e41fea",
+    "pydantic": "2.14.1",
+    "result": "pass",
+    "source_files": 307,
+    "target_platform": "linux",
+    "target_python": "3.12"
+  },
+  "new_detector_model_engine_calls_or_fits": 0,
+  "new_exact_commit_ci": "not_run",
+  "normative_records_exact": true,
+  "parent_ci": {
+    "batfish_live": "success",
+    "frontend": "success",
+    "postgres_api": "success",
+    "test": "failure_at_mypy_before_pytest"
+  },
+  "parent_ci_log_sha256": {
+    "ordinary-ingress-ci-backend-failed-20261024-1.log": "2982f70770e39fef8eb672ae5e2f5037427f4220df16821d16028af454c57fdb",
+    "ordinary-ingress-ci-batfish-20261025-1.log": "9bea31d7322433bd16546c1d1c64c45d83cad2067d1fee49b3e6794c19be2486",
+    "ordinary-ingress-ci-frontend-20261025-1.log": "cb9d0d9ac95af623ae8bbd0d4f2e3f65cf0648f2f7c3686090abb5a86adec7b0",
+    "ordinary-ingress-ci-postgres-20261025-1.log": "959b1996525fe211be9f51b80c46586ae9256c6d03e02ce3516cd8d9ee2172bf"
+  },
+  "parent_ci_run": 40126564069,
+  "parent_commit": "a98d6234193649e4f9b903c8d4c549bcf2d7d935",
+  "public_class_function_AST_unchanged": true,
+  "quality_proven": false,
+  "related_tests": [
+    {
+      "junit_sha256": "6fbfc2815b2ffa2e195ddc3117c756ae3620bc69f34b04d8505172df70a850e1",
+      "passed": 198,
+      "pydantic": "2.13.5",
+      "skipped": 0
+    },
+    {
+      "junit_sha256": "844c459e4a02fe73f193a813455cc53ebc30782d47737e96e0946706e98eae91",
+      "passed": 198,
+      "pydantic": "2.14.0",
+      "skipped": 0
+    },
+    {
+      "junit_sha256": "d93d69e20a4c9bed727e295de2d6015f51bb989569bd1b7c3db297445026fd02",
+      "passed": 198,
+      "pydantic": "2.14.1",
+      "skipped": 0
+    }
+  ],
+  "source_sha256": "cc592eff342882d0de64528af6f85088eaf2fd78985e618868d046625c93ee48",
+  "version": "owned-source-ingress-typeform-compat-0.1.0"
+}
