@@ -12,7 +12,7 @@ import type { SourceMlRecheck } from "../../src/sourceMlRecheck";
 import type { SourcePatchVerification } from "../../src/sourcePatchVerification";
 import type {
   CreateSourceEvidenceReport,
-  SourceEvidenceReport,
+  SourceEvidenceCompleteReport as SourceEvidenceReport,
 } from "../../src/sourceEvidenceReports";
 import { stableJson } from "../../src/contracts";
 

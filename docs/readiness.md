@@ -1,9 +1,34 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-25 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-10-26 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
+
+Реализована [явная частичная диагностика политик](source-partial-diagnostics.md):
+source0.2/joint0.5/risk0.3/decision0.5 сохраняют неполные наблюдения,
+`policy_changes` и общий score/band остаются null. Core и backend независимо
+проверены;152новых связанных проверок проходят
+на Pydantic2.14.1, mypy313files для Python3.12/Linux pass. Шесть основных
+authored HTTP chains читаются после удаления originals и перезапуска.
+Дополнительно проверены два critical controls, прежние409, RBAC и неизменность
+первой роли. Local PostgreSQL не выбран:6новых opt-in cases skipped.
+UI957unit/162general browser,30component controls и18actual HTTP browser chains
+проходят. Последние18 запусков — девять scenario views трёх authored templates
+в двух viewports, включая нулевую уверенность с шестью сохранёнными находками;
+это не независимый quality denominator. [Числовой отчёт](evaluation/owned-source-partial-functional.json)
+отделяет эти records от повторов и чистых fixtures.
+Installed1539pass/40skip на каждой Pydantic2.13.5/2.14.0/2.14.1 проверены до
+последнего исправления отображения; финальный wheel сохраняет те же313runtime
+и новые3assets,152related pass/6skip на каждой версии. Независимое UI review
+закрыло ложное «наблюдений нет» при нулевом показателе: теперь показаны count и
+score отдельно. Итоговый full local:5300pass/58skip/6warnings,91%coverage;
+Ruff и mypy313default/win32/latest Python3.12/Linux pass. Все390browser checks
+проходят:342existing,30component и18actual HTTP. Первоначальный full1failure
+из-за тестового импорта и два ожидаемых red browser failures сохранены;
+исправления прошли повторную проверку.2075history и307oldinstalled/3assets сохранены.
+Эта локальная приёмка не подменяет результаты нового exact-commit CI, live
+PostgreSQL или движка. Независимое качество, formal, identity и approval не доказаны.
 
 Для доступной части §16.4/§16.5/§16.7 добавлены
 [наблюдения выбранных точек входа и адресов источника](source-ingress-observations.md):
@@ -52,7 +77,13 @@ Pydantic2.14.1 TypeForm не распознал два inline Annotated discrimi
 они вынесены в именованные aliases без изменения публичных classes/functions,
 JSON schemas, discriminator, DTO или старых proofs.198related controls проходят на
 Pydantic2.13.5/2.14.0/2.14.1; mypy с Pydantic2.14.1 для Python3.12/Linux проверил307files.
-Полный CI текущей коррекции ещё не выполнен; прежние CI относятся к указанным commit.
+Для коррекции `eed13d1fe1489e7e2caaad9c8ced80e5078605c3`
+[все четыре exact-commit CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/40178542805)
+успешны: backend5115pass/85skip/91%coverage, PostgreSQL683pass/2skip/12deselected,
+Batfish143+2savedcandidate pass; frontend937unit/342browser+162Compose pass.
+Эти повторные authored regression runs не увеличивают независимый корпус или качество.
+Собранный wheel307runtime/3assets побайтно совпадает с опубликованными исходниками;
+исторические1745files/307oldinstalled сохранены. Последующие изменения этим CI не покрыты.
 
 Для доступной части §15/§16.7/§22.2 добавлена [отдельная инженерная оценка
 выбранного отчёта](source-risk-assessments.md): фиксированный профиль0.1 сохраняет

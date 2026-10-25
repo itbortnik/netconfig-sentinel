@@ -906,3 +906,25 @@ footer {
   padding: 6px;
   vertical-align: top;
 }
+.patch-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.patch-panel .button {
+  max-width: 100%;
+}
+.priority-components {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.priority-components table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.priority-components th,
+.priority-components td {
+  padding: 6px;
+  vertical-align: top;
+}

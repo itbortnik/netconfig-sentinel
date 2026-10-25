@@ -8,7 +8,10 @@ from uuid import UUID, uuid4
 import app.patching.source_deterministic as deterministic_module
 import app.patching.source_review as network_module
 import pytest
-from app.api.source_deterministic_contracts import SourceDeterministicIntent
+from app.api.source_deterministic_contracts import (
+    SourceDeterministicIntent,
+    SourceDeterministicRecheck,
+)
 from app.api.source_evidence_contracts import CreateSourceEvidenceReport, SourceEvidenceReport
 from app.core.patch_verification import PatchVerificationSettings
 from app.db.source_deterministic_records import SourceDeterministicRecords
@@ -334,9 +337,7 @@ def test_unconfirmed_or_failed_deterministic_attempt_not_composed(evidence_api, 
             previous["intent"] | {"request": request, "created_at": datetime.now(UTC).isoformat()}
         )
         assert SourceDeterministicRecords(app.state.analysis_service.store).reserve(intent)
-        result = deterministic_module.SourceDeterministicRecheck.from_records(
-            intent, None
-        ).model_dump(mode="json")
+        result = SourceDeterministicRecheck.from_records(intent, None).model_dump(mode="json")
     selected[1]["deterministic"] = result
     assert post(client, selected, options(selected)).status_code == 409
     assert counts(app) == 0

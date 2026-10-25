@@ -24,6 +24,7 @@ const bands = {
   critical: "Критический",
 };
 const reasons = {
+  finding_priority: "Наблюдение политик при неполном покрытии",
   available: "Сохранённое наблюдение доступно",
   not_selected: "Результат не выбран",
   peer_context_unavailable: "Контекст peers отсутствует",
@@ -104,9 +105,11 @@ export function SourceRiskAssessmentPanel({
     if (intent.current || !client.permits("verify")) return;
     const request: CreateSourceRiskAssessment = {
       version:
-        report.version === "source-evidence-report-0.4.0"
-          ? "source-risk-request-0.2.0"
-          : "source-risk-request-0.1.0",
+        report.version === "source-evidence-report-0.5.0"
+          ? "source-risk-request-0.3.0"
+          : report.version === "source-evidence-report-0.4.0"
+            ? "source-risk-request-0.2.0"
+            : "source-risk-request-0.1.0",
       assessment_id: crypto.randomUUID(),
       report_sha256: report.review_sha256,
       profile_version: "source-priority-profile-0.1.0",
@@ -201,11 +204,21 @@ export function SourceRiskAssessmentPanel({
     >
       <h4>Экспериментальный приоритет отчёта</h4>
       <p className="notice warning">
-        Отдельная неизменяемая оценка выбранного совместного отчёта. Число от 0
-        до 1 — безразмерный инженерный приоритет, не процент, вероятность,
-        severity или confidence детектора. Веса и границы не откалиброваны;
-        независимое качество не доказано. Модели и движок повторно не
-        запускаются.
+        {report.version === "source-evidence-report-0.5.0" ? (
+          <>
+            Отдельная запись частичной диагностики: общий приоритет и категория
+            недоступны. Наблюдения политик и применимые критические ограничения
+            сохраняются; вычисления не повторяются.
+          </>
+        ) : (
+          <>
+            Отдельная неизменяемая оценка выбранного совместного отчёта. Число
+            от 0 до 1 — безразмерный инженерный приоритет, не процент,
+            вероятность, severity или confidence детектора. Веса и границы не
+            откалиброваны; независимое качество не доказано. Модели и движок
+            повторно не запускаются.
+          </>
+        )}
       </p>
       <p>
         Оценка относится к снимку «после». Сырые числа моделей и итог не
@@ -330,6 +343,8 @@ export function SourceRiskAssessmentPanel({
   );
 }
 function RiskView({ view }: { view: SourceRiskAssessment }) {
+  if (view.version === "source-risk-assessment-0.3.0")
+    return <PartialRiskView view={view} />;
   const c = view.composition;
   return (
     <div aria-label="Сохранённый экспериментальный приоритет">
@@ -355,30 +370,37 @@ function RiskView({ view }: { view: SourceRiskAssessment }) {
           ограничения к итогу не применены.
         </p>
       )}
-      <table aria-label="Компоненты экспериментального приоритета">
-        <thead>
-          <tr>
-            <th>Источник</th>
-            <th>Наблюдение 0–1</th>
-            <th>Вес профиля</th>
-            <th>Эффективный вес</th>
-            <th>Вклад</th>
-            <th>Доступность</th>
-          </tr>
-        </thead>
-        <tbody>
-          {c.components.map((row) => (
-            <tr key={row.source}>
-              <th>{names[row.source]}</th>
-              <td>{number(row.raw_score)}</td>
-              <td>{number(row.configured_weight)}</td>
-              <td>{number(row.effective_weight)}</td>
-              <td>{number(row.contribution)}</td>
-              <td>{reasons[row.reason]}</td>
+      <div
+        className="priority-components"
+        role="region"
+        aria-label="Прокручиваемые компоненты приоритета"
+        tabIndex={0}
+      >
+        <table aria-label="Компоненты экспериментального приоритета">
+          <thead>
+            <tr>
+              <th>Источник</th>
+              <th>Наблюдение 0–1</th>
+              <th>Вес профиля</th>
+              <th>Эффективный вес</th>
+              <th>Вклад</th>
+              <th>Доступность</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {c.components.map((row) => (
+              <tr key={row.source}>
+                <th>{names[row.source]}</th>
+                <td>{number(row.raw_score)}</td>
+                <td>{number(row.configured_weight)}</td>
+                <td>{number(row.effective_weight)}</td>
+                <td>{number(row.contribution)}</td>
+                <td>{reasons[row.reason]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p>
         Политики и peers используют самое сильное сохранённое замечание после
         изменения: максимум табличной тяжести и anomaly score, умноженный на
@@ -449,6 +471,91 @@ function RiskView({ view }: { view: SourceRiskAssessment }) {
         <p className="mono">
           Профиль: {c.profile_version} · отчёт: {view.report_id} · SHA-256
           отчёта: {view.report_sha256} · SHA-256 оценки: {view.review_sha256}
+        </p>
+        <pre className="json-view">{JSON.stringify(view, null, 2)}</pre>
+      </details>
+    </div>
+  );
+}
+function PartialRiskView({
+  view,
+}: {
+  view: Extract<
+    SourceRiskAssessment,
+    { version: "source-risk-assessment-0.3.0" }
+  >;
+}) {
+  const c = view.composition;
+  return (
+    <div aria-label="Сохранённый экспериментальный приоритет">
+      <h4>Частичная оценка сохранена</h4>
+      <p className="notice warning">
+        Общий приоритет: недоступно. Категория: недоступно. Покрытие: частичное.
+        Все эффективные веса подавлены; вклады и итог отсутствуют. Это
+        сохраняется и при полном разборе только снимка «после».
+      </p>
+      <div
+        className="priority-components"
+        role="region"
+        aria-label="Прокручиваемые компоненты приоритета"
+        tabIndex={0}
+      >
+        <table aria-label="Компоненты экспериментального приоритета">
+          <thead>
+            <tr>
+              <th>Источник</th>
+              <th>Наблюдение</th>
+              <th>Вес профиля</th>
+              <th>Эффективный вес</th>
+              <th>Вклад</th>
+              <th>Доступность</th>
+            </tr>
+          </thead>
+          <tbody>
+            {c.components.map((r) => (
+              <tr key={r.source}>
+                <th>{names[r.source]}</th>
+                <td>
+                  {r.observation
+                    ? `Находок: ${r.observation.finding_count}; показатель: ${number(r.raw_score)}`
+                    : number(r.raw_score)}
+                </td>
+                <td>{number(r.configured_weight)}</td>
+                <td>подавлен</td>
+                <td>недоступно</td>
+                <td>{reasons[r.reason]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Наблюдение политик относится к доступной части снимка «после» и не
+        является общим приоритетом. Сопоставление замечаний до и после
+        недоступно. Применимые ограничения сохранены и к отсутствующему итогу не
+        применены.
+      </p>
+      <ul aria-label="Применимые нижние границы приоритета">
+        {c.applicable_guardrails.map((g) => (
+          <li key={g.kind}>
+            {railNames[g.kind]} · сохранена, к итогу не применена
+          </li>
+        ))}
+      </ul>
+      <p>
+        Формальная квалификация: not_proven. Качество и калибровка не
+        подтверждены. Согласовано: нет. Применено: нет.
+      </p>
+      <p>
+        Первая сервисная роль: {view.service_role}; время:{" "}
+        {date(view.created_at)}. Личность инженера не удостоверена. Чтение
+        сохраняет первую роль, время и доказательство.
+      </p>
+      <details>
+        <summary>Привязки и полная сохранённая оценка приоритета</summary>
+        <p className="mono">
+          Отчёт: {view.report_id} · SHA-256 отчёта: {view.report_sha256} ·
+          SHA-256 оценки: {view.review_sha256}
         </p>
         <pre className="json-view">{JSON.stringify(view, null, 2)}</pre>
       </details>

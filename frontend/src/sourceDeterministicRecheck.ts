@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   analysisSchema,
   findingSchema,
+  location,
   snapshotBindingSchema,
   stableJson,
 } from "./contracts";
@@ -68,7 +69,7 @@ const originalSchema = z
         ))
     );
   });
-export const runSourceDeterministicRecheckSchema = z.strictObject({
+const runSourceDeterministicCompleteSchema = z.strictObject({
   version: z
     .literal("source-deterministic-request-0.1.0")
     .default("source-deterministic-request-0.1.0"),
@@ -79,6 +80,17 @@ export const runSourceDeterministicRecheckSchema = z.strictObject({
   reference_canonical_sha256: hash.nullable(),
   allow_local_analysis_context: z.boolean().default(false),
 });
+export const partialDiagnosticMode = "policy_only_partial_diagnostic" as const;
+export const runSourcePartialDiagnosticSchema =
+  runSourceDeterministicCompleteSchema.extend({
+    version: z.literal("source-deterministic-request-0.2.0"),
+    mode: z.literal(partialDiagnosticMode),
+    reference_canonical_sha256: z.null(),
+  });
+export const runSourceDeterministicRecheckSchema = z.union([
+  runSourceDeterministicCompleteSchema,
+  runSourcePartialDiagnosticSchema,
+]);
 export type RunSourceDeterministicRecheck = z.infer<
   typeof runSourceDeterministicRecheckSchema
 >;
@@ -131,7 +143,7 @@ const intentSchema = z
   .strictObject({
     version: z.literal("source-deterministic-intent-0.1.0"),
     patch_id: id,
-    request: runSourceDeterministicRecheckSchema,
+    request: runSourceDeterministicCompleteSchema,
     before: memberSchema,
     after: memberSchema,
     selection: sourceDeterministicSelectionSchema,
@@ -398,7 +410,7 @@ export function sourceDeterministicBlockers(
     result.push("original_deterministic_unavailable");
   return result;
 }
-export const sourceDeterministicRecheckSchema = z
+export const sourceDeterministicCompleteSchema = z
   .strictObject({
     version: z.literal("source-deterministic-recheck-0.1.0"),
     recheck_id: id,
@@ -450,10 +462,217 @@ export const sourceDeterministicRecheckSchema = z
           (!outcome.report || reportBound(outcome.report, intent))))
     );
   });
+export const policyDiagnosticParseSchema = z
+  .strictObject({
+    summary: z
+      .strictObject({
+        source_sha256: hash,
+        confidence: z.number().min(0).max(1),
+        warning_count: z.number().int().nonnegative(),
+        unparsed_count: z.number().int().nonnegative(),
+        complete: z.boolean(),
+      })
+      .refine(
+        (s) =>
+          s.complete ===
+          (s.confidence === 1 &&
+            s.warning_count === 0 &&
+            s.unparsed_count === 0),
+      ),
+    unknown_locations: z
+      .array(
+        location
+          .strict()
+          .refine(
+            (l) =>
+              l.source_lines.length > 0 &&
+              l.source_lines.every(
+                (n, i) => i === 0 || n > l.source_lines[i - 1]!,
+              ),
+          ),
+      )
+      .max(256),
+    locations_truncated: z.boolean(),
+  })
+  .refine(
+    (p) =>
+      p.unknown_locations.length === Math.min(p.summary.unparsed_count, 256) &&
+      p.locations_truncated === p.summary.unparsed_count > 256,
+  );
+const partialIntentSchema = z
+  .strictObject({
+    version: z.literal("source-deterministic-intent-0.2.0"),
+    patch_id: id,
+    request: runSourcePartialDiagnosticSchema,
+    before: memberSchema,
+    after: memberSchema,
+    selection: sourceDeterministicSelectionSchema,
+    before_analysis_status: z.enum(["completed", "partial"]),
+    before_parse: policyDiagnosticParseSchema,
+    after_parse: policyDiagnosticParseSchema,
+    reference_projection: z.null(),
+    created_at: timestamp,
+  })
+  .refine((r) => {
+    const q = r.request,
+      s = r.selection;
+    return (
+      q.allow_local_analysis_context &&
+      r.patch_id === s.patch_id &&
+      q.draft_sha256 === s.draft_sha256 &&
+      q.before_analysis_id === s.before_analysis_id &&
+      q.before_analysis_sha256 === s.before_analysis_sha256 &&
+      same(withoutCanonical(r.before), s.before) &&
+      s.original.comparison === null &&
+      !s.original.statistical_present &&
+      s.reference === null &&
+      r.before.device_id === r.after.device_id &&
+      r.before.configuration_id !== r.after.configuration_id &&
+      r.before.source_sha256 !== r.after.source_sha256 &&
+      instant(r.before.created_at) <= instant(r.after.created_at) &&
+      instant(r.after.created_at) <= instant(r.created_at) &&
+      instant(s.before_analysis_created_at) <= instant(r.created_at) &&
+      r.before_parse.summary.source_sha256 === r.before.source_sha256 &&
+      r.after_parse.summary.source_sha256 === r.after.source_sha256 &&
+      !(r.before_parse.summary.complete && r.after_parse.summary.complete) &&
+      r.before_analysis_status ===
+        (r.before_parse.summary.complete ? "completed" : "partial")
+    );
+  });
+const partialSideSchema = z
+  .strictObject({
+    configuration_id: id,
+    source_sha256: hash,
+    parse: policyDiagnosticParseSchema,
+    policy_findings: z.array(finding).max(10000),
+  })
+  .refine(
+    (s) =>
+      s.source_sha256 === s.parse.summary.source_sha256 &&
+      new Set(s.policy_findings.map((f) => f.finding_id)).size ===
+        s.policy_findings.length &&
+      s.policy_findings.every((f) => f.detector === "policy_engine"),
+  );
+export const sourcePartialReportSchema = z
+  .strictObject({
+    version: z.literal("source-deterministic-report-0.2.0"),
+    mode: z.literal(partialDiagnosticMode),
+    coverage: z.literal("partial"),
+    policy_catalog_version: z.string().min(1).max(128),
+    comparison_version: z.literal("not_selected"),
+    before: partialSideSchema,
+    after: partialSideSchema,
+    policy_changes: z.null(),
+    policy_changes_reason: z.literal("partial_parsing"),
+    reference_projection: z.null(),
+    peer_profile_sha256: z.null(),
+  })
+  .refine(
+    (r) =>
+      r.before.configuration_id !== r.after.configuration_id &&
+      r.before.source_sha256 !== r.after.source_sha256 &&
+      !(r.before.parse.summary.complete && r.after.parse.summary.complete) &&
+      [...r.before.policy_findings, ...r.after.policy_findings].every(
+        (f) => f.model_version === r.policy_catalog_version,
+      ) &&
+      new Set(
+        [...r.before.policy_findings, ...r.after.policy_findings].map(
+          (f) => f.device_id,
+        ),
+      ).size <= 1,
+  );
+const partialOutcomeSchema = z
+  .strictObject({
+    version: z.literal("source-deterministic-outcome-0.2.0"),
+    recheck_id: id,
+    intent_sha256: hash,
+    completed_at: timestamp,
+    execution_status: z.enum(["completed", "failed"]),
+    report: sourcePartialReportSchema.nullable(),
+    failure_reason: z
+      .literal("original_context_or_deterministic_result_unavailable")
+      .nullable(),
+  })
+  .refine(
+    (r) =>
+      (r.execution_status === "completed") === (r.report !== null) &&
+      (r.execution_status === "failed") === (r.failure_reason !== null),
+  );
+export function sourcePartialBlockers(
+  original: z.infer<typeof originalSchema>,
+  outcome: z.infer<typeof partialOutcomeSchema> | null,
+) {
+  const result = [
+    ...sourceDeterministicBlockers(original, null).slice(0, -1),
+    "partial_parsing",
+    "partial_comparison_unavailable",
+  ];
+  if (!outcome) result.push("deterministic_execution_unknown");
+  else if (outcome.execution_status === "failed")
+    result.push("original_deterministic_unavailable");
+  return result;
+}
+export const sourcePartialDiagnosticSchema = z
+  .strictObject({
+    ...sourceDeterministicCompleteSchema.shape,
+    version: z.literal("source-deterministic-recheck-0.2.0"),
+    mode: z.literal(partialDiagnosticMode),
+    coverage: z.literal("partial"),
+    reference_canonical_sha256: z.null(),
+    intent: partialIntentSchema,
+    outcome: partialOutcomeSchema.nullable(),
+  })
+  .refine((r) => {
+    const i = r.intent,
+      q = i.request,
+      o = r.outcome;
+    return (
+      r.recheck_id === q.recheck_id &&
+      r.patch_id === i.patch_id &&
+      r.draft_sha256 === q.draft_sha256 &&
+      r.before_analysis_id === q.before_analysis_id &&
+      r.before_analysis_sha256 === q.before_analysis_sha256 &&
+      r.execution_status === (o?.execution_status ?? "pending_unknown") &&
+      same(
+        r.validation_blockers,
+        sourcePartialBlockers(i.selection.original, o),
+      ) &&
+      (!o ||
+        (o.recheck_id === r.recheck_id &&
+          instant(o.completed_at) >= instant(i.created_at) &&
+          (!o.report ||
+            (o.report.policy_catalog_version ===
+              i.selection.original.policy_catalog_version &&
+              same(
+                o.report.before.policy_findings,
+                i.selection.original.findings,
+              ) &&
+              (["before", "after"] as const).every((side) => {
+                const s = o.report![side],
+                  m = i[side];
+                return (
+                  s.configuration_id === m.configuration_id &&
+                  s.source_sha256 === m.source_sha256 &&
+                  same(
+                    s.parse,
+                    i[side === "before" ? "before_parse" : "after_parse"],
+                  ) &&
+                  s.policy_findings.every((f) => f.device_id === m.device_id)
+                );
+              })))))
+    );
+  });
+export const sourceDeterministicRecheckSchema = z.union([
+  sourceDeterministicCompleteSchema,
+  sourcePartialDiagnosticSchema,
+]);
+export type SourceDeterministicComplete = z.infer<
+  typeof sourceDeterministicCompleteSchema
+>;
 export type SourceDeterministicRecheck = z.infer<
   typeof sourceDeterministicRecheckSchema
 >;
-export const sourceDeterministicSummarySchema = z
+const sourceDeterministicCompleteSummarySchema = z
   .strictObject({
     version: z.literal("source-deterministic-summary-0.1.0"),
     recheck_id: id,
@@ -473,6 +692,22 @@ export const sourceDeterministicSummarySchema = z
       (row.completed_at === null ||
         instant(row.completed_at) >= instant(row.created_at)),
   );
+export const sourceDeterministicSummarySchema = z.union([
+  sourceDeterministicCompleteSummarySchema,
+  z
+    .strictObject({
+      ...sourceDeterministicCompleteSummarySchema.shape,
+      version: z.literal("source-deterministic-summary-0.2.0"),
+      mode: z.literal(partialDiagnosticMode),
+      coverage: z.literal("partial"),
+    })
+    .refine(
+      (r) =>
+        (r.execution_status === "pending_unknown") ===
+          (r.completed_at === null) &&
+        (!r.completed_at || instant(r.completed_at) >= instant(r.created_at)),
+    ),
+]);
 export type SourceDeterministicSummary = z.infer<
   typeof sourceDeterministicSummarySchema
 >;
@@ -504,6 +739,9 @@ export function sourceDeterministicSummaryBound(
   draft: PatchDraft,
 ) {
   return (
+    sourceDeterministicSummarySchema.safeParse(row).success &&
+    (row.version !== "source-deterministic-summary-0.2.0" ||
+      draft.diff.coverage === "partial") &&
     row.patch_id === draft.patch_id &&
     row.draft_sha256 === draft.draft_sha256 &&
     instant(row.created_at) >= instant(draft.created_at)
@@ -518,6 +756,12 @@ export async function sourceDeterministicRecheckBound(
 ) {
   const { intent, outcome } = row;
   return (
+    sourceDeterministicRecheckSchema.safeParse(row).success &&
+    (!request ||
+      runSourceDeterministicRecheckSchema.safeParse(request).success) &&
+    (!summary || sourceDeterministicSummarySchema.safeParse(summary).success) &&
+    (row.version !== "source-deterministic-recheck-0.2.0" ||
+      new TextEncoder().encode(row.review_json).length <= 4 * 1024 * 1024) &&
     (await savedReviewProofMatches(row)) &&
     (await profileProofMatches(row)) &&
     sourceDeterministicSelectionBound(intent.selection, draft) &&
@@ -528,8 +772,22 @@ export async function sourceDeterministicRecheckBound(
     snapshotBound(intent.after, draft.diff.after) &&
     (!request || same(intent.request, request)) &&
     (!selection || same(intent.selection, selection)) &&
+    (row.version !== "source-deterministic-recheck-0.2.0" ||
+      (draft.diff.coverage === "partial" &&
+        (["before", "after"] as const).every((side) => {
+          const s =
+              row.intent[side === "before" ? "before_parse" : "after_parse"]
+                .summary,
+            a = draft.diff[side];
+          return (
+            s.confidence === a.parser_confidence &&
+            s.warning_count === a.warning_count &&
+            s.unparsed_count === a.unparsed_count
+          );
+        }))) &&
     (!summary ||
-      (sourceDeterministicSummaryBound(summary, draft) &&
+      (summary.version.replace("summary", "recheck") === row.version &&
+        sourceDeterministicSummaryBound(summary, draft) &&
         (
           [
             "recheck_id",
@@ -550,6 +808,7 @@ export async function sourceDeterministicRecheckBound(
 // Fingerprint the original Python wire bytes. JSON.stringify would change 1.0,
 // small exponents and escaped Unicode in historical profile data.
 async function profileProofMatches(row: SourceDeterministicRecheck) {
+  if (row.version === "source-deterministic-recheck-0.2.0") return true;
   const context = row.intent.selection.original.comparison;
   const report = row.outcome?.report;
   if (!report || !context?.peer_baseline) return true;

@@ -19,9 +19,14 @@ from app.api.configurations import (
 from app.api.service import AnalysisService
 from app.api.source_deterministic_contracts import (
     RunSourceDeterministicRecheck,
-    SourceDeterministicRecheck,
     SourceDeterministicSelection,
-    SourceDeterministicSummary,
+)
+from app.api.source_partial_contracts import (
+    RunSourcePartialDiagnostic,
+    SourceDeterministicRecord,
+    SourceDeterministicSummaryRecord,
+    parse_source_deterministic_request,
+    source_deterministic_summary,
 )
 from app.audit.results import capture_result
 from app.db.patch_records import PatchConflict
@@ -58,11 +63,11 @@ def source_deterministic_selection(
 
 @router.post(
     "/{patch_id}/deterministic-rechecks",
-    response_model=SourceDeterministicRecheck,
+    response_model=SourceDeterministicRecord,
     status_code=201,
     responses={
         200: {
-            "model": SourceDeterministicRecheck,
+            "model": SourceDeterministicRecord,
             "description": "Existing attempt; no evaluation.",
         }
     },
@@ -70,17 +75,24 @@ def source_deterministic_selection(
         "requestBody": {
             "required": True,
             "content": {
-                "application/json": {"schema": _request_schema(RunSourceDeterministicRecheck)},
+                "application/json": {
+                    "schema": {
+                        "anyOf": [
+                            _request_schema(RunSourceDeterministicRecheck),
+                            _request_schema(RunSourcePartialDiagnostic, explicit_version=True),
+                        ]
+                    }
+                },
             },
         }
     },
 )
 async def run_source_deterministic_recheck(
     patch_id: UUID, request: Request, response: Response, service: VerificationService
-) -> SourceDeterministicRecheck:
+) -> SourceDeterministicRecord:
     body = await _request_body(request, maximum=16 * 1024)
     try:
-        options = RunSourceDeterministicRecheck.model_validate(
+        options = parse_source_deterministic_request(
             json.loads(body.decode(), object_pairs_hook=_unique_keys)
         )
     except (ValueError, RecursionError):
@@ -112,10 +124,12 @@ async def run_source_deterministic_recheck(
     return capture_result(request, result)
 
 
-@router.get("/{patch_id}/deterministic-rechecks", response_model=list[SourceDeterministicSummary])
+@router.get(
+    "/{patch_id}/deterministic-rechecks", response_model=list[SourceDeterministicSummaryRecord]
+)
 def list_source_deterministic_rechecks(
     patch_id: UUID, request: Request, service: Service, limit: Limit = 20, offset: Offset = 0
-) -> list[SourceDeterministicSummary]:
+) -> list[SourceDeterministicSummaryRecord]:
     workflow = SourceDeterministicWorkflow(service.store)
     try:
         workflow.drafts.draft(patch_id)
@@ -124,18 +138,18 @@ def list_source_deterministic_rechecks(
     return capture_result(
         request,
         [
-            SourceDeterministicSummary.from_recheck(workflow.get(patch_id, key))
+            source_deterministic_summary(workflow.get(patch_id, key))
             for key in workflow.records.list_ids(patch_id, limit=limit, offset=offset)
         ],
     )
 
 
 @router.get(
-    "/{patch_id}/deterministic-rechecks/{recheck_id}", response_model=SourceDeterministicRecheck
+    "/{patch_id}/deterministic-rechecks/{recheck_id}", response_model=SourceDeterministicRecord
 )
 def get_source_deterministic_recheck(
     patch_id: UUID, recheck_id: UUID, request: Request, service: Service
-) -> SourceDeterministicRecheck:
+) -> SourceDeterministicRecord:
     try:
         return capture_result(
             request, SourceDeterministicWorkflow(service.store).get(patch_id, recheck_id)

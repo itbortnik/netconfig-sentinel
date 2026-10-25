@@ -1,6 +1,7 @@
 {
   "applied": false,
   "approved": false,
+  "call_count_scope": "Local compatibility and package-byte checks only; CI regression executions are recorded separately.",
   "cause": "Inline Annotated discriminator expressions are not recognized by the Pydantic2.14.1 TypeForm signature during type checking.",
   "change": "Use two named Annotated aliases with the same unions and version discriminator.",
   "completed_utc": "2026-10-25T08:55:04.943888+00:00",
@@ -8,6 +9,7 @@
   "goal_completed": false,
   "individual_identity_verified": false,
   "json_schemas_exactly_equal": true,
+  "last_verified_utc": "2026-10-25T16:31:00.377442+00:00",
   "mypy": {
     "log_sha256": "75db787ce40e4db1d7b8c13049d3bfdc55fc8d15c5cc1d1f27745a3cc4e41fea",
     "pydantic": "2.14.1",
@@ -17,7 +19,56 @@
     "target_python": "3.12"
   },
   "new_detector_model_engine_calls_or_fits": 0,
-  "new_exact_commit_ci": "not_run",
+  "new_exact_commit_ci": {
+    "backend": {
+      "coverage_percent": 91,
+      "passed": 5115,
+      "skipped": 85,
+      "warnings": 3
+    },
+    "batfish": {
+      "passed": 143,
+      "saved_candidate_passed": 2
+    },
+    "commit": "eed13d1fe1489e7e2caaad9c8ced80e5078605c3",
+    "conclusion": "success",
+    "frontend": {
+      "browser_passed": 342,
+      "compose_browser_passed": 162,
+      "unit_passed": 937
+    },
+    "jobs": {
+      "batfish-live": "success",
+      "frontend": "success",
+      "postgres-api": "success",
+      "test": "success"
+    },
+    "logs": {
+      "batfish-live": {
+        "path": "ordinary-ingress-typeform-ci-batfish-20261025-1.log",
+        "sha256": "8e35b0929af1f66fe8ff90ca61ad2be582c1541b90d323edf2d03b0aaf2bbe99"
+      },
+      "frontend": {
+        "path": "ordinary-ingress-typeform-ci-frontend-20261025-1.log",
+        "sha256": "f6943f9a07f799230d3cb083f788139912b7b1eb05774e49f72bd3e958e722d8"
+      },
+      "postgres-api": {
+        "path": "ordinary-ingress-typeform-ci-postgres-20261025-1.log",
+        "sha256": "acba93d15283cc0407532fed4b56b265393dd33a8f39c6ad8252ba4928368a32"
+      },
+      "test": {
+        "path": "ordinary-ingress-typeform-ci-backend-20261025-1.log",
+        "sha256": "c7ba27d99cbac3f77fee3f2cfe0aaf2ce3370b891438a19825b8c9b0d4d2bb21"
+      }
+    },
+    "postgres": {
+      "deselected": 12,
+      "passed": 683,
+      "skipped": 2
+    },
+    "run_id": 40178542805,
+    "url": "https://github.com/itbortnik/netconfig-sentinel/actions/runs/40178542805"
+  },
   "normative_records_exact": true,
   "parent_ci": {
     "batfish_live": "success",

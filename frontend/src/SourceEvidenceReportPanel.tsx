@@ -1,4 +1,6 @@
 import { IngressScopeView } from "./IngressScopeView";
+import { PartialPolicyDiagnosticView } from "./PartialPolicyDiagnosticView";
+import { createSourceEvidenceReportSchema } from "./sourceEvidenceReports";
 import { useEffect, useRef, useState } from "react";
 import { ApiClient, ApiError } from "./api";
 import { SourceRiskAssessmentPanel } from "./SourceRiskAssessmentPanel";
@@ -100,6 +102,7 @@ export function SourceEvidenceReportPanel({
   const [open, setOpen] = useState(false),
     [working, setWorking] = useState(false);
   const [decisionGuard, setDecisionGuard] = useState(false);
+  const [partialMode, setPartialMode] = useState(false);
   const [riskGuard, setRiskGuard] = useState(false);
   const [pages, setPages] = useState<Pages>(emptyPages),
     [selected, setSelected] = useState<Selections>(emptySelections);
@@ -171,15 +174,20 @@ export function SourceEvidenceReportPanel({
       row
         ? { record_id: identity(row), review_sha256: row.review_sha256 }
         : null;
-    const request: CreateSourceEvidenceReport = {
-      version: "source-evidence-request-0.4.0",
+    const request = createSourceEvidenceReportSchema.parse({
+      ...(partialMode
+        ? {
+            version: "source-evidence-request-0.5.0" as const,
+            mode: "policy_only_partial_diagnostic" as const,
+          }
+        : { version: "source-evidence-request-0.4.0" as const }),
       report_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
       deterministic: pin(selected.deterministic)!,
-      forest: pin(selected.forest),
-      neural: pin(selected.neural),
-      network: pin(selected.network),
-    };
+      forest: partialMode ? null : pin(selected.forest),
+      neural: partialMode ? null : pin(selected.neural),
+      network: partialMode ? null : pin(selected.network),
+    });
     intent.current = request;
     setAttempt(request);
     setUncertain(true);
@@ -279,6 +287,32 @@ export function SourceEvidenceReportPanel({
           {working && (
             <p role="status">Чтение или сохранение совместного отчёта…</p>
           )}
+          <label>
+            Режим совместного отчёта
+            <select
+              aria-label="Режим совместного отчёта"
+              disabled={busy || !!attempt}
+              value={partialMode ? "partial" : "complete"}
+              onChange={(e) => {
+                setPartialMode(e.target.value === "partial");
+                setSelected(emptySelections());
+              }}
+            >
+              <option value="complete">
+                Полный отчёт по сохранённым результатам
+              </option>
+              <option value="partial">
+                Явный отчёт частичной диагностики политик
+              </option>
+            </select>
+          </label>
+          {partialMode && (
+            <p className="notice warning">
+              В этом режиме доступна только завершённая частичная диагностика
+              политик. Forest, нейросеть и сеть не выбираются; общий приоритет
+              недоступен.
+            </p>
+          )}
           <p className="hint">
             Выберите исходные политики и сравнения обязательно, остальные
             результаты — по необходимости. Автоматического выбора последних
@@ -303,7 +337,11 @@ export function SourceEvidenceReportPanel({
                     : " (необязательно)"}
                   <select
                     aria-label={names[kind]}
-                    disabled={busy || !!attempt}
+                    disabled={
+                      busy ||
+                      !!attempt ||
+                      (partialMode && kind !== "deterministic")
+                    }
                     value={choice ? identity(choice) : ""}
                     onChange={(event) => {
                       setSelected((current) => ({
@@ -320,7 +358,13 @@ export function SourceEvidenceReportPanel({
                       <option
                         key={identity(row)}
                         value={identity(row)}
-                        disabled={row.execution_status !== "completed"}
+                        disabled={
+                          row.execution_status !== "completed" ||
+                          (kind === "deterministic" &&
+                            (row.version ===
+                              "source-deterministic-summary-0.2.0") !==
+                              partialMode)
+                        }
                       >
                         {shortId(identity(row))} · {date(row.created_at)} ·{" "}
                         {row.execution_status}
@@ -503,6 +547,43 @@ export function SourceEvidenceReportPanel({
 }
 
 function EvidenceView({ view }: { view: SourceEvidenceReport }) {
+  if (view.version === "source-evidence-report-0.5.0")
+    return (
+      <div aria-label="Результат совместного отчёта">
+        <h4>
+          Совместный отчёт частичной диагностики сохранён — требуется
+          рассмотрение
+        </h4>
+        <PartialPolicyDiagnosticView report={view.deterministic.report} />
+        <p>
+          Статус: needs_review. Общая формальная квалификация: not_proven.
+          Качество и калибровка не подтверждены. Согласовано: нет. Применено:
+          нет.
+        </p>
+        <p className="mono">
+          Исходный анализ: {view.before_analysis_id} · SHA-256:{" "}
+          {view.before_analysis_sha256}
+          <br />
+          Диагностика: {view.deterministic.record_id} · SHA-256:{" "}
+          {view.deterministic.review_sha256}
+          <br />
+          SHA-256 совместного отчёта: {view.review_sha256}
+        </p>
+        <ul>
+          {view.validation_blockers.map((b) => (
+            <li key={b}>{blockerNames[b] ?? b}</li>
+          ))}
+        </ul>
+        <p>
+          Хеш связывает сохранённые данные; личность инженера и истинность
+          наблюдений не удостоверены. Чтение истории не запускает проверки.
+        </p>
+        <details>
+          <summary>Полная сохранённая запись совместного отчёта</summary>
+          <pre className="json-view">{JSON.stringify(view, null, 2)}</pre>
+        </details>
+      </div>
+    );
   const deterministic = view.deterministic;
   return (
     <div aria-label="Результат совместного отчёта">

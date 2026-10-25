@@ -21,6 +21,8 @@
     "test:e2e:source-evidence": "playwright test --config=playwright.source-evidence.config.ts",
     "test:e2e:source-ingress": "playwright test --config=playwright.source-ingress.config.ts",
     "test:e2e:source-risk": "playwright test --config=playwright.source-risk.config.ts",
+    "test:e2e:source-partial": "playwright test --config=playwright.partial-ui.config.ts",
+    "test:e2e:source-partial-http": "playwright test --config=playwright.partial-http.config.ts",
     "test:e2e:source-evidence-decisions": "playwright test --config=playwright.source-evidence-decisions.config.ts"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import { expect, it, vi } from "vitest";
 import { ApiClient } from "./api";
 import { stableJson } from "./contracts";
 import { patchDraftSchema } from "./patches";
-import { sourceEvidenceReportSchema } from "./sourceEvidenceReports";
+import { sourceEvidenceCompleteReportSchema as sourceEvidenceReportSchema } from "./sourceEvidenceReports";
 import {
   evidenceCommentLength,
   reviewSourceEvidenceReportSchema,

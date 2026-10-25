@@ -1,6 +1,8 @@
 # Сохранённое решение по совместному отчёту
 
 Версия request/decision соответствует выбранному parent report.
+Для [частичной диагностики](source-partial-diagnostics.md) report0.5 используется0.5;
+доступны те же `rejected` и `needs_more_information`, без identity/approval/application.
 Для report0.4 используется0.4, сохраняя
 [привязку наблюдений области](source-ingress-observations.md).
 Ниже описан исходный протокол0.1; его история остаётся неизменной.

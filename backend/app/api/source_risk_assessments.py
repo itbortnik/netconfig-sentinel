@@ -20,13 +20,14 @@ from app.api.service import AnalysisService
 from app.api.source_risk_contracts import (
     CreateSourceRiskAssessment,
 )
-from app.api.source_risk_scope_contracts import (
-    CreateSourceRiskAssessmentV2,
+from app.api.source_risk_partial_contracts import (
+    CreateSourceRiskAssessmentV3,
     SourceRiskRecord,
     SourceRiskSummaryRecord,
     parse_source_risk_request,
     source_risk_summary,
 )
+from app.api.source_risk_scope_contracts import CreateSourceRiskAssessmentV2
 from app.audit.results import capture_result
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
@@ -55,6 +56,7 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
                         "anyOf": [
                             _request_schema(CreateSourceRiskAssessment),
                             _request_schema(CreateSourceRiskAssessmentV2),
+                            _request_schema(CreateSourceRiskAssessmentV3, explicit_version=True),
                         ]
                     }
                 }

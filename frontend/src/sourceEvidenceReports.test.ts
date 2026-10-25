@@ -10,12 +10,12 @@ import { sourcePatchVerificationSchema } from "./sourcePatchVerification";
 import {
   createSourceEvidenceReportSchema,
   evidenceRawJsonAt,
-  sourceEvidenceReportSchema,
+  sourceEvidenceCompleteReportSchema as sourceEvidenceReportSchema,
   sourceEvidenceReportBound,
   sourceEvidenceProofMatches,
-  sourceEvidenceSummarySchema,
+  sourceEvidenceCompleteSummarySchema as sourceEvidenceSummarySchema,
 } from "./sourceEvidenceReports";
-import type { SourceEvidenceReport } from "./sourceEvidenceReports";
+import type { SourceEvidenceCompleteReport as SourceEvidenceReport } from "./sourceEvidenceReports";
 import controls from "./testdata/sourceEvidenceControls.json";
 import sdkControls from "./testdata/sourceSdkControls.json";
 import directionControls from "./testdata/sourceDirectionControls.json";

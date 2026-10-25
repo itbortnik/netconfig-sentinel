@@ -21,13 +21,14 @@ from app.api.source_evidence_decision_contracts import (
     ReviewSourceEvidenceReport,
 )
 from app.api.source_evidence_decision_direction_contracts import ReviewSourceEvidenceReportV3
-from app.api.source_evidence_decision_scope_contracts import (
-    ReviewSourceEvidenceReportV4,
+from app.api.source_evidence_decision_partial_contracts import (
+    ReviewSourceEvidenceReportV5,
     SourceEvidenceDecisionRecord,
     SourceEvidenceDecisionSummaryRecord,
     parse_source_evidence_decision_request,
     source_evidence_decision_summary,
 )
+from app.api.source_evidence_decision_scope_contracts import ReviewSourceEvidenceReportV4
 from app.api.source_evidence_decision_sdk_contracts import ReviewSourceEvidenceReportV2
 from app.audit.results import capture_result
 from app.core.permissions import Role
@@ -64,6 +65,7 @@ VerificationService = Annotated[AnalysisService, Depends(require_access("verify"
                             _request_schema(ReviewSourceEvidenceReportV2),
                             _request_schema(ReviewSourceEvidenceReportV3),
                             _request_schema(ReviewSourceEvidenceReportV4),
+                            _request_schema(ReviewSourceEvidenceReportV5, explicit_version=True),
                         ]
                     }
                 },

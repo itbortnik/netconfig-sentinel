@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from app.api.source_risk_scope_contracts import (
+from app.api.source_risk_partial_contracts import (
     SourceRiskRecord,
     SourceRiskRequest,
     parse_source_risk_request,

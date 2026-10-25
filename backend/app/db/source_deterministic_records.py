@@ -12,11 +12,17 @@ from app.api.model_patch_contracts import fingerprint
 from app.api.source_deterministic_contracts import (
     MAX_SOURCE_DETERMINISTIC_BYTES,
     OriginalDeterministicContext,
-    SourceDeterministicIntent,
-    SourceDeterministicOutcome,
-    SourceDeterministicRecheck,
 )
 from app.api.source_ml_contracts import ml_json
+from app.api.source_partial_contracts import (
+    PolicyDiagnosticParse,
+    SourceDeterministicIntentRecord,
+    SourceDeterministicOutcomeRecord,
+    SourcePartialIntent,
+    parse_source_deterministic_intent_json,
+    parse_source_deterministic_outcome_json,
+    source_deterministic_view,
+)
 from app.db.patch_records import PatchConflict, PatchRecords
 from app.db.store import StorageIntegrityError, Store
 from app.db.tables import (
@@ -50,9 +56,9 @@ class SourceDeterministicRecords:
 
     def _intent(
         self, session: Session, row: SourceDeterministicIntentRow
-    ) -> SourceDeterministicIntent:
+    ) -> SourceDeterministicIntentRecord:
         try:
-            intent = SourceDeterministicIntent.model_validate_json(
+            intent = parse_source_deterministic_intent_json(
                 self._plain(row.payload, "source_deterministic_intent", row.id)
             )
             stamp = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=UTC)
@@ -73,12 +79,24 @@ class SourceDeterministicRecords:
                 != (draft.diff.before.configuration_id, draft.diff.after.configuration_id)
             ):
                 raise ValueError("deterministic record parent differs")
-            for member in (intent.before, intent.after):
+            for member, parsed in (
+                (
+                    intent.before,
+                    intent.before_parse if isinstance(intent, SourcePartialIntent) else None,
+                ),
+                (
+                    intent.after,
+                    intent.after_parse if isinstance(intent, SourcePartialIntent) else None,
+                ),
+            ):
                 saved = session.get(ConfigurationRow, str(member.configuration_id))
                 if saved is None:
                     raise ValueError("deterministic snapshot missing")
                 snapshot = self.store._snapshot(saved)
-                require_complete(snapshot)
+                if parsed is None:
+                    require_complete(snapshot)
+                elif PolicyDiagnosticParse.from_config(snapshot.canonical) != parsed:
+                    raise ValueError("partial diagnostic saved parser projection differs")
                 if member.model_dump(exclude={"canonical_sha256"}) != SnapshotBinding.from_snapshot(
                     snapshot
                 ).model_dump() or member.canonical_sha256 != canonical_fingerprint(snapshot):
@@ -88,6 +106,10 @@ class SourceDeterministicRecords:
                 raise ValueError("original deterministic analysis missing")
             analysis = self.store._analysis(saved_analysis)
             selection = intent.selection
+            if isinstance(intent, SourcePartialIntent) and analysis.status != (
+                intent.before_analysis_status
+            ):
+                raise ValueError("partial diagnostic original analysis status differs")
             if (
                 fingerprint(analysis) != intent.request.before_analysis_sha256
                 or ml_json(
@@ -108,22 +130,22 @@ class SourceDeterministicRecords:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
     def _outcome(
-        self, row: SourceDeterministicOutcomeRow, intent: SourceDeterministicIntent
-    ) -> SourceDeterministicOutcome:
+        self, row: SourceDeterministicOutcomeRow, intent: SourceDeterministicIntentRecord
+    ) -> SourceDeterministicOutcomeRecord:
         try:
-            outcome = SourceDeterministicOutcome.model_validate_json(
+            outcome = parse_source_deterministic_outcome_json(
                 self._plain(row.payload, "source_deterministic_outcome", row.recheck_id)
             )
             if str(outcome.recheck_id) != row.recheck_id:
                 raise ValueError("deterministic outcome metadata differs")
-            SourceDeterministicRecheck.from_records(intent, outcome)
+            source_deterministic_view(intent, outcome)
             return outcome
         except ValueError:
             raise StorageIntegrityError("Stored data is unavailable.") from None
 
     def _get(
         self, session: Session, key: UUID
-    ) -> tuple[SourceDeterministicIntent, SourceDeterministicOutcome | None] | None:
+    ) -> tuple[SourceDeterministicIntentRecord, SourceDeterministicOutcomeRecord | None] | None:
         row = session.get(SourceDeterministicIntentRow, str(key))
         if row is None:
             return None
@@ -133,12 +155,12 @@ class SourceDeterministicRecords:
 
     def get(
         self, key: UUID
-    ) -> tuple[SourceDeterministicIntent, SourceDeterministicOutcome | None] | None:
+    ) -> tuple[SourceDeterministicIntentRecord, SourceDeterministicOutcomeRecord | None] | None:
         with self.store._sessions() as session:
             return self._get(session, key)
 
     @staticmethod
-    def _same(old: SourceDeterministicIntent, new: SourceDeterministicIntent) -> None:
+    def _same(old: SourceDeterministicIntentRecord, new: SourceDeterministicIntentRecord) -> None:
         if old.patch_id != new.patch_id or old.request != new.request:
             raise PatchConflict("Original deterministic recheck identity conflicts.")
 
@@ -148,8 +170,8 @@ class SourceDeterministicRecords:
             AuditRow(id=str(uuid4()), action=action, resource_id=key, created_at=datetime.now(UTC))
         )
 
-    def reserve(self, intent: SourceDeterministicIntent) -> bool:
-        intent = SourceDeterministicIntent.model_validate(intent.model_dump(warnings=False))
+    def reserve(self, intent: SourceDeterministicIntentRecord) -> bool:
+        intent = parse_source_deterministic_intent_json(intent.model_dump_json(warnings=False))
         key = str(intent.request.recheck_id)
         try:
             with self.store._sessions.begin() as session:
@@ -160,7 +182,7 @@ class SourceDeterministicRecords:
                 row = SourceDeterministicIntentRow(
                     id=key,
                     patch_id=str(intent.patch_id),
-                    created_at=intent.created_at,
+                    created_at=intent.created_at.astimezone(UTC),
                     payload=self._encode(
                         intent.model_dump_json(), "source_deterministic_intent", key
                     ),
@@ -176,8 +198,8 @@ class SourceDeterministicRecords:
             self._same(raced[0], intent)
             return False
 
-    def complete(self, outcome: SourceDeterministicOutcome) -> None:
-        outcome = SourceDeterministicOutcome.model_validate(outcome.model_dump(warnings=False))
+    def complete(self, outcome: SourceDeterministicOutcomeRecord) -> None:
+        outcome = parse_source_deterministic_outcome_json(outcome.model_dump_json(warnings=False))
         key = str(outcome.recheck_id)
         try:
             with self.store._sessions.begin() as session:
@@ -205,7 +227,9 @@ class SourceDeterministicRecords:
             self._same_outcome(raced[1], outcome)
 
     @staticmethod
-    def _same_outcome(old: SourceDeterministicOutcome, new: SourceDeterministicOutcome) -> None:
+    def _same_outcome(
+        old: SourceDeterministicOutcomeRecord, new: SourceDeterministicOutcomeRecord
+    ) -> None:
         if ml_json(old.model_dump(mode="json")) != ml_json(new.model_dump(mode="json")):
             raise PatchConflict("Original deterministic outcome conflicts.")
 

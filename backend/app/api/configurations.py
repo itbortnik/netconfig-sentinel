@@ -37,9 +37,15 @@ Limit = Annotated[int, Query(ge=1, le=100)]
 Offset = Annotated[int, Query(ge=0, le=10_000)]
 
 
-def _request_schema(model: type[BaseModel]) -> dict[str, Any]:
+def _request_schema(
+    model: type[BaseModel], *, explicit_version: bool = False
+) -> dict[str, Any]:
     """Inline local definitions because a manual request schema is nested in OpenAPI."""
     schema = model.model_json_schema()
+    if explicit_version:
+        if "version" not in schema.get("properties", {}):
+            raise ValueError("explicit protocol schema requires a version field")
+        schema["required"] = list(dict.fromkeys(["version", *schema.get("required", [])]))
     definitions = schema.pop("$defs", {})
 
     def expand(value: Any) -> Any:

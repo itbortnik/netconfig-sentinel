@@ -10,12 +10,11 @@ from sqlalchemy.orm import Session
 
 from app.api import source_evidence_contracts
 from app.api.patch_contracts import PatchDraft
-from app.api.source_deterministic_contracts import SourceDeterministicRecheck
 from app.api.source_evidence_contracts import (
     MAX_SOURCE_EVIDENCE_BYTES,
     SourceEvidenceProjectionTooLarge,
 )
-from app.api.source_evidence_scope_contracts import (
+from app.api.source_evidence_partial_contracts import (
     SourceEvidenceReportRecord,
     SourceEvidenceRequest,
     parse_source_evidence_report_json,
@@ -25,6 +24,7 @@ from app.api.source_evidence_scope_contracts import (
 )
 from app.api.source_forest_contracts import SourceForestRecheck
 from app.api.source_ml_contracts import SourceMlRecheck
+from app.api.source_partial_contracts import SourceDeterministicRecord, source_deterministic_view
 from app.api.source_patch_scope_contracts import (
     SourcePatchReview,
     source_patch_view,
@@ -52,7 +52,7 @@ class SourceEvidenceTooLarge(ValueError):
 @dataclass(frozen=True)
 class _SelectedInputs:
     draft: PatchDraft
-    deterministic: SourceDeterministicRecheck
+    deterministic: SourceDeterministicRecord
     forest: SourceForestRecheck | None
     neural: SourceMlRecheck | None
     network: SourcePatchReview | None
@@ -88,7 +88,11 @@ class SourceEvidenceRecords:
         )
         if deterministic_records is None:
             raise SourceEvidenceInputNotFound("Selected deterministic result is unavailable.")
-        deterministic = SourceDeterministicRecheck.from_records(*deterministic_records)
+        deterministic = source_deterministic_view(*deterministic_records)
+        if (deterministic.version == "source-deterministic-recheck-0.2.0") != (
+            request.version == "source-evidence-request-0.5.0"
+        ):
+            raise PatchConflict("Selected deterministic result and report protocols differ.")
         forest = None
         if request.forest is not None:
             forest_records = SourceForestRecords(self.store)._get(session, request.forest.record_id)

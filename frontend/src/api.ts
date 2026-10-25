@@ -744,7 +744,12 @@ export class ApiClient {
       request.draft_sha256 !== draft.draft_sha256 ||
       request.before_analysis_sha256 !== selected.before_analysis_sha256 ||
       request.reference_canonical_sha256 !==
-        (selected.reference?.canonical_sha256 ?? null)
+        (selected.reference?.canonical_sha256 ?? null) ||
+      (request.version === "source-deterministic-request-0.2.0" &&
+        (draft.diff.coverage !== "partial" ||
+          selected.original.comparison !== null ||
+          selected.original.statistical_present ||
+          selected.reference !== null))
     )
       throw new ApiError(409, messages[409]!);
     const row = await this.request(
@@ -970,6 +975,8 @@ export class ApiClient {
       report.patch_id !== draft.patch_id ||
       report.draft_sha256 !== draft.draft_sha256 ||
       request.report_sha256 !== report.review_sha256 ||
+      (request.version === "source-risk-request-0.3.0") !==
+        (report.version === "source-evidence-report-0.5.0") ||
       (request.version === "source-risk-request-0.2.0") !==
         (report.version === "source-evidence-report-0.4.0")
     )

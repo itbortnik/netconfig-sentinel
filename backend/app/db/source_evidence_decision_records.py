@@ -12,7 +12,7 @@ from app.api.source_evidence_decision_contracts import (
     MAX_SOURCE_EVIDENCE_DECISION_BYTES,
     SourceEvidenceDecisionProjectionTooLarge,
 )
-from app.api.source_evidence_decision_scope_contracts import (
+from app.api.source_evidence_decision_partial_contracts import (
     SourceEvidenceDecisionRecord,
     SourceEvidenceDecisionRequest,
     parse_source_evidence_decision_json,
@@ -20,7 +20,7 @@ from app.api.source_evidence_decision_scope_contracts import (
     source_evidence_decision,
     validate_source_evidence_decision,
 )
-from app.api.source_evidence_scope_contracts import SourceEvidenceReportRecord
+from app.api.source_evidence_partial_contracts import SourceEvidenceReportRecord
 from app.core.permissions import Role
 from app.db.patch_records import PatchConflict
 from app.db.source_evidence_records import SourceEvidenceRecords

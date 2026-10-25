@@ -8,15 +8,26 @@ from app.api.model_patch_contracts import fingerprint
 from app.api.source_deterministic_contracts import (
     MAX_SOURCE_DETERMINISTIC_BYTES,
     OriginalDeterministicContext,
-    RunSourceDeterministicRecheck,
     SourceDeterministicIntent,
     SourceDeterministicMember,
     SourceDeterministicOutcome,
-    SourceDeterministicRecheck,
     SourceDeterministicReport,
     SourceDeterministicSelection,
 )
 from app.api.source_ml_contracts import ml_json, source_ml_fingerprint
+from app.api.source_partial_contracts import (
+    PolicyDiagnosticParse,
+    RunSourcePartialDiagnostic,
+    SourceDeterministicIntentRecord,
+    SourceDeterministicOutcomeRecord,
+    SourceDeterministicRecord,
+    SourceDeterministicRequest,
+    SourcePartialIntent,
+    SourcePartialOutcome,
+    SourcePartialReport,
+    parse_source_deterministic_request,
+    source_deterministic_view,
+)
 from app.db.patch_records import PatchConflict
 from app.db.source_deterministic_records import SourceDeterministicRecords
 from app.db.source_records import OriginalSourceUnavailable, SourceRecords
@@ -27,6 +38,7 @@ from app.detection.baseline.pair import (
     require_original_deterministic_context,
 )
 from app.detection.config_model_contracts import require_complete
+from app.detection.policy_diagnostic import prepare_partial_policy, recheck_partial_policy
 from app.ingestion.source_retention import (
     StoredOriginalSource,
     canonical_fingerprint,
@@ -54,14 +66,14 @@ class SourceDeterministicWorkflow:
 
     @staticmethod
     def _view(
-        pair: tuple[SourceDeterministicIntent, SourceDeterministicOutcome | None],
-    ) -> SourceDeterministicRecheck:
-        view = SourceDeterministicRecheck.from_records(*pair)
+        pair: tuple[SourceDeterministicIntentRecord, SourceDeterministicOutcomeRecord | None],
+    ) -> SourceDeterministicRecord:
+        view = source_deterministic_view(*pair)
         if len(view.model_dump_json().encode()) > MAX_SOURCE_DETERMINISTIC_BYTES * 4:
             raise SourceDeterministicTooLarge()
         return view
 
-    def get(self, patch_id: UUID, recheck_id: UUID) -> SourceDeterministicRecheck:
+    def get(self, patch_id: UUID, recheck_id: UUID) -> SourceDeterministicRecord:
         saved = self.records.get(recheck_id)
         if saved is None or saved[0].patch_id != patch_id:
             raise PatchNotFound()
@@ -107,9 +119,10 @@ class SourceDeterministicWorkflow:
         )
 
     def _source(
-        self, snapshot: ConfigurationSnapshot
+        self, snapshot: ConfigurationSnapshot, *, complete: bool = True
     ) -> tuple[SourceDeterministicMember, StoredOriginalSource]:
-        require_complete(snapshot)
+        if complete:
+            require_complete(snapshot)
         source = SourceRecords(self.store).get(
             snapshot.configuration_id,
             expected_source_sha256=snapshot.canonical.source.sha256,
@@ -124,9 +137,9 @@ class SourceDeterministicWorkflow:
         return member, source
 
     def run(
-        self, patch_id: UUID, options: RunSourceDeterministicRecheck
-    ) -> tuple[SourceDeterministicRecheck, bool]:
-        options = RunSourceDeterministicRecheck.model_validate(options.model_dump(warnings=False))
+        self, patch_id: UUID, options: SourceDeterministicRequest
+    ) -> tuple[SourceDeterministicRecord, bool]:
+        options = parse_source_deterministic_request(options)
         existing = self.records.get(options.recheck_id)
         if existing is not None:
             if existing[0].patch_id != patch_id or existing[0].request != options:
@@ -134,6 +147,8 @@ class SourceDeterministicWorkflow:
             return self._view(existing), False
         if not options.allow_local_analysis_context:
             raise SourceDeterministicConsentRequired()
+        if isinstance(options, RunSourcePartialDiagnostic):
+            return self._run_partial(patch_id, options)
         selected = self.selection(patch_id, options.before_analysis_id)
         if (
             options.draft_sha256 != selected.draft_sha256
@@ -213,6 +228,83 @@ class SourceDeterministicWorkflow:
             self._view((intent, outcome))
         except Exception:
             outcome = SourceDeterministicOutcome(
+                recheck_id=options.recheck_id,
+                intent_sha256=source_ml_fingerprint(intent),
+                completed_at=datetime.now(UTC),
+                execution_status="failed",
+                report=None,
+                failure_reason="original_context_or_deterministic_result_unavailable",
+            )
+        self.records.complete(outcome)
+        return self._view((intent, outcome)), True
+
+    def _run_partial(
+        self, patch_id: UUID, options: RunSourcePartialDiagnostic
+    ) -> tuple[SourceDeterministicRecord, bool]:
+        selected = self.selection(patch_id, options.before_analysis_id)
+        if (
+            options.draft_sha256 != selected.draft_sha256
+            or options.before_analysis_sha256 != selected.before_analysis_sha256
+        ):
+            raise PatchConflict("Original partial diagnostic analysis pin differs.")
+        draft = self.drafts.draft(patch_id)
+        before = self.store.get_configuration(draft.diff.before.configuration_id)
+        after = self.store.get_configuration(draft.diff.after.configuration_id)
+        analysis = self.store.get_analysis(options.before_analysis_id)
+        if before is None or after is None or analysis is None:
+            raise PatchNotFound()
+        try:
+            old, old_source = self._source(before, complete=False)
+            new, new_source = self._source(after, complete=False)
+            if len(
+                ml_json(
+                    [snapshot.model_dump(mode="json") for snapshot in (before, after)]
+                    + [source.model_dump(mode="json") for source in (old_source, new_source)]
+                ).encode()
+            ) > MAX_DETERMINISTIC_INPUT_BYTES:
+                raise SourceDeterministicTooLarge()
+            # This admission executes the exact before catalog and compares every finding
+            # field before any durable attempt exists. After execution is terminal below.
+            prepared = prepare_partial_policy(before, after, analysis)
+            intent = SourcePartialIntent(
+                patch_id=patch_id,
+                request=options,
+                before=old,
+                after=new,
+                selection=selected,
+                before_analysis_status=analysis.status,
+                before_parse=PolicyDiagnosticParse.from_config(before.canonical),
+                after_parse=PolicyDiagnosticParse.from_config(after.canonical),
+                reference_projection=None,
+                created_at=datetime.now(UTC),
+            )
+        except (OriginalSourceUnavailable, ValueError):
+            raise PatchConflict(
+                "Selected partial source pair or original policy context is unavailable or differs."
+            ) from None
+        if len(ml_json(intent.model_dump(mode="json")).encode()) > (
+            MAX_SOURCE_DETERMINISTIC_BYTES - MAX_DETERMINISTIC_REPORT_BYTES - 8192
+        ):
+            raise SourceDeterministicTooLarge()
+        self._view((intent, None))
+        if not self.records.reserve(intent):
+            return self.get(patch_id, options.recheck_id), False
+        try:
+            report = SourcePartialReport.from_pair(intent, recheck_partial_policy(prepared))
+            if len(ml_json(report.model_dump(mode="json")).encode()) > (
+                MAX_DETERMINISTIC_REPORT_BYTES
+            ):
+                raise ValueError("oversized partial diagnostic result")
+            outcome = SourcePartialOutcome(
+                recheck_id=options.recheck_id,
+                intent_sha256=source_ml_fingerprint(intent),
+                completed_at=datetime.now(UTC),
+                execution_status="completed",
+                report=report,
+            )
+            self._view((intent, outcome))
+        except Exception:
+            outcome = SourcePartialOutcome(
                 recheck_id=options.recheck_id,
                 intent_sha256=source_ml_fingerprint(intent),
                 completed_at=datetime.now(UTC),

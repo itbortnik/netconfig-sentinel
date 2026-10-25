@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { PartialPolicyDiagnosticView } from "./PartialPolicyDiagnosticView";
+import { runSourceDeterministicRecheckSchema } from "./sourceDeterministicRecheck";
 import { ApiClient, ApiError } from "./api";
 import type { PatchDraft } from "./patches";
 import { date, shortId } from "./format";
@@ -45,6 +47,7 @@ export function SourceDeterministicRecheckPanel({
   onError: (problem: unknown) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [partialMode, setPartialMode] = useState(false);
   const [analysisId, setAnalysisId] = useState("");
   const [selection, setSelection] =
     useState<SourceDeterministicSelection | null>(null);
@@ -107,15 +110,22 @@ export function SourceDeterministicRecheckPanel({
   async function launch() {
     if (intent.current || !client.permits("verify") || !selection || !consent)
       return;
-    const request: RunSourceDeterministicRecheck = {
-      version: "source-deterministic-request-0.1.0",
+    const request = runSourceDeterministicRecheckSchema.parse({
+      ...(partialMode
+        ? {
+            version: "source-deterministic-request-0.2.0" as const,
+            mode: "policy_only_partial_diagnostic" as const,
+          }
+        : { version: "source-deterministic-request-0.1.0" as const }),
       recheck_id: crypto.randomUUID(),
       draft_sha256: draft.draft_sha256,
       before_analysis_id: selection.before_analysis_id,
       before_analysis_sha256: selection.before_analysis_sha256,
-      reference_canonical_sha256: selection.reference?.canonical_sha256 ?? null,
+      reference_canonical_sha256: partialMode
+        ? null
+        : (selection.reference?.canonical_sha256 ?? null),
       allow_local_analysis_context: true,
-    };
+    });
     intent.current = request;
     setAttempt(request);
     setView(null);
@@ -240,6 +250,34 @@ export function SourceDeterministicRecheckPanel({
           </p>
           {client.permits("verify") && (
             <>
+              <label>
+                Режим перепроверки анализа
+                <select
+                  aria-label="Режим перепроверки анализа"
+                  value={partialMode ? "partial" : "complete"}
+                  disabled={busy || !!attempt}
+                  onChange={(e) => {
+                    setPartialMode(e.target.value === "partial");
+                    setSelection(null);
+                    setConsent(false);
+                  }}
+                >
+                  <option value="complete">
+                    Полная перепроверка политик и сравнений
+                  </option>
+                  <option value="partial">
+                    Явная частичная диагностика только политик
+                  </option>
+                </select>
+              </label>
+              {partialMode && (
+                <p className="notice warning">
+                  Выбран отдельный режим частичной диагностики. Требуется
+                  исходный анализ без эталона, peers и Forest. Частичная
+                  диагностика не устанавливает успешность изменения. После
+                  отказа полной перепроверки режим автоматически не меняется.
+                </p>
+              )}
               <label>
                 UUID сохранённого анализа до изменения
                 <input
@@ -408,6 +446,14 @@ export function SourceDeterministicRecheckPanel({
                 доказано: нет. Калибровка: нет. Согласовано: нет. Применено:
                 нет.
               </p>
+              {view.version === "source-deterministic-recheck-0.2.0" && (
+                <p className="notice warning">
+                  Явная частичная диагностика только политик. Покрытие: partial.
+                  Статус completed подтверждает завершение вычисления
+                  диагностики; полнота проверки и успешность изменения не
+                  установлены.
+                </p>
+              )}
               {view.execution_status === "pending_unknown" && (
                 <p className="notice warning">
                   pending_unknown не доказывает работу фонового процесса.
@@ -421,7 +467,12 @@ export function SourceDeterministicRecheckPanel({
                   результатов нет; отсутствующие результаты не заменены нулями.
                 </p>
               )}
-              {view.outcome?.report && (
+              {view.outcome?.report?.version ===
+                "source-deterministic-report-0.2.0" && (
+                <PartialPolicyDiagnosticView report={view.outcome.report} />
+              )}
+              {view.outcome?.report?.version ===
+                "source-deterministic-report-0.1.0" && (
                 <>
                   <p>
                     Каталог политик:{" "}
@@ -447,7 +498,12 @@ export function SourceDeterministicRecheckPanel({
                         <tr key={field}>
                           <th>{label}</th>
                           {(["before", "after"] as const).map((side) => {
-                            const findings = view.outcome!.report![side][field];
+                            const report = view.outcome!.report!;
+                            const findings =
+                              report.version ===
+                              "source-deterministic-report-0.1.0"
+                                ? report[side][field]
+                                : null;
                             return (
                               <td key={side}>
                                 {findings === null

@@ -1,5 +1,10 @@
 # Инженерная оценка выбранного отчёта
 
+Для [частичной диагностики](source-partial-diagnostics.md) report0.5 использует
+request/assessment0.3: все пять effective weights равны0, contributions,
+общие score и band отсутствуют. Применимые критические ограничения видны,
+но не применяются к отсутствующему итогу.
+
 Для report0.4 используется request/assessment0.2 с полной проекцией
 [наблюдений области](source-ingress-observations.md). Профиль0.1 и его арифметика
 сохраняются. Описанный ниже request0.1 остаётся действующим для report0.1–0.3.
@@ -84,10 +89,11 @@ originals/models/двух reference configurations на копии БД. Нов�
 сохраняет десять новых оценок после реальных scoped SDK calls на authored Cisco/JunOS
 сценариях loss/gain/mixed/control/empty. Они проверяют связь сохранённых наблюдений
 с приоритетом и replay после удаления originals, без inference или обучения модели.
-В браузерных тестах сетевые ответы синтетические. Partial suppression покрыт
-normative unit controls; действующий ordinary deterministic API отклоняет такой
-partial recheck с409 до создания joint report. Успешный partial end-to-end сценарий
-этим не заявляется.
+В браузерных тестах сетевые ответы синтетические. В этой прежней проверке partial
+suppression покрыт normative unit controls: полный ordinary deterministic протокол0.1
+отклоняет partial recheck с409 до создания joint report. Её evidence не является
+partial end-to-end прогоном. Отдельный явный режим0.2 и его отчёт0.5 описаны в
+[частичной диагностике](source-partial-diagnostics.md).
 
 Весам, категориям и преобразованиям не приписываются calibration или independent
 quality. `formal_qualification:not_proven`, `quality_proven:false`,

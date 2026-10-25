@@ -8,7 +8,7 @@ import type {
 import type { PatchDraft } from "../../src/patches";
 import type {
   RunSourceDeterministicRecheck,
-  SourceDeterministicRecheck,
+  SourceDeterministicComplete as SourceDeterministicRecheck,
 } from "../../src/sourceDeterministicRecheck";
 
 const TOKEN = "browser-tests-service-token-32-characters-001";

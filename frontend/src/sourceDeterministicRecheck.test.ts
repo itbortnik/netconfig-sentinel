@@ -10,11 +10,11 @@ import {
   sourceDeterministicBlockers,
   sourceDeterministicSelectionSchema,
   sourceDeterministicSelectionBound,
-  sourceDeterministicRecheckSchema,
+  sourceDeterministicCompleteSchema as sourceDeterministicRecheckSchema,
   sourceDeterministicRecheckBound,
   sourceDeterministicSummarySchema,
 } from "./sourceDeterministicRecheck";
-import type { SourceDeterministicRecheck } from "./sourceDeterministicRecheck";
+import type { SourceDeterministicComplete as SourceDeterministicRecheck } from "./sourceDeterministicRecheck";
 
 const digest = (text: string) =>
   createHash("sha256").update(text).digest("hex");

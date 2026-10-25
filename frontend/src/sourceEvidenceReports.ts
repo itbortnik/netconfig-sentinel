@@ -3,6 +3,13 @@ import { snapshotBindingSchema, stableJson } from "./contracts";
 import { batfishSchema, statisticalRecheckSchema } from "./modelReviews";
 import type { PatchDraft } from "./patches";
 import type { SourceDeterministicRecheck } from "./sourceDeterministicRecheck";
+import {
+  partialDiagnosticMode,
+  sourceDeterministicSelectionSchema,
+  sourcePartialReportSchema,
+  sourcePartialBlockers,
+  sourceDeterministicRecheckBound,
+} from "./sourceDeterministicRecheck";
 import type { SourceForestRecheck } from "./sourceForestRecheck";
 import type { SourceMlRecheck } from "./sourceMlRecheck";
 import type { SourcePatchVerification } from "./sourcePatchVerification";
@@ -59,11 +66,20 @@ const createSourceEvidenceReportV4Schema =
   createSourceEvidenceReportV1Schema.extend({
     version: z.literal("source-evidence-request-0.4.0"),
   });
+const createSourceEvidenceReportV5Schema =
+  createSourceEvidenceReportV1Schema.extend({
+    version: z.literal("source-evidence-request-0.5.0"),
+    mode: z.literal(partialDiagnosticMode),
+    forest: z.null(),
+    neural: z.null(),
+    network: z.null(),
+  });
 export const createSourceEvidenceReportSchema = z.union([
   createSourceEvidenceReportV1Schema,
   createSourceEvidenceReportV2Schema,
   createSourceEvidenceReportV3Schema,
   createSourceEvidenceReportV4Schema,
+  createSourceEvidenceReportV5Schema,
 ]);
 export type CreateSourceEvidenceReport = z.infer<
   typeof createSourceEvidenceReportSchema
@@ -420,7 +436,81 @@ const validReport = (
         row.neural.after.raw_source_sha256 === row.after.source_sha256))
   );
 };
-export const sourceEvidenceReportSchema = z.union([
+export const sourcePartialEvidenceSchema = z
+  .strictObject({
+    ...completed,
+    kind: z.literal("deterministic"),
+    version: z.literal("source-deterministic-recheck-0.2.0"),
+    selection: sourceDeterministicSelectionSchema,
+    before_analysis_status: z.enum(["completed", "partial"]),
+    report: sourcePartialReportSchema,
+  })
+  .refine(
+    (r) =>
+      r.selection.original.comparison === null &&
+      !r.selection.original.statistical_present &&
+      r.selection.reference === null &&
+      r.before_analysis_status ===
+        (r.report.before.parse.summary.complete ? "completed" : "partial") &&
+      r.report.policy_catalog_version ===
+        r.selection.original.policy_catalog_version &&
+      same(r.report.before.policy_findings, r.selection.original.findings) &&
+      // Completed means the diagnostic computation finished, not complete parsing.
+      same(
+        r.validation_blockers,
+        sourcePartialBlockers(r.selection.original, null).slice(0, -1),
+      ),
+  );
+export const sourcePartialEvidenceReportSchema = z
+  .strictObject({
+    ...reportBase.shape,
+    version: z.literal("source-evidence-report-0.5.0"),
+    mode: z.literal(partialDiagnosticMode),
+    coverage: z.literal("partial"),
+    request: createSourceEvidenceReportV5Schema,
+    original_statistical_present: z.literal(false),
+    deterministic: sourcePartialEvidenceSchema,
+    forest: z.null(),
+    neural: z.null(),
+    network: z.null(),
+  })
+  .refine((r) => {
+    const d = r.deterministic,
+      s = d.selection;
+    return (
+      r.report_id === r.request.report_id &&
+      r.draft_sha256 === r.request.draft_sha256 &&
+      same(r.validation_blockers, [
+        ...sourceEvidenceBlockers(r),
+        "partial_parsing",
+        "partial_comparison_unavailable",
+      ]) &&
+      r.before.device_id === r.after.device_id &&
+      r.before.configuration_id !== r.after.configuration_id &&
+      r.before.source_sha256 !== r.after.source_sha256 &&
+      evidenceInstant(r.before.created_at) <=
+        evidenceInstant(r.after.created_at) &&
+      evidenceInstant(r.after.created_at) <= evidenceInstant(d.created_at) &&
+      evidenceInstant(d.created_at) <= evidenceInstant(d.completed_at) &&
+      evidenceInstant(d.completed_at) <= evidenceInstant(r.created_at) &&
+      r.request.deterministic.record_id === d.record_id &&
+      r.request.deterministic.review_sha256 === d.review_sha256 &&
+      r.patch_id === s.patch_id &&
+      r.draft_sha256 === s.draft_sha256 &&
+      r.before_analysis_id === s.before_analysis_id &&
+      r.before_analysis_sha256 === s.before_analysis_sha256 &&
+      same(s.before, (({ canonical_sha256: _h, ...b }) => b)(r.before)) &&
+      (["before", "after"] as const).every(
+        (side) =>
+          d.report[side].configuration_id === r[side].configuration_id &&
+          d.report[side].source_sha256 === r[side].source_sha256 &&
+          d.report[side].policy_findings.every(
+            (f) => f.device_id === r[side].device_id,
+          ),
+      )
+    );
+  });
+export const sourceEvidenceCompleteReportSchema = z.union([
   reportBase.refine(validReport),
   z
     .strictObject({
@@ -447,6 +537,13 @@ export const sourceEvidenceReportSchema = z.union([
     })
     .refine(validReport),
 ]);
+export const sourceEvidenceReportSchema = z.union([
+  sourceEvidenceCompleteReportSchema,
+  sourcePartialEvidenceReportSchema,
+]);
+export type SourceEvidenceCompleteReport = z.infer<
+  typeof sourceEvidenceCompleteReportSchema
+>;
 export type SourceEvidenceReport = z.infer<typeof sourceEvidenceReportSchema>;
 const summaryBase = z.strictObject({
   version: z.literal("source-evidence-summary-0.1.0"),
@@ -465,7 +562,7 @@ const validSummary = (row: Omit<z.infer<typeof summaryBase>, "version">) =>
     row.selected_kinds,
     kinds.filter((kind) => row.selected_kinds.includes(kind)),
   );
-export const sourceEvidenceSummarySchema = z.union([
+export const sourceEvidenceCompleteSummarySchema = z.union([
   summaryBase.refine(validSummary),
   summaryBase
     .extend({ version: z.literal("source-evidence-summary-0.2.0") })
@@ -476,6 +573,15 @@ export const sourceEvidenceSummarySchema = z.union([
   summaryBase
     .extend({ version: z.literal("source-evidence-summary-0.4.0") })
     .refine(validSummary),
+]);
+export const sourceEvidenceSummarySchema = z.union([
+  sourceEvidenceCompleteSummarySchema,
+  summaryBase.extend({
+    version: z.literal("source-evidence-summary-0.5.0"),
+    mode: z.literal(partialDiagnosticMode),
+    coverage: z.literal("partial"),
+    selected_kinds: z.tuple([z.literal("deterministic")]),
+  }),
 ]);
 export type SourceEvidenceSummary = z.infer<typeof sourceEvidenceSummarySchema>;
 export type SourceEvidenceChildren = {
@@ -568,6 +674,9 @@ export function sourceEvidenceSummaryBound(
   draft: PatchDraft,
 ) {
   return (
+    sourceEvidenceSummarySchema.safeParse(row).success &&
+    (row.version !== "source-evidence-summary-0.5.0" ||
+      draft.diff.coverage === "partial") &&
     row.patch_id === draft.patch_id &&
     row.draft_sha256 === draft.draft_sha256 &&
     evidenceInstant(row.created_at) >= evidenceInstant(draft.created_at)
@@ -601,6 +710,59 @@ function common(value: SourceEvidenceChildren[SourceEvidenceKind]) {
     validation_blockers: value.validation_blockers,
   };
 }
+async function partialEvidenceBound(
+  row: z.infer<typeof sourcePartialEvidenceReportSchema>,
+  draft: PatchDraft,
+  children: SourceEvidenceChildren,
+  request?: CreateSourceEvidenceReport,
+  summary?: SourceEvidenceSummary,
+) {
+  const d = children.deterministic;
+  if (
+    !sourcePartialEvidenceReportSchema.safeParse(row).success ||
+    !(await sourceEvidenceProofMatches(row)) ||
+    d.version !== "source-deterministic-recheck-0.2.0" ||
+    !(await sourceDeterministicRecheckBound(d, draft)) ||
+    d.execution_status !== "completed" ||
+    !d.outcome?.report ||
+    children.forest !== null ||
+    children.neural !== null ||
+    children.network !== null ||
+    draft.diff.coverage !== "partial" ||
+    row.patch_id !== draft.patch_id ||
+    row.draft_sha256 !== draft.draft_sha256 ||
+    evidenceInstant(row.created_at) < evidenceInstant(draft.created_at) ||
+    (request && !same(row.request, request)) ||
+    row.before_analysis_id !== d.before_analysis_id ||
+    row.before_analysis_sha256 !== d.before_analysis_sha256 ||
+    !same(row.before, member(d.intent.before)) ||
+    !same(row.after, member(d.intent.after)) ||
+    !same(row.deterministic, {
+      ...common(d),
+      kind: "deterministic",
+      selection: d.intent.selection,
+      before_analysis_status: d.intent.before_analysis_status,
+      report: d.outcome.report,
+    })
+  )
+    return false;
+  return (
+    !summary ||
+    same(summary, {
+      version: "source-evidence-summary-0.5.0",
+      mode: partialDiagnosticMode,
+      coverage: "partial",
+      report_id: row.report_id,
+      patch_id: row.patch_id,
+      draft_sha256: row.draft_sha256,
+      before_analysis_id: row.before_analysis_id,
+      review_sha256: row.review_sha256,
+      created_at: row.created_at,
+      selected_kinds: ["deterministic"],
+      status: "needs_review",
+    })
+  );
+}
 export async function sourceEvidenceReportBound(
   row: SourceEvidenceReport,
   draft: PatchDraft,
@@ -609,6 +771,8 @@ export async function sourceEvidenceReportBound(
   summary?: SourceEvidenceSummary,
 ) {
   try {
+    if (row.version === "source-evidence-report-0.5.0")
+      return partialEvidenceBound(row, draft, children, request, summary);
     if (
       !sourceEvidenceReportSchema.safeParse(row).success ||
       !(await sourceEvidenceProofMatches(row)) ||
@@ -640,6 +804,12 @@ export async function sourceEvidenceReportBound(
       return false;
     const deterministic = children.deterministic,
       report = deterministic.outcome?.report;
+    if (
+      deterministic.version !== "source-deterministic-recheck-0.1.0" ||
+      !report ||
+      report.version !== "source-deterministic-report-0.1.0"
+    )
+      return false;
     if (
       !report ||
       row.before_analysis_id !== deterministic.before_analysis_id ||

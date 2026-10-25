@@ -14,6 +14,7 @@ import type {
   SourceEvidenceReport,
 } from "./sourceEvidenceReports";
 import type { PatchDraft } from "./patches";
+import { partialDiagnosticMode } from "./sourceDeterministicRecheck";
 
 const id = z.guid(),
   hash = z.string().regex(/^[0-9a-f]{64}$/),
@@ -295,6 +296,57 @@ const compositionV2Base = compositionBase.extend({
   selected_evidence: z.array(evidenceV2).min(1).max(4),
   components: z.array(componentV2).length(5),
 });
+export const partialPriorityLimitations = [
+  ...priorityLimitations,
+  "Only the selected original-catalog policy diagnostics were computed in this mode.",
+  "Incomplete parsing suppresses every aggregate weight and contribution, including when the after snapshot alone is complete. The aggregate and band remain unavailable.",
+  "Visible after findings and applicable critical-policy guards do not classify paired changes or establish repair, completeness or overall safety.",
+];
+const partialEvidence = z.strictObject({
+  kind: z.literal("deterministic"),
+  version: z.literal("source-deterministic-recheck-0.2.0"),
+  record_id: id,
+  review_sha256: hash,
+});
+const partialComponent = component
+  .extend({
+    reason: z.enum(["finding_priority", "not_selected"]),
+    evidence: partialEvidence.nullable(),
+    observation: findings.nullable(),
+    effective_weight: z.literal(0),
+    contribution: z.null(),
+  })
+  .refine((r) =>
+    r.source === "policy"
+      ? r.status === "completed" &&
+        r.reason === "finding_priority" &&
+        r.evidence !== null &&
+        r.observation?.detector === "policy_engine" &&
+        close(
+          r.raw_score,
+          r.observation.strongest ? findingScore(r.observation.strongest) : 0,
+        )
+      : r.status === "unavailable" &&
+        r.reason === "not_selected" &&
+        r.evidence === null &&
+        r.observation === null &&
+        r.raw_score === null,
+  );
+const compositionV3Base = compositionBase.extend({
+  version: z.literal("source-priority-composition-0.3.0"),
+  report_version: z.literal("source-evidence-report-0.5.0"),
+  mode: z.literal(partialDiagnosticMode),
+  selected_evidence: z.tuple([partialEvidence]),
+  coverage: z.literal("partial"),
+  components: z.array(partialComponent).length(5),
+  availability_mask: z.tuple([z.literal("policy")]),
+  status: z.literal("unavailable"),
+  score: z.null(),
+  band: z.null(),
+  applicable_guardrails: z.array(guardrail).max(1),
+  applied_guardrails: z.array(guardrail).max(0),
+  limitations: z.array(z.string()).length(11),
+});
 type Composition =
   z.infer<typeof compositionBase> | z.infer<typeof compositionV2Base>;
 type Observation = z.infer<typeof observationV2>;
@@ -446,9 +498,33 @@ const sourcePriorityCompositionV1Schema =
   compositionBase.refine(validComposition);
 const sourcePriorityCompositionV2Schema =
   compositionV2Base.refine(validComposition);
+const sourcePriorityCompositionV3Schema = compositionV3Base.refine(
+  (c) =>
+    same(
+      c.components.map((r) => r.source),
+      prioritySources,
+    ) &&
+    same(c.limitations, partialPriorityLimitations) &&
+    c.components.every(
+      (r, i) =>
+        r.configured_weight === weights[i] &&
+        same(r.evidence, i === 0 ? c.selected_evidence[0] : null),
+    ) &&
+    same(
+      c.applicable_guardrails,
+      c.components[0]!.observation?.critical_policy_present
+        ? [{ kind: "critical_policy", floor: 0.9 }]
+        : [],
+    ) &&
+    c.before.device_id === c.after.device_id &&
+    c.before.configuration_id !== c.after.configuration_id &&
+    c.before.source_sha256 !== c.after.source_sha256 &&
+    evidenceInstant(c.before.created_at) <= evidenceInstant(c.after.created_at),
+);
 export const sourcePriorityCompositionSchema = z.union([
   sourcePriorityCompositionV1Schema,
   sourcePriorityCompositionV2Schema,
+  sourcePriorityCompositionV3Schema,
 ]);
 const createSourceRiskAssessmentV1Schema = z.strictObject({
   version: z.literal("source-risk-request-0.1.0"),
@@ -460,9 +536,14 @@ const createSourceRiskAssessmentV2Schema =
   createSourceRiskAssessmentV1Schema.extend({
     version: z.literal("source-risk-request-0.2.0"),
   });
+const createSourceRiskAssessmentV3Schema =
+  createSourceRiskAssessmentV1Schema.extend({
+    version: z.literal("source-risk-request-0.3.0"),
+  });
 export const createSourceRiskAssessmentSchema = z.union([
   createSourceRiskAssessmentV1Schema,
   createSourceRiskAssessmentV2Schema,
+  createSourceRiskAssessmentV3Schema,
 ]);
 export type CreateSourceRiskAssessment = z.infer<
   typeof createSourceRiskAssessmentSchema
@@ -492,8 +573,17 @@ const riskAssessmentV2Base = riskAssessmentBase.extend({
   report_version: z.literal("source-evidence-report-0.4.0"),
   composition: sourcePriorityCompositionV2Schema,
 });
+const riskAssessmentV3Base = riskAssessmentBase.extend({
+  version: z.literal("source-risk-assessment-0.3.0"),
+  request: createSourceRiskAssessmentV3Schema,
+  report_version: z.literal("source-evidence-report-0.5.0"),
+  composition: sourcePriorityCompositionV3Schema,
+});
 const validAssessment = (
-  r: z.infer<typeof riskAssessmentBase> | z.infer<typeof riskAssessmentV2Base>,
+  r:
+    | z.infer<typeof riskAssessmentBase>
+    | z.infer<typeof riskAssessmentV2Base>
+    | z.infer<typeof riskAssessmentV3Base>,
 ) =>
   r.assessment_id === r.request.assessment_id &&
   r.report_sha256 === r.request.report_sha256 &&
@@ -512,6 +602,7 @@ const validAssessment = (
 export const sourceRiskAssessmentSchema = z.union([
   riskAssessmentBase.refine(validAssessment),
   riskAssessmentV2Base.refine(validAssessment),
+  riskAssessmentV3Base.refine(validAssessment),
 ]);
 export type SourceRiskAssessment = z.infer<typeof sourceRiskAssessmentSchema>;
 const riskSummaryBase = z.strictObject({
@@ -562,6 +653,16 @@ const validRiskSummary = (
 export const sourceRiskSummarySchema = z.union([
   riskSummaryBase.refine(validRiskSummary),
   riskSummaryV2Base.refine(validRiskSummary),
+  riskSummaryBase.extend({
+    version: z.literal("source-risk-summary-0.3.0"),
+    report_version: z.literal("source-evidence-report-0.5.0"),
+    composition_status: z.literal("unavailable"),
+    score: z.null(),
+    band: z.null(),
+    coverage: z.literal("partial"),
+    availability_mask: z.tuple([z.literal("policy")]),
+    applicable_guardrails: z.array(z.literal("critical_policy")).max(1),
+  }),
 ]);
 export type SourceRiskSummary = z.infer<typeof sourceRiskSummarySchema>;
 export function sourceRiskSummaryBound(
@@ -569,6 +670,8 @@ export function sourceRiskSummaryBound(
   p: SourceEvidenceReport,
 ) {
   return (
+    (r.version === "source-risk-summary-0.3.0") ===
+      (p.version === "source-evidence-report-0.5.0") &&
     (r.version === "source-risk-summary-0.2.0") ===
       (p.version === "source-evidence-report-0.4.0") &&
     r.patch_id === p.patch_id &&
@@ -583,9 +686,11 @@ export function sourceRiskSummary(r: SourceRiskAssessment): SourceRiskSummary {
   const c = r.composition;
   return sourceRiskSummarySchema.parse({
     version:
-      r.version === "source-risk-assessment-0.2.0"
-        ? "source-risk-summary-0.2.0"
-        : "source-risk-summary-0.1.0",
+      r.version === "source-risk-assessment-0.3.0"
+        ? "source-risk-summary-0.3.0"
+        : r.version === "source-risk-assessment-0.2.0"
+          ? "source-risk-summary-0.2.0"
+          : "source-risk-summary-0.1.0",
     assessment_id: r.assessment_id,
     patch_id: r.patch_id,
     report_id: r.report_id,
@@ -699,6 +804,20 @@ export async function sourceRiskAssessmentBound(
   if (!same(c.selected_evidence, refs)) return false;
   const after = children.deterministic.outcome?.report?.after;
   if (!after) return false;
+  if (r.version === "source-risk-assessment-0.3.0")
+    return (
+      parent.version === "source-evidence-report-0.5.0" &&
+      children.deterministic.version === "source-deterministic-recheck-0.2.0" &&
+      same(
+        c.components[0]!.observation,
+        findingObservation(after.policy_findings, "policy_engine"),
+      )
+    );
+  if (
+    parent.version === "source-evidence-report-0.5.0" ||
+    !("peer_findings" in after)
+  )
+    return false;
   const observations: (Observation | null)[] = [
     findingObservation(after.policy_findings, "policy_engine"),
     after.peer_findings === null

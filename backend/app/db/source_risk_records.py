@@ -8,11 +8,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api import source_risk_contracts
-from app.api.source_evidence_scope_contracts import SourceEvidenceReportRecord
+from app.api.source_evidence_partial_contracts import SourceEvidenceReportRecord
 from app.api.source_risk_contracts import (
     SourceRiskProjectionTooLarge,
 )
-from app.api.source_risk_scope_contracts import (
+from app.api.source_risk_partial_contracts import (
     SourceRiskRecord,
     SourceRiskRequest,
     parse_source_risk_json,
