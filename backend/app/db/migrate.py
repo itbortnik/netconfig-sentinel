@@ -7,7 +7,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine
 
-SCHEMA_REVISION = "0017_source_risk_assessments"
+SCHEMA_REVISION = "0018_native_patch_candidates"
 
 
 def upgrade_database(engine: Engine) -> None:

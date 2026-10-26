@@ -11,6 +11,7 @@ import type { ApiClient } from "./api";
 import { FeedbackPanel } from "./FeedbackPanel";
 import { ExplanationPanel } from "./ExplanationPanel";
 import { ModelPatchPanel } from "./ModelPatchPanel";
+import { NativePatchPanel } from "./NativePatchPanel";
 import { ConfigurationModelPanel } from "./ConfigurationModelPanel";
 import {
   date,
@@ -435,6 +436,17 @@ export function AnalysisView({
                 busy={busy}
                 onError={onError}
               />
+              {finding.detector === "policy_engine" &&
+                finding.category === "management.telnet_enabled" && (
+                  <NativePatchPanel
+                    key={`native-patch:${result.analysis_id}:${finding.finding_id}`}
+                    analysis={result}
+                    finding={finding}
+                    client={client}
+                    busy={busy}
+                    onError={onError}
+                  />
+                )}
               <ModelPatchPanel
                 key={`model-patch:${result.analysis_id}:${finding.finding_id}`}
                 analysis={result}

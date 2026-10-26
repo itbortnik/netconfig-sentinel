@@ -118,6 +118,10 @@ inspection-only subset: explicit SSH+Telnet VTY lines or SSH version statements
 on IOS, and exact flat-set Telnet/SSH version statements on JunOS. Hierarchical
 JunOS parsing does not imply hierarchical patch generation. Local parser checks
 do not qualify syntax, management access, formal safety, or device application.
+The separate [saved candidate API/UI](saved-native-candidates.md) uses only the
+Telnet-removal subset on complete retained originals, with explicit private-copy
+retention consent and immutable encrypted history. It does not expand supported
+vendor syntax or create downstream verification evidence.
 
 - VRF/routing-instance assignment, aggregation, tunnel parameters, and
   operational state beyond the commands listed above remain unparsed;

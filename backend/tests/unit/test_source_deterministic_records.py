@@ -284,6 +284,7 @@ def test_immutable_request_identity_and_terminal_outcome(saved_pair):
 def test_populated_13_to_14_upgrade_is_additive_and_repeatable(saved_pair):
     store, intent, outcome = saved_pair
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.exec_driver_sql("DROP TABLE patch_evidence_decisions")
         connection.exec_driver_sql("DROP TABLE patch_evidence_reports")

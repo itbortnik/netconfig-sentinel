@@ -312,3 +312,21 @@ class SourceRiskAssessmentRow(Base):
     report_id: Mapped[str] = mapped_column(ForeignKey("patch_evidence_reports.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[str] = mapped_column(Text)
+
+
+class NativePatchCandidateRow(Base):
+    __tablename__ = "native_patch_candidates"
+    __table_args__ = (
+        Index(
+            "ix_native_patch_candidates_configuration_created",
+            "configuration_id",
+            "created_at",
+            "id",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"))
+    analysis_id: Mapped[str] = mapped_column(ForeignKey("analyses.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    public_sha256: Mapped[str] = mapped_column(String(64))
+    payload: Mapped[str] = mapped_column(Text)

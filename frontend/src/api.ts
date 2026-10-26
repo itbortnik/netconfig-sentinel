@@ -1,5 +1,14 @@
 import { z } from "zod";
 import {
+  generateNativePatchSchema,
+  nativePatchSelectionSchema,
+  nativePatchCandidateSchema,
+  nativePatchSummarySchema,
+  nativeProofMatches,
+  nativeSummaryMatches,
+} from "./nativePatches";
+import type { GenerateNativePatch, NativePatchSummary } from "./nativePatches";
+import {
   analysisSchema,
   analysisSummarySchema,
   configurationSummarySchema,
@@ -258,7 +267,8 @@ export class ApiClient {
       | RunSourceDeterministicRecheck
       | CreateSourceEvidenceReport
       | CreateSourceRiskAssessment
-      | ReviewSourceEvidenceReport,
+      | ReviewSourceEvidenceReport
+      | GenerateNativePatch,
     namespace: "v1" | "v2" = "v1",
     maximumResponseBytes?: number,
   ): Promise<T> {
@@ -312,6 +322,88 @@ export class ApiClient {
           : "Не удалось связаться с API. Проверьте локальный сервер.",
       );
     }
+  }
+  async nativePatchSelection(configuration: string, analysis: string) {
+    const row = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-patch-selection/${encodeURIComponent(analysis)}`,
+      nativePatchSelectionSchema,
+      undefined,
+      "v2",
+      128 * 1024,
+    );
+    if (row.configuration_id !== configuration || row.analysis_id !== analysis)
+      throw new ApiError(
+        0,
+        "Привязка выбора native-кандидата не подтверждена.",
+      );
+    return row;
+  }
+  async nativePatches(configuration: string, offset = 0) {
+    if (!Number.isInteger(offset) || offset < 0 || offset > 10000)
+      throw new ApiError(422, messages[422]!);
+    const rows = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-patches?limit=20&offset=${offset}`,
+      z.array(nativePatchSummarySchema).max(20),
+      undefined,
+      "v2",
+      128 * 1024,
+    );
+    if (
+      rows.some((row) => row.configuration_id !== configuration) ||
+      new Set(rows.map((row) => row.candidate_id)).size !== rows.length
+    )
+      throw new ApiError(
+        0,
+        "История native-кандидатов не соответствует снимку.",
+      );
+    return rows;
+  }
+  async nativePatch(
+    configuration: string,
+    candidate: string,
+    expected?: GenerateNativePatch,
+    summary?: NativePatchSummary,
+  ) {
+    const row = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-patches/${encodeURIComponent(candidate)}`,
+      nativePatchCandidateSchema,
+      undefined,
+      "v2",
+      2 * 1024 * 1024,
+    );
+    if (
+      row.configuration_id !== configuration ||
+      row.candidate_id !== candidate ||
+      (expected && stableJson(row.request) !== stableJson(expected)) ||
+      (summary && !nativeSummaryMatches(row, summary)) ||
+      !(await nativeProofMatches(row))
+    )
+      throw new ApiError(0, "Привязка native-кандидата не подтверждена.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async generateNativePatch(
+    configuration: string,
+    options: GenerateNativePatch,
+  ) {
+    const request = generateNativePatchSchema.parse(options);
+    const row = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-patches`,
+      nativePatchCandidateSchema,
+      request,
+      "v2",
+      2 * 1024 * 1024,
+    );
+    if (
+      row.configuration_id !== configuration ||
+      stableJson(row.request) !== stableJson(request) ||
+      !(await nativeProofMatches(row))
+    )
+      throw new ApiError(0, "Native-кандидат не соответствует запросу.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
   }
   configurations(offset = 0, device?: string) {
     const query = new URLSearchParams({ limit: "20", offset: String(offset) });

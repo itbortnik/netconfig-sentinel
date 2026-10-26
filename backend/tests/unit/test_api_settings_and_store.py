@@ -101,6 +101,7 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
             "patch_evidence_reports",
             "patch_evidence_decisions",
             "patch_risk_assessments",
+            "native_patch_candidates",
             "operation_receipts",
             "operation_completions",
             "configuration_sources",
@@ -131,6 +132,7 @@ def test_migration_is_explicit_idempotent_and_preserves_records(tmp_path: Path) 
         "patch_evidence_reports",
         "patch_evidence_decisions",
         "patch_risk_assessments",
+        "native_patch_candidates",
     ],
 )
 def test_current_revision_with_missing_evidence_table_is_not_ready(

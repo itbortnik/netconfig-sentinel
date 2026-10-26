@@ -498,6 +498,7 @@ def test_two_insertion_writers_return_one_saved_winner(saved_inputs, monkeypatch
 def test_populated_14_to_15_upgrade_is_additive_and_repeatable(saved_inputs):
     store, intent, _outcome, request = saved_inputs
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.exec_driver_sql("DROP TABLE patch_evidence_decisions")
         connection.exec_driver_sql("DROP TABLE patch_evidence_reports")
@@ -517,7 +518,7 @@ def test_populated_14_to_15_upgrade_is_additive_and_repeatable(saved_inputs):
     assert not store.ready()
     upgrade_database(store.engine)
     upgrade_database(store.engine)
-    assert SCHEMA_REVISION == "0017_source_risk_assessments"
+    assert SCHEMA_REVISION == "0018_native_patch_candidates"
     assert store.ready() and physical() == before
     database = SourceEvidenceRecords(store)
     assert database.add(database.prepare(intent.patch_id, request))[1]

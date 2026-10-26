@@ -228,12 +228,13 @@ def test_upgrade_0016_to_0017_is_additive_and_preserves_every_old_physical_row(r
     report, _, _ = prepare(risk_api, neural=True)
     store = app.state.analysis_service.store
     # This fixture owns an isolated database/schema. Recreate the exact predecessor state by
-    # removing only the empty new table and restoring its former Alembic revision marker.
+    # removing the empty newer tables and restoring its former Alembic revision marker.
     with store.engine.begin() as connection:
         assert (
             connection.execute(text("SELECT count(*) FROM patch_risk_assessments")).scalar_one()
             == 0
         )
+        connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.execute(
             text("UPDATE alembic_version SET version_num='0016_source_evidence_decisions'")
@@ -243,10 +244,11 @@ def test_upgrade_0016_to_0017_is_additive_and_preserves_every_old_physical_row(r
     with store.engine.connect() as connection:
         before = physical(connection, tables)
     upgrade_database(store.engine)
-    assert SCHEMA_REVISION == "0017_source_risk_assessments" and store.schema_ready()
+    assert SCHEMA_REVISION == "0018_native_patch_candidates" and store.schema_ready()
     assert set(inspect(store.engine).get_table_names()) == tables | {
         "alembic_version",
         "patch_risk_assessments",
+        "native_patch_candidates",
     }
     with store.engine.connect() as connection:
         assert physical(connection, tables) == before

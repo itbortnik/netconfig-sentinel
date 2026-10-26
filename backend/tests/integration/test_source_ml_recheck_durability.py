@@ -164,6 +164,7 @@ def test_real_upgrade_11_to_12_preserves_populated_legacy_rows_byte_for_byte(sou
     )
     store = application.state.analysis_service.store
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.exec_driver_sql("DROP TABLE patch_evidence_decisions")
         connection.exec_driver_sql("DROP TABLE patch_evidence_reports")

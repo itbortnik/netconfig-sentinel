@@ -53,6 +53,15 @@ text. It is read-only, bounded and separate from findings, risk and approvals.
 See [comparisons](api-comparisons.md), [API](persistent-api.md) and
 [trust boundary](threat-model.md).
 
+The separate [saved native candidate](saved-native-candidates.md) path connects an
+exact retained original and saved Telnet policy finding to the bounded vendor
+generator. It stores encrypted before/candidate copies only after two explicit
+consents, and exposes typed metadata, fixed inspection commands and immutable
+history. The global candidate ID and configuration URL bind replay intent;
+historical reads validate saved text transformations without rerunning current
+parsers, policies or the generator. No model, after-snapshot materialization,
+downstream verification, approval or application is implied by this path.
+
 A separate read-only POST binds an explicit analysis/finding hash to its saved
 local explanation and retrieves exact sections of eight allowlisted project
 documents. Ingestion is bounded; source/chunk/catalog hashes identify the sealed

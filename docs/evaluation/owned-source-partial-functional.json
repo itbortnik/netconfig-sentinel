@@ -25,6 +25,32 @@
   "partial_scenario_engine_calls": 0,
   "partial_scenario_fits": 0,
   "partial_scenario_model_calls": 0,
+  "published_ci": {
+    "all_four_jobs": "success",
+    "backend": {
+      "coverage_percent": 92,
+      "passed": 5267,
+      "skipped": 91
+    },
+    "batfish": {
+      "deselected": 92,
+      "main_passed": 143,
+      "saved_candidate_passed": 2
+    },
+    "commit": "6971d533c5ab4bbd37857e482b1fd4f38f403078",
+    "completion_sha256": "103ae281c27cb402cb26b42aabe8fffb1c3a9a427fe011e80b15f4fab3b58ec4",
+    "frontend": {
+      "browser_passed": 390,
+      "compose_browser_passed": 162,
+      "unit_passed": 957
+    },
+    "postgres": {
+      "deselected": 12,
+      "passed": 755,
+      "skipped": 2
+    },
+    "run_id": 40238514344
+  },
   "quality_proven": false,
   "records": [
     {

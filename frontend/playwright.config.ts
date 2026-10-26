@@ -21,6 +21,8 @@ export default defineConfig({
     "**/sourceIngress.spec.ts",
     "**/sourcePartialDiagnostic.spec.ts",
     "**/sourcePartialDiagnosticHttp.spec.ts",
+    "**/native-patches.spec.ts",
+    "**/native-patches-http.spec.ts",
   ],
   timeout: 30_000,
   expect: { timeout: 10_000 },

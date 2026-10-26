@@ -5,6 +5,20 @@
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
 
+Реализован отдельный [сохранённый нативный Telnet-черновик](saved-native-candidates.md)
+без обязательного LLM: новая encrypted история0018, source/analysis/finding pins,
+отдельное согласие на сохранение закрытых before/candidate и чтение истории без
+повторной генерации. Backend/UI и границы evidence независимо проверены;
+[actual HTTP browser report](evaluation/owned-native-functional.json) содержит четыре
+случая двух авторских семей в двух viewports: true generation, source removal,
+реальный process restart и exact GET/list/replay с запрещённым runtime.
+Полный local backend5483pass/60skip/92%; Ruff и mypy319default/latestLinuxpass.
+Installed1748pass/42skip на каждой Pydantic2.13.5/2.14.0/2.14.1, exact319runtime/3assets.
+UI983unit/410browser pass:390existing+16mock native+4actual native; type/build/format pass.
+Два новых PostgreSQL opt-in случая локально skipped: тестовая база не выбрана.
+Четыре browser views не являются четырьмя независимыми семействами данных.
+Этот путь не материализует after snapshot и не подтверждает formal/approval.
+
 Реализована [явная частичная диагностика политик](source-partial-diagnostics.md):
 source0.2/joint0.5/risk0.3/decision0.5 сохраняют неполные наблюдения,
 `policy_changes` и общий score/band остаются null. Core и backend независимо
@@ -29,6 +43,13 @@ Ruff и mypy313default/win32/latest Python3.12/Linux pass. Все390browser chec
 исправления прошли повторную проверку.2075history и307oldinstalled/3assets сохранены.
 Эта локальная приёмка не подменяет результаты нового exact-commit CI, live
 PostgreSQL или движка. Независимое качество, formal, identity и approval не доказаны.
+
+Для опубликованного `6971d533c5ab4bbd37857e482b1fd4f38f403078` все четыре
+[CI jobs](https://github.com/itbortnik/netconfig-sentinel/actions/runs/40238514344)
+успешны: backend5267pass/91skip/92%coverage; PostgreSQL755pass/2skip/12deselected;
+Batfish143+2saved-candidate pass; frontend957unit/390browser+162Compose pass.
+Это actual CI той поставки, включая отдельные PostgreSQL cases; он не превращает
+локальные skips в local pass и не доказывает качество моделей или всю сеть.
 
 Для доступной части §16.4/§16.5/§16.7 добавлены
 [наблюдения выбранных точек входа и адресов источника](source-ingress-observations.md):

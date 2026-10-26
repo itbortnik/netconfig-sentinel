@@ -482,6 +482,34 @@ input[type="checkbox"] {
   overflow-wrap: anywhere;
   margin-top: 20px;
 }
+.native-patch-panel {
+  border-top: 1px solid #c7d5e8;
+  margin-top: 24px;
+  padding-top: 18px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.native-patch-panel h5 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+.native-patch-panel .checkbox-label {
+  margin: 12px 0;
+}
+.native-patch-panel button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.native-commands {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.native-uncertain {
+  padding: 12px;
+  border: 1px solid #ead59c;
+  border-radius: 5px;
+}
 .comparison-panel li {
   margin-bottom: 8px;
 }

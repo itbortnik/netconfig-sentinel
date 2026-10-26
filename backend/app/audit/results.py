@@ -34,6 +34,11 @@ from app.api.grounded_explanation_contracts import (
 from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedModelPatchCapabilities
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
+from app.api.native_patch_contracts import (
+    NativePatchCandidate,
+    NativePatchSelection,
+    NativePatchSummary,
+)
 from app.api.patch_contracts import PatchDraft, PatchSummary, VerificationRun, VerificationSummary
 from app.api.source_deterministic_contracts import (
     SourceDeterministicRecheck,
@@ -124,6 +129,7 @@ _IDENTIFIERS = (
     "report_id",
     "assessment_id",
     "before_analysis_id",
+    "candidate_id",
 )
 _HASHES = (
     "source_sha256",
@@ -141,6 +147,7 @@ _VERSIONS = (
     "detector_version",
     "knowledge_version",
     "privacy_version",
+    "generator_version",
 )
 _SUPPORTED = (
     AnalysisResult,
@@ -205,6 +212,9 @@ _SUPPORTED = (
     SourceMlRecheck,
     SourceMlSummary,
     ModelPatchProposal,
+    NativePatchCandidate,
+    NativePatchSelection,
+    NativePatchSummary,
     ModelPatchCapabilities,
     GroundedModelPatchProposal,
     SavedModelPatchCapabilities,
@@ -231,6 +241,13 @@ def _selected(value: BaseModel) -> dict[str, object]:
         item = getattr(value, name, None)
         if isinstance(item, str):
             selected[name] = item
+    if isinstance(value, (NativePatchCandidate, NativePatchSummary)):
+        # Bind only safe identity/version/proof metadata, never commands or findings.
+        selected["review_sha256"] = value.review_sha256
+        selected["status"] = value.status
+        if isinstance(value, NativePatchCandidate):
+            selected["analysis_id"] = str(value.request.analysis_id)
+            selected["finding_id"] = str(value.request.finding_id)
     if isinstance(
         value,
         (

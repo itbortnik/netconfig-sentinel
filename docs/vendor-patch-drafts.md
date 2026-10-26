@@ -69,6 +69,11 @@ Hash/finding UUID не аутентифицирует физическое ус�
 
 ## Private artifact и CLI
 
+Отдельная [API/UI-интеграция сохранённого Telnet-кандидата](saved-native-candidates.md)
+использует retained original, отдельное согласие на
+хранение точных зашифрованных before/candidate и безопасный metadata-ответ. Текущий
+scope не материализует snapshots/object drafts и не запускает downstream-проверки.
+
 До запуска сохраните original snapshot в закрытом каталоге для проверки/rollback.
 Hash — UTF-8 текста после снятия возможного BOM при чтении, с сохранёнными CRLF.
 Передайте hash выбранной версии, не placeholder:

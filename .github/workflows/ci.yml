@@ -134,6 +134,7 @@ jobs:
           backend/tests/integration/test_source_partial_diagnostic_storage.py
           backend/tests/integration/test_source_partial_evidence_api.py
           backend/tests/integration/test_source_partial_postgres.py
+          backend/tests/integration/test_native_patch_postgres.py
           backend/tests/integration/test_source_evidence_api.py
           backend/tests/integration/test_source_evidence_decision_api.py
           backend/tests/integration/test_source_evidence_sdk_api.py
@@ -183,6 +184,10 @@ jobs:
       - run: npm run test:e2e
       - name: Check owned synthetic model-candidate browser workflow
         run: npm run test:e2e:model-patches
+      - name: Check authored native-candidate component controls
+        run: npm run test:e2e:native-patches
+      - name: Check retained-source native generation and restarted HTTP history
+        run: npx playwright test --config=playwright.native-http.config.ts
       - name: Check owned synthetic retained-source browser workflow
         run: npm run test:e2e:source-patches
       - name: Check owned synthetic paired source model browser workflow
@@ -209,6 +214,8 @@ jobs:
           name: owned-model-candidate-browser-results
           path: |
             artifacts/browser-model-patches-junit.xml
+            artifacts/browser-native-patches-junit.xml
+            artifacts/native-http-browser-*-junit.xml
             artifacts/browser-source-patches-junit.xml
             artifacts/browser-source-ml-junit.xml
             artifacts/browser-source-forest-junit.xml

@@ -518,6 +518,7 @@ def test_paginated_history_scopes_both_parent_ids_and_has_a_stable_tie_order(sav
 def test_populated_15_to_16_upgrade_is_additive_and_repeatable(saved_report):
     store, _settings, report, _deterministic = saved_report
     with store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.exec_driver_sql("DROP TABLE patch_evidence_decisions")
         connection.execute(
@@ -536,7 +537,7 @@ def test_populated_15_to_16_upgrade_is_additive_and_repeatable(saved_report):
     assert not store.ready()
     upgrade_database(store.engine)
     upgrade_database(store.engine)
-    assert SCHEMA_REVISION == "0017_source_risk_assessments"
+    assert SCHEMA_REVISION == "0018_native_patch_candidates"
     assert store.ready() and physical() == before
     records = SourceEvidenceDecisionRecords(store)
     assert records.add(prepare(records, report))[1]

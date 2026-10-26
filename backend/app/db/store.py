@@ -95,6 +95,7 @@ class Store:
                     "patch_evidence_reports",
                     "patch_evidence_decisions",
                     "patch_risk_assessments",
+                    "native_patch_candidates",
                     "operation_receipts",
                     "operation_completions",
                     "configuration_sources",
