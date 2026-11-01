@@ -9,6 +9,7 @@ import type {
 import { diffBound, diffInput, diffSelection } from "./diff";
 import type { DiffSelection } from "./diff";
 import { date } from "./format";
+import type { NativeMaterialization } from "./nativeMaterializations";
 
 const sectionNames: Record<ObjectChange["section"], string> = {
   device: "Метаданные устройства",
@@ -75,6 +76,7 @@ export function DiffPanel({
   onClear,
   onCompare,
   onError,
+  nativeOrigin,
 }: {
   client: ApiClient;
   snapshot: ConfigurationSnapshot;
@@ -82,6 +84,7 @@ export function DiffPanel({
   busy: boolean;
   onClear: () => void;
   onError: (problem: unknown) => void;
+  nativeOrigin?: NativeMaterialization | null;
   onCompare: (
     current: string,
     reference: string,
@@ -247,6 +250,7 @@ export function DiffPanel({
         </div>
       )}
       <PatchPanel
+        nativeOrigin={nativeOrigin}
         client={client}
         snapshot={snapshot}
         diff={report}

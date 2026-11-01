@@ -499,6 +499,7 @@ def test_global_sql_uuid_and_foreign_keys_restrict_parent_deletion(owned_store):
 def test_populated_17_to_18_upgrade_keeps_old_rows_exactly_and_is_repeatable(owned_store):
     private = prepare_owned_candidate(owned_store)
     with owned_store.engine.begin() as connection:
+        connection.exec_driver_sql("DROP TABLE native_materializations")
         connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.execute(
             text("UPDATE alembic_version SET version_num='0017_source_risk_assessments'")
@@ -516,6 +517,6 @@ def test_populated_17_to_18_upgrade_keeps_old_rows_exactly_and_is_repeatable(own
     assert not owned_store.ready()
     upgrade_database(owned_store.engine)
     upgrade_database(owned_store.engine)
-    assert SCHEMA_REVISION == "0018_native_patch_candidates"
+    assert SCHEMA_REVISION == "0019_native_materializations"
     assert owned_store.ready() and physical() == old
     assert NativePatchRecords(owned_store).save(private)[1]

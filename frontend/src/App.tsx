@@ -26,6 +26,9 @@ import { DiffPanel } from "./DiffPanel";
 import { diffSelection } from "./diff";
 import type { DiffSelection } from "./diff";
 import { AuditPanel } from "./AuditPanel";
+import { NativeOriginBanner } from "./NativeOriginBanner";
+import { nativeOriginSnapshotBound } from "./nativeMaterializations";
+import type { NativeMaterialization } from "./nativeMaterializations";
 
 function Login({
   busy,
@@ -129,6 +132,8 @@ export function App() {
   const [snapshotOnly, setSnapshotOnly] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [snapshot, setSnapshot] = useState<ConfigurationSnapshot | null>(null);
+  const [nativeOrigin, setNativeOrigin] =
+    useState<NativeMaterialization | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [reference, setReference] = useState<SelectedSnapshot | null>(null);
   const [peers, setPeers] = useState<SelectedSnapshot[]>([]);
@@ -155,6 +160,7 @@ export function App() {
     setConfigurations([]);
     setAnalyses([]);
     setSnapshot(null);
+    setNativeOrigin(null);
     setResult(null);
     setReference(null);
     setPeers([]);
@@ -284,6 +290,7 @@ export function App() {
       const created = await client.upload(body);
       if (active.current !== client) return;
       setSnapshot(created);
+      setNativeOrigin(null);
       setResult(null);
       setTab("configurations");
       setConfigOffset(0);
@@ -291,6 +298,7 @@ export function App() {
     });
   }
   function openSnapshot(id: string) {
+    setNativeOrigin(null);
     setSnapshot(null);
     setResult(null);
     void operation(async (client) => {
@@ -310,6 +318,7 @@ export function App() {
       );
   }
   function openAnalysis(id: string) {
+    setNativeOrigin(null);
     setSnapshot(null);
     setResult(null);
     void operation(async (client) => {
@@ -320,6 +329,26 @@ export function App() {
         setSnapshot(config);
         setResult(analysis);
       }
+    });
+  }
+  function openMaterialized(origin: NativeMaterialization) {
+    void operation(async (client) => {
+      const selected = await client.configuration(
+        origin.after.configuration_id,
+      );
+      if (!nativeOriginSnapshotBound(origin, selected))
+        throw new ApiError(
+          0,
+          "Сгенерированный снимок не соответствует записи происхождения.",
+        );
+      if (active.current !== client) return;
+      setSnapshot(selected);
+      setResult(null);
+      setNativeOrigin({ ...origin });
+      setDiffReference(null);
+      setTab("configurations");
+      setConfigOffset(0);
+      setRefresh((value) => value + 1);
     });
   }
   function analyze() {
@@ -656,6 +685,15 @@ export function App() {
               </p>
             )}
             {snapshot && (
+              <NativeOriginBanner
+                key={snapshot.configuration_id}
+                snapshot={snapshot}
+                client={session}
+                busy={busy}
+                onOpen={openMaterialized}
+              />
+            )}
+            {snapshot && (
               <SnapshotView
                 snapshot={snapshot}
                 busy={busy}
@@ -692,6 +730,12 @@ export function App() {
             )}
             {snapshot && (
               <DiffPanel
+                nativeOrigin={
+                  nativeOrigin?.after.configuration_id ===
+                  snapshot.configuration_id
+                    ? nativeOrigin
+                    : null
+                }
                 client={session!}
                 key={`${snapshot.configuration_id}:${diffReference?.configuration_id ?? "none"}`}
                 snapshot={snapshot}
@@ -730,6 +774,7 @@ export function App() {
             />
             {result && (
               <AnalysisView
+                onOpenMaterialization={openMaterialized}
                 key={result.analysis_id}
                 result={result}
                 snapshot={snapshot}

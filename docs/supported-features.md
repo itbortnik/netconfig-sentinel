@@ -123,6 +123,12 @@ Telnet-removal subset on complete retained originals, with explicit private-copy
 retention consent and immutable encrypted history. It does not expand supported
 vendor syntax or create downstream verification evidence.
 
+An explicit [native-to-ordinary materialization](native-materialization.md) action
+creates a generated after snapshot and ordinary draft from those exact saved
+candidate bytes. It adds no vendor syntax; schema1.2 stays Cisco-only. The
+generated origin remains visible when entering ordinary history. Policy/model/
+network checks are separate actions; materialization creates none of that evidence.
+
 - VRF/routing-instance assignment, aggregation, tunnel parameters, and
   operational state beyond the commands listed above remain unparsed;
 - VTP, private VLANs, Q-in-Q, JunOS `vlan-id-list`, and incremental IOS trunk

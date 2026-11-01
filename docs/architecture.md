@@ -62,6 +62,15 @@ historical reads validate saved text transformations without rerunning current
 parsers, policies or the generator. No model, after-snapshot materialization,
 downstream verification, approval or application is implied by this path.
 
+A separate [materialization action](native-materialization.md) connects a saved
+native candidate to an ordinary object draft. It reparses exact retained text,
+checks the bounded Telnet-only normalized change, then atomically saves the new
+snapshot, encrypted source, draft, generated-origin proof and four audit events.
+The original source row is required for fresh admission; private native history
+is never a restoration fallback. Replay/history use saved dependencies without
+current parsing or source reads. Existing policy review remains an explicit
+subsequent action, with its own immutable result and qualification.
+
 A separate read-only POST binds an explicit analysis/finding hash to its saved
 local explanation and retrieves exact sections of eight allowlisted project
 documents. Ingestion is bounded; source/chunk/catalog hashes identify the sealed

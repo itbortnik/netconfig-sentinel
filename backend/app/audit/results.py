@@ -34,6 +34,7 @@ from app.api.grounded_explanation_contracts import (
 from app.api.grounded_patch_contracts import GroundedModelPatchProposal, SavedModelPatchCapabilities
 from app.api.model_patch_contracts import ModelPatchCapabilities, ModelPatchProposal
 from app.api.model_patch_review_contracts import SavedPatchDecision, SavedPatchVerification
+from app.api.native_materialization_contracts import NativeMaterialization
 from app.api.native_patch_contracts import (
     NativePatchCandidate,
     NativePatchSelection,
@@ -216,6 +217,7 @@ _SUPPORTED = (
     NativePatchSelection,
     NativePatchSummary,
     ModelPatchCapabilities,
+    NativeMaterialization,
     GroundedModelPatchProposal,
     SavedModelPatchCapabilities,
     SavedPatchVerification,
@@ -248,6 +250,12 @@ def _selected(value: BaseModel) -> dict[str, object]:
         if isinstance(value, NativePatchCandidate):
             selected["analysis_id"] = str(value.request.analysis_id)
             selected["finding_id"] = str(value.request.finding_id)
+    if isinstance(value, NativeMaterialization):
+        selected["review_sha256"] = value.review_sha256
+        selected["native_review_sha256"] = value.native_review_sha256
+        selected["status"] = value.status
+        selected["before_configuration_id"] = str(value.before.configuration_id)
+        selected["after_configuration_id"] = str(value.after.configuration_id)
     if isinstance(
         value,
         (

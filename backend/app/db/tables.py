@@ -330,3 +330,18 @@ class NativePatchCandidateRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     public_sha256: Mapped[str] = mapped_column(String(64))
     payload: Mapped[str] = mapped_column(Text)
+
+
+class NativeMaterializationRow(Base):
+    __tablename__ = "native_materializations"
+    candidate_id: Mapped[str] = mapped_column(
+        ForeignKey("native_patch_candidates.id"), primary_key=True
+    )
+    before_configuration_id: Mapped[str] = mapped_column(ForeignKey("configurations.id"))
+    after_configuration_id: Mapped[str] = mapped_column(
+        ForeignKey("configurations.id"), unique=True
+    )
+    patch_id: Mapped[str] = mapped_column(ForeignKey("patch_proposals.id"), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    public_sha256: Mapped[str] = mapped_column(String(64))
+    payload: Mapped[str] = mapped_column(Text)

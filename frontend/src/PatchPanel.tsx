@@ -22,6 +22,11 @@ import { SourceMlRecheckPanel } from "./SourceMlRecheckPanel";
 import { SourceDeterministicRecheckPanel } from "./SourceDeterministicRecheckPanel";
 import { SourceForestRecheckPanel } from "./SourceForestRecheckPanel";
 import { SourceEvidenceReportPanel } from "./SourceEvidenceReportPanel";
+import {
+  nativeOriginDraftBound,
+  nativeOriginSnapshotBound,
+} from "./nativeMaterializations";
+import type { NativeMaterialization } from "./nativeMaterializations";
 
 const blockerNames: Record<string, string> = {
   formal_verification_not_run: "Формальная проверка не запускалась",
@@ -39,12 +44,14 @@ export function PatchPanel({
   diff,
   busy: outerBusy,
   onError,
+  nativeOrigin,
 }: {
   client: ApiClient;
   snapshot: ConfigurationSnapshot;
   diff: SnapshotDiff | null;
   busy: boolean;
   onError: (problem: unknown) => void;
+  nativeOrigin?: NativeMaterialization | null;
 }) {
   const [drafts, setDrafts] = useState<PatchSummary[]>([]);
   const [draft, setDraft] = useState<PatchDraft | null>(null);
@@ -59,6 +66,11 @@ export function PatchPanel({
   const locked = useRef(false);
   const createIntent = useRef<CreatePatch | null>(null);
   const reviewIntent = useRef<VerifyPatch | null>(null);
+  const openedOrigin = useRef<{
+    origin: NativeMaterialization;
+    snapshotId: string;
+    client: ApiClient;
+  } | null>(null);
   const busy = outerBusy || working;
   useEffect(() => {
     alive.current = true;
@@ -66,6 +78,37 @@ export function PatchPanel({
       alive.current = false;
     };
   }, []);
+  useEffect(() => {
+    if (
+      !nativeOrigin ||
+      outerBusy ||
+      locked.current ||
+      (openedOrigin.current?.origin === nativeOrigin &&
+        openedOrigin.current.snapshotId === snapshot.configuration_id &&
+        openedOrigin.current.client === client)
+    )
+      return;
+    openedOrigin.current = {
+      origin: nativeOrigin,
+      snapshotId: snapshot.configuration_id,
+      client,
+    };
+    void operation(async () => {
+      const received = await client.patch(nativeOrigin.patch_id);
+      if (
+        !nativeOriginSnapshotBound(nativeOrigin, snapshot) ||
+        !nativeOriginDraftBound(nativeOrigin, received) ||
+        !patchBound(received, snapshot)
+      )
+        throw conflict();
+      if (!alive.current) return;
+      setDraft(received);
+      setRun(null);
+      setRuns([]);
+      reviewIntent.current = null;
+      await refreshRuns(received, 0);
+    });
+  }, [nativeOrigin, snapshot.configuration_id, client, outerBusy, working]);
   async function operation(action: () => Promise<void>, write = false) {
     if (locked.current || outerBusy) return;
     locked.current = true;

@@ -72,7 +72,10 @@ Hash/finding UUID не аутентифицирует физическое ус�
 Отдельная [API/UI-интеграция сохранённого Telnet-кандидата](saved-native-candidates.md)
 использует retained original, отдельное согласие на
 хранение точных зашифрованных before/candidate и безопасный metadata-ответ. Текущий
-scope не материализует snapshots/object drafts и не запускает downstream-проверки.
+путь генерации не материализует snapshots/object drafts и не запускает
+downstream-проверки. Отдельное [действие материализации](native-materialization.md)
+создаёт сгенерированный after snapshot и обычный draft одной транзакцией;
+повторные проверки выполняются следующими явными действиями.
 
 До запуска сохраните original snapshot в закрытом каталоге для проверки/rollback.
 Hash — UTF-8 текста после снятия возможного BOM при чтении, с сохранёнными CRLF.

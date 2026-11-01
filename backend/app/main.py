@@ -20,6 +20,7 @@ from app.api.grounded_model_patches import router as grounded_model_patch_router
 from app.api.health import router as health_router
 from app.api.model_patch_reviews import router as model_patch_review_router
 from app.api.model_patches import router as model_patch_router
+from app.api.native_materializations import router as native_materialization_router
 from app.api.native_patches import router as native_patch_router
 from app.api.operation_audit import router as operation_audit_router
 from app.api.patches import router as patch_router
@@ -103,6 +104,7 @@ def create_app(
             source_risk_router,
             model_patch_router,
             native_patch_router,
+            native_materialization_router,
             grounded_model_patch_router,
             model_patch_review_router,
             operation_audit_router,
@@ -166,6 +168,7 @@ def create_app(
     application.include_router(source_risk_router)
     application.include_router(model_patch_router)
     application.include_router(native_patch_router)
+    application.include_router(native_materialization_router)
     application.include_router(grounded_model_patch_router)
     application.include_router(model_patch_review_router)
     application.include_router(operation_audit_router)

@@ -234,6 +234,7 @@ def test_upgrade_0016_to_0017_is_additive_and_preserves_every_old_physical_row(r
             connection.execute(text("SELECT count(*) FROM patch_risk_assessments")).scalar_one()
             == 0
         )
+        connection.exec_driver_sql("DROP TABLE native_materializations")
         connection.exec_driver_sql("DROP TABLE native_patch_candidates")
         connection.exec_driver_sql("DROP TABLE patch_risk_assessments")
         connection.execute(
@@ -244,11 +245,12 @@ def test_upgrade_0016_to_0017_is_additive_and_preserves_every_old_physical_row(r
     with store.engine.connect() as connection:
         before = physical(connection, tables)
     upgrade_database(store.engine)
-    assert SCHEMA_REVISION == "0018_native_patch_candidates" and store.schema_ready()
+    assert SCHEMA_REVISION == "0019_native_materializations" and store.schema_ready()
     assert set(inspect(store.engine).get_table_names()) == tables | {
         "alembic_version",
         "patch_risk_assessments",
         "native_patch_candidates",
+        "native_materializations",
     }
     with store.engine.connect() as connection:
         assert physical(connection, tables) == before

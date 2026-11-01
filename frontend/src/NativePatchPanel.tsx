@@ -15,6 +15,8 @@ import type {
   NativePatchSummary,
 } from "./nativePatches";
 import { date } from "./format";
+import { NativeMaterializationPanel } from "./NativeMaterializationPanel";
+import type { NativeMaterialization } from "./nativeMaterializations";
 
 const invalid = () =>
   new ApiError(
@@ -32,12 +34,14 @@ export function NativePatchPanel({
   client,
   busy,
   onError,
+  onOpenMaterialization,
 }: {
   analysis: AnalysisResult;
   finding: Finding;
   client: ApiClient;
   busy: boolean;
   onError: (problem: unknown) => void;
+  onOpenMaterialization?: (row: NativeMaterialization) => void;
 }) {
   const [open, setOpen] = useState(false),
     [loading, setLoading] = useState(false);
@@ -421,6 +425,14 @@ export function NativePatchPanel({
                   </li>
                 ))}
               </ul>
+              <NativeMaterializationPanel
+                key={candidate.candidate_id}
+                candidate={candidate}
+                client={client}
+                busy={disabled}
+                onError={onError}
+                onOpen={onOpenMaterialization}
+              />
             </div>
           )}
         </>

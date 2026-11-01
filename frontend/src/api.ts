@@ -1,5 +1,11 @@
 import { z } from "zod";
 import {
+  createNativeMaterializationSchema,
+  nativeMaterializationSchema,
+  nativeMaterializationProofMatches,
+} from "./nativeMaterializations";
+import type { CreateNativeMaterialization } from "./nativeMaterializations";
+import {
   generateNativePatchSchema,
   nativePatchSelectionSchema,
   nativePatchCandidateSchema,
@@ -268,7 +274,8 @@ export class ApiClient {
       | CreateSourceEvidenceReport
       | CreateSourceRiskAssessment
       | ReviewSourceEvidenceReport
-      | GenerateNativePatch,
+      | GenerateNativePatch
+      | CreateNativeMaterialization,
     namespace: "v1" | "v2" = "v1",
     maximumResponseBytes?: number,
   ): Promise<T> {
@@ -336,6 +343,60 @@ export class ApiClient {
         0,
         "Привязка выбора native-кандидата не подтверждена.",
       );
+    return row;
+  }
+  private async materializationResult(
+    configuration: string,
+    candidate: string,
+    options?: CreateNativeMaterialization,
+  ) {
+    const request = options
+      ? createNativeMaterializationSchema.parse(options)
+      : undefined;
+    const row = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-patches/${encodeURIComponent(candidate)}/materialization`,
+      nativeMaterializationSchema,
+      request,
+      "v2",
+      1024 * 1024,
+    );
+    if (
+      row.configuration_id !== configuration ||
+      row.candidate_id !== candidate ||
+      (request && stableJson(row.request) !== stableJson(request)) ||
+      !(await nativeMaterializationProofMatches(row))
+    )
+      throw new ApiError(0, "Привязка созданного черновика не подтверждена.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
+    return row;
+  }
+  async createNativeMaterialization(
+    configuration: string,
+    candidate: string,
+    request: CreateNativeMaterialization,
+  ) {
+    if (!this.permits("draft")) throw new ApiError(403, messages[403]!);
+    return this.materializationResult(configuration, candidate, request);
+  }
+  getNativeMaterialization(configuration: string, candidate: string) {
+    return this.materializationResult(configuration, candidate);
+  }
+  async getNativeOrigin(configuration: string) {
+    const row = await this.request(
+      `/configurations/${encodeURIComponent(configuration)}/native-origin`,
+      nativeMaterializationSchema,
+      undefined,
+      "v2",
+      1024 * 1024,
+    );
+    if (
+      row.after.configuration_id !== configuration ||
+      !(await nativeMaterializationProofMatches(row))
+    )
+      throw new ApiError(0, "Происхождение выбранного снимка не подтверждено.");
+    if (this.controller.signal.aborted)
+      throw new DOMException("Disconnected", "AbortError");
     return row;
   }
   async nativePatches(configuration: string, offset = 0) {

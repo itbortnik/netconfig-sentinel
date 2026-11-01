@@ -7,7 +7,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine
 
-SCHEMA_REVISION = "0018_native_patch_candidates"
+SCHEMA_REVISION = "0019_native_materializations"
 
 
 def upgrade_database(engine: Engine) -> None:

@@ -12,6 +12,7 @@ import { FeedbackPanel } from "./FeedbackPanel";
 import { ExplanationPanel } from "./ExplanationPanel";
 import { ModelPatchPanel } from "./ModelPatchPanel";
 import { NativePatchPanel } from "./NativePatchPanel";
+import type { NativeMaterialization } from "./nativeMaterializations";
 import { ConfigurationModelPanel } from "./ConfigurationModelPanel";
 import {
   date,
@@ -43,6 +44,7 @@ export function AnalysisView({
   busy,
   onError,
   onFeedback,
+  onOpenMaterialization,
 }: {
   result: AnalysisResult;
   snapshot: ConfigurationSnapshot | null;
@@ -53,6 +55,7 @@ export function AnalysisView({
     finding: string,
     submission: FeedbackSubmission,
   ) => Promise<FeedbackRecord | null>;
+  onOpenMaterialization?: (row: NativeMaterialization) => void;
 }) {
   const [selected, setSelected] = useState(
     result.findings[0]?.finding_id ?? null,
@@ -439,6 +442,7 @@ export function AnalysisView({
               {finding.detector === "policy_engine" &&
                 finding.category === "management.telnet_enabled" && (
                   <NativePatchPanel
+                    onOpenMaterialization={onOpenMaterialization}
                     key={`native-patch:${result.analysis_id}:${finding.finding_id}`}
                     analysis={result}
                     finding={finding}

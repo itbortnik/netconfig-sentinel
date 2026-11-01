@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "tests/browser",
-  testMatch: "native-patches.spec.ts",
+  testMatch: ["native-patches.spec.ts", "native-materialization.spec.ts"],
   outputDir: "../artifacts/browser-native-patches",
   timeout: 30_000,
   expect: { timeout: 5_000 },

@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-10-26 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-11-01 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -18,6 +18,29 @@ UI983unit/410browser pass:390existing+16mock native+4actual native; type/build/f
 Два новых PostgreSQL opt-in случая локально skipped: тестовая база не выбрана.
 Четыре browser views не являются четырьмя независимыми семействами данных.
 Этот путь не материализует after snapshot и не подтверждает formal/approval.
+
+У commit `8f07bcf241f448482048ef42e7d2d702ce73a01a`
+[все четыре CI jobs успешны](https://github.com/itbortnik/netconfig-sentinel/actions/runs/40341540889):
+backend5450pass/93skip/92%, PostgreSQL757pass/2skip/12deselected,
+UI983unit/410browser+162Compose, Batfish143+2savedcandidate.
+Два новых PostgreSQL случая действительно выполнены в выбранной тестовой среде.
+Успешные engine-проверки других путей не переносятся на нативный кандидат.
+
+Реализовано [явное создание обычного черновика из нативного кандидата](native-materialization.md):
+after snapshot, retained candidate source, обычный draft и generated origin
+сохраняются атомарно с четырьмя audit событиями. Новые два consent не заменяют
+разрешения на последующие проверки. История не требует исходных source-строк
+или текущего runtime; свежая материализация без retained before получает409.
+Backend/UI и исправление выбора draft независимо проверены. Локально:
+5602pass/76skip/92%, Ruff/mypy325pass, installed1867pass/58skip на каждой
+Pydantic2.13.5/2.14.0/2.14.1; UI1014unit/430browser/type/build/formatpass.
+Новый [actual HTTP отчёт](evaluation/owned-native-materialization-functional.json)
+показывает четыре primary случая двух авторских семей: native generation→bridge→
+отдельная policy-only перепроверка, source removal, настоящий process restart
+и reader history с неизменными proofs. В этих случаях model/engine/fits0;
+16новых PostgreSQL opt-in локально skipped. Новый exact-commit CI проверяется
+после публикации. Independent quality, vendor syntax/management access,
+formal/identity/approval этим результатом не подтверждены.
 
 Реализована [явная частичная диагностика политик](source-partial-diagnostics.md):
 source0.2/joint0.5/risk0.3/decision0.5 сохраняют неполные наблюдения,

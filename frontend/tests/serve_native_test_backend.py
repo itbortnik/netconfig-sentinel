@@ -7,6 +7,7 @@ generation and encrypted history are the real application. No model/engine is en
 import argparse
 import asyncio
 import hashlib
+import json
 import os
 import secrets
 import subprocess
@@ -24,13 +25,19 @@ for name in tuple(os.environ):
 import uvicorn  # noqa: E402
 from app.core.settings import ApiSettings  # noqa: E402
 from app.db.migrate import upgrade_database  # noqa: E402
+from app.db.native_materialization_records import NativeMaterializationRecords  # noqa: E402
 from app.db.native_patch_records import NativePatchRecords  # noqa: E402
+from app.db.patch_records import PatchRecords  # noqa: E402
 from app.db.store import Store  # noqa: E402
 from app.db.tables import (  # noqa: E402
     AuditRow,
     ConfigurationSourceRow,
+    NativeMaterializationRow,
     NativePatchCandidateRow,
+    SourceDeterministicIntentRow,
+    VerificationRow,
 )
+from app.ingestion.source_retention import StoredOriginalSource  # noqa: E402
 from app.main import create_app  # noqa: E402
 from cryptography.fernet import Fernet  # noqa: E402
 from fastapi import Request  # noqa: E402
@@ -52,7 +59,8 @@ def settings(database_url: str, key: str) -> ApiSettings:
     )
 
 
-def worker(history_only: bool) -> int:
+def worker(history_only: bool, materialization: bool = False) -> int:
+    port = 8312 if materialization else 8311
     application = create_app(
         settings(
             os.environ["SENTINEL_NATIVE_TEST_DATABASE"],
@@ -61,7 +69,10 @@ def worker(history_only: bool) -> int:
         frontend_dir=REPOSITORY / "frontend" / "dist",
     )
     store = application.state.analysis_service.store
-    state = {"generator_calls": 0, "forbidden_calls": 0, "restart_code": 0}
+    state = {
+        "generator_calls": 0, "materialization_calls": 0, "deterministic_calls": 0,
+        "forbidden_calls": 0, "restart_code": 0,
+    }
 
     import app.patching.native_patches as workflow
 
@@ -72,6 +83,23 @@ def worker(history_only: bool) -> int:
         return actual_generate(*args, **kwargs)
 
     workflow.create_vendor_draft = counted_generator
+    import app.patching.native_materialization as bridge
+    import app.patching.native_materialization_preparation as preparation
+    import app.patching.source_deterministic as deterministic
+
+    actual_prepare = bridge.prepare_native_materialization
+    actual_recheck = deterministic.recheck_original_deterministic
+
+    def counted_prepare(*args, **kwargs):
+        state["materialization_calls"] += 1
+        return actual_prepare(*args, **kwargs)
+
+    def counted_recheck(*args, **kwargs):
+        state["deterministic_calls"] += 1
+        return actual_recheck(*args, **kwargs)
+
+    bridge.prepare_native_materialization = counted_prepare
+    deterministic.recheck_original_deterministic = counted_recheck
     if history_only:
         import app.detection.policy_engine as policies
         import app.ingestion.source_retention as retention
@@ -94,12 +122,19 @@ def worker(history_only: bool) -> int:
         parsers.parse_configuration = forbidden
         policies.evaluate_policies = forbidden
         policies.POLICY_CATALOGS = {}
+        bridge.prepare_native_materialization = forbidden
+        preparation.prepare_native_materialization = forbidden
+        preparation.prepare_original_source = forbidden
+        preparation.parse_configuration_with_coverage = forbidden
+        deterministic.prepare_original_source = forbidden
+        deterministic.recheck_original_deterministic = forbidden
+        deterministic.recheck_partial_policy = forbidden
 
     async def control_allowed(request: Request, maximum: int = 0) -> bool:
         if (
             request.client is None
             or request.client.host != "127.0.0.1"
-            or request.headers.get("host") != "127.0.0.1:8311"
+            or request.headers.get("host") != f"127.0.0.1:{port}"
             or not secrets.compare_digest(
                 request.headers.get("authorization", ""), "Bearer " + CONTROL
             )
@@ -147,6 +182,64 @@ def worker(history_only: bool) -> int:
             "domain_creation_events": audit_count,
         }
 
+    def materialization_summary(candidate_id: UUID) -> dict | None:
+        record = NativeMaterializationRecords(store).get(candidate_id)
+        if record is None:
+            return None
+        native = NativePatchRecords(store).get(candidate_id)
+        draft = PatchRecords(store).get_draft(record.patch_id)
+        if native is None or draft is None:
+            raise ValueError("Owned dependency missing.")
+        with store._sessions() as session:
+            after = session.get(ConfigurationSourceRow, str(record.after.configuration_id))
+            retained = StoredOriginalSource.model_validate_json(store._decode(
+                after.payload, kind="configuration_source", row_id=after.configuration_id,
+            )) if after is not None else None
+            origin = session.get(NativeMaterializationRow, str(candidate_id))
+            events = {
+                action: session.scalar(select(func.count()).select_from(AuditRow).where(
+                    AuditRow.action == action, AuditRow.resource_id == resource_id,
+                ))
+                for action, resource_id in (
+                    ("configuration.created", str(record.after.configuration_id)),
+                    ("configuration.source_retained", str(record.after.configuration_id)),
+                    ("patch.draft_created", str(record.patch_id)),
+                    ("native_patch.materialized", str(candidate_id)),
+                )
+            }
+            return {
+                "candidate_id": str(candidate_id),
+                "after_configuration_id": str(record.after.configuration_id),
+                "patch_id": str(record.patch_id),
+                "review_sha256": record.review_sha256,
+                "retained_after_present": retained is not None,
+                "exact_private_candidate_source": (
+                    retained is not None and retained.content == native.candidate_text
+                ),
+                "both_markers_in_retained_after": (
+                    retained is not None and all(m in retained.content for m in MARKERS)
+                ),
+                "ciphertexts_omit_markers": all(
+                    m not in payload for m in MARKERS
+                    for payload in (after.payload if after else "", origin.payload)
+                ),
+                "original_source_present": session.get(
+                    ConfigurationSourceRow, str(record.configuration_id),
+                ) is not None,
+                "ordinary_draft_status": draft.status,
+                "domain_creation_events": events,
+                "local_verifications": session.scalar(
+                    select(func.count()).select_from(VerificationRow).where(
+                        VerificationRow.patch_id == str(record.patch_id),
+                    )
+                ),
+                "deterministic_attempts": session.scalar(
+                    select(func.count()).select_from(SourceDeterministicIntentRow).where(
+                        SourceDeterministicIntentRow.patch_id == str(record.patch_id),
+                    )
+                ),
+            }
+
     @application.get("/_test/native/state")
     async def inspect_state(request: Request):
         if not await control_allowed(request):
@@ -154,6 +247,8 @@ def worker(history_only: bool) -> int:
         return {
             "pid": os.getpid(), "history_only": history_only,
             "generator_calls": state["generator_calls"],
+            "materialization_calls": state["materialization_calls"],
+            "deterministic_calls": state["deterministic_calls"],
             "forbidden_calls": state["forbidden_calls"],
             "model_configured": application.state.local_model is not None,
             "network_engine_configured": (
@@ -167,6 +262,16 @@ def worker(history_only: bool) -> int:
             return JSONResponse({"detail": "Owned control denied."}, status_code=403)
         try:
             result = private_summary(candidate_id)
+            return result or JSONResponse({"detail": "Owned record missing."}, status_code=404)
+        except Exception:
+            return JSONResponse({"detail": "Owned inspection unavailable."}, status_code=503)
+
+    @application.get("/_test/native/materialized/{candidate_id}")
+    async def inspect_materialized(candidate_id: UUID, request: Request):
+        if not await control_allowed(request):
+            return JSONResponse({"detail": "Owned control denied."}, status_code=403)
+        try:
+            result = materialization_summary(candidate_id)
             return result or JSONResponse({"detail": "Owned record missing."}, status_code=404)
         except Exception:
             return JSONResponse({"detail": "Owned inspection unavailable."}, status_code=503)
@@ -204,7 +309,7 @@ def worker(history_only: bool) -> int:
         return {"shutdown_requested": True}
 
     server = uvicorn.Server(uvicorn.Config(
-        application, host="127.0.0.1", port=8311, log_level="warning", access_log=False,
+        application, host="127.0.0.1", port=port, log_level="warning", access_log=False,
     ))
     try:
         server.run()
@@ -217,11 +322,25 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--history-only", action="store_true")
+    parser.add_argument("--materialization", action="store_true")
+    parser.add_argument("--cleanup-receipt", type=Path)
     args = parser.parse_args()
+    if args.cleanup_receipt is not None:
+        artifacts = (REPOSITORY / "artifacts").resolve()
+        receipt = args.cleanup_receipt.resolve()
+        if (
+            not args.materialization or args.worker or receipt.parent != artifacts
+            or not receipt.name.startswith("native-materialization-http-browser-")
+            or not receipt.name.endswith("-cleanup.json") or receipt.exists()
+        ):
+            raise ValueError("Owned cleanup receipt path rejected.")
     if args.worker:
-        return worker(args.history_only)
+        return worker(args.history_only, args.materialization)
     # Neither the key nor private database is written to test evidence or the repository.
-    with TemporaryDirectory(prefix="sentinel-native-http-") as folder:
+    prefix = (
+        "sentinel-native-materialization-http-" if args.materialization else "sentinel-native-http-"
+    )
+    with TemporaryDirectory(prefix=prefix) as folder:
         database_url = f"sqlite:///{Path(folder) / 'history.sqlite3'}"
         key = Fernet.generate_key().decode("ascii")
         store = Store(settings(database_url, key))
@@ -234,6 +353,8 @@ def main() -> int:
         history_only = False
         while True:
             command = [sys.executable, str(Path(__file__).resolve()), "--worker"]
+            if args.materialization:
+                command.append("--materialization")
             if history_only:
                 command.append("--history-only")
             child = subprocess.Popen(
@@ -249,6 +370,14 @@ def main() -> int:
             if result not in {RESTART_HISTORY, RESTART_NORMAL}:
                 break
             history_only = result == RESTART_HISTORY
+    if args.cleanup_receipt is not None and result == 0:
+        # Published only after normal TemporaryDirectory exit. Waiting for this
+        # marker keeps Playwright from killing the supervisor before cleanup.
+        args.cleanup_receipt.write_text(json.dumps({
+            "version": "owned-native-materialization-cleanup-0.1.0",
+            "owned_temporary_storage_removed": True,
+            "supervisor_normal_exit": True,
+        }, sort_keys=True) + "\n", encoding="utf-8")
     print("Owned native test storage removed.", flush=True)
     return result
 
