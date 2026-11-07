@@ -1,0 +1,305 @@
+{
+  "applied": false,
+  "approved": false,
+  "calibrated": false,
+  "cleanup": {
+    "final_reader_server_normal_shutdown": true,
+    "first_browser_server_stop": "Ctrl-C stopped the first server; no normal-exit receipt. A separate controlled followup server supplied PID/body and normal-stop evidence.",
+    "owned_container_volume_network_removed": true,
+    "pinned_image_preserved": true,
+    "worker_network_names_absent_after_run": true
+  },
+  "composition_model_detector_engine_calls": 0,
+  "cpu_model_status": "experimental; Telnet-only injected-mutation target; uncalibrated and not activated",
+  "downloads": 0,
+  "evidence_fingerprints": {
+    "browser_receipt_sha256": "f6086129749d72c9b6f60b5913f04cd76314f1e9f00b277287dd247cf0487f1c",
+    "engine_cleanup_sha256": "5629d70cfa434bfeb4c1948302eb6b567bb11c4cf6ff4da0fafb28e253a54c88",
+    "loopback_receipt_sha256": "918f8ce439efc77862af5b248f9aadf98921947567e63784839c15e9097caa72",
+    "primary_records_sha256": "6196bb574855f8fee9ceff69e6ad3bc73ddd9b1bfbf3cf2a9abf716521f227ed",
+    "protocol_sha256": "78d55abc261e23a46d3d5f22652c8f62e33dcceeeb717815d7e29effc5896fca",
+    "shutdown_receipt_sha256": "9a712ffbe1f0f241e6bc6a9e792c5e118ed2aeb1bdf98cdaec159fb1b1c46d44"
+  },
+  "formal_qualification": "not_proven",
+  "history": {
+    "actual_loopback_response_body_comparisons": 56,
+    "asgi_response_body_comparisons": 56,
+    "exact_saved_get_list_and_same_intent_replay": true,
+    "first_service_role_time_and_proofs_preserved": true,
+    "forbidden_runtime_calls": 0,
+    "model_rows_removed": 2,
+    "retained_source_rows_removed": 10,
+    "separate_process_observed": true
+  },
+  "implementation_commit": "425b9d84d6ac4cc33554c282fc20f82c62518efa",
+  "independent_metrics": null,
+  "independent_quality_denominator": null,
+  "individual_identity_verified": false,
+  "limitations": [
+    "Two reused authored topology families and their views do not establish independent operational quality.",
+    "A native Telnet edit resolving a policy finding does not qualify vendor syntax or management SSH/AAA access.",
+    "No returned differential witness is not a safe risk zero. The selected network risk component remains unavailable.",
+    "JunOS physical-interface IPv4 eligibility remains unknown; opaque source-IP renderings and complete flow coverage are unverified.",
+    "Unitless after-side engineering priority is not probability, detector severity/confidence, calibrated risk or paired quality.",
+    "Service-role needs_more_information is neither individual identity nor approval. Nothing was applied to a device.",
+    "Regression setup fits, synthetic worker controls and CI engine cases have separate scopes and are not included in these primary invocation counts."
+  ],
+  "llm_calls": 0,
+  "materialization_model_policy_network_calls": 0,
+  "neural_side_reports": 4,
+  "new_fits_during_primary_experiment": 0,
+  "primary_authored_chains": 2,
+  "prior_forest_training": "Two reused models, each fitted earlier on eight authored configurations; no refit here",
+  "quality_proven": false,
+  "reader_browser_views": 4,
+  "recorded_utc": "2026-11-07T15:11:16.977627+00:00",
+  "records": [
+    {
+      "after_configuration_id": "fd4530dc-f4d1-4d2b-bc09-480a574486b8",
+      "after_source_sha256": "fc3d0247623b3092caf39cfc45e69c2bec7306787de0cf69d472ff5c77dfba33",
+      "applied": false,
+      "approved": false,
+      "assessment_id": "3907fa35-5642-47ce-a0e5-0266996d754a",
+      "assessment_review_sha256": "7dd7ace9819fa4dae4656f53674e649d93cf9a274a464dcd05f90fc392918f94",
+      "authored_topology_family": "owned-two-node-cisco",
+      "before_configuration_id": "7d14f038-0400-4e11-8008-4387cb90b2bf",
+      "before_source_sha256": "fb75f20bf052dd5e3d9ce7c61f11437c73e79af50982c953fdf5f85a4c3bac3c",
+      "decision_sha256": "489b832a1d5bbb03fac60c3c432855fbf9f32229df1c841e3b9cd0a04a5b1cb4",
+      "draft_sha256": "2eb3c78f23abaa3b5299c666574503f7389de7c5f9eb3667175dbd40d5d9aa4a",
+      "engineering_priority": {
+        "availability_mask": [
+          "policy",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "network_component_status": "unavailable",
+        "network_contribution": null,
+        "network_effective_weight": 0,
+        "network_raw_score": null,
+        "score": 0.5319203355095602
+      },
+      "forest_artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+      "forest_model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+      "forest_scores": {
+        "after_decision_function": 0.0005777332324019557,
+        "after_prediction": 1,
+        "after_score_samples": -0.5491916294890309,
+        "artifact_sha256": "2b668e2d2e234998a19f497e1e50def3dfca5fb55e2c950450f4e46040c25f2d",
+        "before_decision_function": 0.0005777332324019557,
+        "before_prediction": 1,
+        "before_score_samples": -0.5491916294890309,
+        "calibrated": false,
+        "model_id": "04d9a9e3-fbeb-42ff-be7a-728dd57eb64f",
+        "quality_proven": false
+      },
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "joint_report_id": "be02b811-d65a-4bf7-8a9a-b62ef22a1e80",
+      "joint_review_sha256": "dedebef2f932189e4668025e1197aca400171ca9f01f4d7c0b0a6407f0c5ef6b",
+      "materialization_review_sha256": "fb88a6bf96b3f14391a95848b2b4107bf90f1d26ea4fc3b2eceba3d0341b30fa",
+      "native_candidate_id": "10934bf6-2cd7-482a-b601-c14e104b16f2",
+      "native_review_sha256": "8f4f88b60103c77f711e4933864ed9751131e426dcb9f676b0a5272686a709cf",
+      "network": {
+        "after_network_sha256": "3a47ff767aca74812a89a6211cc8ce69976ffa58aa7c6b4fa1246e898677d40b",
+        "after_reachable_count": 1,
+        "before_network_sha256": "155bb8b315b9dab47434827c9deb40097aa2a0dafef339926d52357d1d3bf4b9",
+        "before_reachable_count": 1,
+        "cleanup_complete": true,
+        "complete_flow_coverage": false,
+        "difference_count": 0,
+        "eligibility_complete": true,
+        "engine_version": {
+          "Batfish": "2026.08.27.3685",
+          "api_version": "0.0.0"
+        },
+        "gained_witness_count": 0,
+        "impact_direction": "no_witnesses_returned",
+        "ingress_acquisition": "observed",
+        "lost_witness_count": 0,
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "sdk_observation": "observed",
+        "sdk_version": "2026.8.19.3660",
+        "semantic_ip_sets_verified": false,
+        "status": "no_differences_in_scope"
+      },
+      "neural_anomaly_scores": {
+        "after": 0.3005618453025818,
+        "before": 0.30549901723861694
+      },
+      "neural_classes": [
+        "telnet_enabled"
+      ],
+      "neural_model_card_sha256": "ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c",
+      "neural_model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+      "neural_target_semantics": "injected_mutation",
+      "neural_tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+      "original_analysis_id": "104d2bf3-3236-4243-b323-ef3846b56b34",
+      "original_analysis_sha256": "47353710362e6b695006a3661ffd78afabfa87c492c27ee6b41b388923c177ac",
+      "patch_id": "28a250b6-ebf5-4944-a244-bab387811225",
+      "selected_children": {
+        "deterministic": {
+          "record_id": "84766a7f-0e35-429f-8688-86c518d5c94c",
+          "review_sha256": "522545c1a94eeacfb1ac08b1ee4c0804521c78443d8d188aed7e2a2b09adcab7",
+          "version": "source-deterministic-recheck-0.1.0"
+        },
+        "forest": {
+          "record_id": "a8b388df-0bb6-4196-b65e-f8f8854622a9",
+          "review_sha256": "6ae8a56d17ec12f287f97c13df2fb45ab67fe53023d2f1669821ee882300aca7",
+          "version": "source-forest-recheck-0.1.0"
+        },
+        "network": {
+          "record_id": "0da357aa-f12d-441b-9d4d-0fd233fc58cd",
+          "review_sha256": "0d0df2871521ae9373aa8f055b39fb3d2944ed7e901284d3f09586e17751777f",
+          "version": "source-patch-verification-0.4.0"
+        },
+        "neural": {
+          "record_id": "46105010-d902-495b-8c0f-3e60bd331fca",
+          "review_sha256": "041d45498fb1d48654001c02992c2f0e0516407db7640a0faed1236039358e40",
+          "version": "source-ml-recheck-0.1.0"
+        }
+      },
+      "service_role_decision_id": "7820ec44-3450-4f95-a62a-75c33ba0b49a",
+      "vendor": "cisco",
+      "verdict": "needs_more_information"
+    },
+    {
+      "after_configuration_id": "fcd2ad3c-25af-4f13-989e-6fb9f314417b",
+      "after_source_sha256": "638dff88c168ad6bbb0f2cf52233e4b1d6caa8362101dafdd62462ae6af154d7",
+      "applied": false,
+      "approved": false,
+      "assessment_id": "c71402e8-9e1c-45ee-a1f3-38ce1160e6f4",
+      "assessment_review_sha256": "53308fb8c229f4b86cea73a7241563ba42fc95fa202ad0692670f97a7ef1a4b3",
+      "authored_topology_family": "owned-two-node-juniper",
+      "before_configuration_id": "cd752d2f-3f5b-417a-b43d-e05cc9fe5191",
+      "before_source_sha256": "f102f657b450d317ae141e0c8f60fce16366c9e2272d0ab89c523f934d0c218d",
+      "decision_sha256": "fbde0656006bae72a9fc727b1dde68f5617c5d29a7e07eafd23f56596dcca234",
+      "draft_sha256": "3a76148b28ce4d672db0dcb9f30c262e867a68fc85ac519d586722705a1480a3",
+      "engineering_priority": {
+        "availability_mask": [
+          "policy",
+          "statistical",
+          "transformer"
+        ],
+        "band": "high",
+        "network_component_status": "unavailable",
+        "network_contribution": null,
+        "network_effective_weight": 0,
+        "network_raw_score": null,
+        "score": 0.5302650386636907
+      },
+      "forest_artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+      "forest_model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+      "forest_scores": {
+        "after_decision_function": 0.0005777332324019557,
+        "after_prediction": 1,
+        "after_score_samples": -0.5491916294890309,
+        "artifact_sha256": "105b462acd61f1ada1dd48dd8c725705c2cddde5ef6fb14ac2800b00663b5f7b",
+        "before_decision_function": 0.0005777332324019557,
+        "before_prediction": 1,
+        "before_score_samples": -0.5491916294890309,
+        "calibrated": false,
+        "model_id": "bfa0009b-859a-49c4-bad5-306953310bf2",
+        "quality_proven": false
+      },
+      "formal_qualification": "not_proven",
+      "individual_identity_verified": false,
+      "joint_report_id": "ce61a184-44bf-4f14-9ace-ab457570a002",
+      "joint_review_sha256": "58174095b6912835af84e4f84f535dd8920988d89182e9cbdbed240e59cd46d2",
+      "materialization_review_sha256": "651d01fc0a05e0a6978f7e8090128f398450512ebd02d924c1964c9f32044b26",
+      "native_candidate_id": "39058178-6857-4546-a0e8-42a70f906abc",
+      "native_review_sha256": "5cd1d41ead6da193fcdab87881aa667759f646e3b7ed42aada059daac441d80c",
+      "network": {
+        "after_network_sha256": "682bb1ba5d03c9f66504d1b96581b8661aa26aa45e4510b029d86abdf6d432c3",
+        "after_reachable_count": 1,
+        "before_network_sha256": "16612a5952f5af122532ffe2e3c33cb4a069cf632835133406e1cee3e2c1015e",
+        "before_reachable_count": 1,
+        "cleanup_complete": true,
+        "complete_flow_coverage": false,
+        "difference_count": 0,
+        "eligibility_complete": false,
+        "engine_version": {
+          "Batfish": "2026.08.27.3685",
+          "api_version": "0.0.0"
+        },
+        "gained_witness_count": 0,
+        "impact_direction": "no_witnesses_returned",
+        "ingress_acquisition": "observed",
+        "lost_witness_count": 0,
+        "scope": {
+          "destination": "198.51.100.1/32",
+          "start_node": "edge"
+        },
+        "sdk_observation": "observed",
+        "sdk_version": "2026.8.19.3660",
+        "semantic_ip_sets_verified": false,
+        "status": "no_differences_in_scope"
+      },
+      "neural_anomaly_scores": {
+        "after": 0.2914577126502991,
+        "before": 0.2986561059951782
+      },
+      "neural_classes": [
+        "telnet_enabled"
+      ],
+      "neural_model_card_sha256": "ad9e517b768e508074906a5d057b44e36cd37c3cd6ddaa991dc183132a9dfe1c",
+      "neural_model_sha256": "289a330ab0de705396df807af86dfdf6ab9c2d14c900b14f900e9097371474b4",
+      "neural_target_semantics": "injected_mutation",
+      "neural_tokenizer_sha256": "2137cc81488dd7c09280267c7a8666f37818bf6a68e9f40aed0137d41cddcd5e",
+      "original_analysis_id": "b981b99d-82d5-433f-8642-2b0f89fb21b7",
+      "original_analysis_sha256": "19561b1a4a658e81f80337ca3b2c9cdf1054d6769fa0793c3307f6682f4ffeb5",
+      "patch_id": "fe0aafaf-744d-434d-8260-aa6d8ebca8ab",
+      "selected_children": {
+        "deterministic": {
+          "record_id": "901871b5-2f16-49a9-a982-44cfbaf94cf1",
+          "review_sha256": "bdbacaad23e347e79cdfc0e233ac1592761d87a92b253a0a99ad4e6ac133be20",
+          "version": "source-deterministic-recheck-0.1.0"
+        },
+        "forest": {
+          "record_id": "1e822018-f391-40b9-b4ce-1547dc82e433",
+          "review_sha256": "abaaecd20725a1056b1ff9b27df145cfcaf207bf7e08384600cbe276905dec74",
+          "version": "source-forest-recheck-0.1.0"
+        },
+        "network": {
+          "record_id": "f4ff5f91-d462-4701-b8b8-d2df4a6da2de",
+          "review_sha256": "2679cb38bbd5a6ef87444eda37a67f03313f839dde48bf2f1136a3f6426b0207",
+          "version": "source-patch-verification-0.4.0"
+        },
+        "neural": {
+          "record_id": "70fbeff3-e526-4ff7-be8c-405022926c3d",
+          "review_sha256": "1763ffed01e968a8a08efa475bc3a1938269f3f02d0eee2c93e3b80184854657",
+          "version": "source-ml-recheck-0.1.0"
+        }
+      },
+      "service_role_decision_id": "c1ab48b7-a716-4c10-8d8f-d155ab7735d5",
+      "vendor": "juniper",
+      "verdict": "needs_more_information"
+    }
+  ],
+  "representative_real_configurations": 0,
+  "reused_authored_topology_templates": 2,
+  "risk_fused": false,
+  "scope": "New native-to-ordinary lineage with actual selected downstream workers on two authored vendor chains",
+  "sdk_count_qualification": "Parent worker attempts are measured; internal SDK question count is not inferred",
+  "sdk_question_count": null,
+  "transport": {
+    "history_body_followup": "actual loopback HTTP/TCP in a separately observed process",
+    "primary_creation": "ASGI TestClient calls to real application/storage and actual local workers",
+    "reader_views": "actual loopback HTTP browser; desktop and mobile"
+  },
+  "version": "owned-native-full-chain-functional-0.1.0",
+  "worker_boundary_counts": {
+    "deterministic_pair": 2,
+    "forest_pair": 2,
+    "native_admission_policy": 2,
+    "native_generator": 2,
+    "network_scope_worker": 2,
+    "neural_pair_worker": 2,
+    "original_forest_evaluation": 2,
+    "original_policy": 2,
+    "vendor_review_policy": 2
+  }
+}

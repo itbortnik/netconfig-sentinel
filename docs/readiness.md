@@ -1,6 +1,6 @@
 # Состояние готовности и границы приёмки
 
-На 2026-11-01 реализован лабораторный гибридный workflow. **Полная готовность MVP
+На 2026-11-07 реализован лабораторный гибридный workflow. **Полная готовность MVP
 и production не подтверждена.** Эта карта связывает текущие возможности с
 проверяемыми evidence, не заменяет качество тестов их количеством и не объявляет
 неизвестные внешние условия выполненными.
@@ -38,9 +38,31 @@ Pydantic2.13.5/2.14.0/2.14.1; UI1014unit/430browser/type/build/formatpass.
 показывает четыре primary случая двух авторских семей: native generation→bridge→
 отдельная policy-only перепроверка, source removal, настоящий process restart
 и reader history с неизменными proofs. В этих случаях model/engine/fits0;
-16новых PostgreSQL opt-in локально skipped. Новый exact-commit CI проверяется
-после публикации. Independent quality, vendor syntax/management access,
+16новых PostgreSQL opt-in локально skipped. У опубликованного commit
+`425b9d84d6ac4cc33554c282fc20f82c62518efa`
+[все четыре CI jobs успешны](https://github.com/itbortnik/netconfig-sentinel/actions/runs/41339486349):
+backend5569pass/109skip/92%, PostgreSQL773pass/2skip/12deselected,
+UI1014unit/430browser+162Compose, Batfish143+2savedcandidate.
+Все16 новых PostgreSQL случаев выполнены внутри указанного общего результата.
+Engine-проверки прежних путей не подтверждают сеть новых native-кандидатов.
+Последующие изменения этим CI не покрыты. Independent quality, vendor syntax/management access,
 formal/identity/approval этим результатом не подтверждены.
+
+Отдельная [полная цепочка созданного native-черновика](evaluation/owned-native-full-chain-functional.json)
+выполнена для двух новых Cisco/JunOS lineage на двух повторно использованных
+авторских топологиях: original analysis → native → materialization → отдельные
+deterministic/Forest/CPU neural/Batfish → выбранный joint → priority → service-role
+`needs_more_information`. Actual neural pair workers2 (side outputs4), network
+scope workers2, новых fits/downloads/LLM0 именно в этом эксперименте.
+Оба IPv4-результата `no_differences_in_scope`, reachable1→1; network risk component
+остаётся unavailable/null, JunOS physical-ingress eligibility — unknown.
+Четыре reader browser views и 56+56 сравнений HTTP body относятся к тем же двум
+цепочкам; источники/модели удалены на отдельной копии, runtime запрещён.
+Фактические bindings, wire fingerprints и границы результата независимо проверены.
+Это не независимое качество моделей, vendor syntax, management access или approval.
+Нейронные outputs пока остаются отдельными числовыми записями: интеграция их
+допустимых результатов в общий `Finding` и его explanation/feedback flow ещё не
+выполнена; новый совместный отчёт этот пробел не закрывает.
 
 Реализована [явная частичная диагностика политик](source-partial-diagnostics.md):
 source0.2/joint0.5/risk0.3/decision0.5 сохраняют неполные наблюдения,
